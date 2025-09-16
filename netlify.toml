@@ -1,5 +1,5 @@
-﻿[functions]
-node_bundler = "esbuild"
+[functions]
+node_bundler="esbuild"
 [[edge_function]]
-function = "admin-guard"
-path = "/admin/*"
+function="admin-quard"
+path="/admin/*"

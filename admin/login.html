@@ -1,0 +1,41 @@
+﻿<!doctype html><html lang="vi"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin Login</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;
+       font:16px/1.45 system-ui,Segoe UI,Inter,Roboto;
+       background:radial-gradient(1200px 700px at 50% -10%, #ecfff6, #d7f5ec 55%, #cbeee6);}
+  .box{width:min(420px,92vw);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.85);
+       border-radius:14px;padding:16px;backdrop-filter:blur(10px) saturate(120%);
+       box-shadow:0 10px 32px rgba(0,0,0,.08);color:#0b4032}
+  h1{margin:0 0 8px}
+  .row{display:flex;gap:8px;margin:8px 0}
+  input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.6);
+        background:rgba(255,255,255,.55);color:#0b4032}
+  button{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.85);
+         background:transparent;color:#0b4032;cursor:pointer}
+  .note{color:#1d6a57;font-size:13px}
+</style></head><body>
+  <form class="box" id="f">
+    <h1>NiNi — Admin</h1>
+    <div class="note">Nhập mật khẩu admin để vào bảng điều khiển.</div>
+    <div class="row"><input id="pw" type="password" placeholder="Mật khẩu admin" required></div>
+    <div class="row"><button type="submit">Đăng nhập</button></div>
+    <div class="note" id="msg"></div>
+  </form>
+<script>
+  const msg = document.getElementById('msg');
+  document.getElementById('f').addEventListener('submit', async (e)=>{
+    e.preventDefault(); msg.textContent="Đang kiểm tra…";
+    try{
+      const r = await fetch('/.netlify/functions/admin-auth', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: document.getElementById('pw').value })
+      });
+      const j = await r.json();
+      if (!r.ok || !j.ok) { msg.textContent = j.msg || 'Sai mật khẩu.'; return; }
+      location.replace('/admin/');
+    }catch(err){ msg.textContent = err.message; }
+  });
+</script>
+</body></html>

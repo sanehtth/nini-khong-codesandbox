@@ -1,0 +1,5 @@
+﻿[functions]
+node_bundler = "esbuild"
+[[edge_function]]
+function = "admin-guard"
+path = "/admin/*"

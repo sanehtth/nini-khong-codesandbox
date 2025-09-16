@@ -1,0 +1,471 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NiNi — Funny</title>
+<link rel="icon" href="/public/assets/icons/nini_logo.webp" type="image/webp"/>
+
+<style>
+/* ===================== THEME SÁNG — KHÔNG DÙNG MÀU ĐEN ===================== */
+:root{
+  --brand: #11b186;
+  --ink: #0e2b22;
+  --muted: #356b58;
+  --glass: rgba(255,255,255,.28);
+  --glass-strong: rgba(255,255,255,.45);
+  --bg-url: url("/public/assets/bg/nini_home.webp");
+  --nav-h: 64px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink);
+  font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial;
+  background: radial-gradient(1200px 700px at 50% -10%, #ecfff6, #d7f5ec 55%, #cbeee6);
+}
+
+/* ===================== HEADER ===================== */
+header{
+  position:sticky; top:0; z-index:20;
+  height:var(--nav-h);
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,#e6fff6d0,#d2f7ebc0);
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid #c4eadf;
+}
+.brand{
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  display:flex; align-items:center; gap:10px;
+}
+.brand-logo{ height:36px; width:auto; display:block; image-rendering:auto; }
+.brand-lines{ display:flex; flex-direction:column; line-height:1.1; }
+.brand-slogan{
+  color:#2f9378; font-weight:700; font-size:14px;
+  text-shadow:0 1px 0 #fff8;
+}
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+nav{display:flex; gap:10px}
+nav .tab{
+  padding:10px 16px; border:1px solid #bde9db; border-radius:999px;
+  background:#e9fff7; color:#0a5b46; cursor:pointer;
+  box-shadow: 0 1px 0 #fff inset;
+}
+nav .tab.active{
+  background:#c9f5e6; border-color:#9fe7d1;
+  box-shadow: 0 0 0 2px #ffffffa6 inset;
+}
+#btnAuth,#btnAdmin{
+  padding:10px 16px; border-radius:999px; margin-left:8px;
+  border:1px solid #b7e6d8; background:#eafff6; color:#0b5b46; cursor:pointer;
+}
+
+/* ===================== KHUNG HIỂN THỊ ===================== */
+.viewport{
+  min-height: calc(100vh - var(--nav-h));
+  display:grid; place-items:center; background:transparent;
+}
+.frame{
+  position:relative; overflow:hidden;
+  width:min(100vw, calc(100vh * 16 / 9)); aspect-ratio:16/9;
+  background: center/cover no-repeat var(--bg-url);
+}
+
+/* ===================== NHÍM 2.5× CHẠY NGANG DƯỚI ===================== */
+#play{ position:absolute; inset:0; }
+#nini{
+  position:absolute; left:50%; top:65%;
+  width:215px; height:auto; translate:-50% -50%;
+  pointer-events:none; user-select:none;
+  filter: drop-shadow(0 10px 14px rgba(33,92,74,.25));
+}
+@media (max-width:640px){ #nini{ width:180px } }
+
+/* ===================== BONG BÓNG SÁNG ===================== */
+#bubble{
+  position:absolute; max-width:min(560px,58%);
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,255,255,.85);
+  color:#0b4032; border-radius:14px; padding:14px 16px;
+  backdrop-filter: blur(8px) saturate(140%); line-height:1.6; z-index:6;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+#bubble.left  { left:18px;  bottom:130px }
+#bubble.right { right:18px; bottom:130px }
+#bubble h4{ margin:0 0 6px 0; color:#086b52; font-weight:800; font-size:14px }
+#bubble.hide{ display:none }
+
+/* ===================== HIỆU ỨNG MÙA ===================== */
+.fx{position:absolute; inset:0; pointer-events:none; overflow:hidden}
+.fx > i{ position:absolute; width:26px; height:26px; opacity:.9; filter:drop-shadow(0 3px 2px rgba(0,0,0,.12))}
+.fx.spring > i{ background:center/contain no-repeat url("/public/assets/icons/flower.webp")}
+.fx.summer > i{ background:center/contain no-repeat url("/public/assets/icons/drop.webp")}
+.fx.autumn > i{ background:center/contain no-repeat url("/public/assets/icons/leaf.webp")}
+.fx.winter > i{ background:center/contain no-repeat url("/public/assets/icons/snow.webp")}
+
+/* ===================== FOOTER ===================== */
+footer{
+  position:sticky; bottom:0; z-index:5;
+  display:flex; justify-content:center; gap:18px; padding:10px 0;
+  color:#085444; background:linear-gradient(180deg,transparent,#e6fff5 70%);
+  border-top:1px solid #c4eadf;
+}
+footer a{ color:#0b6955; opacity:.9; text-decoration:none } footer a:hover{ opacity:1 }
+
+/* ===================== MODAL GLASS (KHÔNG OVERLAY ĐEN) ===================== */
+.modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:50; }
+.modal.show{ display:flex }
+.modal::before{
+  content:""; position:absolute; inset:0;
+  background: radial-gradient(600px 300px at 50% 20%, rgba(255,255,255,.25), rgba(255,255,255,.12));
+  backdrop-filter: blur(3px);
+}
+.sheet{
+  position:relative; z-index:1; width:min(520px, 92vw);
+  background: var(--glass);
+  border:1px solid var(--glass-strong);
+  border-radius:14px; color:#0b4032; padding:16px;
+  backdrop-filter: blur(10px) saturate(120%);
+  box-shadow: 0 10px 32px rgba(0,0,0,.08);
+}
+.sheet h3{ margin:0 0 8px }
+.sheet .row{ display:flex; gap:8px; margin:8px 0 }
+.sheet input,.sheet textarea{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.6);
+  background: rgba(255,255,255,.55); color:#0b4032;
+}
+.sheet .btn{
+  padding:10px 14px; border-radius:10px; cursor:pointer;
+  background: transparent; color:#0b4032;
+  border:1px solid rgba(255,255,255,.85);
+}
+.sheet .ghost{ background: transparent; border:1px solid rgba(255,255,255,.6); color:#0b4032; }
+.sheet .x{ position:absolute; right:8px; top:8px; background: rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.85); border-radius:8px; padding:6px 8px; color:#0b4032; }
+.note{ color:#1d6a57; font-size:13px }
+
+/* Responsive brand */
+@media (max-width:520px){
+  .brand{ gap:8px }
+  .brand-logo{ height:30px }
+  .brand-slogan{ font-size:13px }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <!-- Logo + Slogan -->
+  <div class="brand">
+    <img class="brand-logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny"/>
+    <div class="brand-lines">
+      <b class="sr-only">NiNi — Funny</b>
+      <span class="brand-slogan">Chơi mê ly, bứt phá tư duy</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <nav id="tabs">
+    <a class="tab active" data-page="home">Home</a>
+    <a class="tab" data-page="spring">Spring</a>
+    <a class="tab" data-page="summer">Summer</a>
+    <a class="tab" data-page="autumn">Autumn</a>
+    <a class="tab" data-page="winter">Winter</a>
+  </nav>
+
+  <!-- Auth/Admin -->
+  <div>
+    <button id="btnAdmin" style="display:none">Admin</button>
+    <button id="btnAuth">Đăng nhập / Đăng ký</button>
+  </div>
+</header>
+
+<main class="viewport">
+  <section class="frame" id="frame">
+    <div id="play"></div>
+    <img id="nini" src="/public/assets/icons/nini.webp" alt="NiNi"/>
+    <div id="bubble" class="hide left">
+      <h4 id="bbTitle"></h4>
+      <div id="bbText"></div>
+    </div>
+    <div id="fx" class="fx"></div>
+  </section>
+</main>
+
+<footer>
+  <a href="#" data-act="intro">Giới thiệu</a> –
+  <a href="#" data-act="rules">Luật chơi</a> –
+  <a href="#" data-act="forum">Diễn đàn</a> –
+  <a href="#" data-act="feedback">Góp ý</a>
+</footer>
+
+<!-- ===== MODAL AUTH ===== -->
+<div id="authModal" class="modal" aria-hidden="true">
+  <div class="sheet">
+    <button class="x" data-close>✕</button>
+    <h3>NiNi — Funny</h3>
+    <div class="note">Đăng nhập để tham gia câu lạc bộ</div>
+    <div class="row"><input id="em" type="email" placeholder="you@example.com"/></div>
+    <div class="row"><input id="pw" type="password" placeholder="Mật khẩu"/></div>
+    <div class="row">
+      <button class="btn" id="doSignIn">Đăng nhập</button>
+      <button class="btn ghost" id="doSignUp">Tạo tài khoản</button>
+      <button class="btn ghost" id="doGoogle">Đăng nhập Google</button>
+    </div>
+    <div class="note" id="authNote"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL GÓP Ý ===== -->
+<div id="fbModal" class="modal" aria-hidden="true">
+  <div class="sheet">
+    <button class="x" data-close>✕</button>
+    <h3>Góp ý cho NiNi</h3>
+    <div class="row"><input id="fbNick" placeholder="Biệt danh (hiện công khai)"/></div>
+    <div class="row"><textarea id="fbText" rows="5" placeholder="Nội dung góp ý…"></textarea></div>
+    <div class="row"><button class="btn" id="sendFb">Gửi góp ý</button></div>
+    <div class="note" id="fbNote"></div>
+  </div>
+</div>
+
+<script>
+/* ===================== CONFIG ===================== */
+const FB_CONFIG = {
+  	 apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+ 	 authDomain: "nini-8f3d4.firebaseapp.com",
+ 	 projectId: "nini-8f3d4",
+  	 appId: "1:991701821645:web:fb21c357562c6c801da184"
+};
+const ADMINS = ["hongphuc171@gmail.com"]; // thêm email admin của bạn
+
+/* ===================== NAV + BACKGROUND ===================== */
+const bgMap = {
+  home  : "/public/assets/background/nini-home.webp",
+  spring: "/public/assets/images/seasons/spring.webp",
+  summer: "/public/assets/images/seasons/summer.webp",
+  autumn: "/public/assets/images/seasons/autumn.webp",
+  winter: "/public/assets/images/seasons/winter.webp",
+};
+const fxType = {home:"", spring:"spring", summer:"summer", autumn:"autumn", winter:"winter"};
+const frame = document.getElementById('frame');
+const fx = document.getElementById('fx');
+
+function setPage(p){
+  document.querySelectorAll('nav .tab').forEach(t=>t.classList.toggle('active', t.dataset.page===p));
+  document.documentElement.style.setProperty('--bg-url', `url("${bgMap[p]}")`);
+  fx.className = 'fx ' + (fxType[p]||'');
+  seedFX();
+  hideBubble();
+}
+document.getElementById('tabs').addEventListener('click',(e)=>{
+  const a=e.target.closest('.tab'); if(!a) return;
+  setPage(a.dataset.page);
+});
+
+/* ===================== NHÍM: CHẠY NGANG DƯỚI ===================== */
+const nini = document.getElementById('nini');
+let vx = 0.10; // tốc độ ngang
+let last = performance.now(), tAccum = 0;
+
+function tick(t){
+  const dt = t - last; last = t; tAccum += dt;
+
+  const rect = frame.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+  const half = nini.getBoundingClientRect().width/2;
+
+  const baseY = h - 86;                     // vùng dưới màn hình
+  let x = parseFloat(nini.style.left) || (w/2);
+
+  x += vx * dt;
+  if(x < half){ x = half; vx = Math.abs(vx); }
+  if(x > w - half){ x = w - half; vx = -Math.abs(vx); }
+
+  const bob = Math.sin(tAccum/480)*8;       // bập bềnh nhẹ
+  nini.style.left = x + "px";
+  nini.style.top  = (baseY + bob) + "px";
+
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+/* ===================== BONG BÓNG ===================== */
+const bubble = document.getElementById('bubble');
+const bbTitle = document.getElementById('bbTitle');
+const bbText  = document.getElementById('bbText');
+function speak(side,title,html){
+  bubble.classList.remove('hide','left','right');
+  bubble.classList.add(side==='left'?'left':'right');
+  bbTitle.textContent = title||"";
+  bbText.innerHTML = html||"";
+}
+function hideBubble(){ bubble.classList.add('hide'); }
+const SCRIPT = {
+  intro:{side:'left',title:'Xin chào 👋',
+    html:`Chào mừng bạn đến thế giới của mình. <b>NiNi-Funny</b> — chơi mê ly, bứt phá tư duy!<br/>
+          Hãy bấm các mục bên dưới để khám phá nhé!`},
+  rules:{side:'right',title:'Luật chơi',
+    html:`Đăng nhập để vào câu lạc bộ. Đọc sách, xem video, chơi game để nhận <i>kinh nghiệm</i> và <i>xu</i> — đổi quà trong <b>Shop</b>!`},
+  forum:{side:'left',title:'Diễn đàn',
+    html:`Khu sinh hoạt của các bạn nhỏ — kể chuyện, khoe thành tích và giúp nhau học tiếng Anh!`}
+};
+document.querySelector('footer').addEventListener('click',(e)=>{
+  const a=e.target.closest('a'); if(!a) return e.preventDefault();
+  const act=a.dataset.act;
+  if(act==='intro') speak(SCRIPT.intro.side,SCRIPT.intro.title,SCRIPT.intro.html);
+  else if(act==='rules') speak(SCRIPT.rules.side,SCRIPT.rules.title,SCRIPT.rules.html);
+  else if(act==='forum') speak(SCRIPT.forum.side,SCRIPT.forum.title,SCRIPT.forum.html);
+  else if(act==='feedback') openFeedback();
+  e.preventDefault();
+});
+
+/* ===================== HIỆU ỨNG MÙA (hoa rơi chậm) ===================== */
+function seedFX(){
+  fx.innerHTML = "";
+  const kind=[...fx.classList].find(c=>['spring','summer','autumn','winter'].includes(c));
+  if(!kind) return;
+  const COUNT = { spring:24, summer:30, autumn:28, winter:26 };
+  const n = COUNT[kind] || 26;
+
+  const w=frame.clientWidth, h=frame.clientHeight;
+  for(let i=0;i<n;i++){
+    const d=document.createElement('i');
+    d.style.left=Math.random()*w+"px";
+    d.style.top=(Math.random()*-h)+"px";
+    d.style.opacity=0.75+Math.random()*0.25;
+    fx.appendChild(d);
+    fall(d,kind);
+  }
+}
+function fall(el,kind){
+  const h=frame.clientHeight;
+
+  // tốc độ theo mùa (hoa rơi chậm nhất)
+  const SPEED_RANGE = {
+    spring:[2,6], summer:[8,16], autumn:[6,12], winter:[4,10]
+  };
+  const MULT = { spring:0.35, summer:0.55, autumn:0.55, winter:0.5 };
+
+  const [sMin,sMax] = SPEED_RANGE[kind] || [6,12];
+  const mul = MULT[kind] ?? 0.6;
+  const speed = sMin + Math.random()*(sMax - sMin);
+  const drift = (Math.random()>.5?1:-1)*(0.8 + Math.random()*1.2);
+
+  let y=parseFloat(el.style.top)||-40;
+  let x=parseFloat(el.style.left)||0;
+
+  function step(){
+    y += speed * mul;
+    x += drift;
+    if(y > h+40){ y = -40; x = Math.random()*frame.clientWidth; }
+    el.style.transform = `translate(${x}px, ${y}px) rotate(${(y*0.04)%360}deg)`;
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ===================== AUTH + FEEDBACK ===================== */
+let app, auth, firestore, user=null;
+const $ = s=>document.querySelector(s);
+const authModal = $('#authModal'), fbModal = $('#fbModal');
+function openModal(m){ m.classList.add('show'); }
+function closeModal(m){ m.classList.remove('show'); }
+document.querySelectorAll('[data-close]').forEach(x=> x.onclick = ()=> closeModal(x.closest('.modal')));
+
+function ensureFirebase(){
+  if(app) return;
+  try{
+    app = firebase.initializeApp(FB_CONFIG);
+    auth = firebase.auth();
+    try{ firestore = firebase.firestore(); }catch(_){}
+  }catch(e){ console.warn(e); }
+}
+function setAuthUI(){
+  const btn = document.getElementById('btnAuth');
+  const adminBtn = document.getElementById('btnAdmin');
+  if(user){
+    btn.textContent = `Xin chào, ${user.email} · Đăng xuất`;
+    btn.onclick = ()=> auth.signOut();
+    adminBtn.style.display = ADMINS.includes((user.email||'').toLowerCase()) ? 'inline-block' : 'none';
+  }else{
+    btn.textContent = "Đăng nhập / Đăng ký";
+    btn.onclick = ()=> openModal(authModal);
+    adminBtn.style.display = 'none';
+  }
+}
+document.getElementById('btnAdmin').onclick = ()=> window.open("/admin/","_blank");
+
+document.getElementById('doSignIn').onclick = async ()=>{
+  ensureFirebase();
+  const email = $('#em').value.trim();
+  const pass  = $('#pw').value;
+  const note  = $('#authNote');
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+    user = auth.currentUser; setAuthUI();
+    note.textContent = "Đăng nhập thành công!";
+    closeModal(authModal);
+  }catch(e){ note.textContent = e.message; }
+};
+document.getElementById('doSignUp').onclick = async ()=>{
+  ensureFirebase();
+  const email = $('#em').value.trim();
+  const pass  = $('#pw').value;
+  const note  = $('#authNote');
+  try{
+    await auth.createUserWithEmailAndPassword(email, pass);
+    user = auth.currentUser; setAuthUI();
+    note.textContent = "Tạo tài khoản thành công!";
+    closeModal(authModal);
+  }catch(e){ note.textContent = e.message; }
+};
+document.getElementById('doGoogle').onclick = async ()=>{
+  ensureFirebase();
+  try{
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    user = auth.currentUser; setAuthUI();
+    closeModal(authModal);
+  }catch(e){ $('#authNote').textContent = e.message; }
+};
+ensureFirebase();
+if(auth){ auth.onAuthStateChanged(u=>{ user=u; setAuthUI(); }); } else { setAuthUI(); }
+
+function openFeedback(){
+  if(!user){ openModal(authModal); return; }
+  $('#fbNick').value = user.email.split('@')[0];
+  $('#fbText').value = "";
+  $('#fbNote').textContent = "Hãy chia sẻ góp ý của bạn nhé ❤️";
+  openModal(fbModal);
+}
+document.getElementById('sendFb').onclick = async ()=>{
+  const nick=$('#fbNick').value.trim();
+  const text=$('#fbText').value.trim();
+  const note=$('#fbNote');
+  if(!text){ note.textContent="Bạn chưa nhập nội dung."; return; }
+  if(firestore){
+    try{
+      await firestore.collection('feedback').add({ uid:user.uid, email:user.email, nick, text, ts:new Date().toISOString() });
+      note.textContent="Đã gửi góp ý. Cảm ơn bạn nhiều!";
+      setTimeout(()=> closeModal(fbModal), 800);
+    }catch(e){ note.textContent=e.message; }
+  }else{
+    const arr = JSON.parse(localStorage.getItem('nini_feedback')||'[]');
+    arr.push({nick,text,ts:Date.now(),email:user&&user.email});
+    localStorage.setItem('nini_feedback', JSON.stringify(arr));
+    note.textContent="Đã lưu tạm (local) — bật Firestore để gửi thật.";
+    setTimeout(()=> closeModal(fbModal), 800);
+  }
+};
+
+/* ===================== BOOT ===================== */
+setPage('home');
+seedFX();
+</script>
+
+<!-- Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+</body>
+</html>

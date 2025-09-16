@@ -241,7 +241,7 @@ const ADMINS = ["hongphuc171@gmail.com"]; // thêm email admin của bạn
 
 /* ===================== NAV + BACKGROUND ===================== */
 const bgMap = {
-  home  : "/public/assets/background/nini-home.webp",
+  home  : "/public/assets/bg/nini_home.webp",
   spring: "/public/assets/images/seasons/spring.webp",
   summer: "/public/assets/images/seasons/summer.webp",
   autumn: "/public/assets/images/seasons/autumn.webp",
@@ -325,7 +325,7 @@ function seedFX(){
   fx.innerHTML = "";
   const kind=[...fx.classList].find(c=>['spring','summer','autumn','winter'].includes(c));
   if(!kind) return;
-  const COUNT = { spring:24, summer:30, autumn:28, winter:26 };
+  const COUNT = { spring:24, summer:30, autumn:20, winter:26 };
   const n = COUNT[kind] || 26;
 
   const w=frame.clientWidth, h=frame.clientHeight;
@@ -469,3 +469,4 @@ seedFX();
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 </body>
 </html>
+

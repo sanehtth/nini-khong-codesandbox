@@ -1,41 +1,257 @@
-﻿<!doctype html><html lang="vi"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Admin Login</title>
-<style>
-  body{margin:0;min-height:100vh;display:grid;place-items:center;
-       font:16px/1.45 system-ui,Segoe UI,Inter,Roboto;
-       background:radial-gradient(1200px 700px at 50% -10%, #ecfff6, #d7f5ec 55%, #cbeee6);}
-  .box{width:min(420px,92vw);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.85);
-       border-radius:14px;padding:16px;backdrop-filter:blur(10px) saturate(120%);
-       box-shadow:0 10px 32px rgba(0,0,0,.08);color:#0b4032}
-  h1{margin:0 0 8px}
-  .row{display:flex;gap:8px;margin:8px 0}
-  input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.6);
-        background:rgba(255,255,255,.55);color:#0b4032}
-  button{padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.85);
-         background:transparent;color:#0b4032;cursor:pointer}
-  .note{color:#1d6a57;font-size:13px}
-</style></head><body>
-  <form class="box" id="f">
-    <h1>NiNi — Admin</h1>
-    <div class="note">Nhập mật khẩu admin để vào bảng điều khiển.</div>
-    <div class="row"><input id="pw" type="password" placeholder="Mật khẩu admin" required></div>
-    <div class="row"><button type="submit">Đăng nhập</button></div>
-    <div class="note" id="msg"></div>
-  </form>
-<script>
-  const msg = document.getElementById('msg');
-  document.getElementById('f').addEventListener('submit', async (e)=>{
-    e.preventDefault(); msg.textContent="Đang kiểm tra…";
-    try{
-      const r = await fetch('/.netlify/functions/admin-auth', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ password: document.getElementById('pw').value })
-      });
-      const j = await r.json();
-      if (!r.ok || !j.ok) { msg.textContent = j.msg || 'Sai mật khẩu.'; return; }
-      location.replace('/admin/');
-    }catch(err){ msg.textContent = err.message; }
-  });
-</script>
-</body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Admin Login</title>
+  <meta name="color-scheme" content="light only" />
+
+  <style>
+    :root{
+      --bg:#e9fbf3;
+      --card:rgba(255,255,255,.6);
+      --card-border:rgba(255,255,255,.9);
+      --txt:#0b3b2e;
+      --muted:#4e7b6f;
+      --brand:#1fbf86;
+      --brand-strong:#17a673;
+      --danger:#e64545;
+      --ok:#14915f;
+      --shadow:0 20px 50px rgba(30,80,60,.18);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+      color:var(--txt);
+      background:
+        radial-gradient(40% 60% at 15% 10%, #f7fff9 0%, transparent 60%),
+        radial-gradient(40% 60% at 85% 15%, #f2fffb 0%, transparent 65%),
+        linear-gradient(180deg, #f7fffb 0%, var(--bg) 100%);
+      display:grid;
+      place-items:center;
+      padding:28px 14px;
+    }
+
+    .wrap{
+      width:min(560px, 92vw);
+      background:var(--card);
+      backdrop-filter:saturate(150%) blur(8px);
+      border:1px solid var(--card-border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:28px 26px 24px;
+      position:relative;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:10px;
+    }
+    .brand img{height:42px; width:auto; display:block}
+    .brand .title{
+      font-weight:800; letter-spacing:.3px; font-size:22px;
+    }
+    .slogan{ color:var(--muted); font-size:13px; margin:0 0 4px 54px }
+
+    form{ margin-top:10px }
+    .field{
+      position:relative;
+      margin:14px 0 4px;
+    }
+    input[type="password"], input[type="text"]{
+      width:100%;
+      padding:14px 46px 14px 14px;
+      border-radius:14px;
+      border:1px solid rgba(20,140,110,.25);
+      outline:none;
+      background:rgba(255,255,255,.75);
+      transition:.2s border-color,.2s box-shadow,.2s background;
+      font-size:16px;
+      color:var(--txt);
+    }
+    input:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 4px rgba(31,191,134,.15);
+      background:#fff;
+    }
+    .toggle{
+      position:absolute; right:8px; top:50%; translate:0 -50%;
+      border:0; background:transparent; cursor:pointer;
+      padding:6px 10px; color:var(--muted); font-weight:600;
+      border-radius:10px;
+    }
+    .toggle:hover{ color:var(--brand-strong) }
+
+    .row{
+      display:flex; gap:12px; align-items:center; margin-top:12px;
+    }
+    button[type="submit"]{
+      flex:1;
+      height:44px;
+      border-radius:14px;
+      border:0;
+      background:linear-gradient(180deg, var(--brand), var(--brand-strong));
+      color:#fff; font-weight:700; letter-spacing:.2px;
+      cursor:pointer;
+      box-shadow:0 8px 22px rgba(31,191,134,.25);
+      transition:transform .06s ease, filter .15s ease;
+    }
+    button[type="submit"]:active{ transform:translateY(1px) }
+    button[disabled]{ filter:saturate(.2) brightness(.9); cursor:not-allowed }
+
+    .msg{
+      min-height:22px;
+      font-size:14px;
+      margin-top:10px;
+      color:var(--muted);
+    }
+    .msg.error{ color:var(--danger) }
+    .msg.ok{ color:var(--ok) }
+
+    .hint{
+      display:flex; gap:12px; align-items:center; color:var(--muted);
+      font-size:13px; margin-top:12px;
+    }
+    .caps{ color:#b86a00; font-weight:600; display:none }
+    .footer-links{
+      margin-top:14px; font-size:13px; color:var(--muted);
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    }
+    a{ color:var(--brand-strong); text-decoration:none }
+    a:hover{ text-decoration:underline }
+
+    .back{
+      position:absolute; inset:auto 14px -42px auto; color:var(--muted);
+      font-size:13px;
+    }
+
+    @media (max-width:420px){
+      .brand img{height:36px}
+      .brand .title{font-size:20px}
+      .slogan{margin-left:0}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" aria-labelledby="h1">
+    <div class="brand">
+      <!-- Logo: đổi src nếu bạn đặt logo chỗ khác -->
+      <img src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" onerror="this.style.display='none'">
+      <div class="title" id="h1">NiNi — Admin</div>
+    </div>
+    <p class="slogan">Chơi mê ly, bứt phá tư duy</p>
+
+    <form id="admin-form" novalidate>
+      <label for="secret" class="sr-only">Mật khẩu admin</label>
+      <div class="field">
+        <input id="secret" name="secret" type="password" inputmode="text" autocomplete="current-password"
+               placeholder="Nhập mật khẩu admin…" required aria-required="true" />
+        <button class="toggle" type="button" id="toggle" aria-label="Hiện/ẩn mật khẩu">Ẩn/Hiện</button>
+      </div>
+
+      <div class="row">
+        <button id="submit" type="submit">Đăng nhập</button>
+      </div>
+
+      <div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+      <div class="hint">
+        <span class="caps" id="capsWarn">⚠ Caps Lock đang bật</span>
+        <span>Cookie sẽ được đặt để vào khu vực quản trị.</span>
+      </div>
+
+      <div class="footer-links">
+        <span>Quên mật khẩu? Liên hệ quản trị viên.</span>
+        <a href="/admin/">← Về trang Admin</a>
+      </div>
+    </form>
+
+    <a class="back" href="/">← Về trang chủ</a>
+  </main>
+
+  <script>
+    // Nếu đã có cookie nf_admin thì chuyển thẳng vào /admin/
+    (function autoRedirectIfLoggedIn(){
+      if (document.cookie.split('; ').some(c => c.startsWith('nf_admin='))) {
+        location.replace('/admin/');
+      }
+    })();
+
+    const form = document.getElementById('admin-form');
+    const pwd  = document.getElementById('secret');
+    const msg  = document.getElementById('msg');
+    const btn  = document.getElementById('submit');
+    const tgl  = document.getElementById('toggle');
+    const caps = document.getElementById('capsWarn');
+
+    // Ẩn/hiện mật khẩu
+    tgl.addEventListener('click', () => {
+      const show = pwd.type === 'password';
+      pwd.type = show ? 'text' : 'password';
+      tgl.textContent = show ? 'Ẩn' : 'Hiện';
+      pwd.focus({preventScroll:true});
+    });
+
+    // Báo Caps Lock
+    ['keydown','keyup'].forEach(ev =>
+      pwd.addEventListener(ev, e => {
+        caps.style.display = e.getModifierState && e.getModifierState('CapsLock') ? 'inline' : 'none';
+      })
+    );
+
+    // Submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const secret = pwd.value.trim();
+      if (!secret) {
+        showMsg('Vui lòng nhập mật khẩu.', true);
+        pwd.focus();
+        return;
+      }
+      lock(true);
+      showMsg('Đang kiểm tra…');
+
+      try {
+        const res = await fetch('/.netlify/functions/admin-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secret })
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          // server trả text (hiếm) -> hiển thị text
+          data = { ok:false, message: (await res.text()) || 'Máy chủ trả về nội dung không hợp lệ.' };
+        }
+
+        if (res.ok && data && data.ok) {
+          showMsg('Đăng nhập thành công! Đang chuyển…', false, true);
+          // cho Set-Cookie áp dụng rồi điều hướng
+          setTimeout(() => location.replace('/admin/'), 350);
+        } else {
+          showMsg(data?.message || 'Đăng nhập thất bại.', true);
+        }
+      } catch (err) {
+        showMsg(err.message || 'Lỗi mạng.', true);
+      } finally {
+        lock(false);
+      }
+    });
+
+    // Helpers
+    function lock(disabled) {
+      btn.disabled = disabled;
+      pwd.disabled = disabled;
+    }
+    function showMsg(text, isError=false, isOk=false) {
+      msg.className = 'msg' + (isError ? ' error' : (isOk ? ' ok' : ''));
+      msg.textContent = text;
+    }
+  </script>
+</body>
+</html>

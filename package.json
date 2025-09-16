@@ -1,8 +1,5 @@
-﻿{
-"name":"nini-funny",
-"version":"1.0.0",
-"private":true,
-"license":"MIT",
-"type":"module",
-"dependencies":{}
- }
+{
+ "name":"nini-funny",
+ "private":true,
+ "version":"1.0.0"
+}

@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>NiNi — Funny</title>
-<link rel="icon" href="/public/assets/icons/logonini.png" type="image/webp"/>
+<link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
 
 <style>
 /* ===================== THEME SÁNG — KHÔNG DÙNG MÀU ĐEN ===================== */
@@ -326,7 +326,7 @@ function seedFX(){
   const kind=[...fx.classList].find(c=>['spring','summer','autumn','winter'].includes(c));
   if(!kind) return;
   const COUNT = { spring:24, summer:30, autumn:20, winter:26 };
-  const n = COUNT[kind] || 26;
+  const n = COUNT[kind] || 40;
 
   const w=frame.clientWidth, h=frame.clientHeight;
   for(let i=0;i<n;i++){
@@ -469,6 +469,7 @@ seedFX();
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 </body>
 </html>
+
 
 
 

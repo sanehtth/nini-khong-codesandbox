@@ -1,13 +1,8 @@
-export const handler = async () => {
-  const cookie = [
-    'nf_admin=',
-    'Path=/', 'HttpOnly', 'Secure', 'SameSite=Lax',
-    'Max-Age=0'
-  ].join('; ');
-
-  return {
-    statusCode: 200,
-    headers: { 'Set-Cookie': cookie, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ok: true })
-  };
-};
+exports.handler = async () => ({
+  statusCode: 200,
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Set-Cookie': 'nf_admin=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax; Secure',
+  },
+  body: JSON.stringify({ ok: true }),
+});

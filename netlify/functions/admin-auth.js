@@ -1,32 +1,49 @@
-export const handler = async (event) => {
+// Netlify Functions (node18)
+const resp = (status, data, extraHeaders = {}) => ({
+  statusCode: status,
+  headers: {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...extraHeaders,
+  },
+  body: JSON.stringify(data),
+});
+
+exports.handler = async (event) => {
   try {
     if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
-    }
-    const { secret } = JSON.parse(event.body || '{}');
-    if (!secret || secret !== process.env.ADMIN_SECRET) {
-      return { statusCode: 401, body: 'Unauthorized' };
+      return resp(405, { ok: false, message: 'Method not allowed' });
     }
 
-    const ttl = parseInt(process.env.ADMIN_TOKEN_TTL || '21600', 10); // 6h
-    const exp = Math.floor(Date.now() / 1000) + ttl;
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch {
+      return resp(400, { ok: false, message: 'Invalid JSON body' });
+    }
 
-    // token đơn giản (đủ cho guard cookie)
-    const token = Buffer.from(JSON.stringify({ sub: 'admin', exp }))
-      .toString('base64url');
+    const input = (body.secret || '').trim();
+    const ADMIN_SECRET = process.env.ADMIN_SECRET || '';
 
-    const cookie = [
-      `nf_admin=${token}`,
-      'Path=/', 'HttpOnly', 'Secure', 'SameSite=Lax',
-      `Max-Age=${ttl}`
-    ].join('; ');
+    if (!ADMIN_SECRET) {
+      return resp(500, { ok: false, message: 'ADMIN_SECRET is not set' });
+    }
 
-    return {
-      statusCode: 200,
-      headers: { 'Set-Cookie': cookie, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ok: true })
-    };
+    if (input !== ADMIN_SECRET) {
+      return resp(401, { ok: false, message: 'Unauthorized' });
+    }
+
+    const ttlHours = parseInt(process.env.ADMIN_TOKEN_TTL || '6', 10);
+    const expires = new Date(Date.now() + ttlHours * 3600 * 1000).toUTCString();
+
+    return resp(
+      200,
+      { ok: true },
+      {
+        // tạo cookie đăng nhập admin
+        'Set-Cookie': `nf_admin=1; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=${expires}`,
+      }
+    );
   } catch (e) {
-    return { statusCode: 500, body: 'Server error' };
+    return resp(500, { ok: false, message: e.message || 'Server error' });
   }
 };

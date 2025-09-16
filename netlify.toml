@@ -2,4 +2,7 @@
 node_bundler="esbuild"
 [[edge_function]]
 function="admin-quard"
-path="/admin/*"
+path="/admin/"
+[[edge_functions]]
+function = "admin-guard"
+path = "/admin/*"

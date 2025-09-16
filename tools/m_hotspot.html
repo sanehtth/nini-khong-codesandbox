@@ -1,0 +1,308 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Farm Hotspot Editor + Tester (Local)</title>
+<style>
+  :root { --accent:#ff7a00; --dot:28px; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;background:#f7f7f8;color:#222}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e6e6e6;background:#fff;position:sticky;top:0;z-index:10}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn{padding:8px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;transition:transform .08s ease}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:#0ea5a5;color:#fff;border-color:#0ea5a5}
+  .btn[aria-pressed="true"]{background:#0ea5a5;color:#fff;border-color:#0ea5a5}
+  .scene{max-width:1200px;margin:12px auto;padding:12px;display:grid;grid-template-columns:1fr 320px;gap:16px}
+  .imgwrap{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.08);background:#fff;display:flex;align-items:center;justify-content:center;max-height:720px}
+  .imgwrap img{max-width:100%;max-height:720px;width:auto;height:auto;display:block;user-select:none;-webkit-user-drag:none;margin:auto}
+  .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:14px;border:2px dashed #d1d5db;background:#fafafa}
+  .dot{position:absolute;transform:translate(-50%,-50%);width:var(--dot);height:var(--dot);border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px rgba(255,122,0,.22);cursor:grab}
+  .dot.debug::after{content:attr(data-name);position:absolute;top:calc(-1.8em);left:50%;transform:translateX(-50%);background:#fff;border:1px solid #ddd;border-radius:8px;padding:2px 6px;font-size:12px;white-space:nowrap}
+  .dot.active{outline:3px solid #0ea5a5;box-shadow:0 0 0 6px rgba(14,165,165,.25)}
+  @keyframes pulse{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}100%{transform:translate(-50%,-50%) scale(1)}}
+  .dot.active.pulse{animation:pulse 0.9s ease 2}
+  .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#fff;border:1px solid #e6e6e6;padding:10px 14px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+  .hint{font-size:12px;color:#666}
+  .coords{font-size:12px;color:#777;padding-left:6px}
+  aside{background:#fff;border:1px solid #ececec;border-radius:14px;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.04)}
+  aside h3{margin:0 0 6px 0;font-size:16px}
+  .field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+  .field input{padding:8px 10px;border:1px solid #ddd;border-radius:10px}
+  .row{display:flex;gap:8px}
+  .row .field{flex:1}
+  .list{max-height:240px;overflow:auto;border:1px solid #eee;border-radius:10px;padding:6px}
+  .list button{width:100%;text-align:left;border:1px solid #eee;background:#fafafa;border-radius:8px;padding:6px 8px;margin:4px 0}
+</style>
+</head>
+<body>
+  <header>
+    <div><strong>Farm Hotspot Editor + Tester</strong> <span class="hint">(Local • Chọn ảnh → tạo/chỉnh hotspot • Xuất/Nhập JSON)</span></div>
+    <div class="controls">
+      <label class="btn" style="cursor:pointer">Chọn ảnh nền
+        <input id="bgInput" type="file" accept="image/*" style="display:none" />
+      </label>
+      <button id="toggleDots" class="btn" aria-pressed="true">Ẩn/Hiện chấm</button>
+      <button id="toggleEdit" class="btn primary" aria-pressed="true">Chế độ EDIT: BẬT</button>
+      <button id="btnCopy" class="btn">Copy hotspot</button>
+      <button id="exportJson" class="btn">Xuất JSON</button>
+      <label class="btn" style="cursor:pointer">Nhập JSON
+        <input id="importJson" type="file" accept="application/json" style="display:none" />
+      </label>
+      <button id="closeImage" class="btn">Đóng ảnh</button>
+      <span id="mouseCoords" class="coords">x: -, y: -</span>
+    </div>
+  </header>
+
+  <div class="scene">
+    <div id="wrap" class="imgwrap">
+      <img id="bg" alt="Farm background" />
+      <div id="ph" class="ph">Kéo ảnh vào đây hoặc bấm <strong>Chọn ảnh nền</strong></div>
+      <!-- dots injected by JS -->
+    </div>
+
+    <aside>
+      <h3>Chi tiết hotspot</h3>
+      <div class="field">
+        <label>Chọn hotspot</label>
+        <div class="list" id="list"></div>
+        <div class="hint" id="activeInfo" style="margin-top:6px">Đang chọn: (chưa chọn)</div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>ID (nhóm logic, vd: cabbage)</label>
+          <input id="f_id" />
+        </div>
+        <div class="field">
+          <label>Tên EN (hiển thị)</label>
+          <input id="f_name" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Tên VI (gợi ý)</label>
+        <input id="f_vi" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>X %</label>
+          <input id="f_x" type="number" step="0.1" />
+        </div>
+        <div class="field">
+          <label>Y %</label>
+          <input id="f_y" type="number" step="0.1" />
+        </div>
+        <div class="field">
+          <label>Radius</label>
+          <input id="f_r" type="number" step="0.5" />
+        </div>
+      </div>
+      <div class="row">
+        <button id="btnUpdate" class="btn primary">Cập nhật</button>
+        <button id="btnAdd" class="btn">Thêm mới</button>
+        <button id="btnDelete" class="btn" style="color:#b91c1c;border-color:#f3d1d1">Xoá</button>
+      </div>
+      <p class="hint">EDIT=BẬT → click ảnh để tạo hotspot. <strong>Giữ Shift rồi click</strong> để <strong>copy</strong> hotspot đang chọn tại vị trí trỏ chuột. Nút <em>Copy hotspot</em> sẽ nhân bản chấm đang chọn (dịch +5% x/y) và chọn bản sao để chỉnh tiếp. TEST=TẮT → click ảnh để kiểm tra bắt trúng.</p>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast" style="display:none">Bạn đã tìm ra 🎉</div>
+
+<script>
+/* ====== State ====== */
+var hotspots = [];
+var wrap = document.getElementById('wrap');
+var bg   = document.getElementById('bg');
+var ph   = document.getElementById('ph');
+var toast= document.getElementById('toast');
+var coords= document.getElementById('mouseCoords');
+var listEl = document.getElementById('list');
+var showDots = true;
+var editMode = true;
+var activeIndex = -1;
+var draggingIndex = -1;
+var dirty = false; // có thay đổi chưa export
+
+/* ====== Utils ====== */
+function pctFromClientPoint(e){
+  var rect = wrap.getBoundingClientRect();
+  var x = ((e.clientX - rect.left) / rect.width) * 100;
+  var y = ((e.clientY - rect.top)  / rect.height) * 100;
+  return {x:x, y:y};
+}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+function dist(a,b){ var dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
+function showToast(text){
+  toast.textContent = text || 'Bạn đã tìm ra 🎉';
+  toast.style.display = 'block';
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(function(){ toast.style.display='none'; }, 1300);
+}
+
+/* ====== Render ====== */
+function render(){
+  // dots
+  var olds = wrap.querySelectorAll('.dot');
+  for(var k=0;k<olds.length;k++) olds[k].remove();
+  if(showDots){
+    for(var i=0;i<hotspots.length;i++){
+      (function(i){
+        var h = hotspots[i];
+        var d = document.createElement('div');
+        d.className='dot debug'+(i===activeIndex?' active pulse':'');
+        d.dataset.index = i;
+        d.dataset.name = h.name || h.id || 'item';
+        d.style.left=h.x+'%';
+        d.style.top =h.y+'%';
+        d.title = (h.name||h.id) + ' ('+h.x.toFixed(1)+'%, '+h.y.toFixed(1)+'%) r='+h.r;
+        d.addEventListener('mousedown', function(ev){
+          if(!editMode) return;
+          draggingIndex = i; activeIndex=i; fillForm(); this.style.cursor='grabbing'; ev.preventDefault();
+        });
+        d.addEventListener('dblclick', function(){ activeIndex=i; fillForm(); render(); });
+        wrap.appendChild(d);
+      })(i);
+    }
+  }
+  // list
+  listEl.innerHTML = '';
+  for(var j=0;j<hotspots.length;j++){
+    (function(i){
+      var h=hotspots[i];
+      var b=document.createElement('button');
+      b.textContent = (i+1)+'. '+h.id+' · '+(h.name||'');
+      if(i===activeIndex){ b.style.borderColor='#0ea5a5'; b.style.background='#e6fffb'; }
+      b.addEventListener('click',function(){ activeIndex=i; fillForm(); render(); });
+      listEl.appendChild(b);
+    })(j);
+  }
+  var info = document.getElementById('activeInfo');
+  if(activeIndex>=0 && hotspots[activeIndex]){
+    var hh=hotspots[activeIndex];
+    info.textContent = 'Đang chọn: #'+(activeIndex+1)+' · '+hh.id+' ('+(hh.name||'no name')+') @ '+hh.x.toFixed(1)+'%, '+hh.y.toFixed(1)+'% r='+hh.r;
+  } else info.textContent = 'Đang chọn: (chưa chọn)';
+}
+
+/* ====== Dragging ====== */
+window.addEventListener('mousemove', function(e){
+  if(draggingIndex===-1) return;
+  var p=pctFromClientPoint(e);
+  hotspots[draggingIndex].x = clamp(p.x,0,100);
+  hotspots[draggingIndex].y = clamp(p.y,0,100);
+  render(); fillForm();
+});
+window.addEventListener('mouseup', function(){
+  if(draggingIndex!==-1) dirty=true;
+  draggingIndex=-1;
+});
+
+/* ====== Click to create / test / copy with Shift ====== */
+wrap.addEventListener('click', function(e){
+  var p=pctFromClientPoint(e);
+  if(editMode){
+    if(e.shiftKey){
+      if(activeIndex<0||!hotspots[activeIndex]){ showToast('Chọn 1 hotspot trước khi copy'); return; }
+      var base = hotspots[activeIndex];
+      var copy = { id:base.id, name:base.name, vi:base.vi, r:base.r, x:clamp(p.x,0,100), y:clamp(p.y,0,100) };
+      hotspots.push(copy); activeIndex=hotspots.length-1; dirty=true; render(); fillForm(); showToast('Đã copy hotspot tại vị trí mới ✨');
+      return;
+    }
+    var h = { id:'item', name:'Item', vi:'Đối tượng', x:clamp(p.x,0,100), y:clamp(p.y,0,100), r:12 };
+    hotspots.push(h); activeIndex=hotspots.length-1; dirty=true; render(); fillForm(); showToast('Đã thêm hotspot mới ✨');
+  } else {
+    var found = null;
+    for(var i=0;i<hotspots.length;i++){ if(dist(p, hotspots[i]) <= (hotspots[i].r||10)){ found=hotspots[i]; break; } }
+    if(found) showToast('Bạn đã tìm ra: '+found.vi+' ('+found.name+') 🎉'); else showToast('Chưa đúng, thử điểm khác nhé!');
+  }
+});
+
+// live coords
+wrap.addEventListener('mousemove', function(e){
+  var p=pctFromClientPoint(e);
+  coords.textContent = 'x: '+p.x.toFixed(1)+'%, y: '+p.y.toFixed(1)+'%';
+});
+
+/* ====== Form binding ====== */
+var f_id=document.getElementById('f_id');
+var f_name=document.getElementById('f_name');
+var f_vi=document.getElementById('f_vi');
+var f_x=document.getElementById('f_x');
+var f_y=document.getElementById('f_y');
+var f_r=document.getElementById('f_r');
+
+function fillForm(){
+  if(activeIndex<0||!hotspots[activeIndex]){ f_id.value=f_name.value=f_vi.value=''; f_x.value=f_y.value=f_r.value=''; return; }
+  var h=hotspots[activeIndex];
+  f_id.value=h.id||''; f_name.value=h.name||''; f_vi.value=h.vi||'';
+  f_x.value=(h.x!=null?h.x:''); f_y.value=(h.y!=null?h.y:''); f_r.value=(h.r!=null?h.r:'');
+}
+
+document.getElementById('btnUpdate').addEventListener('click', function(){
+  if(activeIndex<0) return;
+  var h=hotspots[activeIndex];
+  h.id=f_id.value||h.id; h.name=f_name.value||h.name; h.vi=f_vi.value||h.vi;
+  h.x=Number(f_x.value)||h.x; h.y=Number(f_y.value)||h.y; h.r=Number(f_r.value)||h.r;
+  dirty=true; render(); showToast('✅ Đã cập nhật hotspot');
+});
+
+document.getElementById('btnAdd').addEventListener('click', function(){
+  var base = (activeIndex>=0 && hotspots[activeIndex]) ? hotspots[activeIndex] : { id:'item', name:'Item', vi:'Đối tượng', r:12 };
+  var nh = { id: base.id, name: base.name, vi: base.vi, r: (base.r!=null?base.r:12), x:50, y:50 };
+  hotspots.push(nh); activeIndex=hotspots.length-1; dirty=true; render(); fillForm(); showToast('Đã nhân bản hotspot ✨');
+});
+
+document.getElementById('btnCopy').addEventListener('click', function(){
+  if(activeIndex<0||!hotspots[activeIndex]){ showToast('Chọn 1 hotspot trước khi copy'); return; }
+  var base = hotspots[activeIndex];
+  var nh = { id:base.id, name:base.name, vi:base.vi, r:base.r, x:clamp(base.x+5,0,100), y:clamp(base.y+5,0,100) };
+  hotspots.push(nh); activeIndex=hotspots.length-1; dirty=true; render(); fillForm(); showToast('Đã copy hotspot ✨');
+});
+
+document.getElementById('btnDelete').addEventListener('click', function(){
+  if(activeIndex<0) return; hotspots.splice(activeIndex,1); activeIndex=-1; dirty=true; render(); fillForm(); showToast('🗑️ Đã xoá hotspot');
+});
+
+/* ====== Toolbar ====== */
+document.getElementById('toggleDots').addEventListener('click', function(){ showDots=!showDots; render(); });
+var toggleEditBtn=document.getElementById('toggleEdit');
+toggleEditBtn.addEventListener('click', function(){
+  editMode=!editMode; toggleEditBtn.setAttribute('aria-pressed', String(editMode));
+  toggleEditBtn.textContent = 'Chế độ EDIT: ' + (editMode? 'BẬT':'TẮT');
+});
+
+document.getElementById('exportJson').addEventListener('click', function(){
+  var imgName = (bg.dataset && bg.dataset.filename) ? bg.dataset.filename : '';
+  var base = imgName ? imgName.replace(/\.[^.]+$/, '') : 'no_image';
+  var payload = { imageFilename: imgName, hotspots: hotspots };
+  var data = JSON.stringify(payload, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download = 'hotspot_'+base+'.json';
+  a.click(); dirty=false; showToast('Đã xuất: hotspot_'+base+'.json ✅');
+});
+
+document.getElementById('importJson').addEventListener('change', function(e){
+  var f=e.target.files && e.target.files[0]; if(!f) return; var r=new FileReader();
+  r.onload=function(ev){ try{ var parsed=JSON.parse(ev.target.result); hotspots=Array.isArray(parsed)?parsed:(parsed.hotspots||[]); activeIndex=-1; dirty=true; render(); fillForm(); }catch(err){ alert('JSON không hợp lệ'); } };
+  r.readAsText(f);
+});
+
+/* ====== Chọn & Đóng ảnh ====== */
+var bgInput = document.getElementById('bgInput');
+bgInput.addEventListener('change', function(e){
+  var f=e.target.files && e.target.files[0]; if(!f) return; var reader=new FileReader();
+  reader.onload = function(ev){ bg.src = ev.target.result; if(!bg.dataset) bg.dataset={}; bg.dataset.filename = f.name; ph.style.display='none'; };
+  reader.readAsDataURL(f);
+});
+
+var closeBtn=document.getElementById('closeImage');
+closeBtn.addEventListener('click', function(){
+  if((hotspots.length>0 || dirty) && !confirm('Đóng ảnh hiện tại? Dữ liệu chưa xuất sẽ mất.')) return;
+  hotspots=[]; activeIndex=-1; dirty=false; bg.removeAttribute('src'); if(bg.dataset) bg.dataset.filename=''; ph.style.display='flex'; render(); fillForm(); showToast('Đã đóng ảnh. Chọn ảnh mới để tiếp tục.');
+});
+
+/* ====== Live ====== */
+render(); fillForm();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Create Story — Full Editor (VN/EN/Image)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f7f7fb;--card:#fff;--ink:#1f1f1f;--muted:#667085;--line:#e6e8ec;--brand:#22a06b;}
+  *{box-sizing:border-box}
+  body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--ink)}
+  h2{margin:0 0 16px 0}
+  .grid{display:grid;grid-template-columns:1fr 1.3fr;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(16,24,40,.04)}
+  label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin:8px 0 6px}
+  input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+  textarea{width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;resize:vertical}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
+  .btn{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .danger{background:#fff;color:#b42318;border-color:#f3d2cf}
+  .page{border:1px dashed var(--line);border-radius:12px;padding:12px;margin:12px 0;background:#fff}
+  .imgPrev{width:100%;height:180px;border:1px solid var(--line);border-radius:10px;object-fit:cover;background:#fafafa}
+  .tools{display:flex;gap:8px;justify-content:flex-end}
+  .muted{color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+  <h2>Create Story — Cover + Designer</h2>
+  <div class="grid">
+    <div class="card">
+      <label>Title</label><input id="title" type="text" />
+      <label>Author</label><input id="author" type="text" />
+      <label>Designer</label><input id="designer" type="text" />
+      <div class="row" style="margin-top:12px">
+        <button id="saveDraft" class="btn">Save Draft</button>
+        <button id="loadDraft">Load Draft</button>
+        <button id="deleteDraft" class="danger">Delete Draft</button>
+        <input type="file" id="loadJsonFile" accept=".json" title="Reload JSON"/>
+        <button id="exportJson">Export JSON</button>
+      </div>
+      <p class="muted">Tip: Reload JSON để nạp lại file truyện cũ và chỉnh tiếp. Ảnh có thể chọn bằng file hoặc dán URL.</p>
+    </div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Page Content</h3>
+        <div class="row">
+          <button id="addPage" class="btn">+ Add Page</button>
+          <button id="clearAll" class="danger">Clear All Pages</button>
+        </div>
+      </div>
+      <div id="pages"></div>
+    </div>
+  </div>
+
+<script>
+let pages = [];
+
+/* ---------- helpers ---------- */
+function el(id){ return document.getElementById(id); }
+function download(filename, text) {
+  const blob = new Blob([text], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function toWebP(file, maxW=1280, quality=0.82){
+  return new Promise((resolve,reject)=>{
+    const fr = new FileReader();
+    fr.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = Math.min(1, maxW / img.width);
+        const w = Math.round(img.width * ratio);
+        const h = Math.round(img.height * ratio);
+        const c = document.createElement('canvas'); c.width=w; c.height=h;
+        const ctx = c.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+        c.toBlob(blob => {
+          const fr2 = new FileReader();
+          fr2.onload = e2 => resolve(e2.target.result);
+          fr2.onerror = reject;
+          fr2.readAsDataURL(blob);
+        }, 'image/webp', quality);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    fr.onerror = reject;
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- page rendering ---------- */
+function renderPages(){
+  const root = el('pages');
+  root.innerHTML = '';
+  pages.forEach((p, idx)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'page';
+    wrap.innerHTML = `
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <strong>Page ${idx+1}</strong>
+        <div class="tools">
+          <button data-act="up">↑</button>
+          <button data-act="down">↓</button>
+          <button data-act="del" class="danger">Delete</button>
+        </div>
+      </div>
+      <label>Image URL</label>
+      <input type="text" data-field="imgUrl" placeholder="https://... or data:image/webp;base64,..." value="${p.img||''}"/>
+      <div class="row">
+        <input type="file" data-field="imgFile" accept="image/*"/>
+        <span class="muted">Chọn ảnh → tự nén WebP ≤1280px.</span>
+      </div>
+      <img class="imgPrev" src="${p.img||''}" onerror="this.src='';"/>
+      <label>Vietnamese</label>
+      <textarea data-field="vi">${p.vi||''}</textarea>
+      <label>English</label>
+      <textarea data-field="en">${p.en||''}</textarea>
+    `;
+    // handlers
+    wrap.querySelector('[data-field="imgUrl"]').addEventListener('input', e=>{
+      pages[idx].img = e.target.value.trim();
+      wrap.querySelector('.imgPrev').src = pages[idx].img || '';
+    });
+    wrap.querySelector('[data-field="imgFile"]').addEventListener('change', async e=>{
+      const f = e.target.files[0]; if(!f) return;
+      const dataUrl = await toWebP(f);
+      pages[idx].img = dataUrl;
+      wrap.querySelector('[data-field="imgUrl"]').value = dataUrl;
+      wrap.querySelector('.imgPrev').src = dataUrl;
+    });
+    wrap.querySelector('[data-field="vi"]').addEventListener('input', e=> pages[idx].vi = e.target.value);
+    wrap.querySelector('[data-field="en"]').addEventListener('input', e=> pages[idx].en = e.target.value);
+    wrap.querySelector('[data-act="up"]').addEventListener('click', ()=>{ if(idx>0){ const t=pages[idx-1]; pages[idx-1]=pages[idx]; pages[idx]=t; renderPages(); } });
+    wrap.querySelector('[data-act="down"]').addEventListener('click', ()=>{ if(idx<pages.length-1){ const t=pages[idx+1]; pages[idx+1]=pages[idx]; pages[idx]=t; renderPages(); } });
+    wrap.querySelector('[data-act="del"]').addEventListener('click', ()=>{ pages.splice(idx,1); renderPages(); });
+    el('pages').appendChild(wrap);
+  });
+}
+
+/* ---------- buttons ---------- */
+el('addPage').onclick = ()=>{ pages.push({img:'', vi:'', en:''}); renderPages(); };
+el('clearAll').onclick = ()=>{ if(confirm('Xoá tất cả trang?')){ pages = []; renderPages(); } };
+
+el('saveDraft').onclick = ()=>{
+  const draft = {
+    title: el('title').value.trim(),
+    author: el('author').value.trim(),
+    designer: el('designer').value.trim(),
+    pages
+  };
+  localStorage.setItem('storybook_draft_full', JSON.stringify(draft));
+  alert('✅ Draft saved to localStorage.');
+};
+el('loadDraft').onclick = ()=>{
+  const raw = localStorage.getItem('storybook_draft_full');
+  if(!raw) return alert('❌ No draft found.');
+  try{
+    const data = JSON.parse(raw);
+    el('title').value = data.title||'';
+    el('author').value = data.author||'';
+    el('designer').value = data.designer||'';
+    pages = (data.pages||[]).map(p=>({img:p.img||'', vi:p.vi||'', en:p.en||''}));
+    renderPages();
+    alert('✅ Draft loaded.');
+  }catch(e){ alert('❌ Draft corrupt.'); }
+};
+el('deleteDraft').onclick = ()=>{ localStorage.removeItem('storybook_draft_full'); alert('🗑 Draft deleted.'); };
+
+el('loadJsonFile').addEventListener('change', (evt)=>{
+  const f = evt.target.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      el('title').value = data.title||'';
+      el('author').value = data.author||'';
+      el('designer').value = data.designer||'';
+      pages = (data.pages||[]).map(p=>({img:p.img||p.image||'', vi:p.vi||'', en:p.en||p.en||''}));
+      renderPages();
+      alert('✅ JSON loaded.');
+    }catch(err){ alert('❌ JSON invalid.'); }
+  };
+  fr.readAsText(f);
+});
+
+el('exportJson').onclick = ()=>{
+  const payload = {
+    title: el('title').value.trim() || 'Untitled',
+    author: el('author').value.trim() || '',
+    designer: el('designer').value.trim() || '',
+    pages: pages.map(p=>({img:p.img||'', vi:p.vi||'', en:p.en||''}))
+  };
+  const fname = (payload.title || 'story').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '.json';
+  download(fname, JSON.stringify(payload, null, 2));
+};
+// initial
+renderPages();
+</script>
+</body>
+</html>

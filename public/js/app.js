@@ -1,75 +1,44 @@
-/* NiNi — App (NO EFFECT version) */
+/* NiNi — App (NO EFFECT) */
 (() => {
+  const SEASONS = {
+    home  : '/public/assets/bg/nini_home.webp',
+    spring: '/public/assets/images/seasons/spring.webp',
+    summer: '/public/assets/images/seasons/summer.webp',
+    autumn: '/public/assets/images/seasons/autumn.webp',
+    winter: '/public/assets/images/seasons/winter.webp',
+  };
+
   const frame = document.getElementById('frame');
-  const bg = document.getElementById('bg');
-  const nini = document.getElementById('nini');
+  const tabs  = document.getElementById('seasonTabs');
+  const dock  = document.getElementById('dock');
 
-  // Map ảnh theo data-* (dễ sửa đường dẫn nếu đổi ảnh)
-  const IMGS = {
-    home  : frame.dataset.home,
-    spring: frame.dataset.spring,
-    summer: frame.dataset.summer,
-    autumn: frame.dataset.autumn,
-    winter: frame.dataset.winter,
-  };
-  const niniSrc = frame.dataset.nini;
-
-  // Thông tin cho 4 tab trong khung
-  const INFO = {
-    about   : { title: 'NiNi — Funny', text: 'Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.' },
-    rules   : { title: 'Luật chơi', text: 'Mỗi trò có mô tả ngắn ngay trang chơi. Bé tích điểm bằng cách hoàn thành thử thách.' },
-    forum   : { title: 'Diễn đàn', text: 'Nơi bé khoe thành tích, kể chuyện và học hỏi lẫn nhau (ra mắt sớm).' },
-    feedback: { title: 'Góp ý', text: 'Bạn muốn góp ý thêm trò/ảnh/ý tưởng? Rất mong nhận chia sẻ để NiNi hay hơn nữa!' },
-  };
-
-  // ========== SEASON TABS ==========
-  const tabBar = document.getElementById('seasonTabs');
-  function setSeason(name) {
-    // Cập nhật active UI
-    [...tabBar.querySelectorAll('.tab')].forEach(b => b.classList.toggle('is-active', b.dataset.season === name));
-
-    // Đổi background
-    const next = IMGS[name] || IMGS.home;
-    if (bg.src !== location.origin + next) bg.src = next;
-
-    // NiNi
-    if (niniSrc && !nini.src) nini.src = niniSrc;
-
-    // (giữ chỗ cho effect: tắt/bật ở đây nếu cần)
-    if (window.SEASON_FX && window.SEASON_FX.stop) window.SEASON_FX.stop('.frame');
+  function setSeason(s){
+    frame.style.backgroundImage = `url("${SEASONS[s] || SEASONS.home}")`;
+    tabs.querySelectorAll('.tab').forEach(b => b.classList.toggle('is-active', b.dataset.season===s));
+    localStorage.setItem('nini_season', s);
   }
 
-  tabBar.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-season]');
-    if (!btn) return;
+  setSeason(localStorage.getItem('nini_season') || 'home');
+
+  tabs.addEventListener('click', e=>{
+    const btn = e.target.closest('.tab'); if(!btn) return;
     setSeason(btn.dataset.season);
   });
 
-  // ========== INFO TABS ==========
-  const infoTabs = document.getElementById('infoTabs');
-  const infoPanel = document.getElementById('infoPanel');
-  function setInfo(key) {
-    [...infoTabs.querySelectorAll('.info__tab')].forEach(b => b.classList.toggle('is-active', b.dataset.key === key));
-    const it = INFO[key] || INFO.about;
-    infoPanel.innerHTML = `<h3>${it.title}</h3><p>${it.text}</p>`;
+  // 4 tab nội dung trong khung
+  const cards = {
+    cardIntro   : document.getElementById('cardIntro'),
+    cardRules   : document.getElementById('cardRules'),
+    cardForum   : document.getElementById('cardForum'),
+    cardFeedback: document.getElementById('cardFeedback'),
+  };
+  function setCard(id){
+    Object.entries(cards).forEach(([k,el])=> el.hidden = (k!==id));
+    dock.querySelectorAll('.pill').forEach(p => p.setAttribute('aria-selected', String(p.dataset.card===id)));
   }
-  infoTabs.addEventListener('click', (e) => {
-    const btn = e.target.closest('button[data-key]');
-    if (!btn) return;
-    setInfo(btn.dataset.key);
-  });
-
-  // ========== INIT ==========
-  document.addEventListener('DOMContentLoaded', () => {
-    setSeason('home');   // Home thực sự là Home (không còn trỏ nhầm Summer)
-    setInfo('about');    // Tab mặc định
-  });
-
-  // Cho phép đổi tỉ lệ NiNi nhanh: window.NINI = {scale: 2.2}
-  window.NINI = new Proxy({}, {
-    set(_t, prop, val){
-      if (prop === 'scale') document.documentElement.style.setProperty('--nini-scale', val);
-      return true;
-    }
+  setCard('cardIntro');
+  dock.addEventListener('click', e=>{
+    const p = e.target.closest('.pill'); if(!p) return;
+    setCard(p.dataset.card);
   });
 })();

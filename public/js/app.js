@@ -3,6 +3,7 @@ const bgEl = document.getElementById('bg');
 const fxCanvas = document.getElementById('fx');
 
 const SEASON_BG = {
+  Home: '/public/assets/bg/nini_home.webp',
   spring: '/public/assets/images/seasons/spring.webp',
   summer: '/public/assets/images/seasons/summer.webp',
   autumn: '/public/assets/images/seasons/autumn.webp',
@@ -24,7 +25,7 @@ document.querySelectorAll('.season-nav [data-season]').forEach(btn=>{
 });
 
 // mùa mặc định
-setSeason('spring');
+setSeason('Home');
 
 // ----- Đăng nhập thành viên (KHÔNG dính admin) -----
 const authBtn   = document.getElementById('authBtn');
@@ -90,3 +91,4 @@ auth.onAuthStateChanged(user=>{
     authBtn.textContent = 'Đăng nhập / Đăng ký';
   }
 });
+

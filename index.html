@@ -28,7 +28,133 @@
       /* Tốc độ chạy của nhím (chậm hơn = số lớn hơn) */
       --hog-speed: 26s;
     }
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
 
+  /* ======  Hiệu ứng rơi theo mùa  ====== */
+  const canvas = $('#fx');
+  if(!canvas){ console.warn('#fx not found'); return; }
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  const SPRITES = {
+    spring: '/public/assets/icons/flower.webp',
+    summer: '/public/assets/icons/drop.webp',
+    autumn: '/public/assets/icons/leaf.webp',
+    winter: '/public/assets/icons/snow.webp',
+  };
+  const BG = {
+    spring: 'url("/public/assets/images/seasons/spring.webp")',
+    summer: 'url("/public/assets/images/seasons/summer.webp")',
+    autumn: 'url("/public/assets/images/seasons/autumn.webp")',
+    winter: 'url("/public/assets/images/seasons/winter.webp")',
+    home  : 'url("/public/assets/bg/nini_home.webp")'
+  };
+
+  let W=0,H=0, prev=0, sprite=new Image(), particles=[];
+  function resize(){
+    const cs = getComputedStyle(canvas);
+    canvas.width  = canvas.clientWidth  * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+  }
+  window.addEventListener('resize', resize);
+
+  function makeParticles(count=90){ // số lượng vừa phải
+    particles.length = 0;
+    for(let i=0;i<count;i++){
+      particles.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        s: 0.7 + Math.random()*0.9,     // kích cỡ
+        v: 12 + Math.random()*18,       // tốc độ rơi px/s (chậm)
+        a: Math.random()*Math.PI*2,     // góc cho drift
+      });
+    }
+  }
+
+  function loop(ts){
+    if(!prev) prev = ts;
+    const dt = Math.min(0.033, (ts - prev)/1000); // frame ổn định
+    prev = ts;
+
+    ctx.clearRect(0,0,W,H);
+    for(const p of particles){
+      p.y += p.v * dt;
+      p.a += 0.8*dt;
+      p.x += Math.sin(p.a) * 12 * dt;  // drift nhẹ
+
+      if(p.y > H + 20){ p.y = -20; p.x = Math.random()*W; }
+
+      const size = 16 * p.s;
+      ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function setSeason(season){
+    const root = document.documentElement;
+    const frame = document.querySelector('.frame') || document.body;
+    if(BG[season]) frame.style.backgroundImage = BG[season];
+
+    const url = SPRITES[season] || SPRITES.spring;
+    if(sprite.src.endsWith(url) && particles.length) return;
+    sprite = new Image();
+    sprite.onload = () => { makeParticles(); };
+    sprite.src = url;
+  }
+
+  // Gán click cho menu mùa (nếu có nút data-season)
+  document.querySelectorAll('[data-season]').forEach(btn=>{
+    btn.addEventListener('click', () => setSeason(btn.dataset.season));
+  });
+
+  /* ======  Nhím & Bong bóng “Giới thiệu / Luật chơi / …”  ====== */
+  const hog = $('#hog');
+  const bubble = $('#bubble');
+
+  const TEXT = {
+    intro:
+      'Chào mừng bạn đến thế giới của mình. NiNi-Funny — chơi mê ly, bứt phá tư duy!!!' +
+      ' Bạn có thể click bên dưới để tìm hiểu thêm nha, mình sẽ tiết lộ cho bạn một vài bí mật!',
+    rules:
+      'Đầu tiên bạn hãy đăng nhập và trở thành thành viên các câu lạc bộ.' +
+      ' Đọc sách, xem video, chơi game để nhận kinh nghiệm và xu, sau đó đổi quà trong Shop nhé!',
+    forum:
+      'Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp đỡ nhau học tiếng Anh!',
+    feedback:
+      'Hãy gửi góp ý cho NiNi để mình làm app vui hơn và hữu ích hơn nhé!'
+  };
+
+  function speak(side, text){
+    if(!hog || !bubble) return;
+    // vị trí nhím
+    hog.style.transition = 'left .8s ease, transform .8s ease';
+    hog.style.left = (side==='left' ? '18%' : side==='right' ? '82%' : '50%');
+    hog.style.transform = 'translateX(-50%)';
+    // bong bóng
+    bubble.textContent = text;
+    bubble.hidden = false;
+    bubble.style.opacity = 1;
+    bubble.style.left  = (side==='left'  ? '26%' : side==='right' ? 'auto' : '50%');
+    bubble.style.right = (side==='right' ? '26%' : 'auto');
+  }
+
+  $('#footer-intro')    && $('#footer-intro')   .addEventListener('click', ()=> speak('left',  TEXT.intro));
+  $('#footer-rules')    && $('#footer-rules')   .addEventListener('click', ()=> speak('right', TEXT.rules));
+  $('#footer-forum')    && $('#footer-forum')   .addEventListener('click', ()=> speak('left',  TEXT.forum));
+  $('#footer-feedback') && $('#footer-feedback').addEventListener('click', ()=> speak('right', TEXT.feedback));
+
+  // Khởi động
+  resize();
+  setSeason('home');     // hoặc 'spring' tuỳ trang
+  makeParticles();
+  requestAnimationFrame(loop);
+})();
+</script>
     /* Reset nhỏ */
     *{ box-sizing: border-box; }
     html,body{ height:100%; }
@@ -316,4 +442,5 @@
   </script>
 </body>
 </html>
+
 

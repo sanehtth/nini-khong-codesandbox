@@ -1,94 +1,58 @@
-﻿// ----- Ảnh nền theo mùa (đảm bảo bạn có 4 file .webp trong /public/assets/images/seasons/) -----
-const bgEl = document.getElementById('bg');
-const fxCanvas = document.getElementById('fx');
-
-const SEASON_BG = {
-  Home: '/public/assets/bg/nini_home.webp',
-  spring: '/public/assets/images/seasons/spring.webp',
-  summer: '/public/assets/images/seasons/summer.webp',
-  autumn: '/public/assets/images/seasons/autumn.webp',
-  winter: '/public/assets/images/seasons/winter.webp',
+// ========= CẤU HÌNH ẢNH NỀN =========
+// EDIT: nếu bạn có /public/assets/images/seasons/home.webp thì để đúng tên.
+// Nếu KHÔNG có home.webp, mình fallback về summer.webp.
+const BG = {
+  home  : "/public/assets/images/seasons/home.webp",  // <-- nếu không tồn tại, sẽ fallback
+  spring: "/public/assets/images/seasons/spring.webp",
+  summer: "/public/assets/images/seasons/summer.webp",
+  autumn: "/public/assets/images/seasons/autumn.webp",
+  winter: "/public/assets/images/seasons/winter.webp",
+  fallback: "/public/assets/images/seasons/summer.webp"
 };
 
-function setSeason(season){
-  const url = SEASON_BG[season] || SEASON_BG.spring;
-  bgEl.style.backgroundImage = `url("${url}")`;
-  // gọi hiệu ứng theo mùa (trong effects.js)
-  startSeasonEffect(fxCanvas, season);
-}
+document.addEventListener('DOMContentLoaded', () => {
+  const tabsWrap = document.getElementById('tabs');
+  const seasonBtns = [...tabsWrap.querySelectorAll('.tab')];
+  const scene = document.getElementById('scene');
 
-// gán sự kiện cho 4 nút mùa
-document.querySelectorAll('.season-nav [data-season]').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    setSeason(btn.dataset.season);
+  // ====== ĐỔI MÙA ======
+  function setSeason(season) {
+    // đặt active cho nút mùa
+    seasonBtns.forEach(b => b.classList.toggle('is-active', b.dataset.season === season));
+
+    // đổi background (có fallback nếu ảnh chính không có)
+    setSceneSrcFirstAvailable([BG[season], BG.fallback]);
+  }
+
+  // helper: thử lần lượt URL, nếu lỗi thì tới URL kế tiếp
+  function setSceneSrcFirstAvailable(urls, i = 0) {
+    const url = urls[i];
+    if (!url) return; // hết fallback
+
+    const testImg = new Image();
+    testImg.onload = () => { scene.src = url; };
+    testImg.onerror = () => setSceneSrcFirstAvailable(urls, i + 1);
+    testImg.src = url;
+  }
+
+  // gán click 5 nút mùa
+  seasonBtns.forEach(btn => {
+    btn.addEventListener('click', () => setSeason(btn.dataset.season));
   });
-});
 
-// mùa mặc định
-setSeason('Home');
+  // khởi tạo: HOME
+  setSeason('home');
 
-// ----- Đăng nhập thành viên (KHÔNG dính admin) -----
-const authBtn   = document.getElementById('authBtn');
-const authModal = document.getElementById('authModal');
-const emailForm = document.getElementById('emailForm');
-const googleBtn = document.getElementById('googleBtn');
-const signupLink= document.getElementById('signupLink');
-const authMsg   = document.getElementById('authMsg');
+  // ====== TABS NỘI DUNG TRONG KHUNG ======
+  const pills = [...document.querySelectorAll('.footer-nav .pill')];
+  const panels = [...document.querySelectorAll('[data-tab-panel]')];
 
-authBtn.addEventListener('click', ()=> authModal.hidden = false);
-authModal.addEventListener('click', (e)=> { if(e.target === authModal) authModal.hidden = true; });
-authModal.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click', ()=> authModal.hidden = true));
-
-// ---- Firebase App (đã có config của bạn) ----
-/* global firebase */
-const auth = firebase.auth();
-
-emailForm.addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('password').value;
-  authMsg.textContent = '';
-  try{
-    await auth.signInWithEmailAndPassword(email, pass);
-    authModal.hidden = true;
-    authBtn.textContent = 'Xin chào';
-  }catch(err){
-    authMsg.textContent = err.message || 'Đăng nhập thất bại';
+  function showPanel(key) {
+    pills.forEach(p => p.classList.toggle('is-active', p.dataset.tab === key));
+    panels.forEach(sec => sec.classList.toggle('is-show', sec.dataset.tabPanel === key));
   }
-});
 
-signupLink.addEventListener('click', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('password').value;
-  authMsg.textContent = '';
-  try{
-    await auth.createUserWithEmailAndPassword(email, pass);
-    authModal.hidden = true;
-    authBtn.textContent = 'Xin chào';
-  }catch(err){
-    authMsg.textContent = err.message || 'Không tạo được tài khoản';
-  }
-});
+  pills.forEach(p => p.addEventListener('click', () => showPanel(p.dataset.tab)));
 
-googleBtn.addEventListener('click', async ()=>{
-  authMsg.textContent = '';
-  try{
-    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-    authModal.hidden = true;
-    authBtn.textContent = 'Xin chào';
-  }catch(err){
-    authMsg.textContent = err.message || 'Google sign-in lỗi';
-  }
+  // mặc định hiển thị "about" (đã active sẵn trong HTML)
 });
-
-// hiển thị tên sau khi đăng nhập
-auth.onAuthStateChanged(user=>{
-  if(user){
-    const name = user.displayName || user.email.split('@')[0];
-    authBtn.textContent = `Xin chào, ${name}`;
-  }else{
-    authBtn.textContent = 'Đăng nhập / Đăng ký';
-  }
-});
-

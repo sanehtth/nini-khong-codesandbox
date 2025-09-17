@@ -5,138 +5,52 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- NOTE: favicon/logo ở tab trình duyệt (đổi nguồn ở đây) -->
-  <link rel="icon" type="image/webp" href="public/assets/icons/logonini.webp" />
+  <!-- 🔖 Favicon / Logo trên tab -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
-  <link rel="stylesheet" href="styles.css" />
+  <!-- 🔖 Font & CSS -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/app.css">
 </head>
-  <!-- dùng đường dẫn tuyệt đối cho chắc ăn trên Netlify -->
-<script src="/public/js/effects.js"></script>
-<body class="season--home">
-  <!-- ============ HEADER (Logo + slogan + menu mùa) ============ -->
+<body>
+  <!-- 🔖 Header: logo + slogan + nav mùa -->
   <header class="site-header">
     <div class="brand">
-      <!-- NOTE: đổi logo ở đây -->
-      <img class="brand__logo" src="public/assets/icons/logo_text.webp" alt="NiNi Logo" />
-      <!-- NOTE: sửa slogan ở đây -->
-      <div class="brand__text">
-        <div class="brand__title">NiNi — Funny</div>
-        <div class="brand__slogan">Chơi mê ly, bức phá tư duy</div>
-      </div>
+      <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" class="brand-mark">
+      <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
     </div>
 
-    <!-- NOTE: thanh chọn mùa (đổi nhãn/đổi thứ tự tự do) -->
-    <nav class="season-nav">
-    <button data-season="home">Home</button>
-    <button data-season="spring">Spring</button>
-    <button data-season="summer">Summer</button>
-    <button data-season="autumn">Autumn</button>
-    <button data-season="winter">Winter</button>
+    <nav class="seasons">
+      <button class="btn season" data-season="home">Home</button>
+      <button class="btn season" data-season="spring">Spring</button>
+      <button class="btn season" data-season="summer">Summer</button>
+      <button class="btn season" data-season="autumn">Autumn</button>
+      <button class="btn season" data-season="winter">Winter</button>
     </nav>
 
-  <!-- ❌ Đừng dùng href="/admin/login.html" ở đây -->
-  <button id="authBtn" type="button">Đăng nhập / Đăng ký</button>
+    <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- ============ VIEWPORT (căn giữa khung 16:9) ============ -->
-  <main class="viewport">
-    <!-- NOTE: .frame luôn giữ tỷ lệ 16:9 trong mọi màn hình -->
-    <section class="hero-16x9">
-  <div id="bg" class="bg"></div>           <!-- nền theo mùa -->
-  <canvas id="fx" class="fx"></canvas>      <!-- hiệu ứng rơi -->
-  <div class="content">
-    <h1>Chào mừng đến NiNi — Funny</h1>
-    <p>Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.</p>
-    <!-- … các nút Giới thiệu / Luật chơi / Diễn đàn / Góp ý … -->
-  </div>
-</section>
+  <!-- 🔖 Stage 16:9: phần nền rừng + hiệu ứng rơi -->
+  <main class="stage-wrap">
+    <section id="stage" class="stage" aria-label="Khu rừng NiNi">
+      <!-- Nhím -->
+      <img class="nini" src="/public/assets/images/nini_home.webp" alt="NiNi">
+      <!-- Canvas hiệu ứng rơi sẽ gắn vào đây bằng JS -->
+    </section>
   </main>
-<!================ MODAL ĐĂNG NHẬP THÀNH VIÊN ===============-->
-<div id="authModal" class="modal" hidden>
-  <div class="modal-card">
-    <button class="close" data-close>&times;</button>
-    <h3>Đăng nhập thành viên</h3>
-    <form id="emailForm">
-      <input id="email" type="email" placeholder="you@example.com" required />
-      <input id="password" type="password" placeholder="Mật khẩu" required />
-      <button type="submit">Đăng nhập</button>
-    </form>
-    <div class="divider">hoặc</div>
-    <button id="googleBtn" type="button">Đăng nhập với Google</button>
-    <p class="hint">Chưa có tài khoản? <a id="signupLink" href="#">Tạo nhanh tài khoản</a></p>
-    <p id="authMsg" class="auth-msg"></p>
-  </div>
-</div>
-  <!-- ============ PANEL (hộp nội dung trồi lên) ============ -->
-  <aside id="panel" class="panel" hidden>
-    <div class="panel__card">
-      <button class="panel__close" aria-label="Đóng">&times;</button>
-      <h2 class="panel__title"></h2>
-      <div class="panel__body"></div>
-    </div>
-  </aside>
 
-  <!-- ============ SCRIPTS ============ -->
-  <script src="effects.js"></script>
+  <!-- 🔖 Footer: 4 mục cố định -->
+  <footer class="site-footer">
+    <a class="foot-link" data-pane="about">Giới thiệu</a>
+    <a class="foot-link" data-pane="rules">Luật chơi</a>
+    <a class="foot-link" data-pane="forum">Diễn đàn</a>
+    <a class="foot-link" data-pane="feedback">Góp ý</a>
+  </footer>
+
+  <!-- 🔖 Script: giữ đúng thứ tự -->
+  <script src="/public/js/effects.js" defer></script>
   <script src="/public/js/app.js" defer></script>
-  <script>
-    /* ========== NOTE: JS điều phối UI đơn giản ========== */
-
-    // Map nội dung 4 mục ở footer
-    const CONTENT = {
-      intro: `<p>Đây là chương trình trò chơi giúp ghi nhớ tiếng Anh một cách tự nhiên & linh hoạt.
-      Bạn chỉ việc chơi hết mình — tiếng Anh sẽ “vào đầu” từ từ. Cố lên nhé! NiNi-Funny: Chơi mê ly, bức phá tư duy!</p>`,
-      rules: `<p>Đầu tiên hãy đăng nhập & tham gia câu lạc bộ. Ở CLB, bạn tích được xu khi đọc sách,
-      xem video và cả chơi game. Xem/Chơi càng nhiều, bạn càng nhận được điểm kinh nghiệm & xu để đổi quà ở Shop.</p>`,
-      forum: `<p>Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp đỡ nhau học tiếng Anh!</p>`,
-      feedback: `<p>Góp ý cho NiNi nhé! Bạn cần đăng nhập để gửi góp ý gồm nickname & nội dung, NiNi sẽ phản hồi sớm.</p>`
-    };
-
-    // Helper DOM
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-
-    // 1) Chọn mùa
-    $$('.tabs .tab').forEach(btn=>{
-      btn.addEventListener('click', () => {
-        $$('.tabs .tab').forEach(b=>b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-
-        // set class mùa cho body để CSS đổi nền
-        const season = btn.dataset.tab;
-        document.body.className = `season--${season}`;
-
-        // gọi hiệu ứng rơi theo mùa
-        initSeasonFX(season);
-      });
-    });
-
-    // 2) Panel 4 mục
-    const panel = $('#panel');
-    const title = $('.panel__title', panel);
-    const body  = $('.panel__body', panel);
-    const close = $('.panel__close', panel);
-
-    close.addEventListener('click', ()=> panel.hidden = true);
-    panel.addEventListener('click', e=>{
-      if(e.target === panel) panel.hidden = true;
-    });
-
-    $$('.frame-footer .pill').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const key = btn.dataset.panel;
-        title.textContent = btn.textContent;
-        body.innerHTML = CONTENT[key] || '';
-        panel.hidden = false;
-      });
-    });
-
-    // 3) Khởi tạo mặc định
-    // mặc định HOME -> hoa rơi nhẹ
-    initSeasonFX('home');
-  </script>
 </body>
 </html>
-
-
-

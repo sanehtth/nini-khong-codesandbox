@@ -1,194 +1,73 @@
-﻿/* =========================================================
-   Seasonal FX — chỉ vẽ trong #fx, không đè lên menu/nút
-   Các hàm chỉnh tốc độ/số lượng:
-   - petalsSlow(): hoa rơi chậm (home/spring)
-   - rainVertical(): mưa rơi thẳng, nhanh (summer)
-   - leavesFall(): lá rơi chậm, lắc nhẹ (autumn)
-   - snowSoft(): tuyết mềm, chậm (winter)
-   Đổi count / vận tốc vy/vx để nhiều/ít & nhanh/chậm.
-========================================================= */
+// icons webp cho từng mùa
+const ICONS = {
+  spring: '/public/assets/icons/flower.webp',
+  summer: '/public/assets/icons/drop.webp',
+  autumn: '/public/assets/icons/leaf.webp',
+  winter: '/public/assets/icons/snow.webp',
+};
 
-let fxRAF = 0;
-function clearFX(){
-  cancelAnimationFrame(fxRAF);
-  const fx = document.getElementById('fx');
-  if (fx) fx.innerHTML = '';
-}
+let fxCtx, w, h, particles = [], iconImg = new Image(), animId;
 
-function particleFactory(opts){
-  const fx = document.getElementById('fx');
-  if (!fx) return { stop:()=>{} };
-
-  const {
-    count = 80,
-    makeEl = ()=>document.createElement('div'),
-    init = (el)=>{},
-    step = (el,dt)=>{},
-    maxFPS = 60
-  } = opts;
-
-  const els = Array.from({length:count}, () => {
-    const el = makeEl();
-    el.style.position='absolute';
-    init(el);
-    fx.appendChild(el);
-    return el;
-  });
-
-  let last = performance.now();
-  const minDt = 1000/maxFPS;
-
-  function loop(now){
-    const dt = now - last;
-    if (dt >= minDt){
-      els.forEach(el => step(el, dt/1000));
-      last = now;
-    }
-    fxRAF = requestAnimationFrame(loop);
-  }
-  fxRAF = requestAnimationFrame(loop);
-  return { stop: clearFX };
-}
-
-/* =============== SPRING / HOME: Hoa rơi chậm =============== */
-function petalsSlow(){
-  return particleFactory({
-    count: 90, // NOTE: tăng/giảm số hoa
-    makeEl(){
-      const el = document.createElement('span');
-      el.textContent='❀'; el.style.fontSize = (12+Math.random()*8)+'px';
-      el.style.filter='drop-shadow(0 0 2px rgba(255,255,255,.6))';
-      return el;
-    },
-    init(el){
-      el.style.left = (Math.random()*100)+'%';
-      el.style.top  = (-10 - Math.random()*30) + '%';
-      el.dataset.vx = (Math.random()*.5 - .25);   // lắc ngang nhẹ
-      el.dataset.vy = (15 + Math.random()*20);    // rơi chậm (đổi tại đây)
-      el.dataset.rot= Math.random()*360;
-    },
-    step(el,dt){
-      let x = parseFloat(el.style.left) || 0;
-      let y = parseFloat(el.style.top)  || -10;
-      const vx = +el.dataset.vx, vy = +el.dataset.vy;
-
-      x += vx * dt * 10;
-      y += vy * dt;
-
-      el.dataset.rot = (+el.dataset.rot + 40*dt) % 360;
-      el.style.transform = `rotate(${el.dataset.rot}deg)`;
-      el.style.left = x + '%';
-      el.style.top  = y + '%';
-
-      if (y > 105){
-        el.style.left = (Math.random()*100)+'%';
-        el.style.top  = '-12%';
-      }
-    }
-  });
-}
-
-/* =============== SUMMER: Mưa thẳng, nhanh =============== */
-function rainVertical(){
-  return particleFactory({
-    count: 160, // NOTE: tăng/giảm số hạt mưa
-    makeEl(){
-      const el = document.createElement('i');
-      el.style.width='1px'; el.style.height=(12+Math.random()*18)+'px';
-      el.style.background='rgba(180,220,255,.7)';
-      el.style.borderRadius='1px';
-      return el;
-    },
-    init(el){
-      el.style.left = (Math.random()*100)+'%';
-      el.style.top  = (Math.random()*-100)+'%';
-      el.dataset.vy = 250 + Math.random()*220; // nhanh hơn = số lớn
-    },
-    step(el,dt){
-      let y = parseFloat(el.style.top) || -50;
-      y += (+el.dataset.vy) * dt / 100; // đổi px/s -> %
-      el.style.top = y + '%';
-      if (y > 105) el.style.top = (-10 - Math.random()*50)+'%';
-    }
-  });
-}
-
-/* =============== AUTUMN: Lá rơi chậm, drift =============== */
-function leavesFall(){
-  return particleFactory({
-    count: 90,
-    makeEl(){
-      const el = document.createElement('span');
-      el.textContent = ['🍁','🍂'][Math.random()*2|0];
-      el.style.fontSize = (14+Math.random()*10)+'px';
-      return el;
-    },
-    init(el){
-      el.style.left = (Math.random()*100)+'%';
-      el.style.top  = (-10 - Math.random()*20) + '%';
-      el.dataset.vx = (Math.random()*.8 - .4);
-      el.dataset.vy = 20 + Math.random()*18;
-    },
-    step(el,dt){
-      let x = parseFloat(el.style.left) || 0;
-      let y = parseFloat(el.style.top)  || -10;
-      x += (+el.dataset.vx) * dt * 10;
-      y += (+el.dataset.vy) * dt;
-      el.style.left = x + '%';
-      el.style.top  = y + '%';
-      if (y > 105){
-        el.style.left = (Math.random()*100)+'%';
-        el.style.top  = '-12%';
-      }
-    }
-  });
-}
-
-/* =============== WINTER: Tuyết mềm, chậm =============== */
-function snowSoft(){
-  return particleFactory({
-    count: 120,
-    makeEl(){
-      const el = document.createElement('b');
-      el.style.width=el.style.height=(2+Math.random()*3)+'px';
-      el.style.borderRadius='50%';
-      el.style.background='rgba(255,255,255,.9)';
-      el.style.boxShadow='0 0 6px rgba(255,255,255,.6)';
-      return el;
-    },
-    init(el){
-      el.style.left = (Math.random()*100)+'%';
-      el.style.top  = (-10 - Math.random()*30)+'%';
-      el.dataset.vx = (Math.random()*.6 - .3);
-      el.dataset.vy = 10 + Math.random()*12;  // CHẬM
-    },
-    step(el,dt){
-      let x = parseFloat(el.style.left) || 0;
-      let y = parseFloat(el.style.top)  || -10;
-      x += (+el.dataset.vx) * dt * 10;
-      y += (+el.dataset.vy) * dt;
-      el.style.left = x + '%';
-      el.style.top  = y + '%';
-      if (y > 105){
-        el.style.left = (Math.random()*100)+'%';
-        el.style.top  = '-12%';
-      }
-    }
-  });
-}
-
-/* =============== Công tắc theo mùa =============== */
-function initSeasonFX(season){
-  clearFX();
-  const map = {
-    home:   petalsSlow,
-    spring: petalsSlow,
-    summer: rainVertical,
-    autumn: leavesFall,
-    winter: snowSoft
+function makeParticle(type){
+  const size = (type==='summer') ? rand(10,18) : rand(12,22);
+  const speed = (type==='summer') ? rand(140,200) : rand(70,120); // px/s
+  return {
+    x: Math.random() * w,
+    y: -size,
+    vy: speed,         // rơi thẳng
+    size,
+    rot: Math.random()*Math.PI*2,
+    rotSpeed: rand(-0.8, 0.8),
   };
-  (map[season] || petalsSlow)();
+}
+function rand(a,b){ return a + Math.random()*(b-a); }
+
+function step(last){
+  const now = performance.now();
+  const dt = (now - last) / 1000;
+  fxCtx.clearRect(0,0,w,h);
+  // vẽ
+  for(let i=particles.length-1;i>=0;i--){
+    const p = particles[i];
+    p.y += p.vy * dt;
+    p.rot += p.rotSpeed * dt;
+    if(p.y > h + 30){ particles.splice(i,1); continue; }
+
+    fxCtx.save();
+    fxCtx.translate(p.x, p.y);
+    fxCtx.rotate(p.rot);
+    fxCtx.drawImage(iconImg, -p.size/2, -p.size/2, p.size, p.size);
+    fxCtx.restore();
+  }
+  // bổ sung hạt để đủ mật độ
+  while(particles.length < targetCount) particles.push(makeParticle(currentSeason));
+  animId = requestAnimationFrame(()=>step(now));
 }
 
-// Cho phép dùng ở file HTML
-window.initSeasonFX = initSeasonFX;
+let currentSeason = 'spring';
+let targetCount = 80;
+
+export function startSeasonEffect(canvas, season='spring'){
+  if(animId) cancelAnimationFrame(animId);
+  fxCtx = canvas.getContext('2d');
+  // resize
+  const resize = ()=>{
+    w = canvas.width  = canvas.clientWidth  * devicePixelRatio;
+    h = canvas.height = canvas.clientHeight * devicePixelRatio;
+    fxCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  };
+  resize();
+  new ResizeObserver(resize).observe(canvas);
+
+  // cấu hình theo mùa
+  currentSeason = season;
+  targetCount = (season==='summer') ? 110 : (season==='winter' ? 90 : 80);
+  iconImg.src = ICONS[season] || ICONS.spring;
+  particles = [];
+  for(let i=0;i<targetCount;i++){
+    const p = makeParticle(season); p.y = Math.random()*h; particles.push(p);
+  }
+  step(performance.now());
+}
+// nếu không dùng module, bỏ export và gán global:
+window.startSeasonEffect = startSeasonEffect;

@@ -1,9 +1,7 @@
-// netlify/functions/admin-logout.js
-exports.handler = async () => ({
-  statusCode: 200,
-  headers: {
-    "Set-Cookie":
-      "admin_auth=; Path=/; HttpOnly; Secure; SameSite=Lax; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  },
-  body: "ok"
-});
+﻿exports.handler = async () => {
+  const COOKIE_NAME = process.env.COOKIE_NAME || "nini_admin";
+  const cookie = [
+    `${COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`
+  ].join("; ");
+  return { statusCode: 200, headers: { "Set-Cookie": cookie }, body: "OK" };
+};

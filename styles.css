@@ -1,99 +1,94 @@
-<!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Funny</title>
+/* ====== RESET NHẸ & MÀU CHUNG ====== */
+:root{
+  --bg:#0e1720;         /* nền ngoài */
+  --header:#0b122a;     /* header */
+  --pill:#1f2b45;       /* nút */
+  --pillOn:#233a5e;     /* nút active */
+  --white:#fff;
+  --muted:#c5d0e0;
+}
 
-  <!-- Favicon/logo tiêu đề -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+/* NOTE: scale NiNi trên desktop cho đúng bối cảnh */
+@media (min-width: 992px){
+  .nini{ transform: scale(1.2); }
+}
 
-  <!-- CSS tổng -->
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-  <!-- HEADER -->
-  <header class="site-header">
-    <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </div>
-    <nav class="tabs">
-      <button class="tab is-active" data-season="home">Home</button>
-      <button class="tab" data-season="spring">Spring</button>
-      <button class="tab" data-season="summer">Summer</button>
-      <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab" data-season="winter">Winter</button>
-    </nav>
-    <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
-  </header>
+/* ====== BODY ====== */
+html,body{height:100%}
+body{
+  margin:0;
+  background: radial-gradient(1200px 800px at 50% 0%, #10222b 0%, #0a1420 55%, #09121a 100%) fixed;
+  color:var(--white);
+  font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
 
-  <!-- KHUNG 16:9 -->
-  <main class="viewport">
-    <section class="frame" id="frame">
-      <!-- lớp nền (ảnh mùa) -->
-      <div class="bg" id="bg"></div>
-      <!-- nơi vẽ hiệu ứng -->
-      <div id="fx-stage"></div>
+/* ====== HEADER ====== */
+.site-header{
+  position:sticky; top:0; z-index:3;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:12px clamp(12px, 4vw, 32px);
+  background:linear-gradient(180deg, rgba(11,18,42,.95), rgba(11,18,42,.88));
+  backdrop-filter: blur(6px);
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.brand{display:flex; align-items:center; gap:12px}
+.brand__logo{width:180px; height:auto; object-fit:contain}
+.brand__slogan{font-size:14px; color:#bcd3ff}
+.tabs{display:flex; gap:8px; align-items:center}
+.tab{
+  padding:8px 14px; border-radius:999px; border:none;
+  background:var(--pill); color:#e7eefc; cursor:pointer
+}
+.tab.is-active{ background:var(--pillOn); }
 
-      <!-- Tiêu đề + mô tả -->
-      <div class="hero">
-        <h1>Chào mừng đến NiNi — Funny</h1>
-        <p>Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.</p>
-      </div>
+.auth-btn{
+  color:#fff; text-decoration:none;
+  background:#203b74; border-radius:999px;
+  padding:10px 16px
+}
+.auth-btn:hover{ filter:brightness(1.1); }
 
-      <!-- Nhím -->
-      <img class="nini" src="/public/assets/icons/nini.png" alt="NiNi" />
-      <!-- Footer menu -->
-      <footer class="footer-menu">
-        <a href="#about" id="aboutBtn">Giới thiệu</a>
-        <a href="#rules" id="rulesBtn">Luật chơi</a>
-        <a href="#forum" id="forumBtn">Diễn đàn</a>
-        <a href="#feedback" id="feedbackBtn">Góp ý</a>
-      </footer>
-    </section>
-  </main>
+/* ====== VIEWPORT (16:9) ====== */
+.viewport{
+  min-height: calc(100svh - 80px); /* chừa header */
+  display:grid; place-items:center; padding:18px;
+}
+.frame{
+  width:min(100%, 1200px);
+  aspect-ratio:16/9;
+  position:relative; overflow:hidden; border-radius:16px;
+  box-shadow:0 8px 36px rgba(0,0,0,.35);
+  background:#000;
+  background-image:var(--bg);
+  background-size:cover; background-position:center;
+}
 
-  <!-- JS hiệu ứng mùa (PHẢI ở cuối để DOM sẵn sàng) -->
-  <script defer src="/public/js/effects.js"></script>
-  <script>
-  // ------- cấu hình nền theo mùa + gắn hiệu ứng -------
-  const BG = {
-    home:  "/public/assets/images/seasons/nini_home.webp",
-    spring:"/public/assets/images/seasons/spring.webp",
-    summer:"/public/assets/images/seasons/summer.webp",
-    autumn:"/public/assets/images/seasons/autumn.webp",
-    winter:"/public/assets/images/seasons/winter.webp"
-  };
+/* Canvas rơi (đặt tuyệt đối, không chặn click) */
+.frame canvas{
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+}
 
-  const bgEl = document.getElementById('bg');
-  const tabs = document.querySelectorAll('.tab');
+/* NiNi chạy dưới đáy (không che hiệu ứng) */
+.nini{
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:min(28%, 210px); z-index:2;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,.45));
+}
 
-  // Đổi nền + bật/tắt hiệu ứng
-  function applySeason(season){
-    bgEl.style.backgroundImage = `url(${BG[season] || BG.home})`;
+/* Cụm menu đáy */
+.footer-menu{
+  position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; align-items:center; z-index:3;
+  padding:8px 12px; border-radius:999px;
+  background:rgba(0,0,0,.35); backdrop-filter: blur(4px);
+}
+.footer-menu a{ color:#fff; text-decoration:none }
+.footer-menu a:hover{ text-decoration:underline }
 
-    if (window.SEASON_FX && typeof window.SEASON_FX.mount === 'function') {
-      if (season === 'home') {
-        SEASON_FX.unmount?.();
-      } else {
-        SEASON_FX.mount('#fx-stage', { season, density: 120, speed: 0.6 });
-      }
-    }
-  }
-
-  // Sự kiện tab
-  tabs.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      tabs.forEach(b=>b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      applySeason(btn.dataset.season);
-    });
-  });
-
-  // Nền mặc định
-  applySeason('home');
-  </script>
-</body>
-</html>
-
+/* Mobile tinh gọn */
+@media (max-width: 480px){
+  .brand__logo{ width:140px }
+  .brand__slogan{ display:none }
+  .tab{ padding:6px 10px; font-size:13px }
+  .footer-menu{ font-size:13px }
+}

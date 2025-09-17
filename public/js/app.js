@@ -1,58 +1,75 @@
-// ========= CẤU HÌNH ẢNH NỀN =========
-// EDIT: nếu bạn có /public/assets/images/seasons/home.webp thì để đúng tên.
-// Nếu KHÔNG có home.webp, mình fallback về summer.webp.
-const BG = {
-  home  : "/public/assets/images/seasons/home.webp",  // <-- nếu không tồn tại, sẽ fallback
-  spring: "/public/assets/images/seasons/spring.webp",
-  summer: "/public/assets/images/seasons/summer.webp",
-  autumn: "/public/assets/images/seasons/autumn.webp",
-  winter: "/public/assets/images/seasons/winter.webp",
-  fallback: "/public/assets/images/seasons/summer.webp"
-};
+/* NiNi — App (NO EFFECT version) */
+(() => {
+  const frame = document.getElementById('frame');
+  const bg = document.getElementById('bg');
+  const nini = document.getElementById('nini');
 
-document.addEventListener('DOMContentLoaded', () => {
-  const tabsWrap = document.getElementById('tabs');
-  const seasonBtns = [...tabsWrap.querySelectorAll('.tab')];
-  const scene = document.getElementById('scene');
+  // Map ảnh theo data-* (dễ sửa đường dẫn nếu đổi ảnh)
+  const IMGS = {
+    home  : frame.dataset.home,
+    spring: frame.dataset.spring,
+    summer: frame.dataset.summer,
+    autumn: frame.dataset.autumn,
+    winter: frame.dataset.winter,
+  };
+  const niniSrc = frame.dataset.nini;
 
-  // ====== ĐỔI MÙA ======
-  function setSeason(season) {
-    // đặt active cho nút mùa
-    seasonBtns.forEach(b => b.classList.toggle('is-active', b.dataset.season === season));
+  // Thông tin cho 4 tab trong khung
+  const INFO = {
+    about   : { title: 'NiNi — Funny', text: 'Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.' },
+    rules   : { title: 'Luật chơi', text: 'Mỗi trò có mô tả ngắn ngay trang chơi. Bé tích điểm bằng cách hoàn thành thử thách.' },
+    forum   : { title: 'Diễn đàn', text: 'Nơi bé khoe thành tích, kể chuyện và học hỏi lẫn nhau (ra mắt sớm).' },
+    feedback: { title: 'Góp ý', text: 'Bạn muốn góp ý thêm trò/ảnh/ý tưởng? Rất mong nhận chia sẻ để NiNi hay hơn nữa!' },
+  };
 
-    // đổi background (có fallback nếu ảnh chính không có)
-    setSceneSrcFirstAvailable([BG[season], BG.fallback]);
+  // ========== SEASON TABS ==========
+  const tabBar = document.getElementById('seasonTabs');
+  function setSeason(name) {
+    // Cập nhật active UI
+    [...tabBar.querySelectorAll('.tab')].forEach(b => b.classList.toggle('is-active', b.dataset.season === name));
+
+    // Đổi background
+    const next = IMGS[name] || IMGS.home;
+    if (bg.src !== location.origin + next) bg.src = next;
+
+    // NiNi
+    if (niniSrc && !nini.src) nini.src = niniSrc;
+
+    // (giữ chỗ cho effect: tắt/bật ở đây nếu cần)
+    if (window.SEASON_FX && window.SEASON_FX.stop) window.SEASON_FX.stop('.frame');
   }
 
-  // helper: thử lần lượt URL, nếu lỗi thì tới URL kế tiếp
-  function setSceneSrcFirstAvailable(urls, i = 0) {
-    const url = urls[i];
-    if (!url) return; // hết fallback
-
-    const testImg = new Image();
-    testImg.onload = () => { scene.src = url; };
-    testImg.onerror = () => setSceneSrcFirstAvailable(urls, i + 1);
-    testImg.src = url;
-  }
-
-  // gán click 5 nút mùa
-  seasonBtns.forEach(btn => {
-    btn.addEventListener('click', () => setSeason(btn.dataset.season));
+  tabBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-season]');
+    if (!btn) return;
+    setSeason(btn.dataset.season);
   });
 
-  // khởi tạo: HOME
-  setSeason('home');
-
-  // ====== TABS NỘI DUNG TRONG KHUNG ======
-  const pills = [...document.querySelectorAll('.footer-nav .pill')];
-  const panels = [...document.querySelectorAll('[data-tab-panel]')];
-
-  function showPanel(key) {
-    pills.forEach(p => p.classList.toggle('is-active', p.dataset.tab === key));
-    panels.forEach(sec => sec.classList.toggle('is-show', sec.dataset.tabPanel === key));
+  // ========== INFO TABS ==========
+  const infoTabs = document.getElementById('infoTabs');
+  const infoPanel = document.getElementById('infoPanel');
+  function setInfo(key) {
+    [...infoTabs.querySelectorAll('.info__tab')].forEach(b => b.classList.toggle('is-active', b.dataset.key === key));
+    const it = INFO[key] || INFO.about;
+    infoPanel.innerHTML = `<h3>${it.title}</h3><p>${it.text}</p>`;
   }
+  infoTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-key]');
+    if (!btn) return;
+    setInfo(btn.dataset.key);
+  });
 
-  pills.forEach(p => p.addEventListener('click', () => showPanel(p.dataset.tab)));
+  // ========== INIT ==========
+  document.addEventListener('DOMContentLoaded', () => {
+    setSeason('home');   // Home thực sự là Home (không còn trỏ nhầm Summer)
+    setInfo('about');    // Tab mặc định
+  });
 
-  // mặc định hiển thị "about" (đã active sẵn trong HTML)
-});
+  // Cho phép đổi tỉ lệ NiNi nhanh: window.NINI = {scale: 2.2}
+  window.NINI = new Proxy({}, {
+    set(_t, prop, val){
+      if (prop === 'scale') document.documentElement.style.setProperty('--nini-scale', val);
+      return true;
+    }
+  });
+})();

@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon + Logo trên tab -->
+  <!-- favicon + CSS -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+  <link rel="stylesheet" href="/styles.css?v=6" />
 
-  <!-- CSS chính -->
-  <link rel="stylesheet" href="/styles.css?v=4" />
+  <!-- base để các path /public/... chạy đúng -->
+  <base href="/" />
 </head>
 <body>
-  <!-- ============ HEADER ============ -->
+  <!-- ============== HEADER ============== -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny"/>
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
 
@@ -27,72 +28,75 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <!-- Đăng nhập thường (Firebase) -->
     <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- ============ VIEWPORT (khung 16:9) ============ -->
-  <main class="viewport">
-    <section class="frame" id="viewport">
-      <!-- nền mùa sẽ được JS đổi bằng CSS background-image -->
-      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi">
-      <!-- cụm nút đáy -->
+  <!-- ============== VIEWPORT 16:9 ============== -->
+  <main class="container">
+    <section class="frame" id="viewport" aria-label="Khung 16:9 hiển thị nền + hiệu ứng">
+      <!-- bé nhím -->
+      <img class="nini" src="/public/assets/images/seasons/nini.png" alt="NiNi" />
+
+      <!-- menu đáy -->
       <div class="footer-menu">
         <a href="/about.html">Giới thiệu</a>
-        <span>•</span>
         <a href="/rules.html">Luật chơi</a>
-        <span>•</span>
         <a href="/forum.html">Diễn đàn</a>
-        <span>•</span>
         <a href="/feedback.html">Góp ý</a>
       </div>
     </section>
   </main>
 
-  <!-- ============ CONFIG MÙA ============ -->
+  <!-- ================== JS ================== -->
+
+  <!-- Map ảnh nền theo mùa -->
   <script>
-    // 4 ảnh nền mùa ~ đường dẫn hiện tại của bạn
     window.SEASON_BG = {
-      home  : "/public/assets/bg/nini_home.webp",  // có thể trùng spring nếu muốn
+      home  : "/public/assets/images/seasons/nini_home.webp",
       spring: "/public/assets/images/seasons/spring.webp",
       summer: "/public/assets/images/seasons/summer.webp",
       autumn: "/public/assets/images/seasons/autumn.webp",
-      winter: "/public/assets/images/seasons/winter.webp"
+      winter: "/public/assets/images/seasons/winter.webp",
     };
   </script>
 
-  <!-- FX (lá/hoa rơi) -->
-  <script src="/public/js/effects.js?v=4"></script>
-  <script>
-    // Helper đổi mùa + set nền + bật/tắt hiệu ứng
-    function applySeason(season) {
-      const host = document.getElementById('viewport');
-      const img = window.SEASON_BG[season] || window.SEASON_BG.spring;
-      host.style.setProperty('--bg', `url("${img}")`);
+  <!-- Hiệu ứng rơi -->
+  <script src="/public/js/effects.js?v=6"></script>
 
-      if (season === 'home') {
-        // Home: tắt rơi cho “sạch”
-        window.SeasonFX && SeasonFX.clear();
-      } else {
-        // Mùa khác: rơi thẳng xuống, tốc độ hợp lý
-        window.SeasonFX && SeasonFX.play(season, { straightDown: true, speed: 1.0 });
+  <!-- Điều khiển mùa + gắn sự kiện nút -->
+  <script>
+    function applySeason(season) {
+      // đổi nền
+      const host = document.getElementById('viewport');
+      if (host && window.SEASON_BG) {
+        host.style.setProperty('--bg', `url("${window.SEASON_BG[season] || window.SEASON_BG.spring}")`);
       }
 
-      // Active tab
+      // hiệu ứng: home thì tắt, các mùa thì bật
+      if (season === 'home') {
+        window.SeasonFX && window.SeasonFX.clear();
+      } else {
+        window.SeasonFX && window.SeasonFX.play(season, {
+          straightDown: true, // rơi thẳng xuống
+          speed: 1.0,         // tốc độ vừa phải
+          hostSelector: '#viewport'
+        });
+      }
+
+      // active tab
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('is-active'));
       const btn = document.querySelector(`.tab[data-season="${season}"]`);
       if (btn) btn.classList.add('is-active');
     }
 
-    // Tab click
-    document.getElementById('tabs').addEventListener('click', (e) => {
-      const btn = e.target.closest('.tab'); if (!btn) return;
-      applySeason(btn.dataset.season);
+    // click các tab
+    document.getElementById('tabs').addEventListener('click', e => {
+      const b = e.target.closest('.tab'); if (!b) return;
+      applySeason(b.dataset.season);
     });
 
-    // Khởi tạo
-    applySeason('home'); // mở đầu ở Home
+    // mặc định vào Home (nền không rơi)
+    document.addEventListener('DOMContentLoaded', () => applySeason('home'));
   </script>
 </body>
 </html>
-

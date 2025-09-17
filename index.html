@@ -1,20 +1,21 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>NiNi — Funny</title>
 
-  <!-- CSS chung -->
-  <link rel="stylesheet" href="/styles.css?v=4" />
-  <!-- Favicon -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+  <!-- favicon/logo -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp"/>
+
+  <!-- CSS chính -->
+  <link rel="stylesheet" href="/styles.css?v=4"/>
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- ===== HEADER (logo + slogan + tabs) ===== -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny"/>
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
 
@@ -22,34 +23,35 @@
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
       <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab tab--active" data-season="winter">Winter</button>
+      <button class="tab" data-season="winter">Winter</button>
     </nav>
 
     <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- VIEWPORT 16:9 -->
-  <main class="viewport">
-    <section class="frame" id="frame">
-      <div class="frame__img" id="bg"></div>
+  <!-- ===== KHUNG 16:9 ===== -->
+  <section class="viewport">
+    <div class="frame" id="frame">
+      <!-- Ảnh nền theo mùa -->
+      <img id="scene" alt="scene" src="/public/assets/bg/nini_home.webp"/>
 
-      <!-- Nhím -->
-      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+      <!-- Bé nhím -->
+      <img id="nini" alt="NiNi" src="/public/assets/icons/nini.webp"/>
 
-      <!-- 4 nút điều hướng -->
-      <nav class="footer-nav">
-        <a href="/about.html" class="chip">Giới thiệu</a>
-        <a href="/rules.html" class="chip">Luật chơi</a>
-        <a href="/forum.html" class="chip">Diễn đàn</a>
-        <a href="/feedback.html" class="chip">Góp ý</a>
+      <!-- Nút nav đáy -->
+      <nav class="footer-nav" id="footerNav">
+        <a class="pill" href="/about.html">Giới thiệu</a>
+        <a class="pill" href="/rules.html">Luật chơi</a>
+        <a class="pill" href="/forum.html">Diễn đàn</a>
+        <a class="pill" href="/feedback.html">Góp ý</a>
       </nav>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <!-- Hiệu ứng rơi -->
-  <script defer src="/public/js/effects.js?v=3"></script>
+  <!-- ===== JS: hiệu ứng mùa ===== -->
+  <script src="/public/js/effects.js?v=2"></script>
   <script>
-    // Ảnh 4 mùa (giữ nguyên đường dẫn bạn đang dùng)
+    // Map ảnh nền theo mùa
     const BG = {
       spring: "/public/assets/images/seasons/spring.webp",
       summer: "/public/assets/images/seasons/summer.webp",
@@ -57,20 +59,35 @@
       winter: "/public/assets/images/seasons/winter.webp",
     };
 
-    const bgEl = document.getElementById('bg');
-    const tabs = document.querySelectorAll('#tabs .tab');
+    const scene   = document.getElementById('scene');
+    const tabs    = document.getElementById('tabs');
+    const frameEl = document.getElementById('frame');
 
-    function setSeason(s) {
-      bgEl.style.backgroundImage = `url('${BG[s]}')`;
-      tabs.forEach(t => t.classList.toggle('tab--active', t.dataset.season === s));
-      // gọi hiệu ứng rơi
-      window.SeasonFX && window.SeasonFX.run('.frame', s);
+    // Chọn mặc định: spring
+    let current = 'spring';
+    applySeason(current);
+
+    tabs.querySelectorAll('.tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const s = btn.dataset.season;
+        if (s && s !== current){
+          current = s;
+          applySeason(s);
+        }
+      });
+    });
+
+    function applySeason(season){
+      // đổi nền
+      scene.src = BG[season] || BG.spring;
+
+      // gắn hiệu ứng rơi
+      if (window.SEASON_FX && typeof SEASON_FX.mount === 'function'){
+        SEASON_FX.mount('.frame', season);
+      }
+      // active tab
+      tabs.querySelectorAll('.tab').forEach(b=>b.classList.toggle('is-active', b.dataset.season===season));
     }
-
-    tabs.forEach(btn => btn.addEventListener('click', () => setSeason(btn.dataset.season)));
-
-    // Mặc định mở Winter
-    setSeason('winter');
   </script>
 </body>
 </html>

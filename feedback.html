@@ -1,0 +1,39 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Góp ý — NiNi Funny</title>
+  <link rel="stylesheet" href="/styles.css?v=4" />
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+</head>
+<body>
+  <header class="site-header site-header--sub">
+    <a class="brand__home" href="/"><img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" /></a>
+    <nav class="tabs tabs--sub">
+      <a class="chip" href="/">Trang chủ</a>
+      <a class="chip" href="/about.html">Giới thiệu</a>
+      <a class="chip" href="/rules.html">Luật chơi</a>
+      <a class="chip" href="/forum.html">Diễn đàn</a>
+      <a class="chip chip--active" href="/feedback.html">Góp ý</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <h1>Góp ý</h1>
+    <form name="feedback" method="POST" data-netlify="true" action="/success.html" class="form">
+      <input type="hidden" name="form-name" value="feedback" />
+      <label>Họ tên
+        <input type="text" name="name" required />
+      </label>
+      <label>Email
+        <input type="email" name="email" required />
+      </label>
+      <label>Nội dung góp ý
+        <textarea name="message" rows="5" required></textarea>
+      </label>
+      <button type="submit" class="chip">Gửi góp ý</button>
+    </form>
+  </main>
+</body>
+</html>

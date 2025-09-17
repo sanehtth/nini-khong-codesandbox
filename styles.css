@@ -6,7 +6,7 @@
   <title>NiNi — Funny</title>
 
   <!-- Favicon/logo tiêu đề -->
-  <link rel="icon" type="image/webp" href="/public/assets/logonini.webp" />
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
   <!-- CSS tổng -->
   <link rel="stylesheet" href="/styles.css" />
@@ -15,7 +15,7 @@
   <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand__logo" src="/public/assets/logo_text.webp" alt="NiNi Funny" />
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
     <nav class="tabs">
@@ -43,7 +43,7 @@
       </div>
 
       <!-- Nhím -->
-      <img class="nini" src="/public/assets/nini.png" alt="NiNi" />
+      <img class="nini" src="/public/assets/icons/nini.png" alt="NiNi" />
       <!-- Footer menu -->
       <footer class="footer-menu">
         <a href="#about" id="aboutBtn">Giới thiệu</a>
@@ -59,11 +59,11 @@
   <script>
   // ------- cấu hình nền theo mùa + gắn hiệu ứng -------
   const BG = {
-    home:  "/public/assets/bg-forest.webp",
-    spring:"/public/assets/bg-spring.webp",
-    summer:"/public/assets/bg-summer.webp",
-    autumn:"/public/assets/bg-autumn.webp",
-    winter:"/public/assets/bg-winter.webp"
+    home:  "/public/assets/images/seasons/nini_home.webp",
+    spring:"/public/assets/images/seasons/spring.webp",
+    summer:"/public/assets/images/seasons/summer.webp",
+    autumn:"/public/assets/images/seasons/autumn.webp",
+    winter:"/public/assets/images/seasons/winter.webp"
   };
 
   const bgEl = document.getElementById('bg');
@@ -96,3 +96,4 @@
   </script>
 </body>
 </html>
+

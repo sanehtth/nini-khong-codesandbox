@@ -1,86 +1,71 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
-
-  <!-- Favicon trên thanh tiêu đề -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp"/>
-
-  <!-- CSS tổng -->
-  <link rel="stylesheet" href="/styles.css?v=9"/>
+  <link rel="preload" as="image" href="/public/assets/bg/nini_home.webp">
+  <link rel="stylesheet" href="/styles.css?v=8" />
 </head>
 <body>
-  <!-- ========= HEADER ========= -->
+  <!-- Header -->
   <header class="site-header">
     <div class="brand">
-      <!-- EDIT: logo chữ -->
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny"/>
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+      <a class="brand__logo" href="/">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      </a>
+      <!-- NHẤN VÀO CHỮ -> đi tới trang đăng nhập ADMIN -->
+      <a class="brand__title" href="/admin/login.html" title="Đăng nhập Admin">NiNi — Funny</a>
+      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
     </div>
 
-    <!-- 5 nút: Home + 4 mùa -->
-    <nav class="tabs" id="tabs">
-      <button class="tab" data-season="home">Home</button>
+    <!-- Tabs mùa + Home (Home là mặc định, không bị map sang Summer nữa) -->
+    <nav class="tabs" id="seasonTabs">
+      <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
       <button class="tab" data-season="autumn">Autumn</button>
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <!-- Link đăng nhập/đăng ký -->
     <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- ========= KHUNG 16:9 ========= -->
-  <section class="viewport">
-    <div class="frame">
-      <!-- Ảnh nền theo mùa -->
-      <!-- EDIT: ảnh nền mặc định khi tải trang -->
-      <img id="scene" alt="Backgound season" src="/public/assets/images/seasons/summer.webp"/>
+  <!-- Khung hiển thị 16:9, giữ tỉ lệ trên cả PC & mobile -->
+  <main class="viewport">
+    <figure
+      id="frame"
+      class="frame"
+      data-home="/public/assets/bg/nini_home.webp"
+      data-spring="/public/assets/images/seasons/spring.webp"
+      data-summer="/public/assets/images/seasons/summer.webp"
+      data-autumn="/public/assets/images/seasons/autumn.webp"
+      data-winter="/public/assets/images/seasons/winter.webp"
+      data-nini="/public/assets/images/seasons/nini.webp"
+    >
+      <img id="bg" class="bg" alt="background" />
+      <img id="nini" class="nini" alt="NiNi" />
+    </figure>
 
-      <!-- Bé nhím -->
-      <img id="nini" alt="NiNi" src="/public/assets/images/seasons/nini_move.webp"/>
-
-      <!-- 4 nút TAB trong khung -->
-      <nav class="footer-nav">
-        <button class="pill is-active" data-tab="about">Giới thiệu</button>
-        <button class="pill" data-tab="rules">Luật chơi</button>
-        <button class="pill" data-tab="forum">Diễn đàn</button>
-        <button class="pill" data-tab="feedback">Góp ý</button>
-      </nav>
-
-      <!-- Nội dung mỗi TAB hiển thị ngay trong khung -->
-      <div id="tabContent" class="tab-content">
-        <section class="panel is-show" data-tab-panel="about">
-          <h3>NiNi — Funny</h3>
-          <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-        </section>
-
-        <section class="panel" data-tab-panel="rules">
-          <h3>Luật chơi</h3>
-          <ul>
-            <li>Chọn mùa để đổi cảnh nền.</li>
-            <li>Tham gia thử thách để tích điểm.</li>
-            <li>Nhận phần thưởng khi đạt mốc.</li>
-          </ul>
-        </section>
-
-        <section class="panel" data-tab-panel="forum">
-          <h3>Diễn đàn</h3>
-          <p>Nơi chia sẻ câu chuyện & bí kíp chơi hay của bé.</p>
-        </section>
-
-        <section class="panel" data-tab-panel="feedback">
-          <h3>Góp ý</h3>
-          <p>Hộp góp ý sẽ mở sớm. Tạm thời hãy gửi ý tưởng qua email nhé ♥</p>
-        </section>
+    <!-- 4 nút “tab” trong KHUNG (text, không đi trang khác) -->
+    <section class="info">
+      <div class="info__tabs" id="infoTabs">
+        <button class="info__tab is-active" data-key="about">Giới thiệu</button>
+        <button class="info__tab" data-key="rules">Luật chơi</button>
+        <button class="info__tab" data-key="forum">Diễn đàn</button>
+        <button class="info__tab" data-key="feedback">Góp ý</button>
       </div>
-    </div>
-  </section>
 
-  <!-- JS điều khiển (không effect) -->
-  <script src="/public/js/app.js?v=1"></script>
+      <article class="info__panel" id="infoPanel">
+        <h3>NiNi — Funny</h3>
+        <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+      </article>
+    </section>
+  </main>
+
+  <!-- App JS (chưa bật hiệu ứng rơi) -->
+  <script src="/public/js/app.js?v=8" defer></script>
+  <!-- Giữ file, nhưng mặc định no-op (không chạy). Khi cần effect chỉ bật ENABLE_EFFECTS = true trong app.js -->
+  <script src="/public/js/effects.js?v=1" defer></script>
 </body>
 </html>

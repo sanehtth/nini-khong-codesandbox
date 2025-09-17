@@ -1,5 +1,3 @@
-<!-- ĐÂY LÀ NỘI DUNG FILE /public/js/effects.js - COPY NGUYÊN VÀ DÁN ĐÈ -->
-<script>
 // eslint-disable-next-line
 (() => {
   const ICONS = {
@@ -45,17 +43,16 @@
 
   function buildParticles(count, straightDown, spdMul){
     const r = host.getBoundingClientRect();
-    const arr = new Array(count).fill(0).map(_ => {
+    particles = new Array(count).fill(0).map(() => {
       const x = Math.random() * r.width;
       const y = Math.random() * r.height;
-      const vy = (30 + Math.random()*40) * spdMul;   // rơi thẳng
-      const vx = straightDown ? 0 : (Math.random()*40 - 20); // trôi ngang nhẹ
-      const s  = 16 + Math.random()*12;  // kích thước ảnh
+      const vy = (30 + Math.random()*40) * spdMul;
+      const vx = straightDown ? 0 : (Math.random()*40 - 20);
+      const s  = 16 + Math.random()*12;
       const rot = Math.random()*Math.PI*2;
       const rotV = (Math.random()*0.02 - 0.01);
       return {x,y,vx,vy,size:s,rot,rotV};
     });
-    particles = arr;
   }
 
   function loadIcon(url){
@@ -67,7 +64,7 @@
     });
   }
 
-  function step(ts){
+  function step(){
     if (!ctx || !host || !imgIcon) return;
     const r = host.getBoundingClientRect();
     ctx.clearRect(0,0,r.width,r.height);
@@ -77,7 +74,6 @@
       p.x += p.vx/60;
       p.rot += p.rotV;
 
-      // wrap
       if (p.y > r.height+40){ p.y = -40; p.x = Math.random()*r.width; }
       if (p.x < -40) p.x = r.width+40;
       else if (p.x > r.width+40) p.x = -40;
@@ -101,11 +97,10 @@
     cancelAnimationFrame(raf);
 
     const iconUrl = ICONS[season] || ICONS.spring;
-    imgIcon = await loadIcon(iconUrl);
+    try { imgIcon = await loadIcon(iconUrl); } catch(e){ return; }
 
     const r = host.getBoundingClientRect();
-    // số hạt theo diện tích + giới hạn
-    const base = Math.round(r.width * r.height / 18000);
+    const base  = Math.round(r.width * r.height / 18000);
     const count = Math.max(24, Math.min(base, 120));
     const spdMul = (SPEED[season] || 1.0) * speed;
 
@@ -123,6 +118,6 @@
     }
   }
 
+  // public API
   window.SeasonFX = { play, clear };
 })();
-</script>

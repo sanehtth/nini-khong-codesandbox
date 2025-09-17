@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
-
   <!-- Favicon -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
@@ -149,7 +148,10 @@
   <div class="page">
 
     <header class="top">
-      <img class="brand" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny"/>
+      <a class="brand" href="/">
+  <img class="brand__logo" src="/public/assets/logo_text.webp" alt="NiNi — Funny">
+  <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
+      </a>
       <nav class="tabs" aria-label="Seasons">
         <button class="tab active" data-season="home">Home</button>
         <button class="tab" data-season="spring">Spring</button>
@@ -191,137 +193,151 @@
   </div>
 
   <script>
-  (() => {
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+(() => {
+  const $  = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
 
-    /* =======  Ảnh nền 4 mùa + Home  ======= */
-    const BG = {
-      spring: 'url("/public/assets/images/seasons/spring.webp")',
-      summer: 'url("/public/assets/images/seasons/summer.webp")',
-      autumn: 'url("/public/assets/images/seasons/autumn.webp")',
-      winter: 'url("/public/assets/images/seasons/winter.webp")',
-      home  : 'url("/public/assets/bg/nini_home.webp")'
-    };
+  /* Nền 4 mùa + Home */
+  const BG = {
+    spring: 'url("/public/assets/images/seasons/spring.webp")',
+    summer: 'url("/public/assets/images/seasons/summer.webp")',
+    autumn: 'url("/public/assets/images/seasons/autumn.webp")',
+    winter: 'url("/public/assets/images/seasons/winter.webp")',
+    home  : 'url("/public/assets/background/nini-home.webp")'
+  };
 
-    /* =======  Sprite hiệu ứng rơi  ======= */
-    const SPRITES = {
-      spring: '/public/assets/icons/flower.webp',
-      summer: '/public/assets/icons/drop.webp',
-      autumn: '/public/assets/icons/leaf.webp',
-      winter: '/public/assets/icons/snow.webp',
-      home  : '/public/assets/icons/flower.webp'  // home cũng rơi nhẹ hoa
-    };
+  /* Sprite hiệu ứng rơi */
+  const SPRITES = {
+    spring: '/public/assets/icons/flower.webp',
+    summer: '/public/assets/icons/drop.webp',
+    autumn: '/public/assets/icons/leaf.webp',
+    winter: '/public/assets/icons/snow.webp',
+    home  : null                 // Home: KHÔNG rơi
+  };
 
-    /* =======  Canvas rơi  ======= */
-    const canvas = $('#fx');
-    const ctx = canvas.getContext('2d');
-    let W=0,H=0, dpr=1;
-    function resizeCanvas(){
-      dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width  = canvas.clientWidth  * dpr;
-      canvas.height = canvas.clientHeight * dpr;
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      W = canvas.clientWidth;
-      H = canvas.clientHeight;
+  /* Chế độ rơi theo mùa */
+  const EFFECT = {
+    home  : 'none',              // không hiệu ứng
+    spring: 'drift',             // trôi nhẹ (hoa)
+    summer: 'rain',              // mưa thẳng, nhanh
+    autumn: 'drift',             // lá trôi
+    winter: 'drift'              // tuyết trôi rất nhẹ
+  };
+
+  const frame  = $('#frame');
+  const canvas = $('#fx');
+  const ctx    = canvas.getContext('2d');
+
+  let W=0,H=0,dpr=1;
+  function resizeCanvas(){
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = canvas.clientWidth  * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    W = canvas.clientWidth;
+    H = canvas.clientHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  let sprite = new Image();
+  let particles = [];
+  let effectMode = 'drift';
+  let prev = 0;
+
+  function makeParticles(count){
+    particles.length = 0;
+    for(let i=0;i<count;i++){
+      particles.push({
+        x: Math.random()*W,
+        y: Math.random()*H,
+        s: 0.7 + Math.random()*0.9,
+        v: effectMode==='rain'
+              ? (260 + Math.random()*180)  // mưa: rất nhanh
+              : (40  + Math.random()*50),  // hoa/lá/tuyết: chậm
+        a: Math.random()*Math.PI*2        // pha trôi (dùng cho drift)
+      });
     }
-    window.addEventListener('resize', resizeCanvas);
-
-    const frame = $('#frame');
-
-    let sprite = new Image();
-    let particles = [];
-    let prev = 0;
-
-    function makeParticles(count=80){   // số lượng vừa phải
-      particles.length = 0;
-      for(let i=0;i<count;i++){
-        particles.push({
-          x: Math.random()*W,
-          y: Math.random()*H,
-          s: 0.7 + Math.random()*0.9,   // size scale
-          v: 12 + Math.random()*18,     // rơi chậm
-          a: Math.random()*Math.PI*2,   // góc drift
-        });
+  }
+  function draw(ts){
+    if(!prev) prev = ts;
+    const dt = Math.min(0.033, (ts - prev)/1000);
+    prev = ts;
+    ctx.clearRect(0,0,W,H);
+    for(const p of particles){
+      // rơi xuống
+      p.y += p.v * dt;
+      // chỉ drift khi KHÔNG phải mưa
+      if(effectMode !== 'rain'){
+        p.a += 0.8*dt;
+        p.x += Math.sin(p.a) * 18 * dt; // trôi ngang nhẹ
       }
+      // vòng lại trên đỉnh
+      if(p.y > H + 24){ p.y = -24; p.x = Math.random()*W; }
+
+      const size = (effectMode==='rain' ? 12 : 16 * p.s);
+      if(sprite) ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
     }
-
-    function draw(ts){
-      if(!prev) prev = ts;
-      const dt = Math.min(0.033, (ts - prev)/1000);
-      prev = ts;
-      ctx.clearRect(0,0,W,H);
-
-      for(const p of particles){
-        p.y += p.v * dt;
-        p.a += 0.9*dt;
-        p.x += Math.sin(p.a) * 12 * dt; // drift nhẹ
-        if(p.y > H + 24){ p.y = -24; p.x = Math.random()*W; }
-
-        const size = 16 * p.s;
-        ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
-      }
-      requestAnimationFrame(draw);
-    }
-
-    function setSeason(season){
-      // nền
-      frame.style.backgroundImage = BG[season] || BG.spring;
-
-      // tab active
-      $$('.tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.season===season));
-
-      // sprite
-      const url = SPRITES[season] || SPRITES.spring;
-      sprite = new Image();
-      sprite.onload = () => { makeParticles(season==='home'? 60 : 90); }; // home ít hơn xíu
-      sprite.src = url;
-    }
-
-    // gán sự kiện menu
-    $$('.tabs .tab').forEach(btn=>{
-      btn.addEventListener('click', ()=> setSeason(btn.dataset.season));
-    });
-
-    /* =======  Nhím & bong bóng  ======= */
-    const hog = $('#hog');
-    const bubble = $('#bubble');
-
-    const TEXT = {
-      intro:
-        'Chào mừng bạn đến thế giới của mình. NiNi-Funny — chơi mê ly, bứt phá tư duy!!! '+
-        'Bạn có thể bấm các nút bên dưới để tìm hiểu thêm nha, mình sẽ tiết lộ vài bí mật!',
-      rules:
-        'Đầu tiên hãy đăng nhập và trở thành thành viên câu lạc bộ. Đọc sách, xem video, chơi game để nhận kinh nghiệm và xu, rồi đổi quà trong Shop nhé!',
-      forum:
-        'Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp nhau học tiếng Anh!',
-      feedback:
-        'Hãy gửi góp ý cho NiNi để mình làm app vui hơn và hữu ích hơn nhé!'
-    };
-
-    function speak(side, text){
-      if(!hog || !bubble) return;
-      hog.style.transition = 'left .8s ease';
-      hog.style.left = (side==='left' ? '18%' : side==='right' ? '82%' : '50%');
-
-      bubble.textContent = text;
-      bubble.hidden = false;
-      bubble.style.opacity = 1;
-      bubble.style.left  = (side==='left'  ? '26%' : side==='right' ? 'auto' : '50%');
-      bubble.style.right = (side==='right' ? '26%' : 'auto');
-    }
-
-    $('#footer-intro')    .addEventListener('click', ()=> speak('left',  TEXT.intro));
-    $('#footer-rules')    .addEventListener('click', ()=> speak('right', TEXT.rules));
-    $('#footer-forum')    .addEventListener('click', ()=> speak('left',  TEXT.forum));
-    $('#footer-feedback') .addEventListener('click', ()=> speak('right', TEXT.feedback));
-
-    /* =======  Khởi động  ======= */
-    resizeCanvas();
-    setSeason('home');
-    makeParticles(60);
     requestAnimationFrame(draw);
-  })();
-  </script>
+  }
+  function setSeason(season){
+    // nền
+    frame.style.backgroundImage = BG[season] || BG.spring;
+    // active tab
+    $$('.tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.season===season));
+    // chế độ hiệu ứng
+    effectMode = EFFECT[season] || 'drift';
+    // Home: tắt hẳn hạt rơi
+    if(effectMode === 'none'){
+      particles.length = 0;
+      ctx.clearRect(0,0,W,H);
+      return;
+    }
+    // tải sprite và tạo hạt
+    const url = SPRITES[season];
+    sprite = new Image();
+    sprite.onload = () => {
+      const count =
+        effectMode==='rain' ? 140 :           // mưa dày hơn
+        season==='winter'   ? 90  :
+        110;
+      makeParticles(count);
+    };
+    if(url) sprite.src = url;
+  }
+  /* Bong bóng + nội dung như cũ */
+  const hog = $('#hog');
+  const bubble = $('#bubble');
+  const TEXT = {
+    intro:
+      'Chào mừng bạn đến thế giới của mình. NiNi-Funny — chơi mê ly, bứt phá tư duy!!! '+
+      'Bạn có thể bấm các nút bên dưới để tìm hiểu thêm nha, mình sẽ tiết lộ vài bí mật!',
+    rules:
+      'Đầu tiên hãy đăng nhập và trở thành thành viên câu lạc bộ. Đọc sách, xem video, chơi game để nhận kinh nghiệm và xu, rồi đổi quà trong Shop nhé!',
+    forum:
+      'Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp nhau học tiếng Anh!',
+    feedback:
+      'Hãy gửi góp ý cho NiNi để mình làm app vui hơn và hữu ích hơn nhé!'
+  };
+  function speak(side, text){
+    if(!hog || !bubble) return;
+    hog.style.transition = 'left .8s ease';
+    hog.style.left = (side==='left' ? '18%' : side==='right' ? '82%' : '50%');
+    bubble.textContent = text;
+    bubble.hidden = false;
+    bubble.style.opacity = 1;
+    bubble.style.left  = (side==='left'  ? '26%' : side==='right' ? 'auto' : '50%');
+    bubble.style.right = (side==='right' ? '26%' : 'auto');
+  }
+  $('#footer-intro')    .addEventListener('click', ()=> speak('left',  TEXT.intro));
+  $('#footer-rules')    .addEventListener('click', ()=> speak('right', TEXT.rules));
+  $('#footer-forum')    .addEventListener('click', ()=> speak('left',  TEXT.forum));
+  $('#footer-feedback') .addEventListener('click', ()=> speak('right', TEXT.feedback));
+
+  /* Khởi động */
+  resizeCanvas();
+  setSeason('home');       // Home: không rơi
+  requestAnimationFrame(draw);
+})();
+</script>
 </body>
 </html>

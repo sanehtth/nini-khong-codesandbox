@@ -31,11 +31,6 @@ body{
 
 .brand{ display:flex; align-items:center; gap:10px; }
 .brand__logo img{ width:148px; height:auto; object-fit:contain; display:block; }
-.brand__title{
-  font-weight:800; letter-spacing:.3px; color:var(--ink); text-decoration:none;
-  border-bottom:2px solid transparent; margin-top:2px;
-}
-.brand__title:hover{ border-bottom-color:var(--ink); }
 .brand__slogan{ font-size:13px; color:var(--ink-dim) }
 
 .tabs{ display:flex; gap:8px; align-items:center; }
@@ -101,3 +96,4 @@ body{
   .brand__logo img{ width:120px }
   .nini{ width:min(140px,22%); }
 }
+

@@ -1,4 +1,4 @@
-﻿// ================ Season FX (singleton) ================
+/* eslint-disable */
 (() => {
   const ICONS = {
     spring: "/public/assets/icons/flower.webp",
@@ -7,85 +7,119 @@
     winter: "/public/assets/icons/snow.webp",
   };
 
-  const SPEED = { spring: 1.1, summer: 1.6, autumn: 1.3, winter: 1.0 }; // nhanh chậm khác nhau
-  let raf = null, canvas, ctx, particles = [], host = null, active = null;
+  // tốc độ tương đối giữa các mùa (có thể tinh chỉnh)
+  const SPEED = { spring: .6, summer: .9, autumn: .8, winter: .7 };
 
-  function makeCanvas(container){
+  let raf = null, canvas = null, ctx = null, particles = [], img = null;
+  let host = null, active = null, dpi = 1;
+
+  function ensure(selector) {
+    host = document.querySelector(selector);
+    if (!host) { console.warn("[SEASON_FX] host not found:", selector); }
+    return !!host;
+  }
+
+  function makeCanvas() {
     canvas = document.createElement("canvas");
-    canvas.className = "fx-canvas";
-    Object.assign(canvas.style,{
-      position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none"
-    });
-    container.appendChild(canvas);
+    canvas.style.cssText = "position:absolute; inset:0; width:100%; height:100%; pointer-events:none";
     ctx = canvas.getContext("2d");
-    resize(); window.addEventListener("resize", resize);
-  }
-  function resize(){
-    if(!canvas) return;
-    const {width, height} = canvas.getBoundingClientRect();
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.floor(width * dpr);
-    canvas.height = Math.floor(height * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    host.appendChild(canvas);
+
+    const resize = () => {
+      const r = host.getBoundingClientRect();
+      dpi = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(r.width * dpi);
+      canvas.height = Math.floor(r.height * dpi);
+      ctx.setTransform(dpi, 0, 0, dpi, 0, 0);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
   }
 
-  function buildParticles(icon, speedMul){
-    const count = Math.round((canvas.width / window.devicePixelRatio) / 9); // mật độ vừa phải
-    particles = Array.from({length: count}, () => {
-      return {
-        x: Math.random() * canvas.width,
-        y: Math.random() * -canvas.height,
-        vy: (40 + Math.random()*60) * speedMul,     // rơi thẳng xuống
-        size: 14 + Math.random()*14,
-        rot: Math.random() * Math.PI*2,
-        icon
-      };
-    });
+  function buildParticles(count, speedMul) {
+    const area = host.getBoundingClientRect();
+    const arr = new Array(count).fill(0).map(() => ({
+      x: Math.random() * area.width,
+      y: Math.random() * -area.height,
+      vy: 20 + Math.random() * 40,         // base fall
+      swing: (Math.random() * .8 + .4),     // sideways
+      rot: Math.random() * Math.PI * 2,
+      size: 16 + Math.random() * 18
+    }));
+    // speed scale
+    arr.forEach(p => { p.vy *= speedMul; });
+    return arr;
   }
 
-  function loadIcon(url){
+  function loadIcon(url) {
     return new Promise((res, rej) => {
-      const img = new Image(); img.onload = () => res(img); img.onerror = rej; img.src = url;
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = url;
     });
   }
 
-  function step(now){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    const h = canvas.height;
-    particles.forEach(p => {
-      p.y += p.vy * 0.016;   // ~60fps
-      if(p.y > h + 40){ p.y = -40; p.x = Math.random()*canvas.width; }
-      p.rot += 0.02;
+  function step() {
+    const w = canvas.width / dpi, h = canvas.height / dpi;
+    ctx.clearRect(0, 0, w, h);
+
+    const t = performance.now() * .001;
+    for (let p of particles) {
+      // update
+      p.y += p.vy * (1/60);                    // rơi đều ~ 60fps
+      p.x += Math.sin(t * 1.6 + p.y * .02) * p.swing; // lắc ngang
+      p.rot += .01;
+
+      // vòng lại
+      if (p.y > h + 40) {
+        p.y = -40;
+        p.x = Math.random() * w;
+      }
+
+      // draw
+      const s = p.size;
       ctx.save();
       ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot * 0.05); // nhẹ nhàng thôi
-      const s = p.size;
-      ctx.drawImage(p.icon, -s/2, -s/2, s, s);
+      ctx.rotate(p.rot);
+      ctx.drawImage(img, -s/2, -s/2, s, s);
       ctx.restore();
-    });
+    }
     raf = requestAnimationFrame(step);
   }
 
-  async function startSeasonEffect(season, container){
-    stopSeasonEffect();
-    if(!container || season === "home") return;
+  function cleanup() {
+    cancelAnimationFrame(raf);
+    raf = null; particles = [];
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    canvas = ctx = img = host = null;
+  }
 
-    host = container;
-    if(!canvas) makeCanvas(host);
-
-    const icon = await loadIcon(ICONS[season]);
-    buildParticles(icon, SPEED[season] || 1.2);
-    raf = requestAnimationFrame(step);
+  async function mount(selector, opts = {}) {
+    if (!ensure(selector)) return;
+    const { season="spring", density=120, speed=.6 } = opts;
     active = season;
+
+    // tạo canvas
+    makeCanvas();
+
+    // tải icon
+    const iconUrl = ICONS[season] || ICONS.spring;
+    img = await loadIcon(iconUrl);
+
+    // sinh hạt
+    const mul = speed * (SPEED[season] ?? 1);
+    particles = buildParticles(density, mul);
+
+    // chạy
+    raf = requestAnimationFrame(step);
   }
 
-  function stopSeasonEffect(){
-    if(raf) cancelAnimationFrame(raf);
-    raf = null; particles = []; active = null;
-    if(ctx) ctx.clearRect(0,0,canvas?.width||0,canvas?.height||0);
+  function unmount() {
+    cleanup();
   }
 
-  // expose
-  window.startSeasonEffect = startSeasonEffect;
-  window.stopSeasonEffect  = stopSeasonEffect;
+  // public API
+  window.SEASON_FX = { mount, unmount };
 })();

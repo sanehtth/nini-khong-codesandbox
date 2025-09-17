@@ -26,46 +26,47 @@
     </div>
 
     <!-- NOTE: thanh chọn mùa (đổi nhãn/đổi thứ tự tự do) -->
-    <nav class="tabs" aria-label="Chọn mùa">
-      <button class="tab is-active" data-tab="home">Home</button>
-      <button class="tab" data-tab="spring">Spring</button>
-      <button class="tab" data-tab="summer">Summer</button>
-      <button class="tab" data-tab="autumn">Autumn</button>
-      <button class="tab" data-tab="winter">Winter</button>
-
-      <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
+    <nav class="season-nav">
+    <button data-season="home">Home</button>
+    <button data-season="spring">Spring</button>
+    <button data-season="summer">Summer</button>
+    <button data-season="autumn">Autumn</button>
+    <button data-season="winter">Winter</button>
     </nav>
+
+  <!-- ❌ Đừng dùng href="/admin/login.html" ở đây -->
+  <button id="authBtn" type="button">Đăng nhập / Đăng ký</button>
   </header>
 
   <!-- ============ VIEWPORT (căn giữa khung 16:9) ============ -->
   <main class="viewport">
     <!-- NOTE: .frame luôn giữ tỷ lệ 16:9 trong mọi màn hình -->
-    <section class="frame" role="region" aria-label="Khu rừng NiNi">
-
-      <!-- NOTE: Lớp hiệu ứng rơi (chỉ rơi trong khung 16:9) -->
-      <div id="fx" aria-hidden="true"></div>
-
-      <!-- NOTE: Nội dung chính nằm TRÊN hiệu ứng -->
-      <div class="scene">
-        <h1 class="headline">Chào mừng đến NiNi — Funny</h1>
-        <p class="sub">
-          Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.
-        </p>
-
-        <!-- NOTE: Nhím (đổi kích cỡ trong CSS: --hog-scale) -->
-        <figure class="hog" aria-label="Bé Nhím đang vẫy tay"></figure>
-      </div>
-
-      <!-- NOTE: Footer 4 mục (mở panel nội dung) -->
-      <footer class="frame-footer">
-        <button class="pill" data-panel="intro">Giới thiệu</button>
-        <button class="pill" data-panel="rules">Luật chơi</button>
-        <button class="pill" data-panel="forum">Diễn đàn</button>
-        <button class="pill" data-panel="feedback">Góp ý</button>
-      </footer>
-    </section>
+    <section class="hero-16x9">
+  <div id="bg" class="bg"></div>           <!-- nền theo mùa -->
+  <canvas id="fx" class="fx"></canvas>      <!-- hiệu ứng rơi -->
+  <div class="content">
+    <h1>Chào mừng đến NiNi — Funny</h1>
+    <p>Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.</p>
+    <!-- … các nút Giới thiệu / Luật chơi / Diễn đàn / Góp ý … -->
+  </div>
+</section>
   </main>
-
+<!================ MODAL ĐĂNG NHẬP THÀNH VIÊN ===============-->
+<div id="authModal" class="modal" hidden>
+  <div class="modal-card">
+    <button class="close" data-close>&times;</button>
+    <h3>Đăng nhập thành viên</h3>
+    <form id="emailForm">
+      <input id="email" type="email" placeholder="you@example.com" required />
+      <input id="password" type="password" placeholder="Mật khẩu" required />
+      <button type="submit">Đăng nhập</button>
+    </form>
+    <div class="divider">hoặc</div>
+    <button id="googleBtn" type="button">Đăng nhập với Google</button>
+    <p class="hint">Chưa có tài khoản? <a id="signupLink" href="#">Tạo nhanh tài khoản</a></p>
+    <p id="authMsg" class="auth-msg"></p>
+  </div>
+</div>
   <!-- ============ PANEL (hộp nội dung trồi lên) ============ -->
   <aside id="panel" class="panel" hidden>
     <div class="panel__card">
@@ -135,4 +136,5 @@
   </script>
 </body>
 </html>
+
 

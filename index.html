@@ -4,340 +4,132 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
-  <!-- Favicon -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
-  <style>
-    :root{
-      --brand:#0bd07c;
-      --ink:#0c1520;
-      --soft:rgba(255,255,255,.85);
-      --glass:rgba(255,255,255,.08);
-      --pill:#10222f;
-    }
+  <!-- NOTE: favicon/logo ở tab trình duyệt (đổi nguồn ở đây) -->
+  <link rel="icon" type="image/webp" href="public/assets/icons/logonini.webp" />
 
-    /* nền ngoài 16:9 cho đẹp mắt */
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-      color:#fff;
-      background: radial-gradient(1200px 700px at 50% -100px,#0a3b25,#06141c 70%);
-      display:grid;
-      place-items:center;
-    }
-
-    .page{
-      width: min(1200px, 100vw);
-      padding: 10px min(16px,2vw);
-    }
-
-    /* Header */
-    .top{
-      display:flex; align-items:center; gap:14px;
-      justify-content:space-between;
-      padding:8px 10px;
-      border-radius:14px;
-      background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.15));
-      box-shadow: 0 8px 26px rgba(0,0,0,.25) inset, 0 10px 40px rgba(0,0,0,.18);
-      backdrop-filter: blur(6px);
-    }
-    .brand{
-      height:30px; width:auto; display:block;
-    }
-    .tabs{
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
-    .tabs .tab{
-      appearance:none; border:0; cursor:pointer;
-      padding:8px 14px; border-radius:999px;
-      background: rgba(255,255,255,.08);
-      color:#fff; font-weight:600;
-      transition:transform .15s ease, background .2s ease, box-shadow .2s ease;
-      box-shadow: 0 2px 0 rgba(255,255,255,.12) inset, 0 8px 18px rgba(0,0,0,.25);
-    }
-    .tabs .tab:hover{ transform: translateY(-1px); }
-    .tabs .tab.active{
-      background: rgba(255,255,255,.18);
-      box-shadow: 0 2px 0 rgba(255,255,255,.22) inset, 0 10px 20px rgba(0,0,0,.28);
-      outline: 2px solid rgba(255,255,255,.18);
-    }
-    .auth{
-      padding:8px 14px; border-radius:999px; text-decoration:none; color:#fff;
-      background:rgba(255,255,255,.1);
-      box-shadow: 0 2px 0 rgba(255,255,255,.12) inset, 0 8px 18px rgba(0,0,0,.25);
-      white-space:nowrap;
-    }
-
-    /* Khung hiển thị 16:9 */
-    .screen{
-      aspect-ratio: 16/9;   /* desktop: 16:9 gọn gàng */
-      width: 100%;
-      margin: 12px 0;
-      border-radius: 18px;
-      overflow:hidden;
-      position: relative;
-      box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.08) inset;
-      background:#06141c;
-    }
-    @supports not (aspect-ratio: 16/9){
-      /* fallback cũ: đảm bảo gần 16:9 */
-      .screen::before{content:"";float:left;padding-top:56.25%}
-      .screen::after{content:"";display:block;clear:both}
-    }
-
-    .frame{
-      position:absolute; inset:0;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .headline{
-      position:absolute; left: 4%; top: 4%;
-      z-index:3;
-      text-shadow: 0 3px 18px rgba(0,0,0,.55);
-    }
-    .headline h1{margin:.2rem 0  .25rem; font-size: clamp(22px, 2.6vw, 36px)}
-    .headline p {margin:0; opacity:.92; font-weight:600; font-size:clamp(13px,1.2vw,16px)}
-
-    /* canvas hiệu ứng rơi */
-    #fx{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2 }
-
-    /* Nhím & bong bóng */
-    #hog{
-      position:absolute; bottom:6%; left:50%;
-      transform:translateX(-50%);
-      width: clamp(76px, 9.5vw, 140px);
-      z-index:3;
-      filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
-      user-select:none; pointer-events:none;
-    }
-    .thought{
-      position:absolute; bottom:18%;
-      left:50%; transform:translateX(-50%);
-      max-width:min(640px,72%); padding:14px 16px;
-      border-radius:16px; border:1px solid rgba(255,255,255,.65);
-      background: rgba(255,255,255,.86); color:var(--ink);
-      backdrop-filter: blur(6px);
-      z-index:3; opacity:0; transition:opacity .25s ease;
-      box-shadow:0 10px 26px rgba(0,0,0,.18);
-    }
-
-    /* Footer bám đáy khung 16:9 */
-    .footer{
-      position:absolute; left:0; right:0; bottom:6px;
-      display:flex; gap:10px; justify-content:center; align-items:center;
-      font-weight:700; z-index:4;
-    }
-    .footer a{
-      padding:6px 12px; border-radius:999px; text-decoration:none;
-      background: rgba(0,0,0,.35); color:#fff;
-      border: 1px solid rgba(255,255,255,.25);
-      box-shadow: 0 8px 16px rgba(0,0,0,.28);
-    }
-
-    /* Mobile tối ưu click vùng dưới */
-    @media (max-width: 520px){
-      .footer{gap:6px; bottom:4px}
-      .footer a{padding:6px 10px; font-size:13px}
-      .headline{left: 12px; right:12px}
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
-  <div class="page">
-
-    <header class="top">
-      <a class="brand" href="/">
-  <img class="brand__logo" src="/public/assets/logo_text.webp" alt="NiNi — Funny">
-  <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
-      </a>
-      <nav class="tabs" aria-label="Seasons">
-        <button class="tab active" data-season="home">Home</button>
-        <button class="tab" data-season="spring">Spring</button>
-        <button class="tab" data-season="summer">Summer</button>
-        <button class="tab" data-season="autumn">Autumn</button>
-        <button class="tab" data-season="winter">Winter</button>
-      </nav>
-      <a class="auth" href="/admin/login.html">Đăng nhập / Đăng ký</a>
-    </header>
-
-    <!-- HỘP 16:9 -->
-    <main class="screen">
-      <div class="frame" id="frame">
-        <div class="headline">
-          <h1>Chào mừng đến NiNi — Funny</h1>
-          <p>Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.</p>
-        </div>
-
-        <!-- Hiệu ứng rơi -->
-        <canvas id="fx"></canvas>
-
-        <!-- Nhím + bong bóng -->
-        <img id="hog" src="/public/assets/icons/nini.png" alt="NiNi">
-        <div id="bubble" class="thought" hidden></div>
-
-        <!-- Footer nằm trong khung 16:9 -->
-        <div class="footer">
-          <a id="footer-intro" href="javascript:void(0)">Giới thiệu</a>
-          <span>•</span>
-          <a id="footer-rules" href="javascript:void(0)">Luật chơi</a>
-          <span>•</span>
-          <a id="footer-forum" href="javascript:void(0)">Diễn đàn</a>
-          <span>•</span>
-          <a id="footer-feedback" href="javascript:void(0)">Góp ý</a>
-        </div>
+<body class="season--home">
+  <!-- ============ HEADER (Logo + slogan + menu mùa) ============ -->
+  <header class="site-header">
+    <div class="brand">
+      <!-- NOTE: đổi logo ở đây -->
+      <img class="brand__logo" src="public/assets/icons/logo_text.webp" alt="NiNi Logo" />
+      <!-- NOTE: sửa slogan ở đây -->
+      <div class="brand__text">
+        <div class="brand__title">NiNi — Funny</div>
+        <div class="brand__slogan">Chơi mê ly, bức phá tư duy</div>
       </div>
-    </main>
+    </div>
 
-  </div>
+    <!-- NOTE: thanh chọn mùa (đổi nhãn/đổi thứ tự tự do) -->
+    <nav class="tabs" aria-label="Chọn mùa">
+      <button class="tab is-active" data-tab="home">Home</button>
+      <button class="tab" data-tab="spring">Spring</button>
+      <button class="tab" data-tab="summer">Summer</button>
+      <button class="tab" data-tab="autumn">Autumn</button>
+      <button class="tab" data-tab="winter">Winter</button>
 
+      <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
+    </nav>
+  </header>
+
+  <!-- ============ VIEWPORT (căn giữa khung 16:9) ============ -->
+  <main class="viewport">
+    <!-- NOTE: .frame luôn giữ tỷ lệ 16:9 trong mọi màn hình -->
+    <section class="frame" role="region" aria-label="Khu rừng NiNi">
+
+      <!-- NOTE: Lớp hiệu ứng rơi (chỉ rơi trong khung 16:9) -->
+      <div id="fx" aria-hidden="true"></div>
+
+      <!-- NOTE: Nội dung chính nằm TRÊN hiệu ứng -->
+      <div class="scene">
+        <h1 class="headline">Chào mừng đến NiNi — Funny</h1>
+        <p class="sub">
+          Bé nhím sẽ đi qua lại để giới thiệu luật chơi, cách tích điểm và phần thưởng.
+        </p>
+
+        <!-- NOTE: Nhím (đổi kích cỡ trong CSS: --hog-scale) -->
+        <figure class="hog" aria-label="Bé Nhím đang vẫy tay"></figure>
+      </div>
+
+      <!-- NOTE: Footer 4 mục (mở panel nội dung) -->
+      <footer class="frame-footer">
+        <button class="pill" data-panel="intro">Giới thiệu</button>
+        <button class="pill" data-panel="rules">Luật chơi</button>
+        <button class="pill" data-panel="forum">Diễn đàn</button>
+        <button class="pill" data-panel="feedback">Góp ý</button>
+      </footer>
+    </section>
+  </main>
+
+  <!-- ============ PANEL (hộp nội dung trồi lên) ============ -->
+  <aside id="panel" class="panel" hidden>
+    <div class="panel__card">
+      <button class="panel__close" aria-label="Đóng">&times;</button>
+      <h2 class="panel__title"></h2>
+      <div class="panel__body"></div>
+    </div>
+  </aside>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script src="effects.js"></script>
   <script>
-(() => {
-  const $  = s => document.querySelector(s);
-  const $$ = s => document.querySelectorAll(s);
+    /* ========== NOTE: JS điều phối UI đơn giản ========== */
 
-  /* Nền 4 mùa + Home */
-  const BG = {
-    spring: 'url("/public/assets/images/seasons/spring.webp")',
-    summer: 'url("/public/assets/images/seasons/summer.webp")',
-    autumn: 'url("/public/assets/images/seasons/autumn.webp")',
-    winter: 'url("/public/assets/images/seasons/winter.webp")',
-    home  : 'url("/public/assets/background/nini-home.webp")'
-  };
-
-  /* Sprite hiệu ứng rơi */
-  const SPRITES = {
-    spring: '/public/assets/icons/flower.webp',
-    summer: '/public/assets/icons/drop.webp',
-    autumn: '/public/assets/icons/leaf.webp',
-    winter: '/public/assets/icons/snow.webp',
-    home  : null                 // Home: KHÔNG rơi
-  };
-
-  /* Chế độ rơi theo mùa */
-  const EFFECT = {
-    home  : 'none',              // không hiệu ứng
-    spring: 'drift',             // trôi nhẹ (hoa)
-    summer: 'rain',              // mưa thẳng, nhanh
-    autumn: 'drift',             // lá trôi
-    winter: 'drift'              // tuyết trôi rất nhẹ
-  };
-
-  const frame  = $('#frame');
-  const canvas = $('#fx');
-  const ctx    = canvas.getContext('2d');
-
-  let W=0,H=0,dpr=1;
-  function resizeCanvas(){
-    dpr = Math.max(1, window.devicePixelRatio || 1);
-    canvas.width  = canvas.clientWidth  * dpr;
-    canvas.height = canvas.clientHeight * dpr;
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    W = canvas.clientWidth;
-    H = canvas.clientHeight;
-  }
-  window.addEventListener('resize', resizeCanvas);
-
-  let sprite = new Image();
-  let particles = [];
-  let effectMode = 'drift';
-  let prev = 0;
-
-  function makeParticles(count){
-    particles.length = 0;
-    for(let i=0;i<count;i++){
-      particles.push({
-        x: Math.random()*W,
-        y: Math.random()*H,
-        s: 0.7 + Math.random()*0.9,
-        v: effectMode==='rain'
-              ? (260 + Math.random()*180)  // mưa: rất nhanh
-              : (40  + Math.random()*50),  // hoa/lá/tuyết: chậm
-        a: Math.random()*Math.PI*2        // pha trôi (dùng cho drift)
-      });
-    }
-  }
-  function draw(ts){
-    if(!prev) prev = ts;
-    const dt = Math.min(0.033, (ts - prev)/1000);
-    prev = ts;
-    ctx.clearRect(0,0,W,H);
-    for(const p of particles){
-      // rơi xuống
-      p.y += p.v * dt;
-      // chỉ drift khi KHÔNG phải mưa
-      if(effectMode !== 'rain'){
-        p.a += 0.8*dt;
-        p.x += Math.sin(p.a) * 18 * dt; // trôi ngang nhẹ
-      }
-      // vòng lại trên đỉnh
-      if(p.y > H + 24){ p.y = -24; p.x = Math.random()*W; }
-
-      const size = (effectMode==='rain' ? 12 : 16 * p.s);
-      if(sprite) ctx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
-    }
-    requestAnimationFrame(draw);
-  }
-  function setSeason(season){
-    // nền
-    frame.style.backgroundImage = BG[season] || BG.spring;
-    // active tab
-    $$('.tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.season===season));
-    // chế độ hiệu ứng
-    effectMode = EFFECT[season] || 'drift';
-    // Home: tắt hẳn hạt rơi
-    if(effectMode === 'none'){
-      particles.length = 0;
-      ctx.clearRect(0,0,W,H);
-      return;
-    }
-    // tải sprite và tạo hạt
-    const url = SPRITES[season];
-    sprite = new Image();
-    sprite.onload = () => {
-      const count =
-        effectMode==='rain' ? 140 :           // mưa dày hơn
-        season==='winter'   ? 90  :
-        110;
-      makeParticles(count);
+    // Map nội dung 4 mục ở footer
+    const CONTENT = {
+      intro: `<p>Đây là chương trình trò chơi giúp ghi nhớ tiếng Anh một cách tự nhiên & linh hoạt.
+      Bạn chỉ việc chơi hết mình — tiếng Anh sẽ “vào đầu” từ từ. Cố lên nhé! NiNi-Funny: Chơi mê ly, bức phá tư duy!</p>`,
+      rules: `<p>Đầu tiên hãy đăng nhập & tham gia câu lạc bộ. Ở CLB, bạn tích được xu khi đọc sách,
+      xem video và cả chơi game. Xem/Chơi càng nhiều, bạn càng nhận được điểm kinh nghiệm & xu để đổi quà ở Shop.</p>`,
+      forum: `<p>Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp đỡ nhau học tiếng Anh!</p>`,
+      feedback: `<p>Góp ý cho NiNi nhé! Bạn cần đăng nhập để gửi góp ý gồm nickname & nội dung, NiNi sẽ phản hồi sớm.</p>`
     };
-    if(url) sprite.src = url;
-  }
-  /* Bong bóng + nội dung như cũ */
-  const hog = $('#hog');
-  const bubble = $('#bubble');
-  const TEXT = {
-    intro:
-      'Chào mừng bạn đến thế giới của mình. NiNi-Funny — chơi mê ly, bứt phá tư duy!!! '+
-      'Bạn có thể bấm các nút bên dưới để tìm hiểu thêm nha, mình sẽ tiết lộ vài bí mật!',
-    rules:
-      'Đầu tiên hãy đăng nhập và trở thành thành viên câu lạc bộ. Đọc sách, xem video, chơi game để nhận kinh nghiệm và xu, rồi đổi quà trong Shop nhé!',
-    forum:
-      'Khu sinh hoạt của các bạn nhỏ — chia sẻ câu chuyện, khoe thành tích và giúp nhau học tiếng Anh!',
-    feedback:
-      'Hãy gửi góp ý cho NiNi để mình làm app vui hơn và hữu ích hơn nhé!'
-  };
-  function speak(side, text){
-    if(!hog || !bubble) return;
-    hog.style.transition = 'left .8s ease';
-    hog.style.left = (side==='left' ? '18%' : side==='right' ? '82%' : '50%');
-    bubble.textContent = text;
-    bubble.hidden = false;
-    bubble.style.opacity = 1;
-    bubble.style.left  = (side==='left'  ? '26%' : side==='right' ? 'auto' : '50%');
-    bubble.style.right = (side==='right' ? '26%' : 'auto');
-  }
-  $('#footer-intro')    .addEventListener('click', ()=> speak('left',  TEXT.intro));
-  $('#footer-rules')    .addEventListener('click', ()=> speak('right', TEXT.rules));
-  $('#footer-forum')    .addEventListener('click', ()=> speak('left',  TEXT.forum));
-  $('#footer-feedback') .addEventListener('click', ()=> speak('right', TEXT.feedback));
 
-  /* Khởi động */
-  resizeCanvas();
-  setSeason('home');       // Home: không rơi
-  requestAnimationFrame(draw);
-})();
-</script>
+    // Helper DOM
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+    // 1) Chọn mùa
+    $$('.tabs .tab').forEach(btn=>{
+      btn.addEventListener('click', () => {
+        $$('.tabs .tab').forEach(b=>b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+
+        // set class mùa cho body để CSS đổi nền
+        const season = btn.dataset.tab;
+        document.body.className = `season--${season}`;
+
+        // gọi hiệu ứng rơi theo mùa
+        initSeasonFX(season);
+      });
+    });
+
+    // 2) Panel 4 mục
+    const panel = $('#panel');
+    const title = $('.panel__title', panel);
+    const body  = $('.panel__body', panel);
+    const close = $('.panel__close', panel);
+
+    close.addEventListener('click', ()=> panel.hidden = true);
+    panel.addEventListener('click', e=>{
+      if(e.target === panel) panel.hidden = true;
+    });
+
+    $$('.frame-footer .pill').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const key = btn.dataset.panel;
+        title.textContent = btn.textContent;
+        body.innerHTML = CONTENT[key] || '';
+        panel.hidden = false;
+      });
+    });
+
+    // 3) Khởi tạo mặc định
+    // mặc định HOME -> hoa rơi nhẹ
+    initSeasonFX('home');
+  </script>
 </body>
 </html>

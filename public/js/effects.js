@@ -1,4 +1,6 @@
-/* eslint-disable */
+<!-- ĐÂY LÀ NỘI DUNG FILE /public/js/effects.js - COPY NGUYÊN VÀ DÁN ĐÈ -->
+<script>
+// eslint-disable-next-line
 (() => {
   const ICONS = {
     spring: "/public/assets/icons/flower.webp",
@@ -7,52 +9,56 @@
     winter: "/public/assets/icons/snow.webp",
   };
 
-  // tốc độ tương đối giữa các mùa (có thể tinh chỉnh)
-  const SPEED = { spring: .6, summer: .9, autumn: .8, winter: .7 };
+  const SPEED = { spring: 1.0, summer: 1.1, autumn: 1.2, winter: 1.0 };
 
-  let raf = null, canvas = null, ctx = null, particles = [], img = null;
-  let host = null, active = null, dpi = 1;
+  let host = null, canvas = null, ctx = null;
+  let particles = [];
+  let activeSeason = null;
+  let imgIcon = null;
+  let raf = 0;
 
-  function ensure(selector) {
-    host = document.querySelector(selector);
-    if (!host) { console.warn("[SEASON_FX] host not found:", selector); }
-    return !!host;
+  function ensureCanvas(selector){
+    if (!host) {
+      host = document.querySelector(selector || "#viewport");
+    }
+    if (!host) return null;
+
+    if (!canvas){
+      canvas = document.createElement("canvas");
+      canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;";
+      host.appendChild(canvas);
+      ctx = canvas.getContext("2d");
+      window.addEventListener("resize", resize, { passive:true });
+      resize();
+    }
+    return canvas;
   }
 
-  function makeCanvas() {
-    canvas = document.createElement("canvas");
-    canvas.style.cssText = "position:absolute; inset:0; width:100%; height:100%; pointer-events:none";
-    ctx = canvas.getContext("2d");
-    host.appendChild(canvas);
-
-    const resize = () => {
-      const r = host.getBoundingClientRect();
-      dpi = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      canvas.width = Math.floor(r.width * dpi);
-      canvas.height = Math.floor(r.height * dpi);
-      ctx.setTransform(dpi, 0, 0, dpi, 0, 0);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+  function resize(){
+    if (!canvas || !host) return;
+    const r = host.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = Math.floor(r.width  * dpr);
+    canvas.height = Math.floor(r.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
 
-  function buildParticles(count, speedMul) {
-    const area = host.getBoundingClientRect();
-    const arr = new Array(count).fill(0).map(() => ({
-      x: Math.random() * area.width,
-      y: Math.random() * -area.height,
-      vy: 20 + Math.random() * 40,         // base fall
-      swing: (Math.random() * .8 + .4),     // sideways
-      rot: Math.random() * Math.PI * 2,
-      size: 16 + Math.random() * 18
-    }));
-    // speed scale
-    arr.forEach(p => { p.vy *= speedMul; });
-    return arr;
+  function buildParticles(count, straightDown, spdMul){
+    const r = host.getBoundingClientRect();
+    const arr = new Array(count).fill(0).map(_ => {
+      const x = Math.random() * r.width;
+      const y = Math.random() * r.height;
+      const vy = (30 + Math.random()*40) * spdMul;   // rơi thẳng
+      const vx = straightDown ? 0 : (Math.random()*40 - 20); // trôi ngang nhẹ
+      const s  = 16 + Math.random()*12;  // kích thước ảnh
+      const rot = Math.random()*Math.PI*2;
+      const rotV = (Math.random()*0.02 - 0.01);
+      return {x,y,vx,vy,size:s,rot,rotV};
+    });
+    particles = arr;
   }
 
-  function loadIcon(url) {
+  function loadIcon(url){
     return new Promise((res, rej) => {
       const im = new Image();
       im.onload = () => res(im);
@@ -61,65 +67,62 @@
     });
   }
 
-  function step() {
-    const w = canvas.width / dpi, h = canvas.height / dpi;
-    ctx.clearRect(0, 0, w, h);
+  function step(ts){
+    if (!ctx || !host || !imgIcon) return;
+    const r = host.getBoundingClientRect();
+    ctx.clearRect(0,0,r.width,r.height);
 
-    const t = performance.now() * .001;
-    for (let p of particles) {
-      // update
-      p.y += p.vy * (1/60);                    // rơi đều ~ 60fps
-      p.x += Math.sin(t * 1.6 + p.y * .02) * p.swing; // lắc ngang
-      p.rot += .01;
+    for (let p of particles){
+      p.y += p.vy/60;
+      p.x += p.vx/60;
+      p.rot += p.rotV;
 
-      // vòng lại
-      if (p.y > h + 40) {
-        p.y = -40;
-        p.x = Math.random() * w;
-      }
+      // wrap
+      if (p.y > r.height+40){ p.y = -40; p.x = Math.random()*r.width; }
+      if (p.x < -40) p.x = r.width+40;
+      else if (p.x > r.width+40) p.x = -40;
 
-      // draw
-      const s = p.size;
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
-      ctx.drawImage(img, -s/2, -s/2, s, s);
+      ctx.drawImage(imgIcon, -p.size/2, -p.size/2, p.size, p.size);
       ctx.restore();
     }
     raf = requestAnimationFrame(step);
   }
 
-  function cleanup() {
+  async function play(season, opts={}){
+    activeSeason = season;
+    const { straightDown=true, speed=1.0, hostSelector="#viewport" } = opts;
+
+    ensureCanvas(hostSelector);
+    if (!canvas) return;
+
     cancelAnimationFrame(raf);
-    raf = null; particles = [];
-    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
-    canvas = ctx = img = host = null;
-  }
 
-  async function mount(selector, opts = {}) {
-    if (!ensure(selector)) return;
-    const { season="spring", density=120, speed=.6 } = opts;
-    active = season;
-
-    // tạo canvas
-    makeCanvas();
-
-    // tải icon
     const iconUrl = ICONS[season] || ICONS.spring;
-    img = await loadIcon(iconUrl);
+    imgIcon = await loadIcon(iconUrl);
 
-    // sinh hạt
-    const mul = speed * (SPEED[season] ?? 1);
-    particles = buildParticles(density, mul);
+    const r = host.getBoundingClientRect();
+    // số hạt theo diện tích + giới hạn
+    const base = Math.round(r.width * r.height / 18000);
+    const count = Math.max(24, Math.min(base, 120));
+    const spdMul = (SPEED[season] || 1.0) * speed;
 
-    // chạy
+    buildParticles(count, straightDown, spdMul);
     raf = requestAnimationFrame(step);
   }
 
-  function unmount() {
-    cleanup();
+  function clear(){
+    cancelAnimationFrame(raf);
+    raf = 0;
+    particles = [];
+    if (ctx){
+      const r = host?.getBoundingClientRect?.() || {width:0,height:0};
+      ctx.clearRect(0,0,r.width,r.height);
+    }
   }
 
-  // public API
-  window.SEASON_FX = { mount, unmount };
+  window.SeasonFX = { play, clear };
 })();
+</script>

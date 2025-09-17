@@ -41,3 +41,28 @@
   text-align: center;
   z-index: 4;
 }
+.brand{
+  position:absolute;               /* hoặc relative nếu bạn đang dùng container riêng */
+  left:24px; top:18px;
+  display:flex; align-items:center; gap:.75rem;
+  z-index:50;
+}
+.brand__logo{ height:36px; width:auto; }
+.brand__slogan{
+  font-size:14px; line-height:1;
+  color:#dfffea;                    /* sáng, dễ nhìn trên nền tối */
+  text-shadow:0 1px 2px rgba(0,0,0,.55);
+  letter-spacing:.2px;
+  white-space:nowrap;
+  opacity:.95;
+}
+
+/* Nếu muốn slogan nằm DƯỚI logo thay vì ngang hàng: */
+.brand--stack{ flex-direction:column; align-items:flex-start; gap:2px; }
+/* <a class="brand brand--stack" ...> */
+
+@media (max-width:640px){
+  .brand__logo{ height:28px; }
+  .brand__slogan{ font-size:12px; opacity:.9; }
+}
+

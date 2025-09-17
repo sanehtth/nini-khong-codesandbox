@@ -1,0 +1,43 @@
+﻿/* Canvas hiệu ứng rơi phủ khung nội dung */
+#fx{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  pointer-events:none;
+  z-index: 2; /* trên nền, dưới nội dung */
+}
+
+/* Nhím và bong bóng */
+#hog{
+  position:absolute;
+  bottom:10%;
+  left:50%;
+  transform: translateX(-50%);
+  width: clamp(76px, 10vw, 140px); /* tỉ lệ đồng nhất web & mobile */
+  z-index:3;
+}
+
+.thought{
+  position:absolute;
+  bottom:22%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(640px, 70%);
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.85);
+  color:#0c1520;
+  backdrop-filter: blur(6px);
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  z-index:3;
+  opacity:0;
+  transition: opacity .25s ease;
+}
+
+/* Footer cố định dưới cùng (không phụ thuộc chiều cao phần giữa) */
+.footer{
+  position: fixed;
+  left: 0; right: 0; bottom: 10px;
+  text-align: center;
+  z-index: 4;
+}

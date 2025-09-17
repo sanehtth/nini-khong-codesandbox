@@ -5,20 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Funny</title>
 
-  <!-- Favicon/logo -->
+  <!-- Favicon trên thanh tiêu đề -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp"/>
 
-  <!-- CSS chính -->
-  <link rel="stylesheet" href="/styles.css?v=5"/>
+  <!-- CSS tổng -->
+  <link rel="stylesheet" href="/styles.css?v=9"/>
 </head>
 <body>
-  <!-- ===== HEADER ===== -->
+  <!-- ========= HEADER ========= -->
   <header class="site-header">
     <div class="brand">
+      <!-- EDIT: logo chữ -->
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny"/>
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
 
+    <!-- 5 nút: Home + 4 mùa -->
     <nav class="tabs" id="tabs">
       <button class="tab" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
@@ -27,70 +29,58 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
+    <!-- Link đăng nhập/đăng ký -->
     <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- ===== KHUNG 16:9 ===== -->
+  <!-- ========= KHUNG 16:9 ========= -->
   <section class="viewport">
-    <div class="frame" id="frame">
+    <div class="frame">
       <!-- Ảnh nền theo mùa -->
-      <img id="scene" alt="scene"
-           src="/public/assets/images/seasons/spring.webp"/>
+      <!-- EDIT: ảnh nền mặc định khi tải trang -->
+      <img id="scene" alt="Backgound season" src="/public/assets/images/seasons/summer.webp"/>
 
       <!-- Bé nhím -->
-      <img id="nini" alt="NiNi"
-           src="/public/assets/icons/nini.webp"/>
+      <img id="nini" alt="NiNi" src="/public/assets/images/seasons/nini_move.webp"/>
 
-      <!-- 4 nút đáy -->
-      <nav class="footer-nav" id="footerNav">
-        <a class="pill" href="/about.html">Giới thiệu</a>
-        <a class="pill" href="/rules.html">Luật chơi</a>
-        <a class="pill" href="/forum.html">Diễn đàn</a>
-        <a class="pill" href="/feedback.html">Góp ý</a>
+      <!-- 4 nút TAB trong khung -->
+      <nav class="footer-nav">
+        <button class="pill is-active" data-tab="about">Giới thiệu</button>
+        <button class="pill" data-tab="rules">Luật chơi</button>
+        <button class="pill" data-tab="forum">Diễn đàn</button>
+        <button class="pill" data-tab="feedback">Góp ý</button>
       </nav>
+
+      <!-- Nội dung mỗi TAB hiển thị ngay trong khung -->
+      <div id="tabContent" class="tab-content">
+        <section class="panel is-show" data-tab-panel="about">
+          <h3>NiNi — Funny</h3>
+          <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+        </section>
+
+        <section class="panel" data-tab-panel="rules">
+          <h3>Luật chơi</h3>
+          <ul>
+            <li>Chọn mùa để đổi cảnh nền.</li>
+            <li>Tham gia thử thách để tích điểm.</li>
+            <li>Nhận phần thưởng khi đạt mốc.</li>
+          </ul>
+        </section>
+
+        <section class="panel" data-tab-panel="forum">
+          <h3>Diễn đàn</h3>
+          <p>Nơi chia sẻ câu chuyện & bí kíp chơi hay của bé.</p>
+        </section>
+
+        <section class="panel" data-tab-panel="feedback">
+          <h3>Góp ý</h3>
+          <p>Hộp góp ý sẽ mở sớm. Tạm thời hãy gửi ý tưởng qua email nhé ♥</p>
+        </section>
+      </div>
     </div>
   </section>
 
-  <!-- Hiệu ứng rơi -->
-  <script src="/public/js/effects.js?v=2"></script>
-  <script>
-    // Ảnh nền theo mùa
-    const BG = {
-      home  : "/public/assets/bg/nini_home.webp",
-      spring: "/public/assets/images/seasons/spring.webp",
-      summer: "/public/assets/images/seasons/summer.webp",
-      autumn: "/public/assets/images/seasons/autumn.webp",
-      winter: "/public/assets/images/seasons/winter.webp",
-    };
-
-    const tabs  = document.getElementById('tabs');
-    const scene = document.getElementById('scene');
-
-    // Mặc định
-    let current = 'spring';
-    applySeason(current);
-
-    tabs.querySelectorAll('.tab').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const s = btn.dataset.season || 'spring';
-        current = (s === 'home') ? 'spring' : s; // Home = spring
-        applySeason(current);
-      });
-    });
-
-    function applySeason(season){
-      scene.src = BG[season] || BG.spring;
-
-      // Gọi hiệu ứng rơi nếu script đã load
-      if (window.SEASON_FX && typeof SEASON_FX.mount === 'function') {
-        SEASON_FX.mount('.frame', season);
-      }
-
-      // Active tab
-      tabs.querySelectorAll('.tab')
-          .forEach(b=>b.classList.toggle('is-active',
-                    b.dataset.season === (season==='spring'?'home':season)));
-    }
-  </script>
+  <!-- JS điều khiển (không effect) -->
+  <script src="/public/js/app.js?v=1"></script>
 </body>
 </html>

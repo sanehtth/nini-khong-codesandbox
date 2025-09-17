@@ -1,14 +1,6 @@
 [functions]
-node_bundler="esbuild"
-[[edge_function]]
-function="admin-quard"
-path="/admin/"
+  node_bundler = "esbuild"
+
 [[edge_functions]]
-function = "admin-guard"
-path = "/admin/*"
-# ⇣ PHẦN 3: headers no-cache cho toàn bộ trang admin
-[[headers]]
-  for = "/admin*"
-  [headers.values]
-    Cache-Control = "no-store, no-cache, must-revalidate, max-age=0"
-    Pragma = "no-cache"
+  function = "admin-guard"
+  path = "/admin/*"

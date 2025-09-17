@@ -1,9 +1,4 @@
 {
- "name":"nini-funny",
- "private":true,
- "version":"1.0.0"
-}
-{
   "dependencies": {
     "@netlify/blobs": "^6.0.0",
     "bcryptjs": "^2.4.3",
@@ -11,4 +6,3 @@
     "nodemailer": "^6.9.13"
   }
 }
-

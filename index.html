@@ -4,22 +4,170 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
-  <link rel="preload" as="image" href="/public/assets/bg/nini_home.webp">
-  <link rel="stylesheet" href="/styles.css?v=8" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+
+  <!-- Toàn bộ CSS tối giản, sáng sủa, không u ám -->
+  <style>
+    :root{
+      --bg:#0f1b24;             /* nền ngoài */
+      --panel:#10232e;          /* khung điều hướng */
+      --glass:rgba(16,35,46,.72);
+      --glass-weak:rgba(16,35,46,.5);
+      --text:#f5fbff;
+      --sub:#b7d0df;
+      --brand:#7bdcff;
+      --pill:#0e3646;
+      --pill-active:#164e63;
+      --border:rgba(255,255,255,.08);
+      --shadow:0 12px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 50% -200px, #153243 0%, #0f1b24 55%, #0a151b 100%) fixed;
+      color:var(--text);
+      font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      letter-spacing:.2px;
+    }
+
+    /* header */
+    .site-header{
+      position:sticky; top:0; z-index:10;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 18px;
+      background: linear-gradient(180deg, rgba(10,20,28,.95), rgba(10,20,28,.65) 65%, transparent);
+      backdrop-filter:saturate(1.1) blur(6px);
+      border-bottom:1px solid var(--border);
+    }
+    .brand{display:flex; align-items:center; gap:12px}
+    .brand_logo{
+      width:128px; height:48px; object-fit:contain;
+      filter:drop-shadow(0 3px 14px rgba(0,0,0,.25));
+      cursor:pointer;
+    }
+    .brand_title{font-weight:700; letter-spacing:.3px}
+    .brand_slogan{font-size:12px; color:var(--sub); margin-top:2px}
+
+    .tabs{display:flex; gap:10px; align-items:center}
+    .tab{
+      background:var(--pill);
+      border:1px solid var(--border);
+      color:var(--text);
+      padding:10px 16px;
+      border-radius:999px;
+      cursor:pointer;
+      box-shadow:0 3px 0 rgba(255,255,255,.04) inset;
+      user-select:none;
+    }
+    .tab:hover{background:#114356}
+    .tab.is-active{
+      background:var(--pill-active);
+      text-decoration: underline 2px;
+      text-underline-offset: 6px;
+    }
+    .auth-btn{
+      background:transparent; border:1px solid var(--border);
+      padding:10px 16px; border-radius:999px; color:#ccefff; cursor:pointer;
+    }
+    .auth-btn:hover{background:var(--glass-weak)}
+
+    /* viewport 16:9 */
+    .viewport{
+      max-width:1200px;
+      margin:24px auto 80px;
+      padding:0 16px;
+    }
+    .frame{
+      position:relative;
+      width:100%;
+      aspect-ratio:16/9;
+      overflow:hidden;
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      border:1px solid var(--border);
+      background:#091219 url('/public/assets/bg/nini_home.webp') center/cover no-repeat;
+      transition: background-image .35s ease-in-out;
+    }
+    /* chú nhím */
+    .nini{
+      position:absolute; left:50%; bottom:34px; transform:translateX(-50%);
+      width:150px; height:auto; pointer-events:none; animation:float 3.6s ease-in-out infinite;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      user-select:none;
+    }
+    @keyframes float{
+      0%,100%{ transform:translate(-50%,0) }
+      50%    { transform:translate(-50%,-8px) }
+    }
+
+    /* cụm nút dưới */
+    .dock{
+      position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+    }
+    .pill{
+      background:var(--pill); border:1px solid var(--border); color:var(--text);
+      padding:10px 16px; border-radius:999px; cursor:pointer;
+    }
+    .pill[aria-selected="true"]{
+      background:var(--pill-active);
+      text-decoration: underline 2px; text-underline-offset: 5px;
+    }
+
+    /* ô nội dung nổi */
+    .card{
+      position:absolute; left:50%; bottom:76px; transform:translateX(-50%);
+      min-width: min(92%, 1000px);
+      background:var(--glass);
+      backdrop-filter: blur(8px) saturate(1.1);
+      border:1px solid var(--border);
+      padding:18px 22px; border-radius:14px;
+      box-shadow: var(--shadow);
+    }
+    .card h3{margin:0 0 6px; font-size:18px}
+    .card p {margin:0; color:#e6f4ff}
+    .card[hidden]{display:none}
+
+    /* modal auth */
+    #auth-shade{ position:fixed; inset:0; background:rgba(0,0,0,.48); display:none; z-index:50}
+    #auth-modal{
+      position:fixed; inset:0; display:none; place-items:center; z-index:60;
+    }
+    .auth-box{
+      width:min(92%,420px); background:#0f1b24; border:1px solid var(--border);
+      border-radius:16px; box-shadow:var(--shadow); padding:18px 18px 16px;
+    }
+    .auth-box h2{margin:4px 6px 12px; font-size:22px}
+    .field{display:flex; gap:10px; margin:12px 6px}
+    .field input{
+      flex:1; padding:12px 14px; border-radius:10px; border:1px solid var(--border);
+      background:#0a151b; color:var(--text);
+    }
+    .btn{
+      padding:11px 14px; border-radius:10px; background:#176b87; color:white; border:0; cursor:pointer;
+    }
+    .btn.alt{ background:#0e3646 }
+    .auth-actions{display:flex; gap:10px; justify-content:flex-end; margin:8px 6px 4px}
+    .note{ color:#9fc7d8; font-size:13px; margin:6px 6px 0}
+  </style>
 </head>
+
 <body>
-  <!-- Header -->
+  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
-      <a class="brand__logo" href="/">
-        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      </a>
-      <!-- NHẤN VÀO CHỮ -> đi tới trang đăng nhập ADMIN -->
-      <a class="brand__title" href="/admin/login.html"</a>
-      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
+      <!-- Click logo + giữ Alt+Shift+A => mở /admin/login.html -->
+      <img class="brand_logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" id="brandLogo" />
+      <div>
+        <div class="brand_title">NiNi — Funny</div>
+        <div class="brand_slogan">Chơi mê lý, bứt phá tư duy</div>
+      </div>
     </div>
 
-    <!-- Tabs mùa + Home (Home là mặc định, không bị map sang Summer nữa) -->
     <nav class="tabs" id="seasonTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
@@ -28,47 +176,183 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <a class="auth-btn" href="/login.html">Đăng nhập / Đăng ký</a>
+    <button id="open-auth" class="auth-btn">Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- Khung hiển thị 16:9, giữ tỉ lệ trên cả PC & mobile -->
+  <!-- VIEWPORT -->
   <main class="viewport">
-    <figure
-      id="frame"
-      class="frame"
-      data-home="/public/assets/bg/nini_home.webp"
-      data-spring="/public/assets/images/seasons/spring.webp"
-      data-summer="/public/assets/images/seasons/summer.webp"
-      data-autumn="/public/assets/images/seasons/autumn.webp"
-      data-winter="/public/assets/images/seasons/winter.webp"
-      data-nini="/public/assets/icons/nini.webp"
-    >
-      <img id="bg" class="bg" alt="background" />
-      <img id="nini" class="nini" alt="NiNi" />
-    </figure>
-
-    <!-- 4 nút “tab” trong KHUNG (text, không đi trang khác) -->
-    <section class="info">
-      <div class="info__tabs" id="infoTabs">
-        <button class="info__tab is-active" data-key="about">Giới thiệu</button>
-        <button class="info__tab" data-key="rules">Luật chơi</button>
-        <button class="info__tab" data-key="forum">Diễn đàn</button>
-        <button class="info__tab" data-key="feedback">Góp ý</button>
-      </div>
-
-      <article class="info__panel" id="infoPanel">
+    <section class="frame" id="frame">
+      <!-- Nội dung nổi -->
+      <article class="card" id="cardIntro">
         <h3>NiNi — Funny</h3>
         <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
       </article>
+
+      <article class="card" id="cardRules" hidden>
+        <h3>Luật chơi</h3>
+        <p>• Chọn trò & hoàn thành thử thách để nhận điểm sao. <br/>
+           • Tích luỹ sao đổi huy hiệu. <br/>
+           • Chia sẻ thành tích cùng bạn bè để có quà bất ngờ.</p>
+      </article>
+
+      <article class="card" id="cardForum" hidden>
+        <h3>Diễn đàn</h3>
+        <p>Nơi khoe thành tích, đặt câu hỏi & rủ bạn chơi cùng. (Sắp mở)</p>
+      </article>
+
+      <article class="card" id="cardFeedback" hidden>
+        <h3>Góp ý</h3>
+        <p>Gửi ý tưởng trò mới hoặc góp ý UI tại đây – cảm ơn bạn đã giúp NiNi tốt hơn!</p>
+      </article>
+
+      <!-- Cụm nút dưới -->
+      <div class="dock" id="dock">
+        <button class="pill" data-card="cardIntro" aria-selected="true">Giới thiệu</button>
+        <button class="pill" data-card="cardRules">Luật chơi</button>
+        <button class="pill" data-card="cardForum">Diễn đàn</button>
+        <button class="pill" data-card="cardFeedback">Góp ý</button>
+      </div>
+
+      <!-- Bé nhím -->
+      <picture class="nini" aria-hidden="true">
+        <source srcset="/public/assets/icons/nini.webp" type="image/webp" />
+        <img src="/public/assets/icons/nini.png" alt="" />
+      </picture>
     </section>
   </main>
 
-  <!-- App JS (chưa bật hiệu ứng rơi) -->
-  <script src="/public/js/app.js?v=8" defer></script>
-  <!-- Giữ file, nhưng mặc định no-op (không chạy). Khi cần effect chỉ bật ENABLE_EFFECTS = true trong app.js -->
-  <script src="/public/js/effects.js?v=1" defer></script>
+  <!-- AUTH MODAL (UI) -->
+  <div id="auth-shade"></div>
+  <div id="auth-modal">
+    <div class="auth-box">
+      <h2>Đăng nhập / Đăng ký</h2>
+      <div class="field">
+        <input id="authEmail" type="email" placeholder="Email của bạn" autocomplete="email" />
+        <button class="btn" id="sendOtp">Gửi OTP</button>
+      </div>
+      <div class="field">
+        <input id="authOtp" type="text" maxlength="6" placeholder="Nhập mã OTP (6 số)" inputmode="numeric" />
+        <button class="btn alt" id="verifyOtp">Xác nhận</button>
+      </div>
+      <div class="auth-actions">
+        <button class="btn alt" id="closeAuth">Đóng</button>
+        <!-- Nếu bạn đã cấu hình Google OAuth, bật nút dưới: -->
+        <!-- <button class="btn" id="loginGoogle">Đăng nhập Google</button> -->
+      </div>
+      <div class="note">* OTP sẽ gửi về email nếu backend Netlify đã cấu hình SMTP.</div>
+    </div>
+  </div>
+
+  <!-- JS điều khiển trang (không dùng effect) -->
+  <script>
+    /************** CẤU HÌNH ẢNH 4 MÙA + HOME *****************/
+    const SEASONS = {
+      home  : '/public/assets/bg/nini_home.webp',
+      spring: '/public/assets/images/seasons/spring.webp',
+      summer: '/public/assets/images/seasons/summer.webp',
+      autumn: '/public/assets/images/seasons/autumn.webp',
+      winter: '/public/assets/images/seasons/winter.webp',
+    };
+
+    const frame      = document.getElementById('frame');
+    const tabs       = document.getElementById('seasonTabs');
+    const dock       = document.getElementById('dock');
+    const cardIntro  = document.getElementById('cardIntro');
+    const cardRules  = document.getElementById('cardRules');
+    const cardForum  = document.getElementById('cardForum');
+    const cardFeedback = document.getElementById('cardFeedback');
+
+    function setSeason(season){
+      const url = SEASONS[season] || SEASONS.home;
+      frame.style.backgroundImage = `url("${url}")`;
+
+      // underline tab
+      tabs.querySelectorAll('.tab').forEach(t=>{
+        t.classList.toggle('is-active', t.dataset.season===season);
+      });
+
+      localStorage.setItem('nini_season', season);
+    }
+
+    // init season (ưu tiên localStorage)
+    setSeason(localStorage.getItem('nini_season') || 'home');
+
+    tabs.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.tab'); if(!btn) return;
+      setSeason(btn.dataset.season);
+    });
+
+    // Dock tabs (4 nút dưới)
+    const cards = { cardIntro, cardRules, cardForum, cardFeedback };
+    function setCard(id){
+      Object.entries(cards).forEach(([key,el])=>{
+        el.hidden = key !== id;
+      });
+      dock.querySelectorAll('.pill').forEach(p=>{
+        p.setAttribute('aria-selected', String(p.dataset.card===id));
+      });
+    }
+    setCard('cardIntro');
+    dock.addEventListener('click', (e)=>{
+      const p = e.target.closest('.pill'); if(!p) return;
+      setCard(p.dataset.card);
+    });
+
+    /************** AUTH UI *****************/
+    const shade = document.getElementById('auth-shade');
+    const modal = document.getElementById('auth-modal');
+    const openAuth = document.getElementById('open-auth');
+    const closeAuth = document.getElementById('closeAuth');
+    openAuth.addEventListener('click', (e)=>{ e.preventDefault(); shade.style.display='block'; modal.style.display='grid'; });
+    closeAuth.addEventListener('click', ()=>{ shade.style.display='none'; modal.style.display='none'; });
+    shade.addEventListener('click', ()=>{ shade.style.display='none'; modal.style.display='none'; });
+
+    // (tuỳ chọn) gọi API Netlify nếu đã có backend
+    const sendOtp = document.getElementById('sendOtp');
+    const verifyOtp = document.getElementById('verifyOtp');
+    sendOtp.addEventListener('click', async ()=>{
+      const email = document.getElementById('authEmail').value.trim();
+      if(!email) return alert('Nhập email trước nhé!');
+      try{
+        await fetch('/.netlify/functions/auth-email-send-otp', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email })
+        });
+        alert('Đã gửi OTP (nếu đã cấu hình SMTP).');
+      }catch(err){ alert('Không gửi được OTP.'); }
+    });
+    verifyOtp.addEventListener('click', async ()=>{
+      const email = document.getElementById('authEmail').value.trim();
+      const otp   = document.getElementById('authOtp').value.trim();
+      if(!email || !otp) return alert('Điền đủ Email + OTP.');
+      try{
+        const r = await fetch('/.netlify/functions/auth-email-verify', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email, otp })
+        });
+        if(r.ok){
+          alert('Đăng nhập thành công!');
+          shade.style.display='none'; modal.style.display='none';
+          // ở đây bạn có thể reload hoặc đổi nút giao diện
+        }else{
+          alert('OTP chưa đúng hoặc hết hạn.');
+        }
+      }catch(err){ alert('Lỗi mạng khi xác thực.'); }
+    });
+
+    // Easter-egg: Alt + Shift + A -> mở trang login Admin
+    let keys = new Set();
+    window.addEventListener('keydown',(e)=>{ keys.add(e.key.toLowerCase());
+      if(keys.has('alt') && keys.has('shift') && keys.has('a')){
+        window.location.href='/admin/login.html';
+      }
+    });
+    window.addEventListener('keyup',()=>keys.clear());
+
+    // Click logo + giữ Alt+Shift cũng vào Admin
+    document.getElementById('brandLogo').addEventListener('click',(e)=>{
+      if(e.altKey && e.shiftKey) window.location.href='/admin/login.html';
+    });
+  </script>
 </body>
 </html>
-
-
-

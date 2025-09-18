@@ -100,56 +100,45 @@
   </div>
 
   <script>
-    /* ====== đường dẫn hình mùa ====== */
-    const SEASON_IMG = {
-      home:  "public/assets/images/seasons/summer.webp",  // khung mặc định
-      spring:"public/assets/images/seasons/spring.webp",
-      summer:"public/assets/images/seasons/summer.webp",
-      autumn:"public/assets/images/seasons/autumn.webp",
-      winter:"public/assets/images/seasons/winter.webp",
-    };
+  /* Ảnh HIỆN TRONG KHUNG */
+  const SEASON_IMG = {
+    home:  "public/assets/bg/nini_home.webp",           // ✅ Home = nini_home
+    spring:"public/assets/images/seasons/spring.webp",
+    summer:"public/assets/images/seasons/summer.webp",
+    autumn:"public/assets/images/seasons/autumn.webp",
+    winter:"public/assets/images/seasons/winter.webp",
+  };
 
-    /* ====== đổi mùa + underline tab ====== */
-    const seasonImg = document.getElementById('bgSeason');
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(b => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        const s = btn.dataset.season;
-        seasonImg.src = SEASON_IMG[s];
-      });
+  /* Ảnh NỀN TRANG (ngoài khung) */
+  const PAGE_BG = {
+    home:  "public/assets/bg/nini_home.webp",           // ✅ Home = nini_home
+    spring:"public/assets/bg/page_spring.webp",
+    summer:"public/assets/bg/page_summer.webp",
+    autumn:"public/assets/bg/page_autumn.webp",
+    winter:"public/assets/bg/page_winter.webp",
+  };
+  // Nếu chưa có page_*.webp thì có thể tạm dùng lại ảnh mùa:
+  // const PAGE_BG = SEASON_IMG;
+
+  const seasonImg = document.getElementById('bgSeason');
+
+  function setSeason(s){
+    seasonImg.src = SEASON_IMG[s];
+    document.body.style.setProperty('--page-bg', `url("${PAGE_BG[s]}")`);
+  }
+
+  document.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      setSeason(btn.dataset.season);
     });
+  });
 
-    /* ====== underline pill + cuộn mượt ====== */
-    function setActivePill(hash) {
-      document.querySelectorAll('.pill').forEach(a => {
-        a.classList.toggle('is-active', a.getAttribute('href') === hash);
-      });
-    }
-    document.querySelectorAll('.pill').forEach(a => {
-      a.addEventListener('click', e => {
-        // cho cuộn mượt
-        const id = a.getAttribute('href');
-        const el = document.querySelector(id);
-        if (el) {
-          e.preventDefault();
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          history.pushState({}, "", id);
-          setActivePill(id);
-        }
-      });
-    });
-    // set active khi load
-    setActivePill(location.hash || '#about');
+  // Mặc định vào Home
+  setSeason('home');
+</script>
 
-    /* ====== modal auth ====== */
-    const modal = document.getElementById('authModal');
-    document.getElementById('openAuth').onclick = () => modal.classList.add('is-open');
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('is-open'); });
-
-    // nếu có canvas hiệu ứng, đảm bảo không chặn click:
-    const fx = document.getElementById('fxCanvas');
-    if (fx) fx.style.pointerEvents = 'none';
-  </script>
 </body>
 </html>
+

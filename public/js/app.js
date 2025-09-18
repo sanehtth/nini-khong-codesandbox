@@ -6,7 +6,7 @@
 ======================== */
 
 const SEASON_BG = {
-  home:  "/public/assets/images/seasons/home.webp",
+  home:  "/public/assets/bg/nini_home.webp",
   spring:"/public/assets/images/seasons/spring.webp",
   summer:"/public/assets/images/seasons/summer.webp",
   autumn:"/public/assets/images/seasons/autumn.webp",
@@ -223,3 +223,4 @@ function showToast(msg, isErr=false){
   showToast._t = setTimeout(()=> toast.classList.add("is-hidden"), 3000);
 }
 function makeOtp(){ return (""+Math.floor(100000 + Math.random()*900000)); }
+

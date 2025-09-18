@@ -5,18 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- favicon + logo header -->
-  <link rel="icon" type="image/webp" href="public/assets/icons/logonini.webp" />
+  <!-- Favicon -->
+  <link rel="icon" type="image/webp" href="public/assets/icons/logo_text.webp" />
 
-  <link rel="stylesheet" href="styles.css?v=6" />
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css?v=1003" />
 </head>
 <body>
 
-  <!-- ============ HEADER ============ -->
+  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
       <img class="brand__logo" src="public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
     </div>
 
     <nav class="tabs">
@@ -25,120 +26,114 @@
       <button class="tab" data-season="summer">Summer</button>
       <button class="tab" data-season="autumn">Autumn</button>
       <button class="tab" data-season="winter">Winter</button>
-
-      <button id="openAuth" class="auth-btn">Đăng nhập / Đăng ký</button>
     </nav>
+
+    <button class="auth-btn" data-open-auth>Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- ============ KHUNG RỪNG 16:9 ============ -->
-  <main>
-    <section class="stage" id="stage">
-      <!-- hình mùa -->
-      <img id="bgSeason" class="bg"
-           src="public/assets/images/seasons/summer.webp"
-           alt="Season background" />
-      <!-- hiệu ứng nếu cần -->
-      <canvas class="fx-canvas" id="fxCanvas"></canvas>
-      <!-- mascot -->
-      <img class="mascot" src="public/assets/icons/nini.webp" alt="NiNi" />
+  <!-- VIEWPORT (16:9) -->
+  <main class="viewport">
+    <!-- Khung 16:9 luôn nằm giữa, nền là nini_home -->
+    <section class="frame" id="hero">
+      <img class="nini" src="public/assets/icons/nini.webp" alt="NiNi" />
+      <div class="footer-actions">
+        <button class="pill is-active">Giới thiệu</button>
+        <button class="pill">Luật chơi</button>
+        <button class="pill">Diễn đàn</button>
+        <button class="pill">Góp ý</button>
+      </div>
     </section>
 
-    <!-- 4 nút -->
-    <nav class="bottom-nav">
-      <a class="pill is-active" href="#about">Giới thiệu</a>
-      <a class="pill" href="#rules">Luật chơi</a>
-      <a class="pill" href="#forum">Diễn đàn</a>
-      <a class="pill" href="#feedback">Góp ý</a>
-    </nav>
-
-    <!-- ============ CÁC SECTION ============ -->
-    <section id="about" class="section">
+    <!-- Khối nội dung dưới (demo) -->
+    <section class="panel">
       <h2>NiNi — Funny</h2>
       <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
     </section>
-
-    <section id="rules" class="section">
-      <h2>Luật chơi</h2>
-      <p>… nội dung luật chơi …</p>
-    </section>
-
-    <section id="forum" class="section">
-      <h2>Diễn đàn</h2>
-      <p>… nội dung diễn đàn …</p>
-    </section>
-
-    <section id="feedback" class="section">
-      <h2>Góp ý</h2>
-      <p>… nội dung góp ý …</p>
-    </section>
   </main>
 
-  <!-- ============ MODAL LOGIN (simple, outline) ============ -->
+  <!-- ========== AUTH MODAL (canh giữa + nền mờ) ========== -->
   <div id="authModal" class="modal" aria-hidden="true">
-    <div class="modal-card">
-      <h3>
-        <img src="public/assets/icons/logo_text.webp" alt="" style="height:24px" />
-        Đăng nhập / Đăng ký
-      </h3>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
 
-      <div style="display:flex; gap:8px; margin-bottom:12px">
-        <button class="btn" id="googleBtn">Đăng nhập với Google</button>
+      <!-- Nút đóng -->
+      <button class="modal__close" aria-label="Đóng" onclick="closeAuth()">×</button>
+
+      <!-- Logo + tiêu đề -->
+      <div class="modal__title">
+        <img src="public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+        <h3 id="authTitle">Đăng nhập / Đăng ký</h3>
       </div>
 
-      <p style="opacity:.8;margin:4px 0 12px">hoặc</p>
+      <!-- Tabs nhỏ trong modal -->
+      <div class="modal__tabs">
+        <button class="modal__tab is-active" data-auth-tab="login">Đăng nhập</button>
+        <button class="modal__tab" data-auth-tab="signup">Đăng ký</button>
+        <button class="modal__tab" data-auth-tab="forgot">Quên mật khẩu</button>
+      </div>
 
-      <!-- Đăng nhập bằng email -->
-      <input class="input" type="email" placeholder="Email" />
-      <input class="input" type="password" placeholder="Mật khẩu" />
-      <button class="btn">Đăng nhập</button>
+      <!-- Nội dung: Đăng nhập -->
+      <div class="auth-pane is-active" data-pane="login">
+        <button class="btn google">Đăng nhập với Google</button>
 
-      <div style="margin-top:14px; display:flex; gap:12px; flex-wrap:wrap">
-        <button class="btn" id="forgotBtn">Quên mật khẩu</button>
-        <button class="btn" id="signupBtn">Đăng ký mới</button>
+        <div class="divider"><span>hoặc</span></div>
+
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" />
+
+        <label>Mật khẩu</label>
+        <input type="password" placeholder="••••••••" />
+
+        <div class="row">
+          <button class="btn">Đăng nhập</button>
+          <a class="inline-link" data-jump="forgot">Quên mật khẩu?</a>
+        </div>
+      </div>
+
+      <!-- Nội dung: Đăng ký (email + gửi OTP + mật khẩu) -->
+      <div class="auth-pane" data-pane="signup">
+        <label>Email</label>
+        <div class="row">
+          <input type="email" placeholder="you@example.com" />
+          <button class="btn">Gửi mã OTP</button>
+        </div>
+
+        <label>Mã OTP</label>
+        <input type="text" placeholder="Nhập mã 6 số" />
+
+        <label>Mật khẩu</label>
+        <input type="password" placeholder="Mật khẩu" />
+
+        <label>Nhập lại mật khẩu</label>
+        <input type="password" placeholder="Nhập lại mật khẩu" />
+
+        <button class="btn">Tạo tài khoản</button>
+
+        <p class="note">Sau khi tạo tài khoản thành công, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
+      </div>
+
+      <!-- Nội dung: Quên mật khẩu (email + otp + mật khẩu mới) -->
+      <div class="auth-pane" data-pane="forgot">
+        <label>Email</label>
+        <div class="row">
+          <input type="email" placeholder="you@example.com" />
+          <button class="btn">Gửi mã OTP</button>
+        </div>
+
+        <label>Mã OTP</label>
+        <input type="text" placeholder="Nhập mã 6 số" />
+
+        <label>Mật khẩu mới</label>
+        <input type="password" placeholder="Mật khẩu mới" />
+
+        <button class="btn">Đặt lại mật khẩu</button>
+
+        <p class="note"><a class="inline-link" data-jump="login">Quay lại đăng nhập</a></p>
       </div>
     </div>
   </div>
+  <!-- ========== /AUTH MODAL ========== -->
 
-  <script>
-  /* Ảnh HIỆN TRONG KHUNG */
-  const SEASON_IMG = {
-    home:  "public/assets/bg/nini_home.webp",           // ✅ Home = nini_home
-    spring:"public/assets/images/seasons/spring.webp",
-    summer:"public/assets/images/seasons/summer.webp",
-    autumn:"public/assets/images/seasons/autumn.webp",
-    winter:"public/assets/images/seasons/winter.webp",
-  };
-
-  /* Ảnh NỀN TRANG (ngoài khung) */
-  const PAGE_BG = {
-    home:  "public/assets/bg/nini_home.webp",           // ✅ Home = nini_home
-    spring:"public/assets/bg/page_spring.webp",
-    summer:"public/assets/bg/page_summer.webp",
-    autumn:"public/assets/bg/page_autumn.webp",
-    winter:"public/assets/bg/page_winter.webp",
-  };
-  // Nếu chưa có page_*.webp thì có thể tạm dùng lại ảnh mùa:
-  // const PAGE_BG = SEASON_IMG;
-
-  const seasonImg = document.getElementById('bgSeason');
-
-  function setSeason(s){
-    seasonImg.src = SEASON_IMG[s];
-    document.body.style.setProperty('--page-bg', `url("${PAGE_BG[s]}")`);
-  }
-
-  document.querySelectorAll('.tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.tab').forEach(b=>b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      setSeason(btn.dataset.season);
-    });
-  });
-
-  // Mặc định vào Home
-  setSeason('home');
-</script>
-
+  <!-- JS -->
+  <script src="app.js?v=1003"></script>
 </body>
 </html>
-

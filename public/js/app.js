@@ -1,93 +1,89 @@
-/* ====== Ảnh theo mùa (ngoài + trong) ====== */
+/* ====== Ảnh theo mùa ====== */
 const SCENES = {
-  home:   { outer: "/public/assets/bg/nini_home.webp",    inner: "/public/assets/bg/nini_home.webp" },
-  spring: { outer: "/public/assets/images/seasons/spring.webp", inner: "/public/assets/images/seasons/spring.webp" },
-  summer: { outer: "/public/assets/images/seasons/summer.webp", inner: "/public/assets/images/seasons/summer.webp" },
-  autumn: { outer: "/public/assets/images/seasons/autumn.webp", inner: "/public/assets/images/seasons/autumn.webp" },
-  winter: { outer: "/public/assets/images/seasons/winter.webp", inner: "/public/assets/images/seasons/winter.webp" },
+  home:   { outer: "/public/assets/bg/nini_home.webp",                    inner: "/public/assets/bg/nini_home.webp" },
+  spring: { outer: "/public/assets/images/seasons/spring.webp",  inner: "/public/assets/images/seasons/spring.webp" },
+  summer: { outer: "/public/assets/images/seasons/summer.webp",  inner: "/public/assets/images/seasons/summer.webp" },
+  autumn: { outer: "/public/assets/images/seasons/autumn.webp",  inner: "/public/assets/images/seasons/autumn.webp" },
+  winter: { outer: "/public/assets/images/seasons/winter.webp",  inner: "/public/assets/images/seasons/winter.webp" },
 };
+const SEASONS = Object.keys(SCENES);
 
-const bg = document.querySelector(".page-bg");
+const bg  = document.querySelector(".page-bg");
 const img = document.getElementById("seasonImg");
 const navLinks = [...document.querySelectorAll(".nav__link")];
 
-/* đổi mùa + hiệu ứng chuyển */
-function setSeason(key){
+/* Lấy mùa từ URL (hỗ trợ "#winter", "#/winter", "/winter", "/f#winter") */
+function getSeasonFromURL() {
+  let h = (location.hash || "").toLowerCase();  // "#/winter" | "#winter"
+  h = h.replace(/^#\/?/, "");                   // "winter"
+  if (SEASONS.includes(h)) return h;
+
+  const p = location.pathname.replace(/^\/+/, "").toLowerCase(); // "winter" | "f" | ""
+  if (SEASONS.includes(p)) return p;
+
+  return "home";
+}
+
+function setSeason(key) {
   const conf = SCENES[key] || SCENES.home;
-  // active nav
+
   navLinks.forEach(a => a.classList.toggle("is-active", a.dataset.season === key));
 
-  // fade ảnh trong khung
-  img.style.opacity = "0";
-  setTimeout(()=>{
-    img.src = conf.inner;
-    img.onload = ()=> (img.style.opacity = "1");
-  }, 150);
-
-  // đổi nền ngoài
-  bg.style.backgroundImage = `url("${conf.outer}")`;
-
-  // cập nhật hash để reload vẫn đúng mùa
-  if(location.hash !== `#${key}`){
-    history.replaceState(null, "", `#${key}`);
+  if (img) {
+    img.style.opacity = "0";
+    setTimeout(() => {
+      img.src = conf.inner;
+      img.onload = () => (img.style.opacity = "1");
+    }, 120);
   }
+  if (bg) bg.style.backgroundImage = `url("${conf.outer}")`;
+
+  const desired = `#${key}`;
+  if (location.hash !== desired) history.replaceState(null, "", desired);
 }
 
-function initSeasonFromHash(){
-  const key = (location.hash || "#home").replace("#","").toLowerCase();
-  setSeason(SCENES[key] ? key : "home");
-}
+/* Bắt sự kiện nav */
+navLinks.forEach(a => a.addEventListener("click", () => setSeason(a.dataset.season)));
 
-/* click nav */
-navLinks.forEach(a => {
-  a.addEventListener("click", ()=> setSeason(a.dataset.season));
-});
-
-/* quick tabs dưới khung – thay nội dung panel ngắn */
+/* Nút nội dung nhanh */
 const infoMap = {
-  about:   "Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.",
-  rules:   "Luật chơi: Chọn mùa – hoàn thành nhiệm vụ nhỏ – tích điểm – đổi quà nhé!",
-  forum:   "Diễn đàn: Nơi bé chia sẻ thành quả và bạn bè cổ vũ nhau.",
-  feedback:"Góp ý: Bạn thấy gì cần cải thiện? Hãy nói với NiNi nhé!"
+  about: "Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.",
+  rules: "Luật chơi: Chọn mùa – hoàn thành nhiệm vụ nhỏ – tích điểm – đổi quà nhé!",
+  forum: "Diễn đàn: Nơi bé chia sẻ thành quả và bạn bè cổ vũ nhau.",
+  feedback: "Bạn có ý tưởng trò chơi hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!",
 };
 document.querySelectorAll(".pill").forEach(btn=>{
   btn.addEventListener("click", ()=>{
-    document.getElementById("infoBody").textContent = infoMap[btn.dataset.tab] || "";
+    document.querySelectorAll(".pill").forEach(p=>p.classList.toggle("is-active", p===btn));
+    const el = document.getElementById("infoBody");
+    if (el) el.textContent = infoMap[btn.dataset.tab] || "";
   });
 });
 
-/* ====== Modal Auth (3 tab) ====== */
-const modal = document.getElementById("authModal");
+/* Modal auth */
+const modal   = document.getElementById("authModal");
 const btnAuth = document.getElementById("btnAuth");
-
-// mở/đóng
-btnAuth.addEventListener("click", ()=> modal.hidden = false);
-modal.addEventListener("click", e=>{
-  if(e.target.matches("[data-close]")) modal.hidden = true;
-});
-
-// chuyển tab pane
-const tabs = [...document.querySelectorAll(".tab")];
-const panes = {
-  login:    document.getElementById("pane-login"),
-  register: document.getElementById("pane-register"),
-  reset:    document.getElementById("pane-reset")
-};
-function showPane(key){
-  tabs.forEach(t=>t.classList.toggle("is-active", t.dataset.pane === key));
-  Object.entries(panes).forEach(([k,el])=> el.classList.toggle("is-active", k===key));
-}
-tabs.forEach(t=> t.addEventListener("click", ()=> showPane(t.dataset.pane)));
-document.querySelectorAll("[data-switch]").forEach(b=> b.addEventListener("click", ()=> showPane(b.dataset.switch)));
-
-// demo: nút Google chỉ hiển thị toast nhỏ (chưa nối OAuth)
-const btnLoginGoogle = document.getElementById("btnLoginGoogle");
-if(btnLoginGoogle){
-  btnLoginGoogle.addEventListener("click", ()=> {
-    alert("Demo: Đăng nhập Google (sau khi gắn OAuth) → nhắc cập nhật hồ sơ cá nhân.");
-  });
+if (btnAuth && modal) {
+  btnAuth.addEventListener("click", () => (modal.hidden = false));
+  modal.addEventListener("click", e => { if (e.target.matches("[data-close]")) modal.hidden = true; });
+  const tabs = [...document.querySelectorAll(".tab")];
+  const panes = {
+    login:    document.getElementById("pane-login"),
+    register: document.getElementById("pane-register"),
+    reset:    document.getElementById("pane-reset"),
+  };
+  function showPane(k){
+    tabs.forEach(t=>t.classList.toggle("is-active", t.dataset.pane === k));
+    Object.entries(panes).forEach(([key,el])=> el && el.classList.toggle("is-active", key===k));
+  }
+  tabs.forEach(t=> t.addEventListener("click", ()=> showPane(t.dataset.pane)));
+  document.querySelectorAll("[data-switch]").forEach(b=> b.addEventListener("click", ()=> showPane(b.dataset.switch)));
 }
 
-/* ====== Khởi động ====== */
-window.addEventListener("hashchange", initSeasonFromHash);
-initSeasonFromHash();
+/* Khởi động + lắng nghe thay đổi URL */
+function boot(){ setSeason(getSeasonFromURL()); }
+window.addEventListener("hashchange", boot);
+window.addEventListener("popstate",  boot);
+boot();
+
+console.log("NiNi boot ok");

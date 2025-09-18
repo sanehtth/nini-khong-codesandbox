@@ -24,23 +24,14 @@ function getSeasonFromURL() {
   return "home";
 }
 
-function setSeason(key) {
-  const conf = SCENES[key] || SCENES.home;
-
-  navLinks.forEach(a => a.classList.toggle("is-active", a.dataset.season === key));
-
-  if (img) {
-    img.style.opacity = "0";
-    setTimeout(() => {
-      img.src = conf.inner;
-      img.onload = () => (img.style.opacity = "1");
-    }, 120);
-  }
-  if (bg) bg.style.backgroundImage = `url("${conf.outer}")`;
-
-  const desired = `#${key}`;
-  if (location.hash !== desired) history.replaceState(null, "", desired);
+function setSeason(season) {
+  document.body.setAttribute('data-season', season);
+  heroImg.src = IMAGES[season];                // ảnh trong khung
+  outerBg.style.backgroundImage = `url(${IMAGES[season]})`; // nền ngoài
+  document.querySelectorAll('.tabs button')
+    .forEach(b => b.classList.toggle('is-active', b.dataset.season === season));
 }
+
 
 /* Bắt sự kiện nav */
 navLinks.forEach(a => a.addEventListener("click", () => setSeason(a.dataset.season)));
@@ -87,3 +78,4 @@ window.addEventListener("popstate",  boot);
 boot();
 
 console.log("NiNi boot ok");
+

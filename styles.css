@@ -4,6 +4,7 @@
   --pill:#0f1b2c; --pill-h:#17273b; --pill-br:#2a3c54;
   --tab-bg:#132037; --tab-ink:#dfe9f7;
   --accent:#79c2ff;
+  --ok:#2ecc71; --warn:#ffb84a; --err:#ff6b6b;
 }
 
 /* Nền chung */
@@ -41,7 +42,7 @@ body{
   border-color:#2b3f60;
 }
 
-/* Nút đăng nhập */
+/* Nút đăng nhập / tài khoản */
 .auth-btn{
   background:#24395a; color:#fff; text-decoration:none;
   border:1px solid #35527d; border-radius:999px; padding:8px 14px;
@@ -91,3 +92,54 @@ body{
 }
 .panel-title{margin:0 0 6px}
 .panel-text{margin:0; color:var(--ink-dim)}
+
+/* ================== MODAL ================== */
+.modal{position:fixed; inset:0; z-index:30; display:none}
+.modal[open], .modal.show{display:block}
+.modal__scrim{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(2px);}
+.modal__card{
+  position:relative; z-index:1;
+  width:min(560px, 92vw);
+  margin:8vh auto 0; background: #0e1726;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,.5);
+  padding:16px 16px 18px;
+}
+.modal__head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px}
+.modal__close{background:transparent; border:0; color:#9fb3c8; font-size:18px; cursor:pointer}
+.modal__body{display:grid; gap:16px}
+.muted{color:#a6bdd2}
+.tiny{font-size:12px}
+.note{
+  margin-top:8px; padding:10px 12px; border-radius:10px;
+  background:#0f1f34; color:#cfe3ff; border:1px dashed #2a4262;
+}
+.row{display:flex; gap:10px; flex-wrap:wrap}
+.stack{display:grid; gap:12px}
+.split{display:grid; place-items:center}
+
+/* Form & button */
+.fld{display:grid; gap:6px}
+.fld input{
+  background:#0b1524; color:#e9f2ff; border:1px solid #28405e;
+  padding:10px 12px; border-radius:10px; outline:none;
+}
+.fld input:focus{border-color:#3d5f88; box-shadow:0 0 0 3px rgba(121,194,255,.15)}
+
+.btn{
+  background:#2b4470; color:#fff; border:1px solid #3d5f88;
+  padding:10px 14px; border-radius:12px; cursor:pointer;
+}
+.btn:hover{background:#325083}
+.btn-ghost{background:transparent; border:1px solid #3d5f88}
+.btn-google{
+  background:#fff; color:#333; border:1px solid #cfd6e0;
+}
+.btn-google:hover{background:#f2f2f2}
+.link{
+  background:transparent; border:0; color:#9cc9ff; text-decoration:underline; cursor:pointer;
+}
+
+/* Ẩn/hiện panel trong modal theo data-state */
+.modal [data-state]{display:none}
+.modal [data-state].is-current{display:block}

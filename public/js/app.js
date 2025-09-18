@@ -1,4 +1,4 @@
-// ====== NiNi — base app (no effects) ======
+// ====== NiNi — base app (no effects) + Auth UI mock ======
 (() => {
   // Ảnh nền cho từng chế độ
   const BG = {
@@ -10,26 +10,38 @@
   };
 
   // DOM
-  const scene = document.getElementById("scene");
-  const tabWrap = document.getElementById("seasonTabs");
-  const panelEl = document.getElementById("infoPanel");
-  const pillWrap = document.querySelector(".pill-nav");
+  const scene     = document.getElementById("scene");
+  const tabWrap   = document.getElementById("seasonTabs");
+  const panelEl   = document.getElementById("infoPanel");
+  const pillWrap  = document.querySelector(".pill-nav");
 
+  // Auth DOM
+  const authBtn   = document.getElementById("authEntry");
+  const modal     = document.getElementById("authModal");
+  const bodyWrap  = document.getElementById("authBody");
+
+  // States
   let season = "home";
-  let panel = "about";
+  let panel  = "about";
 
-  // Helpers
+  // ---------- SEASONS ----------
   function setSeason(next) {
     if (!BG[next]) next = "home";
     season = next;
     scene.src = BG[season];
 
-    // toggle active tab
     for (const btn of tabWrap.querySelectorAll(".tab")) {
       btn.classList.toggle("is-active", btn.dataset.season === season);
     }
   }
 
+  tabWrap.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
+    setSeason(btn.dataset.season);
+  });
+
+  // ---------- INFO PANELS ----------
   function setPanel(next) {
     panel = next;
     for (const p of pillWrap.querySelectorAll(".pill")) {
@@ -63,20 +75,152 @@
     }
   }
 
-  // Events
-  tabWrap.addEventListener("click", (e) => {
-    const btn = e.target.closest(".tab");
-    if (!btn) return;
-    setSeason(btn.dataset.season);
-  });
-
   pillWrap.addEventListener("click", (e) => {
     const btn = e.target.closest(".pill");
     if (!btn) return;
     setPanel(btn.dataset.panel);
   });
 
-  // Init
+  // Init base UI
   setSeason("home");
   setPanel("about");
+
+  // =========================================================
+  //                AUTH UI (mock, chưa nối API)
+  // =========================================================
+  const LS_KEY = "nini_auth";   // {provider, email?, time}
+  const OTP_KEY = "nini_otp";   // {email, code, exp}
+
+  function getAuth() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }
+    catch { return null; }
+  }
+  function setAuth(data) { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  function clearAuth() { localStorage.removeItem(LS_KEY); }
+
+  function updateAuthEntry() {
+    const a = getAuth();
+    if (a) {
+      authBtn.textContent = a.email ? `Xin chào, ${a.email}` : "Tài khoản Google";
+      authBtn.title = "Nhấn để đăng xuất";
+      authBtn.dataset.mode = "logout";
+    } else {
+      authBtn.textContent = "Đăng nhập / Đăng ký";
+      authBtn.title = "";
+      authBtn.dataset.mode = "login";
+    }
+  }
+
+  // Modal helpers
+  function openModal(state = "choose") {
+    modal.classList.add("show");
+    modal.setAttribute("open", "");
+    setModalState(state);
+    modal.setAttribute("aria-hidden", "false");
+  }
+  function closeModal() {
+    modal.classList.remove("show");
+    modal.removeAttribute("open");
+    modal.setAttribute("aria-hidden", "true");
+  }
+  function setModalState(state) {
+    // ẩn/hiện các section theo data-state
+    bodyWrap.querySelectorAll("[data-state]").forEach(sec => {
+      sec.classList.toggle("is-current", sec.dataset.state === state);
+      sec.hidden = sec.dataset.state !== state;
+    });
+  }
+
+  // Click ngoài / nút đóng
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) closeModal();
+    if (e.target.dataset.back) setModalState(e.target.dataset.back);
+  });
+
+  // Entry click: login hoặc logout
+  authBtn.addEventListener("click", () => {
+    if (authBtn.dataset.mode === "logout") {
+      clearAuth();
+      updateAuthEntry();
+      // tuỳ chọn: thông báo nhỏ
+      alert("Đã đăng xuất.");
+      return;
+    }
+    openModal("choose");
+  });
+
+  // ========== Google login (giả lập) ==========
+  const btnGoogle = document.getElementById("btnGoogle");
+  btnGoogle?.addEventListener("click", async () => {
+    // TODO: sau này thay bằng OAuth thật (Firebase/Google Identity Services)
+    // Demo: giả lập thành công
+    await wait(600);
+    setAuth({ provider: "google", time: Date.now() });
+    updateAuthEntry();
+    setModalState("remind");
+  });
+
+  // ========== Email register + OTP (giả lập) ==========
+  const btnEmail = document.getElementById("btnEmail");
+  const inpEmail = document.getElementById("regEmail");
+  const otpNote  = document.getElementById("otpNote");
+  const otpHint  = document.getElementById("otpHint");
+  const btnSend  = document.getElementById("btnSendOtp");
+  const inpOtp   = document.getElementById("otpInput");
+  const btnVerify= document.getElementById("btnVerifyOtp");
+
+  btnEmail?.addEventListener("click", () => {
+    inpEmail.value = "";
+    otpNote.hidden = true;
+    setModalState("email1");
+  });
+
+  btnSend?.addEventListener("click", () => {
+    const email = (inpEmail.value || "").trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      alert("Email chưa hợp lệ.");
+      return;
+    }
+    // tạo OTP 6 số & "gửi"
+    const code = ("" + Math.floor(100000 + Math.random() * 900000));
+    const exp  = Date.now() + 5*60*1000; // 5 phút
+    localStorage.setItem(OTP_KEY, JSON.stringify({ email, code, exp }));
+
+    otpNote.hidden = false;
+    otpNote.textContent = `Đã gửi OTP tới ${email}. (DEMO: mã là ${code})`;
+    // chuyển qua bước nhập OTP
+    setTimeout(() => setModalState("email2"), 600);
+  });
+
+  btnVerify?.addEventListener("click", () => {
+    const rec = readOtp();
+    if (!rec) { alert("OTP đã hết hạn hoặc chưa gửi."); return; }
+    const code = (inpOtp.value || "").trim();
+    if (code.length !== 6) { alert("Vui lòng nhập đủ 6 số OTP."); return; }
+    if (code !== rec.code) { alert("Mã OTP chưa đúng."); return; }
+
+    // thành công
+    localStorage.removeItem(OTP_KEY);
+    setAuth({ provider: "email", email: rec.email, time: Date.now() });
+    updateAuthEntry();
+    inpOtp.value = "";
+    otpHint.hidden = false;
+    otpHint.textContent = `Đã xác thực ${rec.email}`;
+    setModalState("remind");
+  });
+
+  function readOtp() {
+    try {
+      const o = JSON.parse(localStorage.getItem(OTP_KEY) || "null");
+      if (!o) return null;
+      if (Date.now() > o.exp) { localStorage.removeItem(OTP_KEY); return null; }
+      return o;
+    } catch { return null; }
+  }
+
+  // Utilities
+  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  // Boot auth UI
+  updateAuthEntry();
 })();

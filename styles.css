@@ -1,152 +1,115 @@
 :root{
-  --bg-dark:#0b1116;
   --text:#fff;
-  --muted:#c7d2da;
-  --accent:#c8ff57;
-  --glow:rgba(255,255,255,.12);
-  --glass:rgba(255,255,255,.06);
-  --stroke:rgba(255,255,255,.20);
+  --muted:#c9d4e8;
+  --accent:#ffd66e;
+  --bg:#0a1016;
+  --glass:rgba(10,16,22,.55);
+  --radius:14px;
 }
-
-/* RESET gọn */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0; color:var(--text); background:var(--bg-dark);
-  font: 400 16px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  overflow-x:hidden;
+  margin:0; color:var(--text); font:500 16px/1.6 "Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background:#000; overflow-x:hidden;
 }
 
-/* nền ngoài (đổi theo mùa) */
+/* nền ngoài */
 .page-bg{
-  position:fixed; inset:0;
-  background: center/cover no-repeat url("/public/assets/bg/nini_home.webp");
-  transition:background-image .5s ease, filter .3s ease;
-  filter: brightness(.92);
-  z-index:-2;
+  position:fixed; inset:0; background:#09121a center/cover no-repeat;
+  filter:brightness(.9); z-index:-1;
 }
 
-/* Header */
+/* header */
 .site-header{
-  display:flex; align-items:center; gap:24px;
-  padding:14px 18px 8px; position:sticky; top:0; z-index:10;
-  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0));
+  position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:24px;
+  padding:12px min(4vw,32px); background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.1) 80%,transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
-
 .brand{display:flex; align-items:center; gap:10px}
 .brand__logo{height:44px; object-fit:contain}
 .brand__slogan{
   font-weight:700; letter-spacing:.2px;
-  /* gradient vàng → xanh → nâu */
-  background:linear-gradient(90deg,#ffd66c 0%,#7bff79 55%,#7b5a2b 100%);
+  background:linear-gradient(90deg,#ffd66e,#77ff89,#a67c52);
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  font-size:clamp(13px, 1.25vw, 18px);
+  filter:drop-shadow(0 1px 0 rgba(0,0,0,.35));
+  font-size:18px;
 }
 
-/* Nav */
-.main-nav{display:flex; gap:18px; margin-left:auto; margin-right:12px}
+/* nav */
+.nav{display:flex; gap:14px; margin-left:auto}
 .nav__link{
-  cursor:pointer; padding:8px 12px; border-radius:999px; color:var(--muted);
-  transition:.2s ease; position:relative;
+  all:unset; cursor:pointer; padding:10px 14px; color:var(--text); opacity:.9; position:relative;
 }
-.nav__link:hover{color:var(--text)}
-.nav__link.is-active{
-  color:var(--text);
-}
+.nav__link:hover{opacity:1}
 .nav__link.is-active::after{
-  content:""; position:absolute; left:12px; right:12px; bottom:2px;
-  height:2px; border-radius:2px; background:#ffd66c;
+  content:""; position:absolute; left:10px; right:10px; bottom:4px; height:2px; background:var(--accent);
 }
 
-/* Button pills (đăng nhập) */
-.btn{border:1px solid var(--text); background:transparent; color:var(--text);
-  padding:10px 14px; border-radius:10px; cursor:pointer; transition:.2s}
-.btn:hover{background:var(--text); color:#111}
-.btn--pill{border-radius:999px}
-.btn--ghost{border-color:#fff8}
-.btn--ghost:hover{background:#fff; color:#111}
-.btn--full{width:100%}
+/* auth */
+.auth-btn{
+  all:unset; cursor:pointer; margin-left:12px; padding:10px 14px; border:1px solid rgba(255,255,255,.25);
+  border-radius:999px;
+}
+.auth-btn:hover{background:rgba(255,255,255,.06)}
 
-.link-as-btn{background:transparent; border:0; color:var(--muted); cursor:pointer}
-.link-as-btn:hover{color:var(--text)}
-
-/* Viewport + frame */
-.viewport{display:grid; place-items:center; padding:24px 16px 60px}
+/* khung 16:9 */
+.viewport{display:grid; place-items:center; padding:24px}
 .frame{
-  width:min(1100px, 92vw); margin-inline:auto; position:relative;
-  border-radius:18px; overflow:hidden;
-  box-shadow:0 24px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.05);
-  background:linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.15));
+  width:min(1160px,92vw); aspect-ratio:16/9; border-radius:24px; overflow:hidden; position:relative;
+  box-shadow:0 24px 64px rgba(0,0,0,.5);
 }
-.frame__img{display:block; width:100%; height:auto; transition:opacity .35s ease}
-.nini{
-  position:absolute; left:50%; bottom:36px; transform:translateX(-50%);
-  width:min(160px, 22vw); pointer-events:none;
-}
-.quick-tabs{
-  position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
-  display:flex; gap:10px;
-}
+.frame img{display:block; width:100%; height:100%; object-fit:cover; transition:opacity .25s ease}
+.frame .nini{position:absolute; bottom:min(5.5cqw,42px); left:50%; translate:-50% 0; width:min(160px,18cqw); pointer-events:none}
+
+.quick{display:flex; gap:10px; margin-top:14px}
 .pill{
-  padding:8px 14px; border-radius:999px; border:1px solid #fff9;
-  background:transparent; color:#fff; cursor:pointer; transition:.2s;
+  all:unset; cursor:pointer; padding:10px 16px; border:1px solid rgba(255,255,255,.28);
+  border-radius:999px; color:var(--text); opacity:.9;
 }
-.pill:hover{background:#fff; color:#111}
+.pill:hover{opacity:1}
+.pill.is-active{border-color:var(--accent)}
 
-/* Info panel */
-.blur-card{
-  background:var(--glass);
-  border:1px solid var(--stroke);
-  backdrop-filter:blur(12px) saturate(1.1);
-  box-shadow: 0 10px 40px var(--glow);
-  border-radius:16px;
+/* thẻ info */
+.info{width:min(1160px,92vw); margin:12px auto 56px; background:var(--glass);
+  border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:18px 20px;
+  backdrop-filter: blur(8px);
 }
-.info{
-  width:min(1100px, 92vw); margin:18px auto 0; padding:18px 22px;
-}
-.info__title{margin:0 0 6px; font-size:20px}
-.info__body{color:var(--muted)}
+.info__title{margin:4px 0 6px; font-size:22px}
+.info__body{margin:0; color:var(--muted)}
 
-/* Modal */
+/* modal */
 .modal[hidden]{display:none}
-.modal{position:fixed; inset:0; display:grid; place-items:center; z-index:100}
-.modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55)} /* mờ nền */
+.modal__backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter: blur(4px);
+}
 .modal__card{
-  position:relative; width:min(560px, 92vw); padding:18px 18px 20px;
+  position:fixed; inset:0; margin:auto; width:min(720px,92vw); background:rgba(10,16,22,.88);
+  border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px 16px 18px; height:auto;
 }
-.modal__brand img{height:40px}
-.modal__title{margin:10px 0 12px}
-.modal__close{
-  position:absolute; right:10px; top:8px; width:34px; height:34px;
-  border-radius:10px; border:1px solid #fff9; background:transparent; color:#fff; cursor:pointer;
-}
-.tabs{display:flex; gap:8px; margin-bottom:10px}
-.tab{
-  padding:8px 12px; border-radius:999px; border:1px solid #fff8; background:transparent; color:#fff; cursor:pointer
-}
-.tab.is-active{background:#fff; color:#111}
+.modal__head{display:flex; align-items:center; gap:10px}
+.modal__head img{height:34px}
+.modal__close{margin-left:auto; all:unset; cursor:pointer; font-size:22px}
 
+.tabs{display:flex; gap:8px; margin:12px 0 4px}
+.tab{all:unset; cursor:pointer; color:var(--text); opacity:.9; padding:8px 12px; position:relative}
+.tab.is-active{opacity:1}
+.tab.is-active::after{content:""; position:absolute; left:8px; right:8px; bottom:2px; height:2px; background:var(--accent)}
+
+.panes{margin-top:10px}
 .pane{display:none}
 .pane.is-active{display:block}
 
-.input{display:grid; gap:6px; margin:10px 0}
-.input input{
-  background:transparent; border:0; border-bottom:1px solid #fffaa; color:#fff; padding:8px 2px;
-  outline:none;
+label{display:block; margin:10px 0 4px; color:var(--muted); font-size:14px}
+input{
+  width:100%; border:none; border-bottom:1px solid rgba(255,255,255,.35); background:transparent;
+  padding:10px 4px; color:var(--text); outline:none;
 }
-.input input:focus{border-bottom-color:#ffd66c}
-.input--short{max-width:220px}
+input:focus{border-color:var(--accent)}
 
-.row{display:flex; align-items:center}
-.row--between{justify-content:space-between}
-.row--gap{gap:12px}
-.row--center{justify-content:center}
-
-.divider{display:grid; place-items:center; margin:12px 0}
-.divider span{color:#fff9}
-
-/* small helpers */
-@media (max-width:700px){
-  .brand__slogan{display:none}
-  .nini{width:128px}
+.btn-line,.btn-fill{
+  padding:10px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.28); color:var(--text); background:transparent;
 }
+.btn-fill{border-color:var(--accent)}
+.row{display:flex; gap:10px; margin-top:12px}
+.link{all:unset; cursor:pointer; color:var(--muted)}
+.link:hover{color:var(--text)}

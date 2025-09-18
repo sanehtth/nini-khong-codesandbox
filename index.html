@@ -4,23 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
-  <link rel="preload" as="image" href="/public/assets/bg/nini_home.webp" />
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
-  <link rel="stylesheet" href="/styles.css?v=10" />
+
+  <!-- Favicon / Logo -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles.css?v=5" />
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- ========== HEADER ========== -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand_logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" id="brandLogo" />
-      <div>
-        <div class="brand_title">NiNi — Funny</div>
-        <div class="brand_slogan">Chơi mê ly, bứt phá tư duy</div>
-      </div>
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
 
-    <!-- 5 nút: Home + 4 mùa -->
-    <nav class="tabs" id="seasonTabs">
+    <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
@@ -28,135 +27,38 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <button id="open-auth" class="auth-btn">Đăng nhập / Đăng ký</button>
+    <a class="auth-btn" href="/admin/login.html" rel="nofollow">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- VIEWPORT 16:9 -->
+  <!-- ========== VIEWPORT / KHUNG 16:9 ========== -->
   <main class="viewport">
-    <section class="frame" id="frame">
-      <!-- nền mặc định: HOME -->
-      <article class="card" id="cardIntro">
-        <h3>NiNi — Funny</h3>
-        <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-      </article>
-
-      <article class="card" id="cardRules" hidden>
-        <h3>Luật chơi</h3>
-        <p>• Chọn trò & hoàn thành thử thách để nhận điểm sao. <br/>
-           • Tích luỹ sao đổi huy hiệu. <br/>
-           • Chia sẻ thành tích cùng bạn bè để có quà bất ngờ.</p>
-      </article>
-
-      <article class="card" id="cardForum" hidden>
-        <h3>Diễn đàn</h3>
-        <p>Nơi khoe thành tích, đặt câu hỏi & rủ bạn chơi cùng. (Sắp mở)</p>
-      </article>
-
-      <article class="card" id="cardFeedback" hidden>
-        <h3>Góp ý</h3>
-        <p>Gửi ý tưởng trò mới hoặc góp ý UI tại đây – cảm ơn bạn đã giúp NiNi tốt hơn!</p>
-      </article>
-
-      <!-- Cụm nút dưới (tab trong khung) -->
-      <div class="dock" id="dock">
-        <button class="pill" data-card="cardIntro" aria-selected="true">Giới thiệu</button>
-        <button class="pill" data-card="cardRules">Luật chơi</button>
-        <button class="pill" data-card="cardForum">Diễn đàn</button>
-        <button class="pill" data-card="cardFeedback">Góp ý</button>
-      </div>
-
+    <figure class="frame">
+      <!-- Ảnh nền chính 16:9 — Home -->
+      <img id="scene" class="scene" src="/public/assets/bg/nini_home.webp" alt="NiNi — Home" />
       <!-- Bé nhím -->
-      <picture class="nini" aria-hidden="true">
-        <source srcset="/public/assets/icons/nini.webp" type="image/webp" />
-        <img src="/public/assets/icons/nini.png" alt="" />
-      </picture>
+      <img class="nini" src="/public/assets/images/nini.webp" alt="NiNi" />
+      <!-- 4 nút dưới -->
+      <div class="pill-nav" role="tablist" aria-label="Mục thông tin">
+        <button class="pill is-active" data-panel="about" role="tab" aria-selected="true">Giới thiệu</button>
+        <button class="pill" data-panel="rules" role="tab">Luật chơi</button>
+        <button class="pill" data-panel="forum" role="tab">Diễn đàn</button>
+        <button class="pill" data-panel="feedback" role="tab">Góp ý</button>
+      </div>
+    </figure>
+
+    <!-- Khung nội dung 4 tab -->
+    <section class="info-panel" id="infoPanel" role="tabpanel" aria-live="polite">
+      <h2 class="panel-title">NiNi — Funny</h2>
+      <p class="panel-text">
+        Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
+      </p>
     </section>
   </main>
 
-  <!-- ======= AUTH MODAL (2 lựa chọn) ======= -->
-  <div id="auth-shade" class="shade"></div>
-
-  <div id="auth-modal" class="modal">
-    <div class="auth-box">
-      <h2>Chọn phương thức</h2>
-
-      <!-- Lựa chọn 1: Google -->
-      <button class="btn google" id="btn-google">Đăng nhập với Google</button>
-
-      <div class="sep"><span>hoặc</span></div>
-
-      <!-- Lựa chọn 2: Đăng ký tài khoản -->
-      <button class="btn" id="btn-open-register">Đăng ký tài khoản</button>
-
-      <div class="note">Đã có tài khoản? <a href="#" id="open-email-login">Đăng nhập bằng email</a></div>
-
-      <div class="actions">
-        <button class="btn alt" id="close-auth">Đóng</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ======= REGISTER MODAL (điền profile → OTP) ======= -->
-  <div id="reg-modal" class="modal">
-    <div class="auth-box">
-      <h2>Đăng ký tài khoản</h2>
-
-      <div class="grid">
-        <label>Họ và tên
-          <input id="reg-name" type="text" placeholder="Ví dụ: Nguyễn An" />
-        </label>
-        <label>Ngày sinh
-          <input id="reg-dob" type="date" />
-        </label>
-      </div>
-
-      <label>Email
-        <input id="reg-email" type="email" placeholder="you@example.com" autocomplete="email" />
-      </label>
-
-      <div class="grid">
-        <label>Mật khẩu
-          <input id="reg-pass" type="password" placeholder="Ít nhất 6 ký tự" />
-        </label>
-        <label>Nhập lại mật khẩu
-          <input id="reg-pass2" type="password" placeholder="Gõ lại để xác nhận" />
-        </label>
-      </div>
-
-      <div class="actions">
-        <button class="btn" id="reg-send-otp">Gửi OTP xác nhận</button>
-        <button class="btn alt" id="reg-cancel">Huỷ</button>
-      </div>
-
-      <div id="reg-otp-wrap" class="otp-wrap" hidden>
-        <input id="reg-otp" type="text" inputmode="numeric" maxlength="6" placeholder="Nhập mã 6 số từ email" />
-        <button class="btn" id="reg-verify">Xác nhận</button>
-      </div>
-
-      <div class="note">* Hoàn tất xác nhận OTP → quay lại màn hình đăng nhập để vào bằng email + mật khẩu.</div>
-    </div>
-  </div>
-
-  <!-- ======= EMAIL LOGIN MODAL (email + mật khẩu) ======= -->
-  <div id="login-modal" class="modal">
-    <div class="auth-box">
-      <h2>Đăng nhập bằng email</h2>
-      <label>Email
-        <input id="login-email" type="email" autocomplete="email" />
-      </label>
-      <label>Mật khẩu
-        <input id="login-pass" type="password" autocomplete="current-password" />
-      </label>
-      <div class="actions">
-        <button class="btn" id="login-submit">Đăng nhập</button>
-        <button class="btn alt" id="login-cancel">Huỷ</button>
-      </div>
-      <div class="note">Quên mật khẩu? (sẽ thêm “quên mật khẩu” sau)</div>
-    </div>
-  </div>
-
-  <!-- JS điều khiển trang + auth (NO-EFFECT) -->
-  <script src="/public/js/app.js?v=10"></script>
-  <script src="/public/js/auth-ui.js?v=1"></script>
+  <!-- ========== SCRIPTS ========== -->
+  <script defer src="/public/js/app.js?v=5"></script>
+  <!-- Chưa bật hiệu ứng để tránh rối; sau khi ổn thì thêm lại:
+  <script defer src="/public/js/effects.js?v=5"></script>
+  -->
 </body>
 </html>

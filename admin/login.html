@@ -1,47 +1,49 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NiNi — Admin Login</title>
-  <link rel="stylesheet" href="/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Login — NiNi</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=11" />
   <style>
-    body{display:grid; place-items:center}
-    .card{
-      width:min(420px, 92vw); margin-top:12vh;
-      background:var(--panel); border:1px solid rgba(255,255,255,.12);
-      padding:22px; border-radius:16px; box-shadow:var(--shadow)
-    }
-    .card h2{margin:0 0 8px}
-    .row{display:flex; gap:8px; margin-top:12px}
-    input{flex:1; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:#0e1624; color:#fff}
-    button{padding:12px 16px; border-radius:12px; border:0; background:#1e293b; color:#fff; cursor:pointer}
-    .muted{color:var(--muted); font-size:13px; margin-top:6px}
+    .card{ width:min(480px, 92vw); margin:10vh auto 0; background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px 16px 18px; box-shadow:0 24px 64px rgba(31,56,73,.16)}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>NiNi — Admin</h2>
-    <p class="muted">Nhập <b>mật khẩu quản trị</b> để vào bảng điều khiển.</p>
-    <form id="f">
-      <div class="row">
-        <input id="pw" type="password" placeholder="Mật khẩu admin" required>
-        <button>Đăng nhập</button>
-      </div>
-      <div id="msg" class="muted" style="margin-top:10px"></div>
-    </form>
-  </div>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </div>
+    <nav class="tabs"><a class="tab" href="/" style="text-decoration:none">← Về trang chủ</a></nav>
+    <span></span>
+  </header>
 
-<script>
-document.getElementById('f').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const val = document.getElementById('pw').value.trim();
-  if(!val){ return; }
-  // đặt cookie -> /admin/* sẽ được guard so khớp ADMIN_SECRET
-  document.cookie = "nini_admin="+encodeURIComponent(val)+"; Path=/; SameSite=Lax; Max-Age=86400";
-  // thử đi vào /admin/
-  location.href = "/admin/";
-});
-</script>
+  <main class="viewport" style="place-items:center">
+    <section class="card">
+      <h2 class="panel-title" style="margin:0 0 8px">Đăng nhập Admin</h2>
+      <p class="panel-text" style="margin-bottom:12px">Nhập <strong>ADMIN_SECRET</strong> để vào khu vực quản trị.</p>
+      <div class="fld"><span>ADMIN_SECRET</span><input id="secret" type="password" placeholder="••••••••" /></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" id="go">Đăng nhập</button>
+        <a class="btn btn-ghost" href="/">Về trang chủ</a>
+      </div>
+      <div class="note" id="msg" hidden></div>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('go').onclick = async ()=>{
+      const val = document.getElementById('secret').value.trim();
+      if(!val){ alert('Vui lòng nhập ADMIN_SECRET'); return; }
+      const r = await fetch('/.netlify/functions/admin-login', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ secret: val })
+      }).then(r=>r.json()).catch(()=>({ok:false, error:'Fetch error'}));
+      const msg = document.getElementById('msg');
+      if(r.ok){ location.href = '/admin/'; }
+      else { msg.hidden=false; msg.textContent = 'Sai secret hoặc lỗi máy chủ.'; }
+    };
+  </script>
 </body>
 </html>

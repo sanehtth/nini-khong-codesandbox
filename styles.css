@@ -1,81 +1,174 @@
-/* ===== FORM CONTROLS — override cho modal ===== */
+/* =============== NiNi — Funny : Unified White Theme =============== */
+/* Màu chủ đạo */
+:root{
+  --brand: #1EA672;       /* xanh lá khi hover/chọn */
+  --text: #ffffff;        /* chữ trắng */
+  --muted: rgba(255,255,255,.75);
+  --line: rgba(255,255,255,.9);
+  --glass: rgba(255,255,255,.06);
+  --glass-border: rgba(255,255,255,.2);
+}
 
-/* Hàng ngang có nút OTP bên cạnh */
-.modal-panel .row { display:flex; align-items:center; }
-.modal-panel .row.gap { gap:10px; }
-.modal-panel .row.gap input { flex:1; min-width:0; }
-
-/* Input: nền trắng, bo tròn, viền rõ */
-.modal-panel input[type="email"],
-.modal-panel input[type="text"],
-.modal-panel input[type="password"],
-.modal-panel input[type="number"]{
-  width:100%;
-  background:#fff;
+/* Reset cơ bản */
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
   color:var(--text);
-  border:1px solid var(--stroke);
-  border-radius:12px;
-  padding:10px 12px;
-  outline:0;
-  box-shadow:none;
-  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  font:500 16px/1.55 system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Noto Sans",sans-serif;
+  background:#0A1117 url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
 }
+a{ color:var(--text); text-decoration:none; transition:color .15s ease, opacity .15s ease; }
+a:hover{ color:var(--brand); }
+::selection{ background: rgba(255,255,255,.25); color:#001; }
 
-/* Placeholder xám vừa phải */
-.modal-panel input::placeholder{
-  color:#98a2b3; /* xám nhạt */
-  opacity:1;
+/* =============== Header / Brand =============== */
+.site-header{
+  display:flex; align-items:center; gap:16px; padding:14px 18px;
 }
-
-/* Focus đẹp, rõ ràng */
-.modal-panel input:focus{
-  border-color:var(--brand);
-  box-shadow:0 0 0 3px rgba(30,166,114,.18);
-  background:#fff;
+.brand{
+  display:flex; align-items:center; gap:10px;
 }
+.brand_logo{
+  height:48px; width:auto; object-fit:contain;
+}
+.brand_title{ margin:0; font-weight:700; }
+.brand_slogan{ margin:0; color:var(--muted); font-weight:500; }
 
-/* Nút: có transition & trạng thái hover */
-.modal-panel .btn{
-  border-radius:12px;
+/* Tabs trên cùng: Home / Spring / Summer / Autumn / Winter */
+.tabs{
+  display:flex; align-items:center; gap:6px;
+  margin-left:auto;
+}
+.tab{
+  display:inline-flex; align-items:center; padding:10px 12px;
+  color:var(--text);
+  background:transparent; border:none; cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:color .15s ease, border-color .15s ease, opacity .15s ease;
+}
+.tab:hover{ color:var(--brand); }
+.tab.is-active{ border-color:var(--brand); }
+
+/* Nút đăng nhập góc phải */
+.auth-btn{
+  margin-left:12px;
+  display:inline-flex; align-items:center; gap:8px;
   padding:10px 14px;
-  border:1px solid var(--stroke);
-  background:#fff;
-  color:var(--text);
-  cursor:pointer;
-  transition:filter .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
+  color:var(--text); background:transparent; border:2px solid var(--line);
+  border-radius:999px; cursor:pointer;
+  transition:color .15s ease, border-color .15s ease, background .15s ease;
+}
+.auth-btn:hover{ color:var(--brand); border-color:var(--brand); }
+
+/* =============== Khung 16:9 giữa trang =============== */
+.viewport{
+  max-width:1280px; margin:22px auto; padding:0 16px;
+}
+.frame{
+  width:100%; aspect-ratio:16/9;
+  border-radius:18px; overflow:hidden; position:relative;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  background: rgba(10,17,23,.35);
+}
+.frame_img{ width:100%; height:100%; object-fit:cover; display:block; }
+.mascot{
+  position:absolute; left:50%; bottom:20px; transform:translateX(-50%);
+  height:140px; width:auto; pointer-events:none;
 }
 
-.modal-panel .btn.primary{
-  background:var(--brand);
-  color:#fff;
-  border-color:transparent;
+/* 4 nút dưới ảnh (Giới thiệu / Luật chơi / Diễn đàn / Góp ý) */
+.bottom-actions{
+  position:absolute; left:50%; bottom:16px; transform:translateX(-50%);
+  display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
 }
-.modal-panel .btn.primary:hover{ filter:brightness(.95); }
+.pill{
+  border:none; background:transparent; color:var(--text);
+  padding:10px 14px; border-bottom:2px solid transparent; cursor:pointer;
+  transition:color .15s ease, border-color .15s ease;
+}
+.pill:hover{ color:var(--brand); }
+.pill.is-active{ border-color:var(--brand); }
 
-.modal-panel .btn.outline{
-  background:transparent;
-  color:var(--text);
-  border-color:var(--stroke);
+/* Khối nội dung mô tả phía dưới */
+.panel{
+  margin:24px auto 48px; max-width:1280px; padding:0 16px;
 }
-.modal-panel .btn.outline:hover{
-  background:#fff;
-}
-
-.modal-panel .btn.line{
-  background:#fff;
-  border-color:#e3e8ef;
-}
-.modal-panel .btn:disabled{
-  opacity:.55;
-  cursor:not-allowed;
+.card{
+  background: var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  padding:18px 20px;
 }
 
-/* Chỉnh panel & nền mờ dễ đọc hơn chút xíu */
-.modal-backdrop{
-  backdrop-filter: blur(8px);
-  background: rgba(255,255,255,.1);
+/* =============== Modal đăng nhập/đăng ký/quen pass =============== */
+.backdrop{
+  position:fixed; inset:0; z-index:1000;
+  background: rgba(8,16,24,.18);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.modal-panel{
-  background: linear-gradient( to bottom, rgba(255,255,255,.92), rgba(255,255,255,.90) );
-  border:1px solid var(--stroke);
+.modal{
+  position:fixed; inset:0; z-index:1001;
+  display:grid; place-items:center; padding:24px;
 }
+.modal-card{
+  width:min(580px, calc(100% - 32px));
+  background: var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:18px;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  padding:18px 18px 20px;
+}
+.modal-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:10px;
+}
+.modal-close{
+  margin-left:auto; border:none; background:transparent; color:var(--text);
+  font-size:20px; line-height:1; cursor:pointer;
+}
+
+/* Tabs trong modal */
+.modal-tabs{ display:flex; gap:12px; margin:10px 0 12px; }
+.modal-tab{
+  border:none; background:transparent; color:var(--text);
+  padding:10px 4px; border-bottom:2px solid transparent; cursor:pointer;
+}
+.modal-tab:hover{ color:var(--brand); }
+.modal-tab.is-active{ border-color:var(--brand); }
+
+/* Input underline */
+.input{
+  width:100%; color:var(--text);
+  background:transparent; border:none; outline:0;
+  border-bottom:2px solid var(--line);
+  padding:12px 4px 10px; margin:6px 0 14px;
+  font:inherit; transition:border-color .15s ease;
+}
+.input::placeholder{ color:var(--muted); }
+.input:focus{ border-bottom-color:var(--brand); }
+/* fix autofill */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus{
+  -webkit-text-fill-color: var(--text);
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Hàng email | gửi OTP */
+.row{ display:flex; gap:10px; align-items:center; }
+.row > .grow{ flex:1; min-width:0; }
+
+/* Link-nút trong form */
+.btn-link{
+  border:none; background:transparent; color:var(--text);
+  padding:10px 0; border-bottom:2px solid transparent; cursor:pointer;
+}
+.btn-link:hover{ color:var(--brand); }
+.btn-link.is-active{ border-color:var(--brand); }
+
+/* Ẩn hiện theo tab */
+.hidden{ display:none !important; }
+.center{ text-align:center; }
+.small{ color:var(--muted); font-size:.92rem; }

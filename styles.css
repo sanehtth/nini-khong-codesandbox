@@ -1,41 +1,129 @@
-/* Modal “kính mờ” sáng */
+:root{
+  --fg:#fff;
+  --muted:rgba(255,255,255,.7);
+  --accent:#ffd36b;        /* vàng */
+  --accent2:#39d07f;       /* xanh lá */
+  --accent3:#9b6b39;       /* nâu */
+}
+
+/* nền ngoài đổi theo mùa */
+body{
+  margin:0; color:var(--fg); background: #0b121a;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:-2;
+  background-size:cover; background-position:center;
+  filter:brightness(.6) blur(0px); transition:background-image .35s ease;
+}
+body[data-season="home"]::before   { background-image:url(/public/assets/bg/nini_home.webp); }
+body[data-season="spring"]::before { background-image:url(/public/assets/images/seasons/spring.webp); }
+body[data-season="summer"]::before { background-image:url(/public/assets/images/seasons/summer.webp); }
+body[data-season="autumn"]::before { background-image:url(/public/assets/images/seasons/autumn.webp); }
+body[data-season="winter"]::before { background-image:url(/public/assets/images/seasons/winter.webp); }
+
+/* Header */
+.site-header{
+  display:flex; align-items:center; gap:16px; padding:10px 14px;
+}
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand__logo{ height:34px; object-fit:contain; }
+.brand__slogan{
+  font-size:14px; font-weight:600;
+  background: linear-gradient(90deg,var(--accent) 0%, var(--accent2) 55%, var(--accent3) 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* Tabs trên */
+.tabs{ display:flex; gap:10px; margin-left:auto; }
+.tab{
+  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4);
+  padding:8px 14px; border-radius:999px; cursor:pointer;
+}
+.tab.is-active{ border-color:#fff; text-decoration:underline; text-underline-offset:6px; }
+.auth-btn{
+  margin-left:10px; border:1px solid rgba(255,255,255,.5);
+  background:transparent; color:#fff; padding:8px 14px; border-radius:999px; cursor:pointer;
+}
+
+/* Khung ảnh (hero) */
+.viewport{ display:grid; place-items:center; }
+.frame{
+  width:min(92vw,1100px); aspect-ratio:16/9; position:relative;
+  background:rgba(0,0,0,.2); border-radius:16px; overflow:hidden;
+  box-shadow:0 8px 36px rgba(0,0,0,.45); margin:12px auto 18px;
+}
+.frame__img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+.nini{
+  position:absolute; bottom:16%; left:50%; transform:translateX(-50%);
+  height:24%; object-fit:contain; pointer-events:none;
+}
+
+/* menu 4 nút dưới khung */
+.frame__menu{
+  position:absolute; left:50%; bottom:10px; transform:translateX(-50%);
+  display:flex; gap:10px;
+}
+.pill{
+  background:transparent; border:1px solid rgba(255,255,255,.55);
+  color:#fff; border-radius:999px; padding:8px 14px; cursor:pointer;
+}
+.pill.is-active{ border-color:#fff; text-decoration:underline; text-underline-offset:6px; }
+
+/* card nội dung */
+.card{
+  width:min(92vw,1100px); margin:18px auto; padding:18px;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:14px; background:rgba(255,255,255,.04);
+}
+
+/* ===== Modal auth ===== */
+.hidden{ display:none !important; }
+
+.modal-backdrop{
+  position:fixed; inset:0; backdrop-filter:blur(6px);
+  background:rgba(15,20,25,.55); z-index:98;
+}
+
 .modal{
-  background: rgba(255,255,255,.08);      /* không đen */
-  border: 1px solid rgba(255,255,255,.22);
+  position:fixed; inset:0; display:grid; place-items:center; z-index:99;
 }
+.modal > .modal-head, .modal > .modal-body{
+  width:min(92vw,560px);
+  background:rgba(255,255,255,.08);     /* kính mờ sáng */
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;
+}
+.modal-head{
+  display:flex; align-items:center; gap:10px; padding:10px 14px 6px;
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+.modal-logo{ height:22px; }
+.icon-btn{ margin-left:auto; background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer; }
 
-/* Tabs trong modal */
-.switch{
-  display:flex; gap:14px; justify-content:center;
-  padding:10px 14px 0;
-}
+.switch{ display:flex; gap:14px; justify-content:center; padding:10px 14px 0; }
 .tab-btn{
-  background:transparent; border:none; color:var(--fg);
-  padding:8px 10px; cursor:pointer; border-bottom:2px solid transparent;
+  background:transparent; border:none; color:#fff; padding:8px 10px; cursor:pointer;
+  border-bottom:2px solid transparent;
 }
-.tab-btn.active{ border-color: var(--accent); }
+.tab-btn.active{ border-color:var(--accent); }
 
-/* View ẩn/hiện */
-.view.hidden{ display:none; }
-
-/* Chữ “hoặc” căn giữa */
-.or{ text-align:center; color:var(--muted); margin:6px 0 10px; }
-
-/* Nút theo 1 style – viền trắng, không fill */
-.google-btn,.primary,.ghost{
-  background:transparent;
-  color:var(--fg);
-  border:1px solid rgba(255,255,255,.6);
-  border-radius:10px;
-  padding:10px 12px;
-}
-.google-btn:hover,.primary:hover,.ghost:hover{
-  border-color:#fff; transform:translateY(-1px);
-}
-
-/* Input chỉ có 1 gạch dưới */
-input{
-  width:100%; background:transparent; color:var(--fg);
+.modal-body{ padding:14px; }
+.modal-body label{ display:block; font-size:13px; color:var(--muted); margin:8px 0 2px; }
+.modal-body input{
+  width:100%; background:transparent; color:#fff;
   border:none; border-bottom:1px solid rgba(255,255,255,.7);
   padding:8px 0;
 }
+.or{ text-align:center; color:var(--muted); margin:6px 0 10px; }
+
+.google-btn,.primary,.ghost{
+  background:transparent; color:#fff;
+  border:1px solid rgba(255,255,255,.6); border-radius:10px;
+  padding:10px 12px; cursor:pointer;
+}
+.google-btn:hover,.primary:hover,.ghost:hover{ border-color:#fff; transform:translateY(-1px); }
+.row{ display:flex; gap:10px; margin-top:10px; }
+.hint{ color:var(--muted); font-size:12px; margin-top:10px; }

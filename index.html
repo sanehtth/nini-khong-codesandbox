@@ -5,168 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon + logo -->
+  <!-- favicon (logo trên tiêu đề) -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="/styles.css?v=7" />
+  <!-- CSS chính -->
+  <link rel="stylesheet" href="/styles.css?v=6" />
 </head>
 <body>
-  <!-- ========= HEADER ========= -->
+  <!-- ===== HEADER ===== -->
   <header class="site-header">
-    <a class="brand" href="/">
-      <img class="brand_logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <span class="brand_slogan">Chơi mê ly, bứt phá tư duy</span>
-    </a>
+    <div class="brand">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
+    </div>
 
-    <nav class="tabs" aria-label="Seasons">
-      <button class="tab is-active" data-season="home">Home</button>
-      <button class="tab" data-season="spring">Spring</button>
-      <button class="tab" data-season="summer">Summer</button>
-      <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab" data-season="winter">Winter</button>
+    <!-- Tabs mùa -->
+    <nav class="season-tabs">
+      <button class="tab-btn" data-season="home">Home</button>
+      <button class="tab-btn" data-season="spring">Spring</button>
+      <button class="tab-btn" data-season="summer">Summer</button>
+      <button class="tab-btn" data-season="autumn">Autumn</button>
+      <button class="tab-btn" data-season="winter">Winter</button>
     </nav>
 
-    <button id="authOpen" class="auth-btn" type="button">Đăng nhập / Đăng ký</button>
+    <button id="authOpenBtn" class="btn-ghost">Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- ========= VIEWPORT / FRAME (16:9) ========= -->
+  <!-- ===== VIEWPORT 16:9 ===== -->
   <main class="viewport">
-    <section class="frame" id="frame">
-      <img id="bgImg" class="bg" src="/public/assets/images/seasons/home.webp" alt="Background" />
-      <img id="nini" class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+    <section class="frame">
+      <!-- ảnh nền theo mùa -->
+      <img id="seasonBg" class="bg" src="/public/assets/images/seasons/nini_home.webp" alt="NiNi — Funny background" />
 
-      <!-- 4 chip điều hướng nội dung trong “Home” -->
-      <div class="chips">
-        <button class="chip is-active" data-chip="about">Giới thiệu</button>
-        <button class="chip" data-chip="rules">Luật chơi</button>
-        <button class="chip" data-chip="forum">Diễn đàn</button>
-        <button class="chip" data-chip="feedback">Góp ý</button>
+      <!-- NiNi mascot -->
+      <img id="niniMascot" class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+
+      <!-- 4 nút nội dung -->
+      <div class="cta">
+        <button class="pill active" data-pane="about">Giới thiệu</button>
+        <button class="pill" data-pane="rules">Luật chơi</button>
+        <button class="pill" data-pane="forum">Diễn đàn</button>
+        <button class="pill" data-pane="feedback">Góp ý</button>
       </div>
+    </section>
 
-      <!-- Khối nội dung home -->
-      <article id="homeContent" class="home-content">
-        <h2>NiNi — Funny</h2>
-        <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-      </article>
+    <!-- vùng nội dung (hiển thị text theo 4 nút) -->
+    <section id="contentPane" class="card">
+      <h2 class="card__title">NiNi — Funny</h2>
+      <p class="card__text">
+        Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
+      </p>
     </section>
   </main>
 
-  <!-- ========= AUTH MODAL (kính trong mờ, căn giữa) ========= -->
-  <div id="authModal" class="auth is-hidden" aria-hidden="true" role="dialog" aria-labelledby="authTitle">
-    <div class="auth_card">
-      <button class="auth_close" id="authClose" aria-label="Đóng">✕</button>
-
-      <header class="auth_head">
-        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" class="auth_logo" />
-        <h3 id="authTitle">Đăng nhập / Đăng ký</h3>
-      </header>
-
-      <div class="auth_tabs">
-        <button class="auth_tab is-active" data-auth-tab="signin">Đăng nhập</button>
-        <button class="auth_tab" data-auth-tab="signup">Đăng ký</button>
+  <!-- ===== MODAL AUTH: Đăng nhập / Đăng ký / Quên mật khẩu ===== -->
+  <div id="authModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-panel">
+      <button class="modal-close" id="authCloseBtn" aria-label="Đóng">×</button>
+      <div class="modal-head">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" class="brand-mini" />
+        <h3>Đăng nhập / Đăng ký</h3>
       </div>
 
-      <!-- ====== SIGN-IN ====== -->
-      <section class="auth_panel" data-panel="signin">
-        <button id="googleSignIn" class="btn google">Đăng nhập với Google</button>
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Đăng nhập</button>
+        <button class="tab" data-tab="signup">Đăng ký</button>
+        <button class="tab" data-tab="reset">Quên mật khẩu</button>
+      </div>
 
-        <div class="divider"><span>hoặc</span></div>
-
-        <p class="section-caption">Đăng nhập bằng email</p>
-
-        <form id="signinForm" class="form vstack-8" autocomplete="on">
-          <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" placeholder="you@example.com" required />
-          </label>
-
-          <label class="field">
-            <span>Mật khẩu</span>
-            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
-          </label>
-
-          <div class="hstack-8 space-between">
-            <button type="submit" class="btn primary">Đăng nhập</button>
-            <button type="button" id="forgotToggle" class="link">Quên mật khẩu?</button>
-          </div>
-        </form>
-
-        <!-- Forgot password (OTP) -->
-        <form id="forgotForm" class="form vstack-8 is-hidden">
-          <label class="field">
-            <span>Email</span>
-            <input type="email" name="email" placeholder="you@example.com" required />
-          </label>
-
-          <div class="hstack-8">
-            <button type="button" id="forgotSendOtp" class="btn ghost">Gửi mã OTP</button>
-            <span class="hint" id="forgotOtpHint"></span>
-          </div>
-
-          <label class="field">
-            <span>Mã OTP</span>
-            <input type="text" name="otp" placeholder="Nhập mã 6 số" inputmode="numeric" minlength="6" maxlength="6" />
-          </label>
-
-          <label class="field">
-            <span>Mật khẩu mới</span>
-            <input type="password" name="newpass" placeholder="Mật khẩu mới" minlength="6" />
-          </label>
-
-          <div class="hstack-8 space-between">
-            <button type="button" id="resetPass" class="btn primary">Đặt lại mật khẩu</button>
-            <button type="button" id="backToSignin" class="link">Quay lại đăng nhập</button>
-          </div>
+      <!-- Tab: Đăng nhập -->
+      <section class="tab-panel show" id="tab-login">
+        <div class="row">
+          <button id="btnGoogle" class="btn line">Đăng nhập với Google</button>
+        </div>
+        <div class="divider">hoặc</div>
+        <form id="formLogin" class="stack">
+          <label>Email</label>
+          <input type="email" name="email" placeholder="you@example.com" required />
+          <label>Mật khẩu</label>
+          <input type="password" name="password" placeholder="••••••••" required />
+          <button class="btn primary" type="submit">Đăng nhập</button>
         </form>
       </section>
 
-      <!-- ====== SIGN-UP ====== -->
-      <section class="auth_panel is-hidden" data-panel="signup">
-        <form id="signupForm" class="form vstack-8" autocomplete="on">
-          <label class="field">
-            <span>Email</span>
+      <!-- Tab: Đăng ký -->
+      <section class="tab-panel" id="tab-signup">
+        <form id="formSignup" class="stack">
+          <label>Email</label>
+          <div class="row gap">
             <input type="email" name="email" placeholder="you@example.com" required />
-          </label>
-
-          <label class="field">
-            <span>Họ & tên (tuỳ chọn)</span>
-            <input type="text" name="fullname" placeholder="Bé Nhím NiNi" />
-          </label>
-
-          <label class="field">
-            <span>Mật khẩu</span>
-            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
-          </label>
-
-          <label class="field">
-            <span>Nhập lại mật khẩu</span>
-            <input type="password" name="repass" placeholder="••••••••" minlength="6" required />
-          </label>
-
-          <div class="hstack-8">
-            <button type="button" id="signupSendOtp" class="btn ghost">Gửi mã OTP</button>
-            <span class="hint" id="signupOtpHint"></span>
+            <button type="button" id="btnSendOtpSignup" class="btn outline">Gửi mã OTP</button>
           </div>
-
-          <label class="field">
-            <span>Mã OTP</span>
-            <input type="text" name="otp" placeholder="Nhập mã 6 số" inputmode="numeric" minlength="6" maxlength="6" />
-          </label>
-
-          <button type="submit" class="btn primary">Tạo tài khoản</button>
-
-          <p class="tiny-note">
-            Sau khi tạo tài khoản thành công, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.
-          </p>
+          <label>Mã OTP</label>
+          <input type="text" name="otp" maxlength="6" placeholder="Nhập mã 6 số" required />
+          <button class="btn primary" type="submit">Tạo tài khoản</button>
+          <p class="hint">Sau khi tạo tài khoản, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
         </form>
       </section>
 
-      <p id="authToast" class="toast is-hidden" role="status"></p>
+      <!-- Tab: Quên mật khẩu -->
+      <section class="tab-panel" id="tab-reset">
+        <form id="formReset" class="stack">
+          <label>Email</label>
+          <div class="row gap">
+            <input type="email" name="email" placeholder="you@example.com" required />
+            <button type="button" id="btnSendOtpReset" class="btn outline">Gửi mã OTP</button>
+          </div>
+          <label>Mã OTP</label>
+          <input type="text" name="otp" maxlength="6" placeholder="Nhập mã 6 số" required />
+          <label>Mật khẩu mới</label>
+          <input type="password" name="newPassword" placeholder="Mật khẩu mới" required />
+          <button class="btn primary" type="submit">Đặt lại mật khẩu</button>
+        </form>
+      </section>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="/public/js/app.js?v=7" defer></script>
+  <!-- JS -->
+  <script src="/public/js/app.js?v=6"></script>
+  <script src="/public/js/ui.js?v=6"></script>
+  <!-- (Hiệu ứng rơi mùa nếu muốn thì giữ file /public/js/effects.js của bạn và gọi trong app.js) -->
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* ========= Cấu hình ảnh mùa ========= */
+/* ====== Ảnh từng mùa ====== */
 const SEASON_SRC = {
   home:   'public/assets/bg/nini_home.webp',
   spring: 'public/assets/images/seasons/spring.webp',
@@ -10,12 +10,12 @@ const SEASON_SRC = {
 const root = document.documentElement;
 const body = document.body;
 
-/* ========= Cross-fade đổi mùa ========= */
+/* ====== Cross-fade đổi mùa ====== */
 let swappingTimer = null;
 function setSeason(season){
-  const next = `url("${SEASON_SRC[season]}")`;
+  if (!(season in SEASON_SRC)) season = 'home';
 
-  // set ảnh kế tiếp cho lớp ::after (cả body và frame dùng chung biến này)
+  const next = `url("${SEASON_SRC[season]}")`;
   root.style.setProperty('--season-url-next', next);
 
   // active tab
@@ -23,30 +23,43 @@ function setSeason(season){
     t.classList.toggle('is-active', t.dataset.season === season);
   });
 
-  // class body phục vụ map fallback & style
   body.classList.remove('season-home','season-spring','season-summer','season-autumn','season-winter');
   body.classList.add(`season-${season}`);
 
-  // bật cross-fade
   body.classList.add('is-swapping');
   clearTimeout(swappingTimer);
   swappingTimer = setTimeout(()=>{
-    // sau khi fade xong, gán ảnh mới thành ảnh hiện tại
     root.style.setProperty('--season-url', next);
     body.classList.remove('is-swapping');
   }, 460);
 }
 
-/* ========= Tabs mùa ========= */
-document.querySelectorAll('.tab').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const season = btn.dataset.season;
-    if(!SEASON_SRC[season]) return;
-    setSeason(season);
+/* ====== Điều hướng qua hash (an toàn nếu JS tải chậm) ====== */
+const VALID = ['home','spring','summer','autumn','winter'];
+
+function getSeasonFromHash(){
+  const h = (location.hash || '#home').replace('#','').toLowerCase();
+  return VALID.includes(h) ? h : 'home';
+}
+function applySeasonFromHash(){
+  setSeason(getSeasonFromHash());
+}
+
+window.addEventListener('hashchange', applySeasonFromHash);
+window.addEventListener('DOMContentLoaded', () => {
+  // Cho chắc: click tab đổi hash (để đồng bộ khi mở nhiều tab)
+  document.querySelectorAll('.tab').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      // Anchor đã đổi hash rồi, không cần preventDefault
+      // Nhưng nếu server thêm base, vẫn đảm bảo không rời trang:
+      if (a.getAttribute('href')?.startsWith('#') === false) e.preventDefault();
+    });
   });
+
+  applySeasonFromHash();
 });
 
-/* ========= Footer pills (panel text) ========= */
+/* ====== 4 nút nội dung ====== */
 const pillMap = {
   about:   { title: 'NiNi — Funny', text: 'Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.' },
   rules:   { title: 'Luật chơi',     text: 'Mỗi trò có hướng dẫn riêng; bé hoàn thành nhiệm vụ để nhận điểm sao và huy hiệu.' },
@@ -69,7 +82,5 @@ document.querySelectorAll('.footer-actions .pill').forEach(p=>{
   });
 });
 
-/* ========= Khởi tạo ========= */
-window.addEventListener('DOMContentLoaded', ()=>{
-  setSeason('home');  // Home = nini_home.webp
-});
+// debug flag (để bạn mở console kiểm tra nhanh)
+window.__nini_ok = 'app.js loaded';

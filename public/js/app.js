@@ -1,6 +1,7 @@
+/* NiNi — App JS (đường dẫn tuyệt đối, file JS thuần) */
 (() => {
-  // ===== Mapping ảnh theo mùa =====
-  const SEASON_BG = {
+  // ====== CONSTANTS ======
+  const IMAGES = {
     home:  "/public/assets/bg/nini_home.webp",
     spring:"/public/assets/images/seasons/spring.webp",
     summer:"/public/assets/images/seasons/summer.webp",
@@ -8,70 +9,88 @@
     winter:"/public/assets/images/seasons/winter.webp",
   };
 
-  const body = document.body;
-  const hero = document.getElementById('seasonHero');
+  const tabs = document.querySelectorAll("#seasonTabs .tab");
+  const frame = document.getElementById("frame");
+  const content = document.getElementById("content");
 
-  function setSeason(name){
-    if(!SEASON_BG[name]) name = 'home';
-    body.setAttribute('data-season', name);
-    hero.src = SEASON_BG[name];
+  // ====== SET SEASON ======
+  function setSeason(season) {
+    const img = IMAGES[season] || IMAGES.home;
+
+    // nền ngoài khung
+    document.documentElement.style.setProperty("--bg-url", `url("${img}")`);
+    // nền trong khung
+    frame.style.backgroundImage = `url("${img}")`;
+
     // active tab
-    document.querySelectorAll('.tabs .tab').forEach(b=>{
-      b.classList.toggle('is-active', b.dataset.season===name);
-    });
-    // update hash (để F5 vẫn nhớ)
-    location.hash = name==='home' ? '' : `#/${name}`;
+    tabs.forEach(b => b.classList.toggle("is-active", b.dataset.season === season));
+
+    // hash router (cho phép /#/winter hay /#winter đều ok)
+    const newHash = `#/${season}`;
+    if (location.hash !== newHash) {
+      history.replaceState({}, "", newHash);
+    }
   }
 
-  // tabs top
-  document.getElementById('topTabs').addEventListener('click', (e)=>{
-    const btn = e.target.closest('.tab');
-    if(!btn) return;
-    setSeason(btn.dataset.season);
-  });
-
-  // menu pills
-  document.querySelector('.frame__menu').addEventListener('click', (e)=>{
-    const btn = e.target.closest('.pill');
-    if(!btn) return;
-    document.querySelectorAll('.frame__menu .pill').forEach(p=>p.classList.remove('is-active'));
-    btn.classList.add('is-active');
-    const el = document.querySelector(btn.dataset.target);
-    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
-  });
-
-  // khởi tạo theo hash
-  (function initFromHash(){
-    const m = location.hash.match(/^#\/(home|spring|summer|autumn|winter)$/i);
-    setSeason(m ? m[1].toLowerCase() : 'home');
-  })();
-
-  // ===== Modal =====
-  const modal = document.getElementById('authModal');
-  const backdrop = document.getElementById('authBackdrop');
-  const openBtn  = document.getElementById('authBtn');
-  const closeBtn = document.getElementById('authClose');
-
-  function openAuth(){ backdrop.classList.remove('hidden'); modal.classList.remove('hidden'); }
-  function closeAuth(){ backdrop.classList.add('hidden'); modal.classList.add('hidden'); }
-
-  openBtn.addEventListener('click', openAuth);
-  closeBtn.addEventListener('click', closeAuth);
-  backdrop.addEventListener('click', closeAuth);
-
-  // chuyển view trong modal
-  function showView(name){
-    modal.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
-    const view = modal.querySelector(`.view-${name}`);
-    if(view) view.classList.remove('hidden');
-
-    modal.querySelectorAll('.tab-btn').forEach(b=>{
-      b.classList.toggle('active', b.dataset.view===name);
-    });
+  // ====== INIT SEASON (từ hash) ======
+  function bootSeasonFromHash() {
+    const raw = (location.hash || "").replace(/^#\/?/, "");
+    const s = (raw || "home").toLowerCase();
+    setSeason(IMAGES[s] ? s : "home");
   }
-  showView('login');
 
-  modal.querySelectorAll('.tab-btn').forEach(b=>{
-    b.addEventListener('click', ()=>showView(b.dataset.view));
+  // ====== NAV EVENTS ======
+  tabs.forEach(btn => {
+    btn.addEventListener("click", () => setSeason(btn.dataset.season));
   });
+
+  // ====== CHIPS (sections) ======
+  const chips = document.querySelectorAll(".chip");
+  const SECTIONS = {
+    intro: `<h2>NiNi — Funny</h2><p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>`,
+    rules: `<h2>Luật chơi</h2><p>Mỗi mini game có hướng dẫn ngắn ngay trước khi bắt đầu. Chơi vui, công bằng và tôn trọng bạn chơi.</p>`,
+    forum: `<h2>Diễn đàn</h2><p>Góc để bé khoe thành tích, trao đổi mẹo chơi và đặt câu hỏi.</p>`,
+    feedback:`<h2>Góp ý</h2><p>Bạn có ý tưởng trò chơi mới hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!</p>`
+  };
+  chips.forEach(ch => {
+    ch.addEventListener("click", () => {
+      chips.forEach(c => c.classList.toggle("is-active", c === ch));
+      content.innerHTML = SECTIONS[ch.dataset.section] || SECTIONS.intro;
+    });
+  });
+
+  // ====== AUTH MODAL ======
+  const authBtn   = document.getElementById("authBtn");
+  const authModal = document.getElementById("authModal");
+  const closeEls  = authModal.querySelectorAll("[data-close]");
+  const tabLines  = authModal.querySelectorAll("#authTabs .tab-line");
+  const panes     = authModal.querySelectorAll(".form");
+
+  function openAuth(which = "login") {
+    authModal.setAttribute("aria-hidden", "false");
+    switchAuth(which);
+  }
+  function closeAuth() {
+    authModal.setAttribute("aria-hidden", "true");
+  }
+  function switchAuth(which) {
+    tabLines.forEach(t => t.classList.toggle("is-active", t.dataset.auth === which));
+    panes.forEach(p => p.classList.toggle("is-active", p.dataset.pane === which));
+  }
+
+  authBtn.addEventListener("click", () => openAuth("login"));
+  closeEls.forEach(el => el.addEventListener("click", closeAuth));
+  authModal.addEventListener("click", e => {
+    if (e.target === authModal || e.target.classList.contains("modal__backdrop")) closeAuth();
+  });
+  tabLines.forEach(t => t.addEventListener("click", () => switchAuth(t.dataset.auth)));
+
+  // ====== START ======
+  bootSeasonFromHash();
+
+  // nếu người dùng chuyển hash thủ công
+  window.addEventListener("hashchange", bootSeasonFromHash);
+
+  // preload ảnh để chuyển mượt
+  Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 })();

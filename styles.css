@@ -1,163 +1,87 @@
 :root{
-  --text:#fff;
-  --muted:#c9d4e8;
-  --accent:#ffd66e;
-  --bg:#0a1016;
-  --glass:rgba(10,16,22,.55);
-  --radius:14px;
+  --bg: #0b1218;
+  --fg: #e9eef2;
+  --muted:#aeb7c2;
+  --accent:#ffd86b;
+  --accent2:#5dd39e;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; color:var(--text); font:500 16px/1.6 "Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  background:#000; overflow-x:hidden;
-}
+html,body{margin:0;padding:0;background:#0b1218;color:var(--fg);font:400 16px/1.6 system-ui,Segoe UI,Roboto,sans-serif}
 
-/* nền ngoài */
-.page-bg{
-  position:fixed; inset:0; background:#09121a center/cover no-repeat;
-  filter:brightness(.9); z-index:-1;
-}
-
-/* header */
 .site-header{
-  position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:24px;
-  padding:12px min(4vw,32px); background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.1) 80%,transparent);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  position:sticky;top:0;z-index:40;display:flex;gap:16px;align-items:center;
+  padding:10px 18px;background:linear-gradient(to bottom,rgba(0,0,0,.5),rgba(0,0,0,0));
+  backdrop-filter:saturate(120%) blur(6px)
 }
-.brand{display:flex; align-items:center; gap:10px}
-.brand__logo{height:44px; object-fit:contain}
-.brand__slogan{
-  font-weight:700; letter-spacing:.2px;
-  background:linear-gradient(90deg,#ffd66e,#77ff89,#a67c52);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 1px 0 rgba(0,0,0,.35));
-  font-size:18px;
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand_logo{height:44px}
+.brand_slogan{
+  font-weight:700;letter-spacing:.2px;
+  background: linear-gradient(90deg, var(--accent), #7adf9a, #9c6f3c);
+  -webkit-background-clip:text;background-clip:text;color:transparent
 }
 
-/* nav */
-.nav{display:flex; gap:14px; margin-left:auto}
-.nav__link{
-  all:unset; cursor:pointer; padding:10px 14px; color:var(--text); opacity:.9; position:relative;
+.tabs{display:flex;gap:8px}
+.tabs .tab{
+  color:var(--fg);border-radius:999px;padding:8px 16px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
+  transition:.15s
 }
-.nav__link:hover{opacity:1}
-.nav__link.is-active::after{
-  content:""; position:absolute; left:10px; right:10px; bottom:4px; height:2px; background:var(--accent);
-}
+.tabs .tab:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
+.tabs .tab.is-active{text-decoration:underline}
 
-/* auth */
 .auth-btn{
-  all:unset; cursor:pointer; margin-left:12px; padding:10px 14px; border:1px solid rgba(255,255,255,.25);
-  border-radius:999px;
+  margin-left:12px;border-radius:999px;padding:8px 16px;border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);color:var(--fg)
 }
-.auth-btn:hover{background:rgba(255,255,255,.06)}
 
-/* khung 16:9 */
-.viewport{display:grid; place-items:center; padding:24px}
+.viewport{display:flex;justify-content:center}
 .frame{
-  width:min(1160px,92vw); aspect-ratio:16/9; border-radius:24px; overflow:hidden; position:relative;
-  box-shadow:0 24px 64px rgba(0,0,0,.5);
+  position:relative;margin:18px auto;border-radius:14px;overflow:hidden;
+  box-shadow:0 14px 48px rgba(0,0,0,.55);max-width:1080px;width:min(92vw,1080px)
 }
-.frame img{display:block; width:100%; height:100%; object-fit:cover; transition:opacity .25s ease}
-.frame .nini{position:absolute; bottom:min(5.5cqw,42px); left:50%; translate:-50% 0; width:min(160px,18cqw); pointer-events:none}
-
-.quick{display:flex; gap:10px; margin-top:14px}
+.frame>img#hero{display:block;width:100%;height:auto}
+#nini{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:min(160px,22vw);height:auto;pointer-events:none}
+.frame-actions{
+  position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px
+}
 .pill{
-  all:unset; cursor:pointer; padding:10px 16px; border:1px solid rgba(255,255,255,.28);
-  border-radius:999px; color:var(--text); opacity:.9;
+  color:var(--fg);border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);
+  border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s
 }
-.pill:hover{opacity:1}
-.pill.is-active{border-color:var(--accent)}
+.pill:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
 
-/* thẻ info */
-.info{width:min(1160px,92vw); margin:12px auto 56px; background:var(--glass);
-  border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:18px 20px;
-  backdrop-filter: blur(8px);
+.panel{max-width:1080px;margin:28px auto;padding:20px;border-radius:12px;background:rgba(255,255,255,.04)}
+
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(10px)}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  max-width:540px;width:calc(100% - 32px);background:rgba(16,18,23,.85);
+  border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)
 }
-.info__title{margin:4px 0 6px; font-size:22px}
-.info__body{margin:0; color:var(--muted)}
-
-/* modal */
-.modal[hidden]{display:none}
-.modal__backdrop{
-  position:fixed; inset:0; background:rgba(0,0,0,.45); backdrop-filter: blur(4px);
+.hidden{display:none}
+.modal-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.09)}
+.modal-logo{height:28px}
+.icon-btn{margin-left:auto;background:transparent;border:none;color:var(--fg);font-size:22px;cursor:pointer}
+.modal-body{display:grid;gap:10px;padding:14px 16px}
+.google-btn,.primary,.ghost{
+  border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.2);color:var(--fg);
+  background:rgba(255,255,255,.08)
 }
-.modal__card{
-  position:fixed; inset:0; margin:auto; width:min(720px,92vw); background:rgba(10,16,22,.88);
-  border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:16px 16px 18px; height:auto;
-}
-.modal__head{display:flex; align-items:center; gap:10px}
-.modal__head img{height:34px}
-.modal__close{margin-left:auto; all:unset; cursor:pointer; font-size:22px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
 
-.tabs{display:flex; gap:8px; margin:12px 0 4px}
-.tab{all:unset; cursor:pointer; color:var(--text); opacity:.9; padding:8px 12px; position:relative}
-.tab.is-active{opacity:1}
-.tab.is-active::after{content:""; position:absolute; left:8px; right:8px; bottom:2px; height:2px; background:var(--accent)}
-
-.panes{margin-top:10px}
-.pane{display:none}
-.pane.is-active{display:block}
-
-label{display:block; margin:10px 0 4px; color:var(--muted); font-size:14px}
 input{
-  width:100%; border:none; border-bottom:1px solid rgba(255,255,255,.35); background:transparent;
-  padding:10px 4px; color:var(--text); outline:none;
+  width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.6);
+  color:var(--fg);padding:8px 0
 }
-input:focus{border-color:var(--accent)}
+label{color:var(--muted);font-size:14px}
 
-.btn-line,.btn-fill{
-  padding:10px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.28); color:var(--text); background:transparent;
+/* nền ngoài đổi theo mùa */
+body[data-season]{
+  --outer:url("/public/assets/bg/nini_home.webp");
+  background-image: var(--outer);
+  background-size:cover;background-attachment:fixed;background-position:center;
 }
-.btn-fill{border-color:var(--accent)}
-.row{display:flex; gap:10px; margin-top:12px}
-.link{all:unset; cursor:pointer; color:var(--muted)}
-.link:hover{color:var(--text)}
-/* 1) Bé Nhím giữ đúng tỉ lệ, không bị kéo dãn */
-#nini, .nini, .mascot img, img[alt="NiNi"] {
-  width: min(160px, 22vw);  /* tối đa ~160px, responsive theo màn hình */
-  height: auto !important;  /* luôn theo đúng tỉ lệ ảnh */
-  object-fit: contain;
-  image-rendering: auto;
-  pointer-events: none;      /* tránh bắt click ngoài ý muốn */
-}
-
-/* 2) Tab mùa & Home có hiệu ứng chọn, hover rõ ràng */
-.tabs button,
-.nav-season button {
-  color: #e9eef2;
-  border-radius: 20px;
-  padding: 8px 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
-  transition: transform .15s, background .15s, border-color .15s;
-}
-.tabs button:hover,
-.nav-season button:hover {
-  transform: translateY(-1px);
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.3);
-}
-.tabs button.is-active,
-.nav-season button.is-active {
-  background: rgba(255,255,255,0.16);
-  border-color: rgba(255,255,255,0.45);
-  text-decoration: underline; /* chỉ gạch dưới khi đang chọn */
-}
-
-/* 3) Modal đăng nhập luôn căn giữa & nền kính mờ */
-.modal-backdrop {
-  position: fixed; inset: 0;
-  backdrop-filter: blur(10px);
-  background: rgba(0,0,0,0.35);
-}
-.modal {
-  position: fixed; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 540px; width: calc(100% - 32px);
-  background: rgba(16,18,23,0.85);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.5);
-}
-
+body[data-season="spring"]{--outer:url("/public/assets/images/seasons/spring.webp")}
+body[data-season="summer"]{--outer:url("/public/assets/images/seasons/summer.webp")}
+body[data-season="autumn"]{--outer:url("/public/assets/images/seasons/autumn.webp")}
+body[data-season="winter"]{--outer:url("/public/assets/images/seasons/winter.webp")}

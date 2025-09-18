@@ -3,24 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base href="/" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon (logo trên thanh tiêu đề) -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+  <!-- Favicon / app icon -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
   <!-- CSS -->
-  <link rel="stylesheet" href="./styles.css?v=5" />
+  <link rel="stylesheet" href="/styles.css?v=7" />
 </head>
-<body data-season="home">
-
-  <!-- ===== Header ===== -->
+<body>
+  <!-- ========== HEADER ========== -->
   <header class="site-header">
-    <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
-    </div>
+    <a class="brand" href="#">
+      <img class="brand__logo" src="/public/assets/icons/logonini.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">
+        <span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span>
+      </div>
+    </a>
 
-    <nav class="tabs" id="topTabs">
+    <nav class="tabs" id="seasonTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
@@ -31,113 +33,93 @@
     <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- ===== Hero (khung ảnh) ===== -->
+  <!-- ========== VIEWPORT ========== -->
   <main class="viewport">
-    <figure class="frame">
-      <img id="seasonHero" class="frame__img" src="/public/assets/bg/nini_home.webp" alt="Season hero" />
-      <div class="frame__menu">
-        <button class="pill is-active" data-target="#about">Giới thiệu</button>
-        <button class="pill" data-target="#rules">Luật chơi</button>
-        <button class="pill" data-target="#forum">Diễn đàn</button>
-        <button class="pill" data-target="#feedback">Góp ý</button>
-      </div>
+    <section class="frame" id="frame">
+      <!-- Mascot -->
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-    </figure>
+
+      <!-- 4 chips dưới -->
+      <div class="chips">
+        <button class="chip is-active" data-section="intro">Giới thiệu</button>
+        <button class="chip" data-section="rules">Luật chơi</button>
+        <button class="chip" data-section="forum">Diễn đàn</button>
+        <button class="chip" data-section="feedback">Góp ý</button>
+      </div>
+    </section>
+
+    <!-- Nội dung thay đổi -->
+    <section class="content" id="content">
+      <h2>NiNi — Funny</h2>
+      <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+    </section>
   </main>
 
-  <!-- ===== Nội dung mẫu (để scroll tới) ===== -->
-  <section id="about" class="card">
-    <h2>NiNi — Funny</h2>
-    <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-  </section>
-  <section id="rules" class="card">
-    <h2>Luật chơi</h2>
-    <p>Nội dung sẽ được cập nhật…</p>
-  </section>
-  <section id="forum" class="card">
-    <h2>Diễn đàn</h2>
-    <p>Nội dung sẽ được cập nhật…</p>
-  </section>
-  <section id="feedback" class="card">
-    <h2>Góp ý</h2>
-    <p>Bạn có ý tưởng trò chơi hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!</p>
-  </section>
+  <!-- ========== AUTH MODAL ========== -->
+  <div class="modal" id="authModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="modal__close" data-close aria-label="Đóng">×</button>
 
-  <!-- ===== Backdrop & Modal auth ===== -->
-  <div id="authBackdrop" class="modal-backdrop hidden"></div>
+      <h3 id="authTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+        Đăng nhập / Đăng ký
+      </h3>
 
-  <div id="authModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <img src="/public/assets/icons/logonini.webp" class="modal-logo" alt="" />
-      <h3>Đăng nhập / Đăng ký</h3>
-      <button id="authClose" class="icon-btn" aria-label="Đóng">×</button>
-    </div>
+      <div class="tabs-line" id="authTabs">
+        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
+        <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
+      </div>
 
-    <div class="switch">
-      <button class="tab-btn active" data-view="login">Đăng nhập</button>
-      <button class="tab-btn" data-view="signup">Đăng ký</button>
-      <button class="tab-btn" data-view="reset">Quên mật khẩu</button>
-    </div>
-
-    <div class="modal-body">
-      <!-- Login -->
-      <div class="view view-login">
-        <button class="google-btn">Đăng nhập với Google</button>
+      <!-- Login form -->
+      <form class="form is-active" data-pane="login">
+        <button type="button" class="btn btn-ghost full">Đăng nhập với Google</button>
         <div class="or">hoặc</div>
-
         <label>Email</label>
-        <input id="email_login" type="email" placeholder="you@example.com" />
-
+        <input type="email" placeholder="you@example.com" />
         <label>Mật khẩu</label>
-        <input id="password_login" type="password" placeholder="••••••••" />
-
+        <input type="password" placeholder="••••••••" />
         <div class="row">
-          <button class="primary">Đăng nhập</button>
+          <button type="submit" class="btn">Đăng nhập</button>
         </div>
-      </div>
+      </form>
 
-      <!-- Signup -->
-      <div class="view view-signup hidden">
+      <!-- Sign up form -->
+      <form class="form" data-pane="signup">
         <label>Email</label>
-        <input id="email_signup" type="email" placeholder="you@example.com" />
-
-        <div class="row">
-          <button class="ghost" id="sendOtpSignup">Gửi mã OTP</button>
+        <input type="email" placeholder="you@example.com" />
+        <div class="row gap">
+          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
+          <input type="text" placeholder="Nhập mã OTP" />
         </div>
-
-        <label>Mã OTP</label>
-        <input id="otp_signup" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
-
-        <div class="row">
-          <button class="primary">Xác nhận & tạo tài khoản</button>
-        </div>
-
-        <p class="hint">Tạo tài khoản xong, bạn sẽ được nhắc cập nhật thông tin cá nhân để giữ tài khoản.</p>
-      </div>
-
-      <!-- Reset password -->
-      <div class="view view-reset hidden">
-        <label>Email</label>
-        <input id="email_reset" type="email" placeholder="you@example.com" />
-
-        <div class="row">
-          <button class="ghost" id="sendOtpReset">Gửi mã OTP</button>
-        </div>
-
-        <label>Mã OTP</label>
-        <input id="otp_reset" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
-
         <label>Mật khẩu mới</label>
-        <input id="password_new" type="password" placeholder="••••••••" />
-
+        <input type="password" placeholder="Tối thiểu 8 ký tự" />
         <div class="row">
-          <button class="primary">Đặt lại mật khẩu</button>
+          <button type="submit" class="btn">Tạo tài khoản</button>
         </div>
-      </div>
+        <p class="note">Sau khi tạo tài khoản, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
+      </form>
+
+      <!-- Forgot form -->
+      <form class="form" data-pane="forgot">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" />
+        <div class="row gap">
+          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
+          <input type="text" placeholder="Nhập mã 6 số" />
+        </div>
+        <label>Mật khẩu mới</label>
+        <input type="password" placeholder="Tối thiểu 8 ký tự" />
+        <div class="row">
+          <button type="submit" class="btn">Đặt lại mật khẩu</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <!-- JS -->
-  <script src="./app.js?v=5"></script>
+  <!-- JS (đường dẫn tuyệt đối + defer + bust cache) -->
+  <script src="/public/js/effects.js?v=5" defer></script>
+  <script src="/public/js/app.js?v=10" defer></script>
 </body>
 </html>

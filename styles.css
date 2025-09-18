@@ -7,7 +7,88 @@
   --text:#101828;
   --muted:#667085;
   --brand:#1ea672;        /* xanh lá dịu */
-  --brand-2:#ffd659;      /* vàng nhấn */
+  --brand-2:#ffd659;      /* vàng nhấn *//* ===== FORM CONTROLS — override cho modal ===== */
+
+/* Hàng ngang có nút OTP bên cạnh */
+.modal-panel .row { display:flex; align-items:center; }
+.modal-panel .row.gap { gap:10px; }
+.modal-panel .row.gap input { flex:1; min-width:0; }
+
+/* Input: nền trắng, bo tròn, viền rõ */
+.modal-panel input[type="email"],
+.modal-panel input[type="text"],
+.modal-panel input[type="password"],
+.modal-panel input[type="number"]{
+  width:100%;
+  background:#fff;
+  color:var(--text);
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  padding:10px 12px;
+  outline:0;
+  box-shadow:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+/* Placeholder xám vừa phải */
+.modal-panel input::placeholder{
+  color:#98a2b3; /* xám nhạt */
+  opacity:1;
+}
+
+/* Focus đẹp, rõ ràng */
+.modal-panel input:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(30,166,114,.18);
+  background:#fff;
+}
+
+/* Nút: có transition & trạng thái hover */
+.modal-panel .btn{
+  border-radius:12px;
+  padding:10px 14px;
+  border:1px solid var(--stroke);
+  background:#fff;
+  color:var(--text);
+  cursor:pointer;
+  transition:filter .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.modal-panel .btn.primary{
+  background:var(--brand);
+  color:#fff;
+  border-color:transparent;
+}
+.modal-panel .btn.primary:hover{ filter:brightness(.95); }
+
+.modal-panel .btn.outline{
+  background:transparent;
+  color:var(--text);
+  border-color:var(--stroke);
+}
+.modal-panel .btn.outline:hover{
+  background:#fff;
+}
+
+.modal-panel .btn.line{
+  background:#fff;
+  border-color:#e3e8ef;
+}
+.modal-panel .btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+/* Chỉnh panel & nền mờ dễ đọc hơn chút xíu */
+.modal-backdrop{
+  backdrop-filter: blur(8px);
+  background: rgba(255,255,255,.1);
+}
+.modal-panel{
+  background: linear-gradient( to bottom, rgba(255,255,255,.92), rgba(255,255,255,.90) );
+  border:1px solid var(--stroke);
+}
+
   --shadow:0 10px 30px rgba(16,24,40,.15);
 }
 
@@ -111,3 +192,4 @@ body{
 
 .divider{ text-align:center; color:var(--muted); margin:10px 0; }
 .hint{ color:var(--muted); margin:6px 0 0; font-size:13px; }
+

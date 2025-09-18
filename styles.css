@@ -1,87 +1,41 @@
-:root{
-  --bg: #0b1218;
-  --fg: #e9eef2;
-  --muted:#aeb7c2;
-  --accent:#ffd86b;
-  --accent2:#5dd39e;
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#0b1218;color:var(--fg);font:400 16px/1.6 system-ui,Segoe UI,Roboto,sans-serif}
-
-.site-header{
-  position:sticky;top:0;z-index:40;display:flex;gap:16px;align-items:center;
-  padding:10px 18px;background:linear-gradient(to bottom,rgba(0,0,0,.5),rgba(0,0,0,0));
-  backdrop-filter:saturate(120%) blur(6px)
-}
-.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
-.brand_logo{height:44px}
-.brand_slogan{
-  font-weight:700;letter-spacing:.2px;
-  background: linear-gradient(90deg, var(--accent), #7adf9a, #9c6f3c);
-  -webkit-background-clip:text;background-clip:text;color:transparent
+/* Modal “kính mờ” sáng */
+.modal{
+  background: rgba(255,255,255,.08);      /* không đen */
+  border: 1px solid rgba(255,255,255,.22);
 }
 
-.tabs{display:flex;gap:8px}
-.tabs .tab{
-  color:var(--fg);border-radius:999px;padding:8px 16px;cursor:pointer;
-  border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
-  transition:.15s
+/* Tabs trong modal */
+.switch{
+  display:flex; gap:14px; justify-content:center;
+  padding:10px 14px 0;
 }
-.tabs .tab:hover{transform:translateY(-1px);background:rgba(255,255,255,.12)}
-.tabs .tab.is-active{text-decoration:underline}
+.tab-btn{
+  background:transparent; border:none; color:var(--fg);
+  padding:8px 10px; cursor:pointer; border-bottom:2px solid transparent;
+}
+.tab-btn.active{ border-color: var(--accent); }
 
-.auth-btn{
-  margin-left:12px;border-radius:999px;padding:8px 16px;border:1px solid rgba(255,255,255,.2);
-  background:rgba(255,255,255,.08);color:var(--fg)
-}
+/* View ẩn/hiện */
+.view.hidden{ display:none; }
 
-.viewport{display:flex;justify-content:center}
-.frame{
-  position:relative;margin:18px auto;border-radius:14px;overflow:hidden;
-  box-shadow:0 14px 48px rgba(0,0,0,.55);max-width:1080px;width:min(92vw,1080px)
-}
-.frame>img#hero{display:block;width:100%;height:auto}
-#nini{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);width:min(160px,22vw);height:auto;pointer-events:none}
-.frame-actions{
-  position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:10px
-}
-.pill{
-  color:var(--fg);border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);
-  border-radius:999px;padding:8px 14px;cursor:pointer;transition:.15s
-}
-.pill:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
+/* Chữ “hoặc” căn giữa */
+.or{ text-align:center; color:var(--muted); margin:6px 0 10px; }
 
-.panel{max-width:1080px;margin:28px auto;padding:20px;border-radius:12px;background:rgba(255,255,255,.04)}
-
-.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(10px)}
-.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  max-width:540px;width:calc(100% - 32px);background:rgba(16,18,23,.85);
-  border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.5)
-}
-.hidden{display:none}
-.modal-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.09)}
-.modal-logo{height:28px}
-.icon-btn{margin-left:auto;background:transparent;border:none;color:var(--fg);font-size:22px;cursor:pointer}
-.modal-body{display:grid;gap:10px;padding:14px 16px}
+/* Nút theo 1 style – viền trắng, không fill */
 .google-btn,.primary,.ghost{
-  border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.2);color:var(--fg);
-  background:rgba(255,255,255,.08)
+  background:transparent;
+  color:var(--fg);
+  border:1px solid rgba(255,255,255,.6);
+  border-radius:10px;
+  padding:10px 12px;
 }
-.row{display:flex;gap:10px;flex-wrap:wrap}
+.google-btn:hover,.primary:hover,.ghost:hover{
+  border-color:#fff; transform:translateY(-1px);
+}
 
+/* Input chỉ có 1 gạch dưới */
 input{
-  width:100%;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.6);
-  color:var(--fg);padding:8px 0
+  width:100%; background:transparent; color:var(--fg);
+  border:none; border-bottom:1px solid rgba(255,255,255,.7);
+  padding:8px 0;
 }
-label{color:var(--muted);font-size:14px}
-
-/* nền ngoài đổi theo mùa */
-body[data-season]{
-  --outer:url("/public/assets/bg/nini_home.webp");
-  background-image: var(--outer);
-  background-size:cover;background-attachment:fixed;background-position:center;
-}
-body[data-season="spring"]{--outer:url("/public/assets/images/seasons/spring.webp")}
-body[data-season="summer"]{--outer:url("/public/assets/images/seasons/summer.webp")}
-body[data-season="autumn"]{--outer:url("/public/assets/images/seasons/autumn.webp")}
-body[data-season="winter"]{--outer:url("/public/assets/images/seasons/winter.webp")}

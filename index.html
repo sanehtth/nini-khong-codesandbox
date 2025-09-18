@@ -5,194 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/webp" href="public/assets/icons/logonini.webp" />
+  <!-- Favicon / Logo thanh tiêu đề -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
-  <link rel="preload" as="image" href="public/assets/bg/nini_home.webp" />
-  <link rel="stylesheet" href="styles.css?v=1016" />
-  <!-- LƯU Ý: file phải nằm ở gốc repo (cùng thư mục với index.html) -->
-  <script defer src="app.js?v=1016"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles.css?v=4" />
 </head>
-  <!-- NINI FIX JS START -->
-<style>
-  /* Modal đăng nhập – kính mờ, canh giữa (nhẹ nhàng, không thay style đang có) */
-  .nini-auth-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;}
-  .nini-auth{width:min(92vw,480px);background:rgba(24,24,24,.8);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:20px;color:#fff}
-  .nini-auth h3{margin:0 0 10px;font-weight:700}
-  .nini-auth .close{position:absolute;top:10px;right:12px;cursor:pointer;opacity:.8}
-  .nini-auth .row{display:flex;gap:8px;margin:.5rem 0}
-  .nini-auth input{flex:1;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.6);color:#fff;padding:8px 2px;outline:none}
-  .nini-auth button{background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer}
-  .nini-auth button:hover{border-color:#ffd166;color:#ffd166}
-</style>
+<body>
 
-<script>
-(() => {
-  /* ====== Map ảnh từng mùa (GIỮ ĐÚNG ĐƯỜNG DẪN NÀY) ====== */
-  const IMG = {
-    home:   'public/assets/bg/nini_home.webp',
-    spring: 'public/assets/images/seasons/spring.webp',
-    summer: 'public/assets/images/seasons/summer.webp',
-    autumn: 'public/assets/images/seasons/autumn.webp',
-    winter: 'public/assets/images/seasons/winter.webp',
-  };
-  const VALID = Object.keys(IMG);
+  <!-- nền trang (đổi theo mùa) -->
+  <div class="page-bg" aria-hidden="true"></div>
 
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-
-  /* ====== Đổi nền (trong khung + ngoài) ====== */
-  const frame = $('.frame') || $('.viewport .frame') || $('.viewport');
-  function applySeason(season) {
-    if (!VALID.includes(season)) season = 'home';
-
-    /* trong khung */
-    if (frame) frame.style.backgroundImage = `url("${IMG[season]}")`;
-
-    /* nền ngoài (nếu CSS bạn không dùng biến, ta setting thẳng luôn) */
-    document.body.style.setProperty('--season-url', `url("${IMG[season]}")`);
-    document.body.style.backgroundImage = `radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.05), rgba(9,17,26,1) 60%), url("${IMG[season]}")`;
-
-    /* tab active */
-    $$('.tabs .tab, header .tabs a, nav .tab').forEach(a => {
-      const s = a.dataset.season || (a.getAttribute('href')||'').replace('#','');
-      a.classList.toggle('is-active', s === season);
-    });
-  }
-
-  function seasonFromHash() {
-    const h = (location.hash || '#home').replace('#','').toLowerCase();
-    return VALID.includes(h) ? h : 'home';
-  }
-
-  function initSeason() {
-    applySeason(seasonFromHash());
-    window.addEventListener('hashchange', () => applySeason(seasonFromHash()));
-    /* click tab nếu không có hash thì chủ động set */
-    $$('.tabs .tab, header .tabs a, nav .tab').forEach(a => {
-      a.addEventListener('click', (e) => {
-        const s = a.dataset.season || (a.getAttribute('href')||'').replace('#','');
-        if (VALID.includes(s)) {
-          e.preventDefault();
-          location.hash = s; // đổi hash để đồng bộ
-        }
-      });
-    });
-  }
-
-  /* ====== 4 nút dưới (Giới thiệu/Luật chơi/…) ====== */
-  const copy = {
-    about:   { title: 'NiNi — Funny', text: 'Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.' },
-    rules:   { title: 'Luật chơi',     text: 'Mỗi trò có hướng dẫn riêng; bé hoàn thành nhiệm vụ để nhận sao & huy hiệu.' },
-    forum:   { title: 'Diễn đàn',      text: 'Nơi cập nhật thông báo, mẹo chơi, sự kiện mới (sắp có bình luận an toàn).' },
-    feedback:{ title: 'Góp ý',         text: 'Bạn có ý tưởng trò chơi hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!' },
-  };
-  function initFooterPills() {
-    const panel = $('#infoPanel');
-    const title = $('#infoTitle');
-    const text  = $('#infoText');
-
-    $$('.footer-actions .pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        $$('.footer-actions .pill').forEach(b=>b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-
-        const key = btn.dataset.target || 'about';
-        const c = copy[key] || copy.about;
-        if (title) title.textContent = c.title;
-        if (text)  text.textContent  = c.text;
-        if (panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
-      });
-    });
-  }
-
-  /* ====== Modal Đăng nhập (mở được khi click) ====== */
-  function openAuth() {
-    if ($('.nini-auth-backdrop')) return; // đã mở
-    const wrap = document.createElement('div');
-    wrap.className = 'nini-auth-backdrop';
-    wrap.innerHTML = `
-      <div class="nini-auth">
-        <div class="close" aria-label="Đóng">✕</div>
-        <h3>Đăng nhập / Đăng ký</h3>
-        <div class="row"><button id="btnGoogle">Đăng nhập với Google</button></div>
-        <hr style="border-color:rgba(255,255,255,.2)">
-        <div class="row"><input type="email" placeholder="Email" id="eml"></div>
-        <div class="row"><input type="password" placeholder="Mật khẩu" id="pwd"></div>
-        <div class="row" style="justify-content:space-between">
-          <button id="btnLogin">Đăng nhập</button>
-          <button id="btnForgot">Quên mật khẩu</button>
-          <button id="btnSignup">Đăng ký mới</button>
-        </div>
-      </div>`;
-    document.body.appendChild(wrap);
-    const close = () => wrap.remove();
-    wrap.addEventListener('click', e => { if (e.target === wrap || e.target.classList.contains('close')) close(); });
-    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') close(); }, {once:true});
-  }
-
-  function initAuthButton() {
-    const candidates = [
-      '#openAuth',
-      '.auth-btn',
-      'a[href*="login"]',
-      'a[href*="dang"]',
-    ];
-    let trigger = null;
-    for (const sel of candidates) { trigger = $(sel); if (trigger) break; }
-    if (trigger) trigger.addEventListener('click', (e)=>{ e.preventDefault(); openAuth(); });
-  }
-
-  /* ====== Khởi tạo ====== */
-  document.addEventListener('DOMContentLoaded', () => {
-    initSeason();
-    initFooterPills();
-    initAuthButton();
-    // Áp dụng ngay lần đầu
-    applySeason(seasonFromHash());
-    // Expose flag để bạn test nhanh trong Console
-    window.__nini_ok = 'ok';
-  });
-})();
-</script>
-<!-- NINI FIX JS END -->
-
-<body class="season-home">
+  <!-- Header -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand__logo" src="public/assets/icons/logo_text.webp" alt="NiNi — Funny" />
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
     </div>
 
-    <!-- Dùng anchor + hash để bảo đảm click là thấy thay đổi -->
-    <nav class="tabs">
-      <a class="tab is-active" href="#home"   data-season="home">Home</a>
-      <a class="tab"           href="#spring" data-season="spring">Spring</a>
-      <a class="tab"           href="#summer" data-season="summer">Summer</a>
-      <a class="tab"           href="#autumn" data-season="autumn">Autumn</a>
-      <a class="tab"           href="#winter" data-season="winter">Winter</a>
+    <nav class="main-nav" aria-label="Mùa">
+      <a data-season="home"   class="nav__link is-active">Home</a>
+      <a data-season="spring" class="nav__link">Spring</a>
+      <a data-season="summer" class="nav__link">Summer</a>
+      <a data-season="autumn" class="nav__link">Autumn</a>
+      <a data-season="winter" class="nav__link">Winter</a>
     </nav>
 
-    <a class="auth-btn" href="#" id="openAuth">Đăng nhập / Đăng ký</a>
+    <button id="btnAuth" class="btn btn--pill btn--ghost">Đăng nhập / Đăng ký</button>
   </header>
 
+  <!-- Khung hero (ảnh trong khung cũng đổi theo mùa) -->
   <main class="viewport">
-    <div class="frame">
-      <div class="mascot" aria-hidden="true"></div>
-    </div>
+    <figure class="frame">
+      <img id="seasonImg" class="frame__img" src="/public/assets/bg/nini_home.webp" alt="NiNi scene" />
+      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+      <figcaption class="quick-tabs">
+        <button class="pill" data-tab="about">Giới thiệu</button>
+        <button class="pill" data-tab="rules">Luật chơi</button>
+        <button class="pill" data-tab="forum">Diễn đàn</button>
+        <button class="pill" data-tab="feedback">Góp ý</button>
+      </figcaption>
+    </figure>
 
-    <div class="footer-actions">
-      <button class="pill is-active" data-target="about">Giới thiệu</button>
-      <button class="pill" data-target="rules">Luật chơi</button>
-      <button class="pill" data-target="forum">Diễn đàn</button>
-      <button class="pill" data-target="feedback">Góp ý</button>
-    </div>
-
-    <section class="panel" id="infoPanel">
-      <h2 id="infoTitle">NiNi — Funny</h2>
-      <p id="infoText">Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+    <!-- Panel nội dung ngắn (1 khối, đổi tab bằng JS) -->
+    <section id="infoPanel" class="info blur-card">
+      <h2 class="info__title">NiNi — Funny</h2>
+      <div id="infoBody" class="info__body">
+        Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
+      </div>
     </section>
   </main>
+
+  <!-- Modal Đăng nhập / Đăng ký / Quên mật khẩu -->
+  <div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
+    <div class="modal__backdrop" data-close></div>
+
+    <div class="modal__card blur-card">
+      <button class="modal__close" aria-label="Đóng" data-close>×</button>
+
+      <div class="modal__brand">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      </div>
+
+      <h3 id="authTitle" class="modal__title">Đăng nhập / Đăng ký</h3>
+
+      <div class="tabs">
+        <button class="tab is-active" data-pane="login">Đăng nhập</button>
+        <button class="tab" data-pane="register">Đăng ký</button>
+        <button class="tab" data-pane="reset">Quên mật khẩu</button>
+      </div>
+
+      <!-- Đăng nhập -->
+      <div class="pane is-active" id="pane-login">
+        <button class="btn btn--ghost btn--full" id="btnLoginGoogle">Đăng nhập với Google</button>
+
+        <div class="divider"><span>hoặc</span></div>
+
+        <label class="input">
+          <span>Email</span>
+          <input type="email" placeholder="you@example.com" />
+        </label>
+        <label class="input">
+          <span>Mật khẩu</span>
+          <input type="password" placeholder="••••••••" />
+        </label>
+
+        <div class="row row--between">
+          <button class="btn">Đăng nhập</button>
+          <button class="link-as-btn" data-switch="reset">Quên mật khẩu?</button>
+        </div>
+      </div>
+
+      <!-- Đăng ký -->
+      <div class="pane" id="pane-register">
+        <label class="input">
+          <span>Email</span>
+          <input type="email" placeholder="you@example.com" />
+        </label>
+        <label class="input">
+          <span>Mật khẩu</span>
+          <input type="password" placeholder="Tạo mật khẩu" />
+        </label>
+        <button class="btn btn--full">Đăng ký</button>
+      </div>
+
+      <!-- Quên mật khẩu -->
+      <div class="pane" id="pane-reset">
+        <label class="input">
+          <span>Email</span>
+          <input type="email" placeholder="you@example.com" />
+        </label>
+        <div class="row row--gap">
+          <button class="btn btn--ghost">Gửi mã OTP</button>
+          <label class="input input--short">
+            <span>Mã OTP</span>
+            <input type="text" maxlength="6" placeholder="Nhập mã 6 số" />
+          </label>
+        </div>
+        <label class="input">
+          <span>Mật khẩu mới</span>
+          <input type="password" placeholder="Mật khẩu mới" />
+        </label>
+        <button class="btn btn--full">Đặt lại mật khẩu</button>
+        <div class="row row--center">
+          <button class="link-as-btn" data-switch="login">Quay lại đăng nhập</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/app.js?v=5"></script>
 </body>
 </html>
-

@@ -13,6 +13,150 @@
   <!-- LƯU Ý: file phải nằm ở gốc repo (cùng thư mục với index.html) -->
   <script defer src="app.js?v=1016"></script>
 </head>
+  <!-- NINI FIX JS START -->
+<style>
+  /* Modal đăng nhập – kính mờ, canh giữa (nhẹ nhàng, không thay style đang có) */
+  .nini-auth-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;}
+  .nini-auth{width:min(92vw,480px);background:rgba(24,24,24,.8);border:1px solid rgba(255,255,255,.25);border-radius:14px;padding:20px;color:#fff}
+  .nini-auth h3{margin:0 0 10px;font-weight:700}
+  .nini-auth .close{position:absolute;top:10px;right:12px;cursor:pointer;opacity:.8}
+  .nini-auth .row{display:flex;gap:8px;margin:.5rem 0}
+  .nini-auth input{flex:1;background:transparent;border:0;border-bottom:1px solid rgba(255,255,255,.6);color:#fff;padding:8px 2px;outline:none}
+  .nini-auth button{background:transparent;border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer}
+  .nini-auth button:hover{border-color:#ffd166;color:#ffd166}
+</style>
+
+<script>
+(() => {
+  /* ====== Map ảnh từng mùa (GIỮ ĐÚNG ĐƯỜNG DẪN NÀY) ====== */
+  const IMG = {
+    home:   'public/assets/bg/nini_home.webp',
+    spring: 'public/assets/images/seasons/spring.webp',
+    summer: 'public/assets/images/seasons/summer.webp',
+    autumn: 'public/assets/images/seasons/autumn.webp',
+    winter: 'public/assets/images/seasons/winter.webp',
+  };
+  const VALID = Object.keys(IMG);
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+
+  /* ====== Đổi nền (trong khung + ngoài) ====== */
+  const frame = $('.frame') || $('.viewport .frame') || $('.viewport');
+  function applySeason(season) {
+    if (!VALID.includes(season)) season = 'home';
+
+    /* trong khung */
+    if (frame) frame.style.backgroundImage = `url("${IMG[season]}")`;
+
+    /* nền ngoài (nếu CSS bạn không dùng biến, ta setting thẳng luôn) */
+    document.body.style.setProperty('--season-url', `url("${IMG[season]}")`);
+    document.body.style.backgroundImage = `radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,0.05), rgba(9,17,26,1) 60%), url("${IMG[season]}")`;
+
+    /* tab active */
+    $$('.tabs .tab, header .tabs a, nav .tab').forEach(a => {
+      const s = a.dataset.season || (a.getAttribute('href')||'').replace('#','');
+      a.classList.toggle('is-active', s === season);
+    });
+  }
+
+  function seasonFromHash() {
+    const h = (location.hash || '#home').replace('#','').toLowerCase();
+    return VALID.includes(h) ? h : 'home';
+  }
+
+  function initSeason() {
+    applySeason(seasonFromHash());
+    window.addEventListener('hashchange', () => applySeason(seasonFromHash()));
+    /* click tab nếu không có hash thì chủ động set */
+    $$('.tabs .tab, header .tabs a, nav .tab').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const s = a.dataset.season || (a.getAttribute('href')||'').replace('#','');
+        if (VALID.includes(s)) {
+          e.preventDefault();
+          location.hash = s; // đổi hash để đồng bộ
+        }
+      });
+    });
+  }
+
+  /* ====== 4 nút dưới (Giới thiệu/Luật chơi/…) ====== */
+  const copy = {
+    about:   { title: 'NiNi — Funny', text: 'Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.' },
+    rules:   { title: 'Luật chơi',     text: 'Mỗi trò có hướng dẫn riêng; bé hoàn thành nhiệm vụ để nhận sao & huy hiệu.' },
+    forum:   { title: 'Diễn đàn',      text: 'Nơi cập nhật thông báo, mẹo chơi, sự kiện mới (sắp có bình luận an toàn).' },
+    feedback:{ title: 'Góp ý',         text: 'Bạn có ý tưởng trò chơi hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!' },
+  };
+  function initFooterPills() {
+    const panel = $('#infoPanel');
+    const title = $('#infoTitle');
+    const text  = $('#infoText');
+
+    $$('.footer-actions .pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $$('.footer-actions .pill').forEach(b=>b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+
+        const key = btn.dataset.target || 'about';
+        const c = copy[key] || copy.about;
+        if (title) title.textContent = c.title;
+        if (text)  text.textContent  = c.text;
+        if (panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  }
+
+  /* ====== Modal Đăng nhập (mở được khi click) ====== */
+  function openAuth() {
+    if ($('.nini-auth-backdrop')) return; // đã mở
+    const wrap = document.createElement('div');
+    wrap.className = 'nini-auth-backdrop';
+    wrap.innerHTML = `
+      <div class="nini-auth">
+        <div class="close" aria-label="Đóng">✕</div>
+        <h3>Đăng nhập / Đăng ký</h3>
+        <div class="row"><button id="btnGoogle">Đăng nhập với Google</button></div>
+        <hr style="border-color:rgba(255,255,255,.2)">
+        <div class="row"><input type="email" placeholder="Email" id="eml"></div>
+        <div class="row"><input type="password" placeholder="Mật khẩu" id="pwd"></div>
+        <div class="row" style="justify-content:space-between">
+          <button id="btnLogin">Đăng nhập</button>
+          <button id="btnForgot">Quên mật khẩu</button>
+          <button id="btnSignup">Đăng ký mới</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+    const close = () => wrap.remove();
+    wrap.addEventListener('click', e => { if (e.target === wrap || e.target.classList.contains('close')) close(); });
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') close(); }, {once:true});
+  }
+
+  function initAuthButton() {
+    const candidates = [
+      '#openAuth',
+      '.auth-btn',
+      'a[href*="login"]',
+      'a[href*="dang"]',
+    ];
+    let trigger = null;
+    for (const sel of candidates) { trigger = $(sel); if (trigger) break; }
+    if (trigger) trigger.addEventListener('click', (e)=>{ e.preventDefault(); openAuth(); });
+  }
+
+  /* ====== Khởi tạo ====== */
+  document.addEventListener('DOMContentLoaded', () => {
+    initSeason();
+    initFooterPills();
+    initAuthButton();
+    // Áp dụng ngay lần đầu
+    applySeason(seasonFromHash());
+    // Expose flag để bạn test nhanh trong Console
+    window.__nini_ok = 'ok';
+  });
+})();
+</script>
+<!-- NINI FIX JS END -->
+
 <body class="season-home">
   <header class="site-header">
     <div class="brand">
@@ -51,3 +195,4 @@
   </main>
 </body>
 </html>
+

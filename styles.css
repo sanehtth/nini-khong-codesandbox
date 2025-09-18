@@ -1,47 +1,196 @@
-/* ===== Modal (đăng nhập/đăng ký) – kính trong mờ, canh giữa ===== */
-.modal{
-  position:fixed; inset:0; z-index:30;
-  display:none;
-}
-.modal[open], .modal.show{
-  display:grid;
-  place-items:center;          /* canh giữa */
+/* ============ RESET NHẸ + BIẾN MÀU ============ */
+:root{
+  --bg-page: #0f1f29;          /* xanh đậm dịu, không đen */
+  --bg-grad-1:#0e2a34;
+  --bg-grad-2:#0b2028;
+
+  --glass-bg: rgba(255,255,255,0.18);
+  --glass-stroke: rgba(255,255,255,0.28);
+  --glass-blur: 14px;
+
+  --text: #eaf5ff;
+  --text-dim: #cfe0ea;
+  --accent: #9ee37d;          /* xanh lá dịu */
+  --accent-2: #ffd66e;        /* vàng ấm dịu */
+  --shadow: 0 20px 60px rgba(0,0,0,.25);
 }
 
-/* scrim sáng, không tối nền */
-.modal__scrim{
-  position:absolute; inset:0;
-  background: rgba(255,255,255,.35);
-  backdrop-filter: blur(8px) saturate(1.1);
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--text);
+  font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:
+    radial-gradient(1000px 600px at 20% -10%, var(--bg-grad-1), transparent),
+    radial-gradient(1000px 600px at 80% -10%, var(--bg-grad-2), transparent),
+    var(--bg-page);
 }
 
-/* thẻ modal kiểu kính */
-.modal__card{
-  position:relative; z-index:1;
-  width:min(640px, 94vw);
-  padding:18px 18px 20px;
-  border-radius:20px;
-  border:1px solid rgba(180,200,220,.55);
-  background: linear-gradient(
-    to bottom right,
-    rgba(255,255,255,.75),
-    rgba(255,255,255,.58)
-  );
-  backdrop-filter: blur(14px) saturate(1.2);
-  box-shadow:
-    0 12px 40px rgba(31,56,73,.18),
-    0 2px 0 rgba(255,255,255,.6) inset;
-  color:var(--ink);
+/* ============ HEADER ============ */
+.site-header{
+  position: sticky; top:0; z-index: 20;
+  display:flex; align-items:center; gap:16px;
+  padding:16px 20px;
+  backdrop-filter: blur(8px);
+  background: linear-gradient(to bottom, rgba(255,255,255,.04), transparent);
 }
 
-.modal__head{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:12px; margin-bottom:12px;
+.brand{
+  display:flex; align-items:center; gap:12px; text-decoration:none; color:var(--text);
 }
-.modal__close{
-  background:transparent; border:0; color:#6b7a89; font-size:18px; cursor:pointer
+.brand_mark{ display:block; height:36px; }
+.brand_slogan{ font-size:.9rem; color:var(--text-dim); }
+
+.season-tabs{ margin-left:auto; display:flex; gap:8px; }
+.tab{
+  background: transparent; color:var(--text); border:none;
+  padding:10px 14px; border-radius:20px; cursor:pointer;
+  position:relative; transition: .2s ease color;
+}
+.tab:is(:hover,:focus-visible){ color:var(--accent-2); }
+.tab.is-active{
+  color:var(--accent);
+}
+.tab.is-active::after{
+  content:""; position:absolute; left:12px; right:12px; bottom:6px; height:2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius:2px;
 }
 
-/* logo + tiêu đề trong modal */
-.title-logo{ display:flex; align-items:center; gap:10px }
-.brand__logo--sm{ height:22px; object-fit:contain }
+.btn-auth{
+  margin-left:12px;
+  padding:10px 14px; border-radius:999px;
+  background: rgba(255,255,255,.08);
+  color:var(--text); border:1px solid rgba(255,255,255,.15);
+  cursor:pointer;
+}
+.btn-auth:hover{ background: rgba(255,255,255,.12); }
+
+/* ============ FRAME 16:9 ============ */
+.page{ padding: 8px 20px 40px; }
+.frame{
+  width: min(92vw, 1160px);
+  aspect-ratio: 16 / 9;
+  margin: 8px auto 20px;
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: rgba(255,255,255,.06);
+}
+.bg{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit: cover;
+}
+.mascot{
+  position:absolute; left:50%; bottom:20px; transform: translateX(-50%);
+  filter: drop-shadow(0 20px 20px rgba(0,0,0,.25));
+}
+
+/* ============ INFO (4 tab chữ) ============ */
+.info{ max-width:1160px; margin: 0 auto; }
+.info-tabs{
+  display:flex; justify-content:center; gap:14px; margin-bottom:10px;
+}
+.info-tab{
+  background:transparent; border:none; color:var(--text);
+  cursor:pointer; padding:8px 6px; font-weight:600;
+  position:relative;
+}
+.info-tab:hover{ color:var(--accent-2); }
+.info-tab.is-active{ color:var(--accent); }
+.info-tab.is-active::after{
+  content:""; position:absolute; left:0; right:0; bottom:-2px; height:2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius:2px;
+}
+
+.card.glass{
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-stroke);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.card-title{ margin:0 0 6px; }
+.card-text{ margin:0; color:var(--text-dim); }
+
+/* ============ MODAL GLASS ============ */
+.overlay{
+  position:fixed; inset:0; z-index:50;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+}
+.overlay.hidden{ display:none; }
+
+.modal.glass{
+  width: min(520px, 92vw);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-stroke);
+  backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px));
+  border-radius: 16px;
+  padding: 18px 18px 22px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.modal-close{
+  position:absolute; right:10px; top:8px; cursor:pointer;
+  background:transparent; border:none; color:var(--text-dim); font-size:18px;
+}
+.modal-close:hover{ color:var(--text); }
+
+.modal-header{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.modal-logo{ display:block; }
+.muted{ color: var(--text-dim); margin: 0 0 10px; }
+
+.btn{
+  border-radius: 12px; padding: 10px 14px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.10); color: var(--text);
+}
+.btn.wide{ width: 100%; }
+.btn.primary{
+  background: linear-gradient(135deg, rgba(158,227,125,.25), rgba(255,214,110,.25));
+  border-color: rgba(255,255,255,.3);
+}
+.btn.outline{ background: transparent; }
+.btn.subtle{ background: rgba(255,255,255,.08); }
+.btn:is(:hover,:focus-visible){ filter: brightness(1.06); }
+
+.stack{ display: grid; gap: 10px; }
+.row{ display:flex; align-items:end; }
+.flex1{ flex:1; }
+.gap{ gap:10px; }
+
+.field{ display:grid; gap:6px; }
+.field > span{ font-size:.9rem; color: var(--text-dim); }
+.field input{
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius:10px; color: var(--text);
+  padding: 10px 12px;
+  outline: none;
+}
+.field input:focus{ border-color: rgba(255,255,255,.35); }
+
+.divider{
+  display:flex; align-items:center; gap:12px; color:var(--text-dim);
+  margin:10px 0;
+}
+.divider::before,.divider::after{
+  content:""; flex:1; height:1px; background: rgba(255,255,255,.25);
+}
+
+.hint{ color: var(--text-dim); margin: 0; font-size: .9rem; }
+
+/* ============ MISC ============ */
+a{ color: var(--accent-2); }
+a:hover{ color: var(--accent); }

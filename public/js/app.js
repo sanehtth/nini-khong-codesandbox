@@ -1,44 +1,82 @@
-/* NiNi — App (NO EFFECT) */
+// ====== NiNi — base app (no effects) ======
 (() => {
-  const SEASONS = {
-    home  : '/public/assets/bg/nini_home.webp',
-    spring: '/public/assets/images/seasons/spring.webp',
-    summer: '/public/assets/images/seasons/summer.webp',
-    autumn: '/public/assets/images/seasons/autumn.webp',
-    winter: '/public/assets/images/seasons/winter.webp',
+  // Ảnh nền cho từng chế độ
+  const BG = {
+    home:  "/public/assets/bg/nini_home.webp",
+    spring:"/public/assets/images/seasons/spring.webp",
+    summer:"/public/assets/images/seasons/summer.webp",
+    autumn:"/public/assets/images/seasons/autumn.webp",
+    winter:"/public/assets/images/seasons/winter.webp",
   };
 
-  const frame = document.getElementById('frame');
-  const tabs  = document.getElementById('seasonTabs');
-  const dock  = document.getElementById('dock');
+  // DOM
+  const scene = document.getElementById("scene");
+  const tabWrap = document.getElementById("seasonTabs");
+  const panelEl = document.getElementById("infoPanel");
+  const pillWrap = document.querySelector(".pill-nav");
 
-  function setSeason(s){
-    frame.style.backgroundImage = `url("${SEASONS[s] || SEASONS.home}")`;
-    tabs.querySelectorAll('.tab').forEach(b => b.classList.toggle('is-active', b.dataset.season===s));
-    localStorage.setItem('nini_season', s);
+  let season = "home";
+  let panel = "about";
+
+  // Helpers
+  function setSeason(next) {
+    if (!BG[next]) next = "home";
+    season = next;
+    scene.src = BG[season];
+
+    // toggle active tab
+    for (const btn of tabWrap.querySelectorAll(".tab")) {
+      btn.classList.toggle("is-active", btn.dataset.season === season);
+    }
   }
 
-  setSeason(localStorage.getItem('nini_season') || 'home');
+  function setPanel(next) {
+    panel = next;
+    for (const p of pillWrap.querySelectorAll(".pill")) {
+      p.classList.toggle("is-active", p.dataset.panel === panel);
+    }
+    switch (panel) {
+      case "about":
+        panelEl.innerHTML = `
+          <h2 class="panel-title">NiNi — Funny</h2>
+          <p class="panel-text">Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+        `;
+        break;
+      case "rules":
+        panelEl.innerHTML = `
+          <h2 class="panel-title">Luật chơi</h2>
+          <p class="panel-text">Các luật đơn giản, minh hoạ rõ ràng. Điểm thưởng tích luỹ theo nhiệm vụ.</p>
+        `;
+        break;
+      case "forum":
+        panelEl.innerHTML = `
+          <h2 class="panel-title">Diễn đàn</h2>
+          <p class="panel-text">Nơi trao đổi mẹo, chia sẻ kết quả và thảo luận cùng bạn bè/PH.</p>
+        `;
+        break;
+      case "feedback":
+        panelEl.innerHTML = `
+          <h2 class="panel-title">Góp ý</h2>
+          <p class="panel-text">Hãy gửi góp ý để mình tối ưu thêm trải nghiệm nhé!</p>
+        `;
+        break;
+    }
+  }
 
-  tabs.addEventListener('click', e=>{
-    const btn = e.target.closest('.tab'); if(!btn) return;
+  // Events
+  tabWrap.addEventListener("click", (e) => {
+    const btn = e.target.closest(".tab");
+    if (!btn) return;
     setSeason(btn.dataset.season);
   });
 
-  // 4 tab nội dung trong khung
-  const cards = {
-    cardIntro   : document.getElementById('cardIntro'),
-    cardRules   : document.getElementById('cardRules'),
-    cardForum   : document.getElementById('cardForum'),
-    cardFeedback: document.getElementById('cardFeedback'),
-  };
-  function setCard(id){
-    Object.entries(cards).forEach(([k,el])=> el.hidden = (k!==id));
-    dock.querySelectorAll('.pill').forEach(p => p.setAttribute('aria-selected', String(p.dataset.card===id)));
-  }
-  setCard('cardIntro');
-  dock.addEventListener('click', e=>{
-    const p = e.target.closest('.pill'); if(!p) return;
-    setCard(p.dataset.card);
+  pillWrap.addEventListener("click", (e) => {
+    const btn = e.target.closest(".pill");
+    if (!btn) return;
+    setPanel(btn.dataset.panel);
   });
+
+  // Init
+  setSeason("home");
+  setPanel("about");
 })();

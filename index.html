@@ -2,20 +2,25 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" />
-  <link rel="preload" as="image" href="/public/assets/bg/nini_home.webp" />
-  <link rel="stylesheet" href="/styles.css?v=6" />
+
+  <!-- Favicon (logo trên thanh tiêu đề) -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./styles.css?v=5" />
 </head>
 <body data-season="home">
+
+  <!-- ===== Header ===== -->
   <header class="site-header">
     <div class="brand">
-      <img class="brand_logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand_slogan">Chơi mê lý, bứt phá tư duy</div>
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
     </div>
 
-    <nav class="tabs" id="seasonTabs">
+    <nav class="tabs" id="topTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
@@ -26,111 +31,113 @@
     <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
   </header>
 
-  <main>
-    <section class="viewport">
-      <div class="frame">
-        <img id="hero" alt="season background" />
-        <img id="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-        <div class="frame-actions">
-          <button class="pill" data-target="#about">Giới thiệu</button>
-          <button class="pill" data-target="#rules">Luật chơi</button>
-          <button class="pill" data-target="#forum">Diễn đàn</button>
-          <button class="pill" data-target="#feedback">Góp ý</button>
-        </div>
+  <!-- ===== Hero (khung ảnh) ===== -->
+  <main class="viewport">
+    <figure class="frame">
+      <img id="seasonHero" class="frame__img" src="/public/assets/bg/nini_home.webp" alt="Season hero" />
+      <div class="frame__menu">
+        <button class="pill is-active" data-target="#about">Giới thiệu</button>
+        <button class="pill" data-target="#rules">Luật chơi</button>
+        <button class="pill" data-target="#forum">Diễn đàn</button>
+        <button class="pill" data-target="#feedback">Góp ý</button>
       </div>
-    </section>
-
-    <section id="about" class="panel">
-      <h2>NiNi — Funny</h2>
-      <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-    </section>
-
-    <section id="rules" class="panel"><h2>Luật chơi</h2><p>...</p></section>
-    <section id="forum" class="panel"><h2>Diễn đàn</h2><p>...</p></section>
-    <section id="feedback" class="panel"><h2>Góp ý</h2><p>...</p></section>
+      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+    </figure>
   </main>
 
-  <!-- Modal đăng nhập -->
-  <!-- Backdrop -->
-<div id="authBackdrop" class="modal-backdrop hidden"></div>
+  <!-- ===== Nội dung mẫu (để scroll tới) ===== -->
+  <section id="about" class="card">
+    <h2>NiNi — Funny</h2>
+    <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
+  </section>
+  <section id="rules" class="card">
+    <h2>Luật chơi</h2>
+    <p>Nội dung sẽ được cập nhật…</p>
+  </section>
+  <section id="forum" class="card">
+    <h2>Diễn đàn</h2>
+    <p>Nội dung sẽ được cập nhật…</p>
+  </section>
+  <section id="feedback" class="card">
+    <h2>Góp ý</h2>
+    <p>Bạn có ý tưởng trò chơi hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!</p>
+  </section>
 
-<!-- Modal -->
-<div id="authModal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal-head">
-    <img src="/public/assets/icons/logonini.webp" alt="" class="modal-logo" />
-    <h3>Đăng nhập / Đăng ký</h3>
-    <button id="authClose" class="icon-btn" aria-label="Đóng">×</button>
-  </div>
+  <!-- ===== Backdrop & Modal auth ===== -->
+  <div id="authBackdrop" class="modal-backdrop hidden"></div>
 
-  <!-- Tabs trong modal -->
-  <div class="switch">
-    <button class="tab-btn active" data-view="login">Đăng nhập</button>
-    <button class="tab-btn" data-view="signup">Đăng ký</button>
-    <button class="tab-btn" data-view="reset">Quên mật khẩu</button>
-  </div>
-
-  <div class="modal-body">
-    <!-- view: Đăng nhập -->
-    <div class="view view-login">
-      <button class="google-btn">Đăng nhập với Google</button>
-      <div class="or">hoặc</div>
-
-      <label>Email</label>
-      <input id="email_login" type="email" placeholder="you@example.com" />
-
-      <label>Mật khẩu</label>
-      <input id="password_login" type="password" placeholder="••••••••" />
-
-      <div class="row">
-        <button class="primary">Đăng nhập</button>
-      </div>
+  <div id="authModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <img src="/public/assets/icons/logonini.webp" class="modal-logo" alt="" />
+      <h3>Đăng nhập / Đăng ký</h3>
+      <button id="authClose" class="icon-btn" aria-label="Đóng">×</button>
     </div>
 
-    <!-- view: Đăng ký -->
-    <div class="view view-signup hidden">
-      <label>Email</label>
-      <input id="email_signup" type="email" placeholder="you@example.com" />
-
-      <div class="row">
-        <button class="ghost" id="sendOtpSignup">Gửi mã OTP</button>
-      </div>
-
-      <label>Mã OTP</label>
-      <input id="otp_signup" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
-
-      <div class="row">
-        <button class="primary">Xác nhận & tạo tài khoản</button>
-      </div>
-
-      <p class="hint">Sau khi tạo tài khoản thành công, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
+    <div class="switch">
+      <button class="tab-btn active" data-view="login">Đăng nhập</button>
+      <button class="tab-btn" data-view="signup">Đăng ký</button>
+      <button class="tab-btn" data-view="reset">Quên mật khẩu</button>
     </div>
 
-    <!-- view: Quên mật khẩu -->
-    <div class="view view-reset hidden">
-      <label>Email</label>
-      <input id="email_reset" type="email" placeholder="you@example.com" />
+    <div class="modal-body">
+      <!-- Login -->
+      <div class="view view-login">
+        <button class="google-btn">Đăng nhập với Google</button>
+        <div class="or">hoặc</div>
 
-      <div class="row">
-        <button class="ghost" id="sendOtpReset">Gửi mã OTP</button>
+        <label>Email</label>
+        <input id="email_login" type="email" placeholder="you@example.com" />
+
+        <label>Mật khẩu</label>
+        <input id="password_login" type="password" placeholder="••••••••" />
+
+        <div class="row">
+          <button class="primary">Đăng nhập</button>
+        </div>
       </div>
 
-      <label>Mã OTP</label>
-      <input id="otp_reset" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
+      <!-- Signup -->
+      <div class="view view-signup hidden">
+        <label>Email</label>
+        <input id="email_signup" type="email" placeholder="you@example.com" />
 
-      <label>Mật khẩu mới</label>
-      <input id="password_new" type="password" placeholder="••••••••" />
+        <div class="row">
+          <button class="ghost" id="sendOtpSignup">Gửi mã OTP</button>
+        </div>
 
-      <div class="row">
-        <button class="primary">Đặt lại mật khẩu</button>
+        <label>Mã OTP</label>
+        <input id="otp_signup" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
+
+        <div class="row">
+          <button class="primary">Xác nhận & tạo tài khoản</button>
+        </div>
+
+        <p class="hint">Tạo tài khoản xong, bạn sẽ được nhắc cập nhật thông tin cá nhân để giữ tài khoản.</p>
+      </div>
+
+      <!-- Reset password -->
+      <div class="view view-reset hidden">
+        <label>Email</label>
+        <input id="email_reset" type="email" placeholder="you@example.com" />
+
+        <div class="row">
+          <button class="ghost" id="sendOtpReset">Gửi mã OTP</button>
+        </div>
+
+        <label>Mã OTP</label>
+        <input id="otp_reset" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
+
+        <label>Mật khẩu mới</label>
+        <input id="password_new" type="password" placeholder="••••••••" />
+
+        <div class="row">
+          <button class="primary">Đặt lại mật khẩu</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-
-  <!-- Nạp JS: ĐƯỜNG DẪN NÀY PHẢI TỒN TẠI -->
-  <script defer src="/public/js/app.js?v=10"
-          onerror="alert('Không tải được /public/js/app.js – kiểm tra đường dẫn & Netlify publish directory!')"></script>
+  <!-- JS -->
+  <script src="./app.js?v=5"></script>
 </body>
 </html>
-

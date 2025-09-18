@@ -4,3 +4,9 @@
 [[edge_functions]]
   function = "admin-guard"
   path = "/admin/*"
+
+# Tất cả đường dẫn đều trả về index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

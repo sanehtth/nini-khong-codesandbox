@@ -5,69 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon / Logo thanh tiêu đề -->
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+  <!-- Favicon/logo trên thanh tiêu đề -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="/styles.css?v=4" />
+  <link rel="stylesheet" href="/styles.css?v=8" />
+  <meta name="theme-color" content="#0a1016" />
 </head>
 <body>
+  <!-- Nền ngoài (sẽ đổi theo mùa) -->
+  <div class="page-bg"></div>
 
-  <!-- nền trang (đổi theo mùa) -->
-  <div class="page-bg" aria-hidden="true"></div>
-
-  <!-- Header -->
+  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
     </div>
 
-    <nav class="main-nav" aria-label="Mùa">
-      <a data-season="home"   class="nav__link is-active">Home</a>
-      <a data-season="spring" class="nav__link">Spring</a>
-      <a data-season="summer" class="nav__link">Summer</a>
-      <a data-season="autumn" class="nav__link">Autumn</a>
-      <a data-season="winter" class="nav__link">Winter</a>
+    <nav class="nav">
+      <button class="nav__link is-active" data-season="home">Home</button>
+      <button class="nav__link" data-season="spring">Spring</button>
+      <button class="nav__link" data-season="summer">Summer</button>
+      <button class="nav__link" data-season="autumn">Autumn</button>
+      <button class="nav__link" data-season="winter">Winter</button>
     </nav>
 
-    <button id="btnAuth" class="btn btn--pill btn--ghost">Đăng nhập / Đăng ký</button>
+    <button id="btnAuth" class="auth-btn">Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- Khung hero (ảnh trong khung cũng đổi theo mùa) -->
-  <main class="viewport">
-    <figure class="frame">
-      <img id="seasonImg" class="frame__img" src="/public/assets/bg/nini_home.webp" alt="NiNi scene" />
+  <!-- VIEWPORT 16:9 -->
+  <section class="viewport">
+    <div class="frame">
+      <img id="seasonImg" src="/public/assets/bg/nini_home.webp" alt="season" />
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-      <figcaption class="quick-tabs">
-        <button class="pill" data-tab="about">Giới thiệu</button>
-        <button class="pill" data-tab="rules">Luật chơi</button>
-        <button class="pill" data-tab="forum">Diễn đàn</button>
-        <button class="pill" data-tab="feedback">Góp ý</button>
-      </figcaption>
-    </figure>
+    </div>
 
-    <!-- Panel nội dung ngắn (1 khối, đổi tab bằng JS) -->
-    <section id="infoPanel" class="info blur-card">
-      <h2 class="info__title">NiNi — Funny</h2>
-      <div id="infoBody" class="info__body">
-        Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
-      </div>
-    </section>
-  </main>
+    <!-- 4 nút nội dung nhanh -->
+    <div class="quick">
+      <button class="pill is-active" data-tab="about">Giới thiệu</button>
+      <button class="pill" data-tab="rules">Luật chơi</button>
+      <button class="pill" data-tab="forum">Diễn đàn</button>
+      <button class="pill" data-tab="feedback">Góp ý</button>
+    </div>
+  </section>
 
-  <!-- Modal Đăng nhập / Đăng ký / Quên mật khẩu -->
-  <div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle" hidden>
+  <!-- THẺ THÔNG TIN -->
+  <section class="info">
+    <h2 class="info__title">NiNi — Funny</h2>
+    <p id="infoBody" class="info__body">
+      Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
+    </p>
+  </section>
+
+  <!-- MODAL ĐĂNG NHẬP/ĐĂNG KÝ -->
+  <div id="authModal" class="modal" hidden>
     <div class="modal__backdrop" data-close></div>
-
-    <div class="modal__card blur-card">
-      <button class="modal__close" aria-label="Đóng" data-close>×</button>
-
-      <div class="modal__brand">
-        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+    <div class="modal__card">
+      <div class="modal__head">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi" />
+        <h3>Đăng nhập / Đăng ký</h3>
+        <button class="modal__close" data-close>×</button>
       </div>
-
-      <h3 id="authTitle" class="modal__title">Đăng nhập / Đăng ký</h3>
 
       <div class="tabs">
         <button class="tab is-active" data-pane="login">Đăng nhập</button>
@@ -75,66 +73,52 @@
         <button class="tab" data-pane="reset">Quên mật khẩu</button>
       </div>
 
-      <!-- Đăng nhập -->
-      <div class="pane is-active" id="pane-login">
-        <button class="btn btn--ghost btn--full" id="btnLoginGoogle">Đăng nhập với Google</button>
-
-        <div class="divider"><span>hoặc</span></div>
-
-        <label class="input">
-          <span>Email</span>
+      <div class="panes">
+        <!-- Đăng nhập -->
+        <div id="pane-login" class="pane is-active">
+          <button class="btn-line">Đăng nhập với Google</button>
+          <label>Email</label>
           <input type="email" placeholder="you@example.com" />
-        </label>
-        <label class="input">
-          <span>Mật khẩu</span>
+          <label>Mật khẩu</label>
           <input type="password" placeholder="••••••••" />
-        </label>
-
-        <div class="row row--between">
-          <button class="btn">Đăng nhập</button>
-          <button class="link-as-btn" data-switch="reset">Quên mật khẩu?</button>
+          <div class="row">
+            <button class="btn-fill">Đăng nhập</button>
+            <button class="link" data-switch="reset">Quên mật khẩu?</button>
+          </div>
         </div>
-      </div>
 
-      <!-- Đăng ký -->
-      <div class="pane" id="pane-register">
-        <label class="input">
-          <span>Email</span>
+        <!-- Đăng ký -->
+        <div id="pane-register" class="pane">
+          <label>Email</label>
           <input type="email" placeholder="you@example.com" />
-        </label>
-        <label class="input">
-          <span>Mật khẩu</span>
-          <input type="password" placeholder="Tạo mật khẩu" />
-        </label>
-        <button class="btn btn--full">Đăng ký</button>
-      </div>
-
-      <!-- Quên mật khẩu -->
-      <div class="pane" id="pane-reset">
-        <label class="input">
-          <span>Email</span>
-          <input type="email" placeholder="you@example.com" />
-        </label>
-        <div class="row row--gap">
-          <button class="btn btn--ghost">Gửi mã OTP</button>
-          <label class="input input--short">
-            <span>Mã OTP</span>
-            <input type="text" maxlength="6" placeholder="Nhập mã 6 số" />
-          </label>
+          <label>Mật khẩu</label>
+          <input type="password" placeholder="••••••••" />
+          <div class="row">
+            <button class="btn-fill">Đăng ký</button>
+            <button class="link" data-switch="login">Đã có tài khoản?</button>
+          </div>
         </div>
-        <label class="input">
-          <span>Mật khẩu mới</span>
+
+        <!-- Reset -->
+        <div id="pane-reset" class="pane">
+          <label>Email</label>
+          <input type="email" placeholder="you@example.com" />
+          <div class="row">
+            <button class="btn-line">Gửi mã OTP</button>
+          </div>
+          <label>Mã OTP</label>
+          <input type="text" placeholder="Nhập mã 6 số" />
+          <label>Mật khẩu mới</label>
           <input type="password" placeholder="Mật khẩu mới" />
-        </label>
-        <button class="btn btn--full">Đặt lại mật khẩu</button>
-        <div class="row row--center">
-          <button class="link-as-btn" data-switch="login">Quay lại đăng nhập</button>
+          <div class="row">
+            <button class="btn-fill">Đặt lại mật khẩu</button>
+            <button class="link" data-switch="login">Quay lại đăng nhập</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="/app.js?v=5"></script>
+  <script defer src="/app.js?v=8"></script>
 </body>
 </html>

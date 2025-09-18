@@ -1,0 +1,48 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cập nhật hồ sơ — NiNi</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=11" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </div>
+    <nav class="tabs" aria-label="Điều hướng nhanh">
+      <a class="tab" href="/" style="text-decoration:none">← Về trang chủ</a>
+    </nav>
+    <a class="auth-btn" id="signoutBtn" href="javascript:void(0)">Đăng xuất</a>
+  </header>
+
+  <main class="viewport">
+    <section class="info-panel" style="width:min(760px, 92vw)">
+      <h2 class="panel-title">Cập nhật hồ sơ</h2>
+      <p class="panel-text" id="authHint" style="margin-bottom:12px"></p>
+
+      <form id="profileForm" class="modal__body" autocomplete="on">
+        <div class="fld"><span>Email</span><input type="email" id="pf_email" placeholder="you@example.com" autocomplete="email" /></div>
+        <div class="fld"><span>Tên hiển thị</span><input type="text" id="pf_displayName" placeholder="Bé NiNi" /></div>
+        <div class="fld"><span>Ngày sinh</span><input type="date" id="pf_dob" /></div>
+        <div class="fld"><span>Phụ huynh (tuỳ chọn)</span><input type="text" id="pf_guardian" placeholder="Tên phụ huynh" /></div>
+        <div class="fld"><span>Số điện thoại (tuỳ chọn)</span><input type="tel" id="pf_phone" inputmode="tel" placeholder="09xxxxxxxx" /></div>
+        <div class="fld"><span>Tỉnh/Thành (tuỳ chọn)</span><input type="text" id="pf_city" placeholder="Hà Nội / TP.HCM ..." /></div>
+        <div class="fld"><span>Lớp/Khối (tuỳ chọn)</span><input type="text" id="pf_grade" placeholder="Lớp 2, Lớp 3..." /></div>
+
+        <div class="row">
+          <button class="btn" type="submit">Lưu hồ sơ</button>
+          <a class="btn btn-ghost" href="/">Về trang chủ</a>
+        </div>
+
+        <div class="note" id="saveNote" hidden></div>
+      </form>
+    </section>
+  </main>
+
+  <script defer src="/public/js/profile.js?v=2"></script>
+</body>
+</html>

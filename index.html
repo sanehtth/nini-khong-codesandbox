@@ -5,25 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Bắt buộc để đường dẫn tương đối chạy đúng trên Netlify -->
-  <base href="/" />
-
-  <!-- Favicon -->
+  <!-- Favicon + logo -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
 
-  <!-- CSS chính (tăng version để phá cache khi cần) -->
-  <link rel="preload" href="/styles.css?v=9" as="style" />
-  <link rel="stylesheet" href="/styles.css?v=9" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="/styles.css?v=7" />
 </head>
 <body>
-  <!-- ============ HEADER ============ -->
+  <!-- ========= HEADER ========= -->
   <header class="site-header">
-    <a id="brandLogo" class="brand" href="/" title="NiNi — Funny">
-      <img class="brand_mark" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" height="36" />
-      <span class="brand_slogan">Chơi mê lý, bứt phá tư duy</span>
+    <a class="brand" href="/">
+      <img class="brand_logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <span class="brand_slogan">Chơi mê ly, bứt phá tư duy</span>
     </a>
 
-    <nav class="season-tabs" aria-label="Chọn mùa">
+    <nav class="tabs" aria-label="Seasons">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
@@ -31,164 +27,146 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <button id="openAuth" class="btn-auth">Đăng nhập / Đăng ký</button>
+    <button id="authOpen" class="auth-btn" type="button">Đăng nhập / Đăng ký</button>
   </header>
 
-  <!-- ============ VIEWPORT (16:9) ============ -->
-  <main class="page">
-    <section class="frame" id="viewport" aria-label="Khung game 16:9">
-      <img id="bg" class="bg" src="/public/assets/bg/nini_home.webp" alt="NiNi — Home" />
-      <img id="niniMascot" class="mascot" src="/public/assets/icons/nini.webp" alt="NiNi mascot" width="160" height="160" loading="lazy" decoding="async" />
+  <!-- ========= VIEWPORT / FRAME (16:9) ========= -->
+  <main class="viewport">
+    <section class="frame" id="frame">
+      <img id="bgImg" class="bg" src="/public/assets/images/seasons/home.webp" alt="Background" />
+      <img id="nini" class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
 
-      <!-- 4 tab nội dung: hiển thị dưới khung -->
-    </section>
-
-    <section class="info">
-      <div class="info-tabs" role="tablist" aria-label="Thông tin">
-        <button class="info-tab is-active" data-panel="about" role="tab" aria-selected="true">Giới thiệu</button>
-        <button class="info-tab" data-panel="rules" role="tab" aria-selected="false">Luật chơi</button>
-        <button class="info-tab" data-panel="forum" role="tab" aria-selected="false">Diễn đàn</button>
-        <button class="info-tab" data-panel="feedback" role="tab" aria-selected="false">Góp ý</button>
+      <!-- 4 chip điều hướng nội dung trong “Home” -->
+      <div class="chips">
+        <button class="chip is-active" data-chip="about">Giới thiệu</button>
+        <button class="chip" data-chip="rules">Luật chơi</button>
+        <button class="chip" data-chip="forum">Diễn đàn</button>
+        <button class="chip" data-chip="feedback">Góp ý</button>
       </div>
 
-      <article id="infoCard" class="card glass">
-        <h2 class="card-title">NiNi — Funny</h2>
-        <p id="infoText" class="card-text">
-          Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.
-        </p>
+      <!-- Khối nội dung home -->
+      <article id="homeContent" class="home-content">
+        <h2>NiNi — Funny</h2>
+        <p>Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
       </article>
     </section>
   </main>
 
-  <!-- ============ AUTH MODAL (glass + overlay mờ) ============ -->
-  <div id="authOverlay" class="overlay hidden" aria-hidden="true">
-    <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <button class="modal-close" id="closeAuth" aria-label="Đóng">✕</button>
+  <!-- ========= AUTH MODAL (kính trong mờ, căn giữa) ========= -->
+  <div id="authModal" class="auth is-hidden" aria-hidden="true" role="dialog" aria-labelledby="authTitle">
+    <div class="auth_card">
+      <button class="auth_close" id="authClose" aria-label="Đóng">✕</button>
 
-      <header class="modal-header">
-        <img class="modal-logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" height="28" />
+      <header class="auth_head">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" class="auth_logo" />
         <h3 id="authTitle">Đăng nhập / Đăng ký</h3>
       </header>
 
-      <div class="modal-body">
-        <p class="muted">Chọn cách vào NiNi:</p>
+      <div class="auth_tabs">
+        <button class="auth_tab is-active" data-auth-tab="signin">Đăng nhập</button>
+        <button class="auth_tab" data-auth-tab="signup">Đăng ký</button>
+      </div>
 
-        <button id="googleSignIn" class="btn primary wide">Đăng nhập với Google</button>
+      <!-- ====== SIGN-IN ====== -->
+      <section class="auth_panel" data-panel="signin">
+        <button id="googleSignIn" class="btn google">Đăng nhập với Google</button>
 
-        <div class="divider"><span>Hoặc</span></div>
+        <div class="divider"><span>hoặc</span></div>
 
-        <button id="toggleEmail" class="btn outline wide">Đăng ký bằng Email</button>
+        <p class="section-caption">Đăng nhập bằng email</p>
 
-        <form id="emailForm" class="stack hidden" autocomplete="off" novalidate>
+        <form id="signinForm" class="form vstack-8" autocomplete="on">
           <label class="field">
             <span>Email</span>
-            <input type="email" id="regEmail" placeholder="you@example.com" required />
+            <input type="email" name="email" placeholder="you@example.com" required />
           </label>
 
-          <div class="row gap">
-            <label class="field flex1">
-              <span>Mã OTP</span>
-              <input type="text" id="regOtp" inputmode="numeric" placeholder="Nhập mã 6 số" />
-            </label>
-            <button id="sendOtp" type="button" class="btn subtle" style="min-width:140px">Gửi mã OTP</button>
+          <label class="field">
+            <span>Mật khẩu</span>
+            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
+          </label>
+
+          <div class="hstack-8 space-between">
+            <button type="submit" class="btn primary">Đăng nhập</button>
+            <button type="button" id="forgotToggle" class="link">Quên mật khẩu?</button>
+          </div>
+        </form>
+
+        <!-- Forgot password (OTP) -->
+        <form id="forgotForm" class="form vstack-8 is-hidden">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+
+          <div class="hstack-8">
+            <button type="button" id="forgotSendOtp" class="btn ghost">Gửi mã OTP</button>
+            <span class="hint" id="forgotOtpHint"></span>
           </div>
 
-          <button id="confirmOtp" type="button" class="btn primary">Xác nhận & tạo tài khoản</button>
+          <label class="field">
+            <span>Mã OTP</span>
+            <input type="text" name="otp" placeholder="Nhập mã 6 số" inputmode="numeric" minlength="6" maxlength="6" />
+          </label>
 
-          <p class="hint">
+          <label class="field">
+            <span>Mật khẩu mới</span>
+            <input type="password" name="newpass" placeholder="Mật khẩu mới" minlength="6" />
+          </label>
+
+          <div class="hstack-8 space-between">
+            <button type="button" id="resetPass" class="btn primary">Đặt lại mật khẩu</button>
+            <button type="button" id="backToSignin" class="link">Quay lại đăng nhập</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- ====== SIGN-UP ====== -->
+      <section class="auth_panel is-hidden" data-panel="signup">
+        <form id="signupForm" class="form vstack-8" autocomplete="on">
+          <label class="field">
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </label>
+
+          <label class="field">
+            <span>Họ & tên (tuỳ chọn)</span>
+            <input type="text" name="fullname" placeholder="Bé Nhím NiNi" />
+          </label>
+
+          <label class="field">
+            <span>Mật khẩu</span>
+            <input type="password" name="password" placeholder="••••••••" minlength="6" required />
+          </label>
+
+          <label class="field">
+            <span>Nhập lại mật khẩu</span>
+            <input type="password" name="repass" placeholder="••••••••" minlength="6" required />
+          </label>
+
+          <div class="hstack-8">
+            <button type="button" id="signupSendOtp" class="btn ghost">Gửi mã OTP</button>
+            <span class="hint" id="signupOtpHint"></span>
+          </div>
+
+          <label class="field">
+            <span>Mã OTP</span>
+            <input type="text" name="otp" placeholder="Nhập mã 6 số" inputmode="numeric" minlength="6" maxlength="6" />
+          </label>
+
+          <button type="submit" class="btn primary">Tạo tài khoản</button>
+
+          <p class="tiny-note">
             Sau khi tạo tài khoản thành công, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.
           </p>
         </form>
-      </div>
+      </section>
+
+      <p id="authToast" class="toast is-hidden" role="status"></p>
     </div>
   </div>
 
-  <!-- (TÙY CHỌN) Hiệu ứng mùa: nếu bạn có file này sẽ tự chạy, không có cũng không lỗi -->
-  <!-- <script src="/public/js/effects.js" defer></script> -->
-
-  <!-- JS nhỏ gọn ngay trong trang để không cần thêm file -->
-  <script>
-    // ====== Season backgrounds ======
-    const SEASONS = {
-      home:  "/public/assets/bg/nini_home.webp",
-      spring:"/public/assets/images/seasons/spring.webp",
-      summer:"/public/assets/images/seasons/summer.webp",
-      autumn:"/public/assets/images/seasons/autumn.webp",
-      winter:"/public/assets/images/seasons/winter.webp",
-    };
-
-    const bg = document.getElementById('bg');
-    const seasonTabs = document.querySelectorAll('.season-tabs .tab');
-
-    function setSeason(s) {
-      const url = SEASONS[s] || SEASONS.home;
-      bg.src = url;
-      seasonTabs.forEach(btn => btn.classList.toggle('is-active', btn.dataset.season === s));
-    }
-    seasonTabs.forEach(btn => btn.addEventListener('click', () => setSeason(btn.dataset.season)));
-
-    // ====== Info tabs ======
-    const INFO = {
-      about: "Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.",
-      rules: "Luật chơi đơn giản: chọn trò, xem hướng dẫn nhanh, chơi và tích điểm. Chơi vui, văn minh và tôn trọng bạn bè.",
-      forum: "Diễn đàn là nơi chia sẻ ảnh/chuyện vui, trao đổi kinh nghiệm. Nội dung thân thiện, phù hợp với thiếu nhi.",
-      feedback: "Bạn có góp ý, ý tưởng mini game mới hoặc báo lỗi? Hãy gửi cho NiNi để cùng làm tốt hơn nhé!",
-    };
-    const infoTabs = document.querySelectorAll('.info-tab');
-    const infoText = document.getElementById('infoText');
-
-    function setInfo(key) {
-      infoText.textContent = INFO[key] || INFO.about;
-      infoTabs.forEach(t => t.classList.toggle('is-active', t.dataset.panel === key));
-    }
-    infoTabs.forEach(t => t.addEventListener('click', () => setInfo(t.dataset.panel)));
-
-    // ====== Auth modal ======
-    const openAuth = document.getElementById('openAuth');
-    const closeAuth = document.getElementById('closeAuth');
-    const authOverlay = document.getElementById('authOverlay');
-    const toggleEmail = document.getElementById('toggleEmail');
-    const emailForm = document.getElementById('emailForm');
-    const sendOtp = document.getElementById('sendOtp');
-    const confirmOtp = document.getElementById('confirmOtp');
-    const googleBtn = document.getElementById('googleSignIn');
-
-    function showAuth(show) {
-      authOverlay.classList.toggle('hidden', !show);
-      authOverlay.setAttribute('aria-hidden', String(!show));
-    }
-    openAuth.addEventListener('click', () => showAuth(true));
-    closeAuth.addEventListener('click', () => showAuth(false));
-    authOverlay.addEventListener('click', (e) => {
-      if (e.target === authOverlay) showAuth(false);
-    });
-
-    toggleEmail.addEventListener('click', () => emailForm.classList.toggle('hidden'));
-
-    // Placeholder các nút — khi triển khai Firebase sẽ thay bằng logic thật:
-    googleBtn.addEventListener('click', () => {
-      alert('Demo: Đăng nhập Google (sẽ nối Firebase sau). Sau khi vào, sẽ nhắc cập nhật hồ sơ.');
-      showAuth(false);
-    });
-    sendOtp.addEventListener('click', () => {
-      alert('Demo: Đã gửi mã OTP (giả lập). Nhập mã vào ô OTP rồi bấm "Xác nhận".');
-    });
-    confirmOtp.addEventListener('click', () => {
-      alert('Demo: Xác nhận OTP thành công. Vui lòng đăng nhập và cập nhật hồ sơ.');
-      showAuth(false);
-    });
-
-    // ====== Logo click: Ctrl+Alt + click để vào /admin/login.html ======
-    document.getElementById('brandLogo').addEventListener('click', (e) => {
-      if (e.ctrlKey && e.altKey) {
-        e.preventDefault();
-        window.location.href = '/admin/login.html';
-      }
-    });
-
-    // Khởi tạo mặc định
-    setSeason('home');
-    setInfo('about');
-  </script>
+  <!-- Scripts -->
+  <script src="/public/js/app.js?v=7" defer></script>
 </body>
 </html>

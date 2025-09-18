@@ -5,40 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon (logo trên thanh địa chỉ) -->
+  <!-- Favicon -->
   <link rel="icon" type="image/webp" href="public/assets/icons/logonini.webp" />
 
   <link rel="preload" as="image" href="public/assets/bg/nini_home.webp" />
-  <link rel="stylesheet" href="styles.css?v=1013" />
-  <script defer src="app.js?v=1013"></script>
+  <link rel="stylesheet" href="styles.css?v=1016" />
+  <!-- LƯU Ý: file phải nằm ở gốc repo (cùng thư mục với index.html) -->
+  <script defer src="app.js?v=1016"></script>
 </head>
 <body class="season-home">
-  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
       <img class="brand__logo" src="public/assets/icons/logo_text.webp" alt="NiNi — Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </div>
 
+    <!-- Dùng anchor + hash để bảo đảm click là thấy thay đổi -->
     <nav class="tabs">
-      <button class="tab is-active" data-season="home">Home</button>
-      <button class="tab" data-season="spring">Spring</button>
-      <button class="tab" data-season="summer">Summer</button>
-      <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab" data-season="winter">Winter</button>
+      <a class="tab is-active" href="#home"   data-season="home">Home</a>
+      <a class="tab"           href="#spring" data-season="spring">Spring</a>
+      <a class="tab"           href="#summer" data-season="summer">Summer</a>
+      <a class="tab"           href="#autumn" data-season="autumn">Autumn</a>
+      <a class="tab"           href="#winter" data-season="winter">Winter</a>
     </nav>
 
     <a class="auth-btn" href="#" id="openAuth">Đăng nhập / Đăng ký</a>
   </header>
 
-  <!-- VIEWPORT 16:9 -->
   <main class="viewport">
     <div class="frame">
-      <!-- hiệu ứng rơi, game… có thể mount vào đây sau -->
       <div class="mascot" aria-hidden="true"></div>
     </div>
 
-    <!-- 4 nút dưới khung -->
     <div class="footer-actions">
       <button class="pill is-active" data-target="about">Giới thiệu</button>
       <button class="pill" data-target="rules">Luật chơi</button>
@@ -46,7 +44,6 @@
       <button class="pill" data-target="feedback">Góp ý</button>
     </div>
 
-    <!-- Panel nội dung -->
     <section class="panel" id="infoPanel">
       <h2 id="infoTitle">NiNi — Funny</h2>
       <p id="infoText">Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>

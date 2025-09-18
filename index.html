@@ -51,33 +51,86 @@
   </main>
 
   <!-- Modal đăng nhập -->
-  <div id="authBackdrop" class="modal-backdrop hidden"></div>
-  <div id="authModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <img src="/public/assets/icons/logonini.webp" alt="" class="modal-logo" />
-      <h3>Đăng nhập / Đăng ký</h3>
-      <button id="authClose" class="icon-btn" aria-label="Đóng">×</button>
-    </div>
-    <div class="modal-body">
+  <!-- Backdrop -->
+<div id="authBackdrop" class="modal-backdrop hidden"></div>
+
+<!-- Modal -->
+<div id="authModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-head">
+    <img src="/public/assets/icons/logonini.webp" alt="" class="modal-logo" />
+    <h3>Đăng nhập / Đăng ký</h3>
+    <button id="authClose" class="icon-btn" aria-label="Đóng">×</button>
+  </div>
+
+  <!-- Tabs trong modal -->
+  <div class="switch">
+    <button class="tab-btn active" data-view="login">Đăng nhập</button>
+    <button class="tab-btn" data-view="signup">Đăng ký</button>
+    <button class="tab-btn" data-view="reset">Quên mật khẩu</button>
+  </div>
+
+  <div class="modal-body">
+    <!-- view: Đăng nhập -->
+    <div class="view view-login">
       <button class="google-btn">Đăng nhập với Google</button>
       <div class="or">hoặc</div>
 
       <label>Email</label>
-      <input id="email" type="email" placeholder="you@example.com" />
+      <input id="email_login" type="email" placeholder="you@example.com" />
 
       <label>Mật khẩu</label>
-      <input id="password" type="password" placeholder="••••••••" />
+      <input id="password_login" type="password" placeholder="••••••••" />
 
       <div class="row">
         <button class="primary">Đăng nhập</button>
-        <button class="ghost" id="toReset">Quên mật khẩu</button>
-        <button class="ghost">Đăng ký mới</button>
+      </div>
+    </div>
+
+    <!-- view: Đăng ký -->
+    <div class="view view-signup hidden">
+      <label>Email</label>
+      <input id="email_signup" type="email" placeholder="you@example.com" />
+
+      <div class="row">
+        <button class="ghost" id="sendOtpSignup">Gửi mã OTP</button>
+      </div>
+
+      <label>Mã OTP</label>
+      <input id="otp_signup" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
+
+      <div class="row">
+        <button class="primary">Xác nhận & tạo tài khoản</button>
+      </div>
+
+      <p class="hint">Sau khi tạo tài khoản thành công, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
+    </div>
+
+    <!-- view: Quên mật khẩu -->
+    <div class="view view-reset hidden">
+      <label>Email</label>
+      <input id="email_reset" type="email" placeholder="you@example.com" />
+
+      <div class="row">
+        <button class="ghost" id="sendOtpReset">Gửi mã OTP</button>
+      </div>
+
+      <label>Mã OTP</label>
+      <input id="otp_reset" type="text" inputmode="numeric" placeholder="Nhập mã 6 số" />
+
+      <label>Mật khẩu mới</label>
+      <input id="password_new" type="password" placeholder="••••••••" />
+
+      <div class="row">
+        <button class="primary">Đặt lại mật khẩu</button>
       </div>
     </div>
   </div>
+</div>
+
 
   <!-- Nạp JS: ĐƯỜNG DẪN NÀY PHẢI TỒN TẠI -->
   <script defer src="/public/js/app.js?v=10"
           onerror="alert('Không tải được /public/js/app.js – kiểm tra đường dẫn & Netlify publish directory!')"></script>
 </body>
 </html>
+

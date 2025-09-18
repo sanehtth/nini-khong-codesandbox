@@ -63,4 +63,32 @@
       }
     })
     .catch(()=>{});
+    // ===== Modal logic =====
+  const modal = document.getElementById('authModal');
+  const backdrop = document.getElementById('authBackdrop');
+  const closeBtn = document.getElementById('authClose');
+  const openBtn  = document.getElementById('authBtn');
+
+  function openAuth(){ backdrop.classList.remove('hidden'); modal.classList.remove('hidden'); }
+  function closeAuth(){ backdrop.classList.add('hidden'); modal.classList.add('hidden'); }
+
+  if (openBtn)  openBtn.addEventListener('click', openAuth);
+  if (closeBtn) closeBtn.addEventListener('click', closeAuth);
+  if (backdrop) backdrop.addEventListener('click', closeAuth);
+
+  // Chuyển view: login / signup / reset
+  function showView(name){
+    modal.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    modal.querySelector(`.view-${name}`).classList.remove('hidden');
+    modal.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.view === name);
+    });
+  }
+  // mặc định mở đăng nhập
+  showView('login');
+
+  modal.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => showView(btn.dataset.view));
+  });
 })();
+

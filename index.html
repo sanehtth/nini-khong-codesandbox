@@ -9,7 +9,7 @@
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="/styles.css?v=5" />
+  <link rel="stylesheet" href="/styles.css?v=6" />
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -27,7 +27,8 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <a class="auth-btn" href="/admin/login.html" rel="nofollow">Đăng nhập / Đăng ký</a>
+    <!-- Nút đăng nhập/đăng xuất sẽ được JS cập nhật -->
+    <a class="auth-btn" id="authEntry" href="javascript:void(0)">Đăng nhập / Đăng ký</a>
   </header>
 
   <!-- ========== VIEWPORT / KHUNG 16:9 ========== -->
@@ -36,7 +37,7 @@
       <!-- Ảnh nền chính 16:9 — Home -->
       <img id="scene" class="scene" src="/public/assets/bg/nini_home.webp" alt="NiNi — Home" />
       <!-- Bé nhím -->
-      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
+      <img class="nini" src="/public/assets/images/nini.webp" alt="NiNi" />
       <!-- 4 nút dưới -->
       <div class="pill-nav" role="tablist" aria-label="Mục thông tin">
         <button class="pill is-active" data-panel="about" role="tab" aria-selected="true">Giới thiệu</button>
@@ -55,11 +56,75 @@
     </section>
   </main>
 
+  <!-- ========== AUTH MODAL ========== -->
+  <div class="modal" id="authModal" aria-hidden="true">
+    <div class="modal__scrim" data-close="1"></div>
+    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <div class="modal__head">
+        <h3 id="authTitle">Đăng nhập / Đăng ký</h3>
+        <button class="modal__close" data-close="1" aria-label="Đóng">✕</button>
+      </div>
+
+      <!-- state: choose | email1 | email2 | remind -->
+      <div class="modal__body" id="authBody">
+
+        <!-- CHỌN CÁCH -->
+        <section class="auth-choose" data-state="choose">
+          <p class="muted">Chọn cách vào NiNi:</p>
+          <div class="stack">
+            <button class="btn btn-google" id="btnGoogle">
+              <span>Đăng nhập với Google</span>
+            </button>
+
+            <div class="split">
+              <span class="muted">Hoặc</span>
+            </div>
+
+            <button class="btn" id="btnEmail">Đăng ký bằng Email</button>
+          </div>
+        </section>
+
+        <!-- EMAIL BƯỚC 1: nhập email, gửi OTP -->
+        <section class="auth-email" data-state="email1" hidden>
+          <label class="fld">
+            <span>Email</span>
+            <input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email" />
+          </label>
+          <button class="btn" id="btnSendOtp">Gửi mã OTP</button>
+          <button class="link" data-back="choose">← Quay lại</button>
+          <p class="tiny muted">* OTP demo sẽ hiển thị ngay trên màn hình (bản thật sẽ gửi email).</p>
+          <div class="note" id="otpNote" hidden></div>
+        </section>
+
+        <!-- EMAIL BƯỚC 2: xác nhận OTP -->
+        <section class="auth-verify" data-state="email2" hidden>
+          <label class="fld">
+            <span>Mã OTP (6 số)</span>
+            <input type="text" id="otpInput" inputmode="numeric" maxlength="6" placeholder="xxxxxx" />
+          </label>
+          <button class="btn" id="btnVerifyOtp">Xác nhận</button>
+          <button class="link" data-back="email1">← Nhập lại email</button>
+          <div class="note" id="otpHint" hidden></div>
+        </section>
+
+        <!-- NHẮC NHỞ cập nhật thông tin -->
+        <section class="auth-remind" data-state="remind" hidden>
+          <h4>Đăng nhập thành công 🎉</h4>
+          <p class="muted">Hãy <strong>cập nhật thông tin cá nhân</strong> để bảo vệ và giữ tài khoản của bạn.</p>
+          <div class="row">
+            <a class="btn" href="/profile.html">Cập nhật ngay</a>
+            <button class="btn btn-ghost" data-close="1">Để sau</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ========== SCRIPTS ========== -->
-  <script defer src="/public/js/app.js?v=5"></script>
-  <!-- Chưa bật hiệu ứng để tránh rối; sau khi ổn thì thêm lại:
-  <script defer src="/public/js/effects.js?v=5"></script>
+  <script defer src="/public/js/app.js?v=6"></script>
+  <!-- Khi mọi thứ ổn sẽ bật lại hiệu ứng:
+  <script defer src="/public/js/effects.js?v=6"></script>
   -->
 </body>
 </html>
-

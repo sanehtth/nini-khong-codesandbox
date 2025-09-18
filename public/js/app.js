@@ -1,226 +1,225 @@
-// ====== NiNi — base app (no effects) + Auth UI mock ======
-(() => {
-  // Ảnh nền cho từng chế độ
-  const BG = {
-    home:  "/public/assets/bg/nini_home.webp",
-    spring:"/public/assets/images/seasons/spring.webp",
-    summer:"/public/assets/images/seasons/summer.webp",
-    autumn:"/public/assets/images/seasons/autumn.webp",
-    winter:"/public/assets/images/seasons/winter.webp",
-  };
+/* ========================
+   NiNi — Funny (UI only)
+   - Đổi mùa (tabs)
+   - Modal Auth: Đăng nhập (Google | Email & Mật khẩu), Quên MK (OTP), Đăng ký (OTP)
+   - Lưu demo người dùng trong localStorage (KHÔNG backend)
+======================== */
 
-  // DOM
-  const scene     = document.getElementById("scene");
-  const tabWrap   = document.getElementById("seasonTabs");
-  const panelEl   = document.getElementById("infoPanel");
-  const pillWrap  = document.querySelector(".pill-nav");
+const SEASON_BG = {
+  home:  "/public/assets/images/seasons/home.webp",
+  spring:"/public/assets/images/seasons/spring.webp",
+  summer:"/public/assets/images/seasons/summer.webp",
+  autumn:"/public/assets/images/seasons/autumn.webp",
+  winter:"/public/assets/images/seasons/winter.webp",
+};
 
-  // Auth DOM
-  const authBtn   = document.getElementById("authEntry");
-  const modal     = document.getElementById("authModal");
-  const bodyWrap  = document.getElementById("authBody");
+const $ = (sel, parent=document) => parent.querySelector(sel);
+const $$ = (sel, parent=document) => [...parent.querySelectorAll(sel)];
 
-  // States
-  let season = "home";
-  let panel  = "about";
+const bgImg = $("#bgImg");
+const tabs = $$(".tab");
+const chips = $$(".chip");
 
-  // ---------- SEASONS ----------
-  function setSeason(next) {
-    if (!BG[next]) next = "home";
-    season = next;
-    scene.src = BG[season];
+/* ===== ĐỔI MÙA / HOME ===== */
+tabs.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    tabs.forEach(t=>t.classList.remove("is-active"));
+    btn.classList.add("is-active");
 
-    for (const btn of tabWrap.querySelectorAll(".tab")) {
-      btn.classList.toggle("is-active", btn.dataset.season === season);
-    }
-  }
+    const season = btn.dataset.season;
+    const src = SEASON_BG[season] || SEASON_BG.home;
+    bgImg.src = src;
 
-  tabWrap.addEventListener("click", (e) => {
-    const btn = e.target.closest(".tab");
-    if (!btn) return;
-    setSeason(btn.dataset.season);
+    // Khi ở tab khác "home", ẩn chút nội dung home
+    const homeContent = $("#homeContent");
+    homeContent.style.display = (season === "home" ? "block" : "none");
   });
+});
 
-  // ---------- INFO PANELS ----------
-  function setPanel(next) {
-    panel = next;
-    for (const p of pillWrap.querySelectorAll(".pill")) {
-      p.classList.toggle("is-active", p.dataset.panel === panel);
-    }
-    switch (panel) {
-      case "about":
-        panelEl.innerHTML = `
-          <h2 class="panel-title">NiNi — Funny</h2>
-          <p class="panel-text">Thế giới mini game cho bé: khám phá, học hỏi và vui cùng NiNi.</p>
-        `;
-        break;
-      case "rules":
-        panelEl.innerHTML = `
-          <h2 class="panel-title">Luật chơi</h2>
-          <p class="panel-text">Các luật đơn giản, minh hoạ rõ ràng. Điểm thưởng tích luỹ theo nhiệm vụ.</p>
-        `;
-        break;
-      case "forum":
-        panelEl.innerHTML = `
-          <h2 class="panel-title">Diễn đàn</h2>
-          <p class="panel-text">Nơi trao đổi mẹo, chia sẻ kết quả và thảo luận cùng bạn bè/PH.</p>
-        `;
-        break;
-      case "feedback":
-        panelEl.innerHTML = `
-          <h2 class="panel-title">Góp ý</h2>
-          <p class="panel-text">Hãy gửi góp ý để mình tối ưu thêm trải nghiệm nhé!</p>
-        `;
-        break;
-    }
-  }
-
-  pillWrap.addEventListener("click", (e) => {
-    const btn = e.target.closest(".pill");
-    if (!btn) return;
-    setPanel(btn.dataset.panel);
+/* ===== 4 chip trong khung ===== */
+chips.forEach(c=>{
+  c.addEventListener("click", ()=>{
+    chips.forEach(x=>x.classList.remove("is-active"));
+    c.classList.add("is-active");
+    // tuỳ bạn map nội dung theo chip ở đây…
   });
+});
 
-  // Init base UI
-  setSeason("home");
-  setPanel("about");
+/* ===== MODAL AUTH ===== */
+const authOpen = $("#authOpen");
+const authModal = $("#authModal");
+const authClose = $("#authClose");
+const toast = $("#authToast");
 
-  // =========================================================
-  //                AUTH UI (mock, chưa nối API)
-  // =========================================================
-  const LS_KEY = "nini_auth";   // {provider, email?, time}
-  const OTP_KEY = "nini_otp";   // {email, code, exp}
+authOpen.addEventListener("click", openAuth);
+authClose.addEventListener("click", closeAuth);
+authModal.addEventListener("click", (e)=>{ if(e.target === authModal) closeAuth(); });
 
-  function getAuth() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || "null"); }
-    catch { return null; }
-  }
-  function setAuth(data) { localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-  function clearAuth() { localStorage.removeItem(LS_KEY); }
+function openAuth(){
+  authModal.classList.remove("is-hidden");
+  authModal.setAttribute("aria-hidden","false");
+}
+function closeAuth(){
+  authModal.classList.add("is-hidden");
+  authModal.setAttribute("aria-hidden","true");
+}
 
-  function updateAuthEntry() {
-    const a = getAuth();
-    if (a) {
-      authBtn.textContent = a.email ? `Xin chào, ${a.email}` : "Tài khoản Google";
-      authBtn.title = "Nhấn để đăng xuất";
-      authBtn.dataset.mode = "logout";
-    } else {
-      authBtn.textContent = "Đăng nhập / Đăng ký";
-      authBtn.title = "";
-      authBtn.dataset.mode = "login";
-    }
-  }
-
-  // Modal helpers
-  function openModal(state = "choose") {
-    modal.classList.add("show");
-    modal.setAttribute("open", "");
-    setModalState(state);
-    modal.setAttribute("aria-hidden", "false");
-  }
-  function closeModal() {
-    modal.classList.remove("show");
-    modal.removeAttribute("open");
-    modal.setAttribute("aria-hidden", "true");
-  }
-  function setModalState(state) {
-    // ẩn/hiện các section theo data-state
-    bodyWrap.querySelectorAll("[data-state]").forEach(sec => {
-      sec.classList.toggle("is-current", sec.dataset.state === state);
-      sec.hidden = sec.dataset.state !== state;
+/* Tabs trong modal */
+const authTabs = $$(".auth_tab");
+authTabs.forEach(t=>{
+  t.addEventListener("click", ()=>{
+    authTabs.forEach(x=>x.classList.remove("is-active"));
+    t.classList.add("is-active");
+    const name = t.dataset.authTab;
+    $$(".auth_panel").forEach(p=>{
+      p.classList.toggle("is-hidden", p.dataset.panel !== name);
     });
-  }
-
-  // Click ngoài / nút đóng
-  modal.addEventListener("click", (e) => {
-    if (e.target.closest("[data-close]")) closeModal();
-    if (e.target.dataset.back) setModalState(e.target.dataset.back);
   });
+});
 
-  // Entry click: login hoặc logout
-  authBtn.addEventListener("click", () => {
-    if (authBtn.dataset.mode === "logout") {
-      clearAuth();
-      updateAuthEntry();
-      // tuỳ chọn: thông báo nhỏ
-      alert("Đã đăng xuất.");
-      return;
-    }
-    openModal("choose");
-  });
+/* ===== ĐĂNG NHẬP (GOOGLE) – demo ===== */
+$("#googleSignIn").addEventListener("click", ()=>{
+  // Demo: giả lập Google login thành công
+  localStorage.setItem("nini_current_user", JSON.stringify({
+    email:"google_user@example.com", name:"NiNi Google", provider:"google", t:Date.now()
+  }));
+  showToast("Đăng nhập Google thành công. Hãy cập nhật hồ sơ để bảo vệ tài khoản.");
+  setTimeout(closeAuth, 1200);
+});
 
-  // ========== Google login (giả lập) ==========
-  const btnGoogle = document.getElementById("btnGoogle");
-  btnGoogle?.addEventListener("click", async () => {
-    // TODO: sau này thay bằng OAuth thật (Firebase/Google Identity Services)
-    // Demo: giả lập thành công
-    await wait(600);
-    setAuth({ provider: "google", time: Date.now() });
-    updateAuthEntry();
-    setModalState("remind");
-  });
+/* ===== STORE DEMO (localStorage) ===== */
+function getUsers(){
+  try{ return JSON.parse(localStorage.getItem("nini_users")||"{}"); }catch(_){ return {}; }
+}
+function setUsers(obj){
+  localStorage.setItem("nini_users", JSON.stringify(obj));
+}
 
-  // ========== Email register + OTP (giả lập) ==========
-  const btnEmail = document.getElementById("btnEmail");
-  const inpEmail = document.getElementById("regEmail");
-  const otpNote  = document.getElementById("otpNote");
-  const otpHint  = document.getElementById("otpHint");
-  const btnSend  = document.getElementById("btnSendOtp");
-  const inpOtp   = document.getElementById("otpInput");
-  const btnVerify= document.getElementById("btnVerifyOtp");
+/* ===== ĐĂNG NHẬP EMAIL & MẬT KHẨU ===== */
+$("#signinForm").addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.currentTarget);
+  const email = (fd.get("email")||"").trim().toLowerCase();
+  const pass  = (fd.get("password")||"").trim();
 
-  btnEmail?.addEventListener("click", () => {
-    inpEmail.value = "";
-    otpNote.hidden = true;
-    setModalState("email1");
-  });
+  const users = getUsers();
+  const u = users[email];
+  if(!u) return showToast("Email chưa tồn tại. Vui lòng đăng ký.", true);
+  if(u.password !== pass) return showToast("Mật khẩu chưa đúng.", true);
 
-  btnSend?.addEventListener("click", () => {
-    const email = (inpEmail.value || "").trim();
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      alert("Email chưa hợp lệ.");
-      return;
-    }
-    // tạo OTP 6 số & "gửi"
-    const code = ("" + Math.floor(100000 + Math.random() * 900000));
-    const exp  = Date.now() + 5*60*1000; // 5 phút
-    localStorage.setItem(OTP_KEY, JSON.stringify({ email, code, exp }));
+  localStorage.setItem("nini_current_user", JSON.stringify({email, name:u.fullname||"", provider:"password", t:Date.now()}));
+  showToast("Đăng nhập thành công. Hãy cập nhật hồ sơ để bảo vệ tài khoản.");
+  setTimeout(closeAuth, 1200);
+});
 
-    otpNote.hidden = false;
-    otpNote.textContent = `Đã gửi OTP tới ${email}. (DEMO: mã là ${code})`;
-    // chuyển qua bước nhập OTP
-    setTimeout(() => setModalState("email2"), 600);
-  });
+/* ===== QUÊN MẬT KHẨU (OTP) ===== */
+const forgotToggle = $("#forgotToggle");
+const forgotForm = $("#forgotForm");
+const signinForm = $("#signinForm");
+const backToSignin = $("#backToSignin");
+const forgotSendOtp = $("#forgotSendOtp");
+const forgotOtpHint = $("#forgotOtpHint");
 
-  btnVerify?.addEventListener("click", () => {
-    const rec = readOtp();
-    if (!rec) { alert("OTP đã hết hạn hoặc chưa gửi."); return; }
-    const code = (inpOtp.value || "").trim();
-    if (code.length !== 6) { alert("Vui lòng nhập đủ 6 số OTP."); return; }
-    if (code !== rec.code) { alert("Mã OTP chưa đúng."); return; }
+forgotToggle.addEventListener("click", ()=>{
+  signinForm.classList.add("is-hidden");
+  forgotForm.classList.remove("is-hidden");
+});
 
-    // thành công
-    localStorage.removeItem(OTP_KEY);
-    setAuth({ provider: "email", email: rec.email, time: Date.now() });
-    updateAuthEntry();
-    inpOtp.value = "";
-    otpHint.hidden = false;
-    otpHint.textContent = `Đã xác thực ${rec.email}`;
-    setModalState("remind");
-  });
+backToSignin.addEventListener("click", ()=>{
+  forgotForm.classList.add("is-hidden");
+  signinForm.classList.remove("is-hidden");
+  forgotOtpHint.textContent = "";
+});
 
-  function readOtp() {
-    try {
-      const o = JSON.parse(localStorage.getItem(OTP_KEY) || "null");
-      if (!o) return null;
-      if (Date.now() > o.exp) { localStorage.removeItem(OTP_KEY); return null; }
-      return o;
-    } catch { return null; }
-  }
+forgotSendOtp.addEventListener("click", ()=>{
+  const email = forgotForm.email.value.trim().toLowerCase();
+  if(!email) return showToast("Nhập email để nhận OTP.", true);
 
-  // Utilities
-  function wait(ms){ return new Promise(r => setTimeout(r, ms)); }
+  // Demo: phát OTP ngẫu nhiên và lưu tạm
+  const otp = makeOtp();
+  const users = getUsers();
+  users.__otp = { email, otp, ts: Date.now() };
+  setUsers(users);
 
-  // Boot auth UI
-  updateAuthEntry();
-})();
+  forgotOtpHint.textContent = `Đã gửi OTP (demo): ${otp}`;
+  showToast("Đã gửi OTP đến email (demo).", false);
+});
+
+$("#resetPass").addEventListener("click", ()=>{
+  const email = forgotForm.email.value.trim().toLowerCase();
+  const otp = (forgotForm.otp.value||"").trim();
+  const newpass = (forgotForm.newpass.value||"").trim();
+
+  const users = getUsers();
+  const meta = users.__otp;
+
+  if(!meta || meta.email !== email || meta.otp !== otp) return showToast("OTP chưa đúng.", true);
+  if(newpass.length < 6) return showToast("Mật khẩu mới tối thiểu 6 ký tự.", true);
+
+  if(!users[email]) users[email] = { password:newpass, createdAt:Date.now() };
+  else users[email].password = newpass;
+
+  delete users.__otp;
+  setUsers(users);
+
+  showToast("Đặt lại mật khẩu thành công. Hãy đăng nhập lại.");
+  setTimeout(()=>{
+    backToSignin.click();
+  }, 700);
+});
+
+/* ===== ĐĂNG KÝ (OTP) ===== */
+const signupForm = $("#signupForm");
+const signupSendOtp = $("#signupSendOtp");
+const signupOtpHint = $("#signupOtpHint");
+
+signupSendOtp.addEventListener("click", ()=>{
+  const email = signupForm.email.value.trim().toLowerCase();
+  if(!email) return showToast("Nhập email để nhận OTP.", true);
+
+  const otp = makeOtp();
+  const users = getUsers();
+  users.__otp = { email, otp, ts:Date.now(), type:"signup" };
+  setUsers(users);
+
+  signupOtpHint.textContent = `Đã gửi OTP (demo): ${otp}`;
+  showToast("Đã gửi OTP đến email (demo).");
+});
+
+signupForm.addEventListener("submit", (e)=>{
+  e.preventDefault();
+  const fd = new FormData(signupForm);
+  const email = (fd.get("email")||"").trim().toLowerCase();
+  const fullname = (fd.get("fullname")||"").trim();
+  const pass = (fd.get("password")||"").trim();
+  const repass = (fd.get("repass")||"").trim();
+  const otp = (fd.get("otp")||"").trim();
+
+  if(pass.length < 6) return showToast("Mật khẩu tối thiểu 6 ký tự.", true);
+  if(pass !== repass) return showToast("Mật khẩu nhập lại chưa trùng.", true);
+
+  const users = getUsers();
+  const meta = users.__otp;
+
+  if(!meta || meta.email !== email || meta.otp !== otp) return showToast("OTP chưa đúng.", true);
+  if(users[email]) return showToast("Email đã tồn tại, vui lòng đăng nhập.", true);
+
+  users[email] = { password:pass, fullname, createdAt:Date.now() };
+  delete users.__otp;
+  setUsers(users);
+
+  showToast("Tạo tài khoản thành công. Hãy đăng nhập và cập nhật hồ sơ.");
+  // chuyển sang tab “Đăng nhập”
+  const tabSignin = $(`[data-auth-tab="signin"]`);
+  tabSignin.click();
+});
+
+/* ===== Helpers ===== */
+function showToast(msg, isErr=false){
+  toast.textContent = msg;
+  toast.classList.remove("is-hidden");
+  toast.style.background = isErr ? "rgba(181,40,57,.55)" : "rgba(0,0,0,.45)";
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toast.classList.add("is-hidden"), 3000);
+}
+function makeOtp(){ return (""+Math.floor(100000 + Math.random()*900000)); }

@@ -1,116 +1,196 @@
-/* ===== Modal overlay (full màn) ===== */
-.modal {
-  position: fixed;
-  inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
-  display: flex;
-  align-items: center;      /* canh giữa dọc */
-  justify-content: center;  /* canh giữa ngang */
-  z-index: 1000;
+/* ============ Reset & màu chung ============ */
+:root{
+  --bg: #0b141a;             /* nền tối bên ngoài */
+  --text: #fff;              /* chữ trắng */
+  --muted: rgba(255,255,255,.7);
 
-  /* nền mờ toàn màn */
-  background: rgba(0,0,0,0.35);
+  --accent-yellow: #ffd166;  /* vàng khi hover/focus */
+  --accent-green: #8ed081;   /* xanh lá cho link hover */
+
+  /* ảnh nền cho frame/home */
+  --bg-url: url("public/assets/bg/nini_home.webp");
+}
+
+/* ============ Body ============ */
+html,body{height:100%}
+body{
+  margin:0;
+  background: radial-gradient(1200px at 50% 200px, rgba(26,50,30,.6), var(--bg) 60%, #09121a 100%) fixed;
+  color: var(--text);
+  font: 400 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* ============ Header ============ */
+.site-header{
+  position: sticky; top:0; z-index:20;
+  display:flex; align-items:center; gap:24px;
+  padding:12px 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
+}
+
+.brand{ display:flex; flex-direction:column; gap:2px; }
+.brand__logo{ height:48px; object-fit:contain; }
+.brand__slogan{ font-size:12px; letter-spacing:.3px; color:var(--muted); }
+
+.tabs{ display:flex; gap:8px; margin-left:auto; margin-right:8px; }
+.tab{
+  color:#fff; background:transparent; border:1px solid rgba(255,255,255,.25);
+  border-radius:999px; padding:8px 12px; cursor:pointer;
+}
+.tab:hover{ color:var(--accent-yellow); border-color:var(--accent-yellow); }
+.tab.is-active{ border-color:var(--accent-yellow); text-decoration:underline; text-underline-offset:4px; }
+
+.auth-btn{
+  color:#fff; background:transparent; border:1px solid rgba(255,255,255,.35);
+  border-radius:999px; padding:8px 12px; cursor:pointer;
+}
+.auth-btn:hover{ color:var(--accent-yellow); border-color:var(--accent-yellow); }
+
+/* ============ Viewport 16:9 ============ */
+.viewport{
+  min-height: calc(100dvh - 80px);
+  display:grid; place-items:start center;
+}
+
+.frame{
+  width:min(1100px, 92vw);
+  aspect-ratio: 16 / 9;
+  margin-top:24px;
+  border-radius:20px;
+  overflow:hidden;
+
+  /* nền 16:9 là nini_home (hoặc sẽ thay bằng mùa) */
+  background-image: var(--bg-url);
+  background-position:center;
+  background-size:cover;
+  box-shadow: 0 40px 120px rgba(0,0,0,.55);
+  position:relative;
+}
+
+/* Bé nhím ở giữa dưới */
+.nini{
+  position:absolute; left:50%; bottom:80px; transform:translateX(-50%);
+  width:min(160px, 28%);
+  user-select:none; pointer-events:none;
+}
+
+/* 4 nút */
+.footer-actions{
+  position:absolute; left:50%; bottom:24px; transform:translateX(-50%);
+  display:flex; gap:14px;
+}
+.pill{
+  background:transparent; color:#fff;
+  border:1px solid rgba(255,255,255,.65); border-radius:999px;
+  padding:8px 16px; cursor:pointer;
+}
+.pill:hover{ color:var(--accent-yellow); border-color:var(--accent-yellow); }
+.pill.is-active{ text-decoration:underline; text-underline-offset:5px; }
+
+/* Khối text dưới */
+.panel{
+  width:min(1100px, 92vw);
+  margin: 24px auto 60px;
+  padding: 18px 20px;
+  border-radius:16px;
+  background: rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(8px);
+}
+.panel h2{ margin: 8px 0 6px; }
+.panel p{ margin: 0; color: var(--muted); }
+
+/* =================== MODAL CENTER =================== */
+.modal{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  background: rgba(0,0,0,.35);
   backdrop-filter: blur(4px);
-
-  /* ẩn khi chưa mở */
-  opacity: 0;
-  pointer-events: none;
+  z-index:1000;
+  opacity:0; pointer-events:none;
   transition: opacity .25s ease;
 }
+.modal.is-open{ opacity:1; pointer-events:auto; }
+body.modal-open{ overflow:hidden; }
 
-/* mở modal bằng cách thêm class .is-open */
-.modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* ===== Panel (hộp form) ở giữa ===== */
-.modal__panel {
+.modal__panel{
   width: min(640px, 92vw);
   max-height: min(88vh, 680px);
-  overflow: auto;
+  overflow: hidden auto;
 
-  /* kính mờ + bo viền nhẹ */
-  background: rgba(18, 22, 26, 0.72);
+  color:#fff;
+  background: rgba(18,22,26,.72);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:16px;
+  padding:24px 20px 22px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.5);
+  position:relative;
+}
+.modal__close{
+  position:absolute; top:10px; right:12px;
+  background:transparent; color:#fff;
+  border:1px solid rgba(255,255,255,.3); border-radius:999px;
+  padding:2px 8px; font-size:22px; cursor:pointer;
+}
+.modal__close:hover{ background: rgba(255,255,255,.1); }
 
-  padding: 28px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-  color: #fff;
+.modal__title{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.modal__title img{ height:36px; width:auto; }
+
+.modal__tabs{ display:flex; gap:8px; margin: 10px 0 14px; }
+.modal__tab{
+  background:transparent; color:#fff;
+  border:1px solid rgba(255,255,255,.35); border-radius:999px;
+  padding:6px 12px; cursor:pointer;
+}
+.modal__tab:hover{ color:var(--accent-yellow); border-color:var(--accent-yellow); }
+.modal__tab.is-active{ text-decoration: underline; text-underline-offset:4px; border-color:var(--accent-yellow); }
+
+.auth-pane{ display:none; }
+.auth-pane.is-active{ display:block; }
+
+label{ display:block; margin:14px 0 6px; color:#fff; }
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="number"]{
+  width:100%; background:transparent; color:#fff;
+  border:0; border-bottom:1px solid rgba(255,255,255,.7);
+  padding:10px 2px 8px; outline:none;
+}
+input::placeholder{ color: rgba(255,255,255,.6); }
+input:focus{ border-bottom-color:var(--accent-yellow); box-shadow: 0 2px 0 0 var(--accent-yellow) inset; }
+
+.btn{
+  background:transparent; color:#fff;
+  border:1px solid rgba(255,255,255,.7); border-radius:999px;
+  padding:8px 14px; cursor:pointer;
+}
+.btn:hover{ color: var(--accent-yellow); border-color: var(--accent-yellow); }
+
+.btn.google{
+  display:inline-block;
+  margin: 4px 0 10px;
 }
 
-/* nút đóng */
-.modal__close {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 24px;
-  line-height: 1;
-  padding: 2px 8px;
-  color: #fff;
-  background: transparent;
-  border: 1px solid rgba(255,255,255,.3);
-  border-radius: 999px;
-  cursor: pointer;
+.row{ display:flex; gap:10px; align-items:center; }
+.inline-link{ color:#fff; text-decoration:none; border-bottom:1px dotted rgba(255,255,255,.5); cursor:pointer; }
+.inline-link:hover{ color: var(--accent-green); border-bottom-color: var(--accent-green); }
+
+.note{ color: var(--muted); margin: 10px 0 0; font-size: 14px; }
+
+.divider{
+  display:flex; align-items:center; gap:6px; margin: 8px 0 8px;
+  color: rgba(255,255,255,.65);
+}
+.divider::before,.divider::after{
+  content:""; flex:1 1 auto; height:1px; background: rgba(255,255,255,.25);
 }
 
-.modal__close:hover {
-  background: rgba(255,255,255,.1);
-}
-
-/* Khóa scroll nền khi mở modal */
-body.modal-open { overflow: hidden; }
-
-/* ===== Phong cách input & button theo style của bạn ===== */
-
-/* input: gạch chân trắng, chữ trắng */
-.modal__panel input[type="email"],
-.modal__panel input[type="password"],
-.modal__panel input[type="text"],
-.modal__panel input[type="number"] {
-  width: 100%;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.7);
-  color: #fff;
-  padding: 10px 2px 8px;
-  outline: none;
-}
-
-.modal__panel input::placeholder { color: rgba(255,255,255,.6); }
-
-.modal__panel input:focus {
-  border-bottom-color: #ffd166;          /* vàng khi focus */
-  box-shadow: 0 2px 0 0 #ffd166 inset;
-}
-
-/* button viền trắng, không fill; hover chuyển màu chữ/viền vàng */
-.btn,
-.modal__panel button,
-.modal__panel .btn {
-  background: transparent;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,.7);
-  border-radius: 999px;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-
-.btn:hover,
-.modal__panel button:hover,
-.modal__panel .btn:hover {
-  color: #ffd166;
-  border-color: #ffd166;
-}
-
-/* link dưới ô (Quên mật khẩu, Đăng ký mới…) */
-.modal__panel a {
-  color: #fff;
-  text-decoration: none;
-  border-bottom: 1px dotted rgba(255,255,255,.5);
-}
-.modal__panel a:hover {
-  color: #8ed081;                           /* xanh lá nhẹ */
-  border-bottom-color: #8ed081;
-}
+/* ===== Đổi nền theo mùa (nếu muốn) — chỉ cần đổi biến --bg-url trên body ===== */
+body.season-home  { --bg-url: url("public/assets/bg/nini_home.webp"); }
+body.season-spring{ --bg-url: url("public/assets/images/seasons/spring.webp"); }
+body.season-summer{ --bg-url: url("public/assets/images/seasons/summer.webp"); }
+body.season-autumn{ --bg-url: url("public/assets/images/seasons/autumn.webp"); }
+body.season-winter{ --bg-url: url("public/assets/images/seasons/winter.webp"); }

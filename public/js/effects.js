@@ -19,6 +19,7 @@
   frame.appendChild(canvas);
 
   let W=0,H=0,dpr=1; let particles=[]; let iconImg = new Image(), iconReady=false;
+  let currentSeason = "home";
 
   function resize(){
     const rect = frame.getBoundingClientRect();
@@ -37,11 +38,23 @@
     iconImg.src = url;
   }
 
-  function setSeasonIcon(){
-    const s = (location.hash || "").replace(/^#\/?/, "") || "home";
-    const url = icons[s] || "";
-    if (url) loadIcon(url);
+  function setSeasonIcon() {
+  const s = (location.hash || "").replace(/^#\/?/, "") || "home";
+  currentSeason = s;
+
+  const url = icons[s];
+  if (url) {
+    // có mùa -> bật icon
+    loadIcon(url);
+    iconReady = true;
+  } else {
+    // home -> tắt hoàn toàn
+    iconReady = false;
+    particles = [];
+    ctx.clearRect(0, 0, W, H);
   }
+}
+
 addEventListener("hashchange", setSeasonIcon);
 
   function buildParticles(){
@@ -82,6 +95,7 @@ addEventListener("hashchange", () => {
   }
   step();
 })();
+
 
 
 

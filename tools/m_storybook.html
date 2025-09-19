@@ -1,204 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Create Story — Full Editor (VN/EN/Image)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{--bg:#f7f7fb;--card:#fff;--ink:#1f1f1f;--muted:#667085;--line:#e6e8ec;--brand:#22a06b;}
-  *{box-sizing:border-box}
-  body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;padding:24px;background:var(--bg);color:var(--ink)}
-  h2{margin:0 0 16px 0}
-  .grid{display:grid;grid-template-columns:1fr 1.3fr;gap:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(16,24,40,.04)}
-  label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin:8px 0 6px}
-  input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
-  textarea{width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;resize:vertical}
-  .row{display:flex;gap:8px;flex-wrap:wrap}
-  button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;cursor:pointer}
-  .btn{background:var(--brand);color:#fff;border-color:var(--brand)}
-  .danger{background:#fff;color:#b42318;border-color:#f3d2cf}
-  .page{border:1px dashed var(--line);border-radius:12px;padding:12px;margin:12px 0;background:#fff}
-  .imgPrev{width:100%;height:180px;border:1px solid var(--line);border-radius:10px;object-fit:cover;background:#fafafa}
-  .tools{display:flex;gap:8px;justify-content:flex-end}
-  .muted{color:var(--muted);font-size:12px}
-</style>
-</head>
-<body>
-  <h2>Create Story — Cover + Designer</h2>
-  <div class="grid">
-    <div class="card">
-      <label>Title</label><input id="title" type="text" />
-      <label>Author</label><input id="author" type="text" />
-      <label>Designer</label><input id="designer" type="text" />
-      <div class="row" style="margin-top:12px">
-        <button id="saveDraft" class="btn">Save Draft</button>
-        <button id="loadDraft">Load Draft</button>
-        <button id="deleteDraft" class="danger">Delete Draft</button>
-        <input type="file" id="loadJsonFile" accept=".json" title="Reload JSON"/>
-        <button id="exportJson">Export JSON</button>
-      </div>
-      <p class="muted">Tip: Reload JSON để nạp lại file truyện cũ và chỉnh tiếp. Ảnh có thể chọn bằng file hoặc dán URL.</p>
-    </div>
-    <div class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <h3 style="margin:0">Page Content</h3>
-        <div class="row">
-          <button id="addPage" class="btn">+ Add Page</button>
-          <button id="clearAll" class="danger">Clear All Pages</button>
-        </div>
-      </div>
-      <div id="pages"></div>
-    </div>
+<!-- BOOK FIELDS -->
+<section class="panel">
+  <h2>Book</h2>
+
+  <div class="grid grid-2">
+    <label>IDBook
+      <input id="IDBook" type="text" placeholder="VD: BK001">
+    </label>
+
+    <label>L_imageBia (Link ảnh bìa)
+      <input id="L_imageBia" type="text" placeholder="https://.../cover.webp">
+    </label>
+
+    <label>little_vi (Tên sách tiếng Việt)
+      <input id="little_vi" type="text" placeholder="NiNi và khu rừng mùa đông">
+    </label>
+
+    <label>little_en (Book title in English)
+      <input id="little_en" type="text" placeholder="NiNi in the Winter Forest">
+    </label>
+
+    <label>auther
+      <input id="auther" type="text" placeholder="Tên tác giả">
+    </label>
+
+    <label>design
+      <input id="design" type="text" placeholder="Tên họa sĩ/thiết kế">
+    </label>
   </div>
+</section>
 
+<!-- CONTROLS -->
+<section class="panel">
+  <h2>Actions</h2>
+  <div class="row" style="gap:8px; flex-wrap:wrap">
+    <button id="btnSave"   class="btn">Lưu</button>
+    <button id="btnAdd"    class="btn">Add Page</button>
+    <button id="btnDel"    class="btn">Delete Page</button>
+    <button id="btnImport" class="btn">Import JSON</button>
+    <button id="btnExport" class="btn">Export JSON</button>
+    <input id="fileImport" type="file" accept="application/json" style="display:none">
+  </div>
+</section>
+
+<!-- PAGES RENDERED HERE -->
+<section class="panel">
+  <h2>Pages</h2>
+  <div id="pagesWrap"></div>
+</section>
 <script>
-let pages = [];
-
-/* ---------- helpers ---------- */
-function el(id){ return document.getElementById(id); }
-function download(filename, text) {
-  const blob = new Blob([text], {type:'application/json'});
+/* ===== Helpers ===== */
+const $ = (id) => document.getElementById(id);
+const download = (name, data) => {
+  const blob = new Blob([data], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
-}
-function toWebP(file, maxW=1280, quality=0.82){
-  return new Promise((resolve,reject)=>{
-    const fr = new FileReader();
-    fr.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const ratio = Math.min(1, maxW / img.width);
-        const w = Math.round(img.width * ratio);
-        const h = Math.round(img.height * ratio);
-        const c = document.createElement('canvas'); c.width=w; c.height=h;
-        const ctx = c.getContext('2d'); ctx.drawImage(img,0,0,w,h);
-        c.toBlob(blob => {
-          const fr2 = new FileReader();
-          fr2.onload = e2 => resolve(e2.target.result);
-          fr2.onerror = reject;
-          fr2.readAsDataURL(blob);
-        }, 'image/webp', quality);
-      };
-      img.onerror = reject;
-      img.src = e.target.result;
-    };
-    fr.onerror = reject;
-    fr.readAsDataURL(file);
+};
+
+/* ===== State ===== */
+let book = {
+  IDBook: "", little_vi: "", little_en: "",
+  auther: "", design: "", L_imageBia: "",
+  pages: []
+};
+
+/* ===== Bind BOOK inputs -> state ===== */
+function bindBookInputs(){
+  const map = ["IDBook","little_vi","little_en","auther","design","L_imageBia"];
+  map.forEach(k=>{
+    $(k).value = book[k] || "";
+    $(k).addEventListener('input', e => { book[k] = e.target.value; autosave(); });
   });
 }
 
-/* ---------- page rendering ---------- */
+/* ===== Render Pages ===== */
 function renderPages(){
-  const root = el('pages');
-  root.innerHTML = '';
-  pages.forEach((p, idx)=>{
-    const wrap = document.createElement('div');
-    wrap.className = 'page';
-    wrap.innerHTML = `
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <strong>Page ${idx+1}</strong>
-        <div class="tools">
-          <button data-act="up">↑</button>
-          <button data-act="down">↓</button>
-          <button data-act="del" class="danger">Delete</button>
+  const wrap = $("pagesWrap");
+  wrap.innerHTML = "";
+
+  if (!book.pages || book.pages.length === 0){
+    const first = {TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:""};
+    book.pages = [first];
+  }
+
+  book.pages.forEach((p, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '12px';
+    card.innerHTML = `
+      <div class="row" style="justify-content:space-between; align-items:center">
+        <strong>Page #${idx+1}</strong>
+        <div class="row" style="gap:6px">
+          <button class="btn btn-sm" data-act="up">↑</button>
+          <button class="btn btn-sm" data-act="down">↓</button>
         </div>
       </div>
-      <label>Image URL</label>
-      <input type="text" data-field="imgUrl" placeholder="https://... or data:image/webp;base64,..." value="${p.img||''}"/>
-      <div class="row">
-        <input type="file" data-field="imgFile" accept="image/*"/>
-        <span class="muted">Chọn ảnh → tự nén WebP ≤1280px.</span>
+
+      <div class="grid grid-2" style="margin-top:8px">
+        <label>TDBook
+          <input data-f="TDBook" type="text" placeholder="Tiêu đề trang">
+        </label>
+        <label>IDPage
+          <input data-f="IDPage" type="text" placeholder="VD: P001">
+        </label>
+
+        <label>noidung_vi
+          <textarea data-f="noidung_vi" rows="3" placeholder="Nội dung tiếng Việt"></textarea>
+        </label>
+        <label>noidung_en
+          <textarea data-f="noidung_en" rows="3" placeholder="English content"></textarea>
+        </label>
+
+        <label>L_image_P (Link ảnh trang)
+          <input data-f="L_image_P" type="text" placeholder="https://.../page.webp">
+        </label>
+        <label>L_sound_vi (Link audio VI)
+          <input data-f="L_sound_vi" type="text" placeholder="https://.../voice-vi.mp3">
+        </label>
+
+        <label>L_sound_en (Link audio EN)
+          <input data-f="L_sound_en" type="text" placeholder="https://.../voice-en.mp3">
+        </label>
       </div>
-      <img class="imgPrev" src="${p.img||''}" onerror="this.src='';"/>
-      <label>Vietnamese</label>
-      <textarea data-field="vi">${p.vi||''}</textarea>
-      <label>English</label>
-      <textarea data-field="en">${p.en||''}</textarea>
     `;
-    // handlers
-    wrap.querySelector('[data-field="imgUrl"]').addEventListener('input', e=>{
-      pages[idx].img = e.target.value.trim();
-      wrap.querySelector('.imgPrev').src = pages[idx].img || '';
+    wrap.appendChild(card);
+
+    // fill values
+    card.querySelectorAll('[data-f]').forEach(inp=>{
+      const key = inp.dataset.f;
+      inp.value = p[key] || "";
+      inp.addEventListener('input', e=>{
+        book.pages[idx][key] = e.target.value;
+        autosave();
+      });
     });
-    wrap.querySelector('[data-field="imgFile"]').addEventListener('change', async e=>{
-      const f = e.target.files[0]; if(!f) return;
-      const dataUrl = await toWebP(f);
-      pages[idx].img = dataUrl;
-      wrap.querySelector('[data-field="imgUrl"]').value = dataUrl;
-      wrap.querySelector('.imgPrev').src = dataUrl;
+
+    // up / down
+    const btnUp = card.querySelector('[data-act="up"]');
+    const btnDn = card.querySelector('[data-act="down"]');
+    btnUp.disabled = (idx === 0);
+    btnDn.disabled = (idx === book.pages.length-1);
+
+    btnUp.addEventListener('click', ()=>{
+      if (idx === 0) return;
+      [book.pages[idx-1], book.pages[idx]] = [book.pages[idx], book.pages[idx-1]];
+      renderPages(); autosave();
     });
-    wrap.querySelector('[data-field="vi"]').addEventListener('input', e=> pages[idx].vi = e.target.value);
-    wrap.querySelector('[data-field="en"]').addEventListener('input', e=> pages[idx].en = e.target.value);
-    wrap.querySelector('[data-act="up"]').addEventListener('click', ()=>{ if(idx>0){ const t=pages[idx-1]; pages[idx-1]=pages[idx]; pages[idx]=t; renderPages(); } });
-    wrap.querySelector('[data-act="down"]').addEventListener('click', ()=>{ if(idx<pages.length-1){ const t=pages[idx+1]; pages[idx+1]=pages[idx]; pages[idx]=t; renderPages(); } });
-    wrap.querySelector('[data-act="del"]').addEventListener('click', ()=>{ pages.splice(idx,1); renderPages(); });
-    el('pages').appendChild(wrap);
+    btnDn.addEventListener('click', ()=>{
+      if (idx === book.pages.length-1) return;
+      [book.pages[idx+1], book.pages[idx]] = [book.pages[idx], book.pages[idx+1]];
+      renderPages(); autosave();
+    });
   });
 }
 
-/* ---------- buttons ---------- */
-el('addPage').onclick = ()=>{ pages.push({img:'', vi:'', en:''}); renderPages(); };
-el('clearAll').onclick = ()=>{ if(confirm('Xoá tất cả trang?')){ pages = []; renderPages(); } };
-
-el('saveDraft').onclick = ()=>{
-  const draft = {
-    title: el('title').value.trim(),
-    author: el('author').value.trim(),
-    designer: el('designer').value.trim(),
-    pages
-  };
-  localStorage.setItem('storybook_draft_full', JSON.stringify(draft));
-  alert('✅ Draft saved to localStorage.');
-};
-el('loadDraft').onclick = ()=>{
-  const raw = localStorage.getItem('storybook_draft_full');
-  if(!raw) return alert('❌ No draft found.');
-  try{
-    const data = JSON.parse(raw);
-    el('title').value = data.title||'';
-    el('author').value = data.author||'';
-    el('designer').value = data.designer||'';
-    pages = (data.pages||[]).map(p=>({img:p.img||'', vi:p.vi||'', en:p.en||''}));
-    renderPages();
-    alert('✅ Draft loaded.');
-  }catch(e){ alert('❌ Draft corrupt.'); }
-};
-el('deleteDraft').onclick = ()=>{ localStorage.removeItem('storybook_draft_full'); alert('🗑 Draft deleted.'); };
-
-el('loadJsonFile').addEventListener('change', (evt)=>{
-  const f = evt.target.files[0]; if(!f) return;
-  const fr = new FileReader();
-  fr.onload = (e)=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      el('title').value = data.title||'';
-      el('author').value = data.author||'';
-      el('designer').value = data.designer||'';
-      pages = (data.pages||[]).map(p=>({img:p.img||p.image||'', vi:p.vi||'', en:p.en||p.en||''}));
-      renderPages();
-      alert('✅ JSON loaded.');
-    }catch(err){ alert('❌ JSON invalid.'); }
-  };
-  fr.readAsText(f);
+/* ===== Actions ===== */
+$("btnAdd").addEventListener('click', ()=>{
+  book.pages.push({TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:""});
+  renderPages(); autosave();
 });
 
-el('exportJson').onclick = ()=>{
-  const payload = {
-    title: el('title').value.trim() || 'Untitled',
-    author: el('author').value.trim() || '',
-    designer: el('designer').value.trim() || '',
-    pages: pages.map(p=>({img:p.img||'', vi:p.vi||'', en:p.en||''}))
-  };
-  const fname = (payload.title || 'story').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '.json';
-  download(fname, JSON.stringify(payload, null, 2));
-};
-// initial
-renderPages();
+$("btnDel").addEventListener('click', ()=>{
+  if (!book.pages.length) return;
+  if (!confirm("Xoá trang cuối cùng?")) return;
+  book.pages.pop();
+  renderPages(); autosave();
+});
+
+$("btnSave").addEventListener('click', ()=>{
+  localStorage.setItem('storybook_draft_full', JSON.stringify(book));
+  alert("Đã lưu bản nháp (localStorage).");
+});
+
+$("btnExport").addEventListener('click', ()=>{
+  const json = JSON.stringify(book, null, 2);
+  download((book.IDBook || 'book') + '.json', json);
+});
+
+$("btnImport").addEventListener('click', ()=> $("fileImport").click());
+$("fileImport").addEventListener('change', async (e)=>{
+  const file = e.target.files[0]; if (!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    // Ghép dữ liệu vào state (cho phép import thiếu field)
+    book = {
+      IDBook: data.IDBook || "",
+      little_vi: data.little_vi || "",
+      little_en: data.little_en || "",
+      auther: data.auther || "",
+      design: data.design || "",
+      L_imageBia: data.L_imageBia || "",
+      pages: Array.isArray(data.pages) ? data.pages.map(p => ({
+        TDBook: p.TDBook || "",
+        IDPage: p.IDPage || "",
+        noidung_vi: p.noidung_vi || "",
+        noidung_en: p.noidung_en || "",
+        L_image_P: p.L_image_P || "",
+        L_sound_vi: p.L_sound_vi || "",
+        L_sound_en: p.L_sound_en || ""
+      })) : []
+    };
+
+    bindBookInputs();
+    renderPages();
+    autosave();
+  }catch(err){
+    alert("Import lỗi: " + err.message);
+  } finally {
+    e.target.value = "";
+  }
+});
+
+/* ===== Autosave ===== */
+let autosaveTimer;
+function autosave(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(()=>{
+    localStorage.setItem('storybook_draft_full', JSON.stringify(book));
+  }, 400);
+}
+
+/* ===== Boot from localStorage (nếu có) ===== */
+(function init(){
+  const saved = localStorage.getItem('storybook_draft_full');
+  if (saved){
+    try{ book = {...book, ...JSON.parse(saved)} }catch{}
+  }
+  bindBookInputs();
+  renderPages();
+})();
 </script>
-</body>
-</html>

@@ -150,3 +150,17 @@ body::after{
 @media (max-width: 640px){
   .nini{width:150px}
 }
+/* styles.css */
+
+/* Nút đang chọn */
+.season-active {
+  outline: 2px solid currentColor;
+  filter: brightness(1.15);
+}
+
+/* Ví dụ đổi nền theo mùa (tuỳ biến) */
+body[data-season="Spring"] { background-image: linear-gradient(#f7ffe9, #fff); }
+body[data-season="Summer"] { background-image: linear-gradient(#e7f7ff, #fff); }
+body[data-season="Autumn"] { background-image: linear-gradient(#fff3e6, #fff); }
+body[data-season="Winter"] { background-image: linear-gradient(#eef3ff, #fff); }
+

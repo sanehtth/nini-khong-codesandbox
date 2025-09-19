@@ -31,7 +31,7 @@ body::after{
   /* ví dụ: bớt đen và thêm hơi xanh */
   background: radial-gradient(
     1200px 600px at 50% -10%,
-    rgba(255, 255, 255, 0.8),   /* màu ở tâm */
+    rgba(0, 30, 60, 0.25),   /* màu ở tâm */
     rgba(0, 0, 0, 0.45)      /* màu ở xa */
   );
   z-index:-1;
@@ -104,7 +104,7 @@ body::after{
   margin:18px auto 0;
   padding:16px 20px 20px;
   border-radius:16px;
-  background: rgba(0,0,0,.25);
+  background: rgba(255,255,255,.8);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
 }
 .content h2{margin:0 0 8px}
@@ -161,6 +161,7 @@ body::after{
 
 /* Riêng .row.gap (có nhiều phần tử) vẫn căn trái */
 .row.gap { justify-content: flex-start; }
+
 
 
 

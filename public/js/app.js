@@ -28,8 +28,10 @@
     // hash router (cho phép /#/winter hay /#winter đều ok)
     const newHash = `#/${season}`;
     if (location.hash !== newHash) {
-      location.hash = `/${season}`;
-    }
+  history.replaceState({}, "", newHash);
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
+
   }
 
   // ====== INIT SEASON (từ hash) ======
@@ -94,4 +96,5 @@
   // preload ảnh để chuyển mượt
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 })();
+
 

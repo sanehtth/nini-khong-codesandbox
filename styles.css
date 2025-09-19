@@ -26,8 +26,14 @@ body::before{
   z-index:-2;
 }
 body::after{
-  content:""; position:fixed; inset:0;
-  background: radial-gradient(1200px 600px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.75));
+  content:"";
+  position:fixed; inset:0;
+  /* ví dụ: bớt đen và thêm hơi xanh */
+  background: radial-gradient(
+    1200px 600px at 50% -10%,
+    rgba(0, 30, 60, 0.25),   /* màu ở tâm */
+    rgba(0, 0, 0, 0.45)      /* màu ở xa */
+  );
   z-index:-1;
 }
 
@@ -155,3 +161,4 @@ body::after{
 
 /* Riêng .row.gap (có nhiều phần tử) vẫn căn trái */
 .row.gap { justify-content: flex-start; }
+

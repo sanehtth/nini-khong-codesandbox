@@ -2,7 +2,7 @@
 (() => {
   const icons = {
     spring: "/public/assets/icons/flower.webp",
-    summer: "/public/assets/icons/leaf.webp",
+    summer: "/public/assets/icons/drop.webp",
     autumn: "/public/assets/icons/leaf.webp",
     winter: "/public/assets/icons/snow.webp",
   };
@@ -73,3 +73,4 @@
   }
   step();
 })();
+

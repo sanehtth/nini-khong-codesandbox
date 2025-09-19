@@ -162,3 +162,120 @@ body::after{
 /* Riêng .row.gap (có nhiều phần tử) vẫn căn trái */
 .row.gap { justify-content: flex-start; }
 
+/* ==== Nền & phông chữ chung storybook==== */
+:root{
+  --bg1: #0e1117;
+  --bg2: #161b22;
+  --card: rgba(255,255,255,0.06);
+  --card-br: rgba(255,255,255,0.12);
+  --text: #e6edf3;
+  --text-dim: #9fb1c7;
+  --primary: #7bc6ff;
+  --primary-2: #a6ffcb;
+  --focus: #c2e7ff;
+}
+
+html,body{height:100%}
+body{
+  margin:0;
+  color:var(--text);
+  font:15px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(88,130,193,.15), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+}
+
+/* Hạt noise rất nhẹ để nền có texture */
+body::after{
+  content:"";
+  position:fixed; inset:0; pointer-events:none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/	filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  z-index:-1;
+}
+
+/* ==== Khung ứng dụng ==== */
+.app{
+  max-width: 1100px;
+  margin: 24px auto 64px;
+  padding: 0 16px;
+}
+
+/* ==== Panel & Card ==== */
+.panel{
+  background: var(--card);
+  border: 1px solid var(--card-br);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.03);
+  margin-bottom: 14px;
+}
+.panel > h2{
+  margin: 0 0 10px;
+  font-size: 16px;
+  letter-spacing: .2px;
+  font-weight: 700;
+  color: var(--focus);
+}
+.card{
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-br);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* ==== Lưới gọn gàng ==== */
+.grid{ display:grid; gap: 12px; }
+.grid-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (max-width: 880px){
+  .grid-2{ grid-template-columns: 1fr; }
+}
+
+/* ==== Form ==== */
+label{ display:block; font-size:13px; color: var(--text-dim); }
+label > input, label > textarea{
+  width:100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  outline: none;
+}
+label > input:focus, label > textarea:focus{
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(194,231,255,.18);
+}
+
+/* ==== Hàng nút & nút ==== */
+.row{ display:flex; gap:8px; align-items:center; }
+.btn{
+  appearance:none; border:none; cursor:pointer;
+  padding:10px 14px; border-radius:999px;
+  color:#0b1220; background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow: 0 6px 16px rgba(123,198,255,.25);
+}
+.btn:hover{ filter: brightness(1.05); }
+.btn:active{ transform: translateY(1px); }
+.btn-sm{ padding:6px 10px; font-size:13px; }
+
+/* Nút phụ (xám) nếu cần */
+.btn.gray{
+  color:var(--text);
+  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.06));
+  box-shadow: none;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+/* ==== Tiêu đề Page & nhóm mũi tên ==== */
+.page-head{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-bottom:8px;
+}
+.page-head strong{ font-size:14px; }
+
+/* ==== Khoảng cách giữa các section ==== */
+#pagesWrap .card{ margin-bottom:12px; }
+

@@ -5,8 +5,8 @@
   --text-dim:#e6edf6;
   --chip-bg: rgba(255,255,255,.08);
   --chip-border: rgba(255,255,255,.25);
-  --glass: rgba(0,0,0,.35);
-  --glass-2: rgba(0,0,0,.45);
+  --glass: rgba(255,255,255,.18);
+  --glass-2: rgba(255,255,255,.45);
 }
 
 /* Reset */
@@ -161,9 +161,3 @@ body::after{
 
 /* Riêng .row.gap (có nhiều phần tử) vẫn căn trái */
 .row.gap { justify-content: flex-start; }
-
-
-
-
-
-

@@ -54,7 +54,15 @@ addEventListener("hashchange", setSeasonIcon);
       vr: -0.02 + Math.random()*0.04,
     }));
   }
+// gọi lần đầu khi tải
+setSeasonIcon();
+buildParticles();
+
+// khi đổi hash -> đổi icon + reset particles
+addEventListener("hashchange", () => {
+  setSeasonIcon();
   buildParticles();
+});
 
   function step(){
     ctx.clearRect(0,0,W,H);
@@ -73,6 +81,7 @@ addEventListener("hashchange", setSeasonIcon);
   }
   step();
 })();
+
 
 
 

@@ -60,17 +60,20 @@
       <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>`,
     rules: `<h2>Luật chơi</h2><p>Mỗi mini game có hướng dẫn ngắn ngay trước khi bắt đầu. Chơi vui, công bằng và tôn trọng bạn chơi.</p>
     <p>Tuy nhiên, mình sẽ tiếc lộ một bí mật nho nhỏ, bạn muốn kiếm được nhiều xu thì hãy tham gia CLUB hoặc tự mình thành lập một CLUB cho riêng mình.</p>
-    <p>Tin mình đi! bạn sẽ thấy điều hấp dẫn ngay thôi! ==>> vào CLB thôi. </p>
-    <p>Điều kiện thành lập CLB:</p>
+    <p>Tin mình đi! bạn sẽ thấy điều hấp dẫn ngay thôi! ==>> vào CLUB thôi. </p>
+    <p>Điều kiện thành lập CLUB:</p>
     <ul>
     <li> Bạn phải là thành viên của gia đình Nini bằng cách đăng nhập.</li>
     <li> Tại thời điểm xin tạo CLUB, xu của bạn >= 400 xu</li>
     </ul>
     <p> Nếu không đủ điều kiện trên, không sao cả, bạn có thê xin vào CLUB của các bạn khác!Vẫn được rất nhiều ưu đãi không ngờ nha!</p>
-    <p> Cố lên...con đường thử thách ddang trước mặt bạn...dũng cảm bước đi nào!</p>
+    <p> Cố lên...con đường thử thách đang trước mặt bạn...dũng cảm bước đi nào!</p>
     `,
     forum: `<h2>Diễn đàn</h2><p>Góc để bé khoe thành tích, trao đổi mẹo chơi và đặt câu hỏi.</p>`,
-    feedback:`<h2>Góp ý</h2><p>Bạn có ý tưởng trò chơi mới hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!</p>`
+    feedback:`<h2>Góp ý</h2><p>Bạn có ý tưởng trò chơi mới hoặc phát hiện lỗi? Hãy góp ý để NiNi tốt hơn!</p>
+    <p>Mọi đóng góp ý kiến xin gửi về hòm thư: suport@nini-funny.com!</p>
+    <p>Liên hệ kỹ thuật xin gửi về hòm thư: admin@nini-funny.com!</p>
+    <p>Xin trân trọng cảm ơn mọi đóng góp ý kiến của các bạn!chúc các bạn vui chơi và có những trãi nghiệm thật thú vị cùng với Nini</p>`
   };
   chips.forEach(ch => {
     ch.addEventListener("click", () => {
@@ -114,6 +117,7 @@
   // preload ảnh để chuyển mượt
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 })();
+
 
 
 

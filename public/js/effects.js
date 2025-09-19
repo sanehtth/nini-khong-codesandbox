@@ -41,9 +41,7 @@
     const url = icons[s] || "";
     if (url) loadIcon(url);
   }
- history.replaceState({}, "", `#/${season}`);
-window.dispatchEvent(new HashChangeEvent("hashchange"));
-
+addEventListener("hashchange", setSeasonIcon);
 
   function buildParticles(){
     const count = 18;
@@ -75,5 +73,6 @@ window.dispatchEvent(new HashChangeEvent("hashchange"));
   }
   step();
 })();
+
 
 

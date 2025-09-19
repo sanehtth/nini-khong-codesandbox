@@ -1,6 +1,7 @@
 /* NiNi — nhẹ nhàng: rơi bông tuyết/lá/hoa theo mùa (có thể tắt khi không cần) */
 (() => {
   const icons = {
+    home: "",
     spring: "/public/assets/icons/flower.webp",
     summer: "/public/assets/icons/drop.webp",
     autumn: "/public/assets/icons/leaf.webp",
@@ -81,6 +82,7 @@ addEventListener("hashchange", () => {
   }
   step();
 })();
+
 
 
 

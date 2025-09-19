@@ -6,10 +6,10 @@
 
   // Map mùa -> ảnh tương ứng
   const ASSETS = {
-    Spring: "/public/assets/icons/flower.webp",
-    Summer: "/public/assets/icons/drop.webp",
-    Autumn: "/public/assets/icons/leaf.webp",
-    Winter: "/public/assets/icons/snow.webp",
+    spring: "/public/assets/icons/flower.webp",
+    summer: "/public/assets/icons/drop.webp",
+    autumn: "/public/assets/icons/leaf.webp",
+    winter: "/public/assets/icons/snow.webp",
   };
 
   // Preload ảnh để không bị trễ khi đổi mùa
@@ -137,3 +137,4 @@
     document.body.dataset.season = initial;
   });
 })();
+

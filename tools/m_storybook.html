@@ -2,209 +2,486 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web Story Editor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NiNi — Storybook Editor</title>
+
+  <!-- ================================
+       CSS: Giao diện phẳng, nền ảnh full
+       - Nền dùng public/assets/bg/nini_home.webp phủ toàn trang + blur nhẹ
+       - Input/Textarea: chỉ có gạch chân trắng, không fill
+       - Bố cục: gọn gàng, dễ đọc
+     ================================= -->
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
-    body {
-      position: relative;
-      color: #fff;
-      /* Nền trang phủ full màn hình với ảnh, căn giữa, không lặp, hiệu ứng mờ nhẹ */
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url("/public/assets/bg/nini_home.webp") center center no-repeat;
-      background-size: cover;
+    html, body { margin:0; padding:0; height:100%; }
+    body { color:#fff; font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    /* NỀN ẢNH phủ full + mờ nhẹ để nội dung phía trước rõ hơn */
+    body::before{
+      content:""; position:fixed; inset:0; z-index:-1;
+      background: url("/public/assets/bg/nini_home.webp") center/cover no-repeat;
       filter: blur(5px);
-      z-index: -1;
     }
-    .editor-content {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
+
+    /* Khung nội dung căn giữa */
+    .editor-content{ max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+    .section{ margin-bottom: 24px; }
+    h2{ margin: 0 0 12px; }
+    h3{ margin: 12px 0 8px; font-size: 1.08rem; }
+
+    /* Nhãn + Input/Textarea kiểu “gạch chân” trắng, không nền */
+    label{ display:block; margin-bottom:6px; opacity:.9 }
+    input, textarea{
+      width:100%;
+      padding:8px 0;
+      border:0; border-bottom:1px solid #fff;
+      background:transparent; color:#fff; margin-bottom:14px; font:inherit;
     }
-    .section {
-      margin-bottom: 2rem;
+    input:focus, textarea:focus{ outline:none; border-bottom:2px solid #fff; }
+    textarea{ resize:vertical; min-height: 80px; }
+
+    /* Hàng nút + nút phẳng */
+    .row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+    .btn{
+      background:transparent; color:#fff; border:1px solid #fff;
+      padding:8px 14px; border-radius:6px; cursor:pointer;
     }
-    h2, h3 {
-      margin: 0 0 1rem 0;
+    .btn:hover{ background:#fff; color:#000; }
+    .btn.danger{ border-color:#ffb0b0; color:#ffb0b0; }
+    .btn.danger:hover{ background:#ffb0b0; color:#2a0a0a; }
+    .select{
+      border:1px solid #fff; padding:6px 10px; border-radius:6px; background:transparent; color:#fff;
     }
-    h3 {
-      font-size: 1.2em;
-      margin-top: 1rem;
+    .select:focus{ outline:none; border-width:2px; }
+
+    /* Lưới 2 cột cho form page, tự về 1 cột khi màn hình hẹp */
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 840px){ .grid{ grid-template-columns: 1fr; } }
+
+    /* Mỗi trang là một “card” viền nét đứt nhẹ để tách khối */
+    .page-entry{
+      border:1px dashed rgba(255,255,255,.35);
+      padding:12px; border-radius:8px; margin-bottom:14px;
+      background: rgba(0,0,0,.15);
     }
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-weight: normal;
+    .page-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
+
+    /* Khung hiển thị manifest */
+    pre{
+      white-space:pre-wrap;
+      background:rgba(0,0,0,.35);
+      padding:12px; border-radius:8px;
+      border:1px solid rgba(255,255,255,.25);
+      max-height: 50vh; overflow:auto;
     }
-    input, textarea {
-      display: block;
-      width: 100%;
-      padding: 0.5rem 0;
-      border: none;
-      border-bottom: 1px solid #fff;
-      background: transparent;
-      color: #fff;
-      margin-bottom: 1rem;
-    }
-    input:focus, textarea:focus {
-      outline: none;
-      border-bottom: 2px solid #fff;
-    }
-    textarea {
-      resize: vertical;
-    }
-    button {
-      background: transparent;
-      border: 1px solid #fff;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-      cursor: pointer;
-      border-radius: 3px;
-      margin-right: 1rem;
-    }
-    button:hover {
-      background: #fff;
-      color: #000;
-    }
-    .hash-label {
-      display: inline-block;
-      margin-left: 1rem;
-      font-weight: normal;
-    }
-    .hash-label input {
-      margin-right: 0.25rem;
-    }
+
+    .muted{ opacity:.85; }
   </style>
 </head>
 <body>
   <div class="editor-content">
-    <!-- Thông tin Sách -->
-    <div class="section book-section">
+
+    <!-- ======================================================
+         BOOK: Thông tin sách (metadata cấp sách)
+         - ID Sách, tiêu đề VI/EN, tác giả, thiết kế, ảnh bìa
+       ====================================================== -->
+    <div class="section">
       <h2>Thông tin Sách</h2>
-      <label for="bookId">ID Sách:</label>
-      <input type="text" id="bookId" placeholder="ID Sách" />
-      <label for="titleVi">Tiêu đề (VI):</label>
-      <input type="text" id="titleVi" placeholder="Tiêu đề tiếng Việt" />
-      <label for="titleEn">Tiêu đề (EN):</label>
-      <input type="text" id="titleEn" placeholder="Tiêu đề tiếng Anh" />
-      <label for="author">Tác giả:</label>
-      <input type="text" id="author" placeholder="Tác giả" />
-      <label for="design">Thiết kế:</label>
-      <input type="text" id="design" placeholder="Thiết kế" />
-      <label for="cover">Ảnh bìa:</label>
-      <input type="text" id="cover" placeholder="Đường dẫn ảnh bìa" />
+      <label>ID Sách</label>
+      <input id="bookId" placeholder="VD: BK001"/>
+      <label>Tiêu đề (VI)</label>
+      <input id="titleVi" placeholder="NiNi và khu rừng"/>
+      <label>Tiêu đề (EN)</label>
+      <input id="titleEn" placeholder="NiNi in the Forest"/>
+      <label>Tác giả</label>
+      <input id="author" placeholder="Tên tác giả"/>
+      <label>Thiết kế</label>
+      <input id="design" placeholder="Tên họa sĩ/thiết kế"/>
+      <label>Ảnh bìa (URL)</label>
+      <input id="cover" placeholder="https://.../cover.webp"/>
     </div>
-    <!-- Khu vực Thao tác -->
-    <div class="section actions-section">
-      <button type="button" id="generateManifest">Tạo Manifest</button>
-      <label class="hash-label"><input type="checkbox" id="includeHash" /> Thêm #hash vào liên kết</label>
-    </div>
-    <!-- Danh sách Các Trang -->
-    <div class="section pages-section">
-      <h2>Các Trang</h2>
-      <div id="pagesContainer">
-        <div class="page-entry">
-          <h3>Trang 1</h3>
-          <label>ID trang:</label>
-          <input type="text" class="page-id" placeholder="ID trang" />
-          <label>Nội dung (VI):</label>
-          <textarea class="page-text-vi" placeholder="Nội dung tiếng Việt"></textarea>
-          <label>Nội dung (EN):</label>
-          <textarea class="page-text-en" placeholder="Nội dung tiếng Anh"></textarea>
-          <label>Hình ảnh:</label>
-          <input type="text" class="page-image" placeholder="Đường dẫn hình ảnh" />
-          <label>Âm thanh (VI):</label>
-          <input type="text" class="page-sound-vi" placeholder="Đường dẫn âm thanh tiếng Việt" />
-          <label>Âm thanh (EN):</label>
-          <input type="text" class="page-sound-en" placeholder="Đường dẫn âm thanh tiếng Anh" />
-        </div>
+
+    <!-- ======================================================
+         ACTIONS: Các thao tác chính
+         - Thêm/Xóa trang, Chọn trang đang chỉnh
+         - Import/Export JSON “raw”
+         - Tạo Manifest (đủ trang), Export Manifest (Shelf)
+         - Tùy chọn thêm #hash vào URL tài nguyên
+       ====================================================== -->
+    <div class="section">
+      <h2>Actions</h2>
+      <div class="row">
+        <!-- Trang -->
+        <button class="btn" id="btnAddPage">Add Page</button>
+        <button class="btn danger" id="btnDeletePage">Delete Page</button>
+        <select id="deleteTarget" class="select" title="Chọn hình thức xóa">
+          <option value="current">Trang đang chọn</option>
+          <option value="last">Trang cuối</option>
+        </select>
+
+        <!-- Dữ liệu -->
+        <button class="btn" id="btnImport">Import JSON</button>
+        <button class="btn" id="btnExport">Export JSON</button>
+        <input id="fileImport" type="file" accept="application/json" style="display:none">
+
+        <!-- Manifest -->
+        <button class="btn" id="btnManifest">Tạo Manifest (đủ trang)</button>
+        <button class="btn" id="btnExportManifest">Export Manifest (Shelf)</button>
+        <label class="muted" style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="includeHash"> Thêm #hash vào liên kết
+        </label>
+
+        <!-- Trang đang chọn -->
+        <span class="muted">Trang đang chọn:
+          <select id="currentIndex" class="select" title="Chọn trang để chỉnh"></select>
+        </span>
       </div>
-      <button type="button" id="addPage">Thêm Trang</button>
     </div>
-    <!-- Kết quả Manifest JSON -->
-    <div class="section manifest-section">
+
+    <!-- ======================================================
+         PAGES: Khu nhập nội dung các trang
+         - Mỗi trang: TDBook, IDPage, nội dung VI/EN, ảnh, âm thanh VI/EN
+       ====================================================== -->
+    <div class="section">
+      <h2>Các Trang</h2>
+      <div id="pagesContainer"></div>
+    </div>
+
+    <!-- ======================================================
+         KẾT QUẢ: Manifest JSON tạo ra để kiểm tra/copy
+       ====================================================== -->
+    <div class="section">
       <h2>Kết quả Manifest</h2>
       <pre id="manifestOutput"></pre>
     </div>
   </div>
+
+  <!-- ================================
+       SCRIPT: Logic biên tập & xuất JSON
+       - Quản lý state trang, autosave
+       - Import/Export raw JSON
+       - Tạo manifest đầy đủ và manifest cho “kệ sách”
+     ================================= -->
   <script>
-    // Hàm tiện ích tạo chuỗi hash ngẫu nhiên
-    function generateHash() {
-      return Math.random().toString(36).substr(2, 6);
-    }
-    // Xử lý thêm trang mới
-    let pageCount = 1;
-    document.getElementById('addPage').addEventListener('click', () => {
-      pageCount++;
-      const pagesContainer = document.getElementById('pagesContainer');
-      const pageDiv = document.createElement('div');
-      pageDiv.className = 'page-entry';
-      pageDiv.innerHTML = `
-        <h3>Trang ${pageCount}</h3>
-        <label>ID trang:</label>
-        <input type="text" class="page-id" placeholder="ID trang" />
-        <label>Nội dung (VI):</label>
-        <textarea class="page-text-vi" placeholder="Nội dung tiếng Việt"></textarea>
-        <label>Nội dung (EN):</label>
-        <textarea class="page-text-en" placeholder="Nội dung tiếng Anh"></textarea>
-        <label>Hình ảnh:</label>
-        <input type="text" class="page-image" placeholder="Đường dẫn hình ảnh" />
-        <label>Âm thanh (VI):</label>
-        <input type="text" class="page-sound-vi" placeholder="Đường dẫn âm thanh tiếng Việt" />
-        <label>Âm thanh (EN):</label>
-        <input type="text" class="page-sound-en" placeholder="Đường dẫn âm thanh tiếng Anh" />
-      `;
-      pagesContainer.appendChild(pageDiv);
-    });
-    // Xử lý tạo JSON manifest khi bấm nút
-    document.getElementById('generateManifest').addEventListener('click', () => {
-      const includeHash = document.getElementById('includeHash').checked;
-      const manifest = {
-        id: document.getElementById('bookId').value,
-        title_vi: document.getElementById('titleVi').value,
-        title_en: document.getElementById('titleEn').value,
-        author: document.getElementById('author').value,
-        design: document.getElementById('design').value,
-        cover: document.getElementById('cover').value,
-        pages: []
+    /* ========= State & tiện ích chung ========= */
+    let pages = [];         // mảng các trang đang biên tập
+    let current = 0;        // index trang đang chọn
+
+    const q  = (sel, root=document) => root.querySelector(sel);
+    const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const genHash = () => Math.random().toString(36).slice(2,8);
+
+    // Thu thập toàn bộ dữ liệu “raw” của sách (book + pages)
+    function collectAll(){
+      return {
+        id:       q('#bookId').value.trim(),
+        title_vi: q('#titleVi').value.trim(),
+        title_en: q('#titleEn').value.trim(),
+        author:   q('#author').value.trim(),
+        design:   q('#design').value.trim(),
+        cover:    q('#cover').value.trim(),
+        pages:    pages.map(p=>({ ...p })) // clone mềm
       };
-      // Thêm hash vào cover nếu tùy chọn bật
-      if (includeHash && manifest.cover) {
-        manifest.cover += '#' + generateHash();
-      }
-      // Lặp qua từng trang để thu thập dữ liệu
-      document.querySelectorAll('.page-entry').forEach(page => {
-        const pageData = {
-          id: page.querySelector('.page-id').value,
-          text_vi: page.querySelector('.page-text-vi').value,
-          text_en: page.querySelector('.page-text-en').value,
-          image: page.querySelector('.page-image').value,
-          sound_vi: page.querySelector('.page-sound-vi').value,
-          sound_en: page.querySelector('.page-sound-en').value
+    }
+
+    // Manifest nhẹ cho “kệ sách”: chỉ metadata cấp sách (không kèm pages)
+    function collectShelfManifest(){
+      return {
+        id:       q('#bookId').value.trim(),
+        title_vi: q('#titleVi').value.trim(),
+        title_en: q('#titleEn').value.trim(),
+        author:   q('#author').value.trim(),
+        design:   q('#design').value.trim(),
+        cover:    q('#cover').value.trim(),
+        // Có thể bổ sung nếu muốn:
+        // pages_count: pages.length,
+        // updated_at: new Date().toISOString(),
+      };
+    }
+
+    // Lưu nháp (autosave) vào localStorage
+    const saveDraft = () => localStorage.setItem('storybook_editor_draft', JSON.stringify(collectAll()));
+    const loadDraft = () => {
+      try { return JSON.parse(localStorage.getItem('storybook_editor_draft')||'null'); }
+      catch { return null; }
+    };
+
+    /* ========= Render Pages ========= */
+    function setCurrentOptions(){
+      const sel = q('#currentIndex');
+      sel.innerHTML = pages.map((_,i)=>`<option value="${i}">#${i+1}</option>`).join('');
+      sel.value = String(current);
+    }
+
+    function renderPages(){
+      const wrap = q('#pagesContainer');
+      wrap.innerHTML = '';
+
+      pages.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'page-entry';
+        div.innerHTML = `
+          <div class="page-head">
+            <strong>Page #${idx+1}${idx===current ? ' (đang chọn)' : ''}</strong>
+            <div class="row">
+              <button class="btn" data-act="up">↑</button>
+              <button class="btn" data-act="down">↓</button>
+              <button class="btn danger" data-act="remove">Xoá</button>
+              <button class="btn" data-act="pick">Chọn</button>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div>
+              <label>TDBook</label>
+              <input data-f="TDBook" placeholder="Tiêu đề trang" value="${p.TDBook||''}">
+            </div>
+            <div>
+              <label>IDPage</label>
+              <input data-f="IDPage" placeholder="VD: P001" value="${p.IDPage||''}">
+            </div>
+
+            <div>
+              <label>noidung_vi</label>
+              <textarea data-f="noidung_vi" placeholder="Nội dung tiếng Việt">${p.noidung_vi||''}</textarea>
+            </div>
+            <div>
+              <label>noidung_en</label>
+              <textarea data-f="noidung_en" placeholder="English content">${p.noidung_en||''}</textarea>
+            </div>
+
+            <div>
+              <label>L_image_P (URL hình)</label>
+              <input data-f="L_image_P" placeholder="https://.../page.webp" value="${p.L_image_P||''}">
+            </div>
+            <div>
+              <label>L_sound_vi (URL audio VI)</label>
+              <input data-f="L_sound_vi" placeholder="https://.../voice-vi.mp3" value="${p.L_sound_vi||''}">
+            </div>
+            <div>
+              <label>L_sound_en (URL audio EN)</label>
+              <input data-f="L_sound_en" placeholder="https://.../voice-en.mp3" value="${p.L_sound_en||''}">
+            </div>
+          </div>
+        `;
+        wrap.appendChild(div);
+
+        // Cập nhật state khi gõ
+        qa('[data-f]', div).forEach(inp=>{
+          inp.addEventListener('input', (e)=>{
+            pages[idx][inp.dataset.f] = e.target.value;
+            saveDraft();
+          });
+        });
+
+        // Nút điều hướng/xoá/chọn trang
+        div.querySelector('[data-act="up"]').onclick = ()=>{
+          if (idx===0) return;
+          [pages[idx-1], pages[idx]] = [pages[idx], pages[idx-1]];
+          if (current===idx) current=idx-1;
+          renderPages(); setCurrentOptions(); saveDraft();
         };
-        // Thêm hash vào các link hình/âm thanh nếu có tùy chọn
-        if (includeHash) {
-          if (pageData.image) pageData.image += '#' + generateHash();
-          if (pageData.sound_vi) pageData.sound_vi += '#' + generateHash();
-          if (pageData.sound_en) pageData.sound_en += '#' + generateHash();
-        }
-        manifest.pages.push(pageData);
+        div.querySelector('[data-act="down"]').onclick = ()=>{
+          if (idx===pages.length-1) return;
+          [pages[idx+1], pages[idx]] = [pages[idx], pages[idx+1]];
+          if (current===idx) current=idx+1;
+          renderPages(); setCurrentOptions(); saveDraft();
+        };
+        div.querySelector('[data-act="remove"]').onclick = ()=>{
+          if (!confirm(`Xoá Page #${idx+1}?`)) return;
+          pages.splice(idx,1);
+          if (current>=pages.length) current = Math.max(0,pages.length-1);
+          renderPages(); setCurrentOptions(); saveDraft();
+        };
+        div.querySelector('[data-act="pick"]').onclick = ()=>{
+          current = idx;
+          renderPages(); setCurrentOptions(); saveDraft();
+        };
       });
-      // Chuyển đối tượng thành chuỗi JSON và hiển thị
-      const jsonStr = JSON.stringify(manifest, null, 2);
-      document.getElementById('manifestOutput').textContent = jsonStr;
+    }
+
+    /* ========= Thao tác Page ========= */
+    function emptyPage(){
+      return { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" };
+    }
+    function addPage(){
+      pages.push(emptyPage());
+      current = pages.length-1;
+      renderPages(); setCurrentOptions(); saveDraft();
+    }
+    function deletePage(){
+      if (!pages.length) return;
+      const mode = q('#deleteTarget').value;       // 'current' | 'last'
+      const idx = (mode==='last') ? (pages.length-1) : current;
+      if (!confirm(`Xoá Page #${idx+1}?`)) return;
+      pages.splice(idx,1);
+      if (current>=pages.length) current = Math.max(0, pages.length-1);
+      renderPages(); setCurrentOptions(); saveDraft();
+    }
+
+    /* ========= Manifest ========= */
+    // Tạo manifest đầy đủ (dùng để app đọc truyện)
+    q('#btnManifest').onclick = ()=>{
+      const includeHash = q('#includeHash').checked;
+      const data = collectAll();
+
+      // Thêm #hash vào các URL nếu yêu cầu
+      const addH = (s)=> s ? (s + '#' + genHash()) : s;
+      if (includeHash && data.cover) data.cover = addH(data.cover);
+      if (includeHash){
+        data.pages = data.pages.map(p=>({
+          ...p,
+          L_image_P: addH(p.L_image_P),
+          L_sound_vi: addH(p.L_sound_vi),
+          L_sound_en: addH(p.L_sound_en),
+        }));
+      }
+
+      // Map về schema manifest mong muốn
+      const manifest = {
+        id: data.id,
+        title_vi: data.title_vi,
+        title_en: data.title_en,
+        author: data.author,
+        design: data.design,
+        cover: data.cover,
+        pages: data.pages.map(p=>({
+          id: p.IDPage,
+          text_vi: p.noidung_vi,
+          text_en: p.noidung_en,
+          image: p.L_image_P,
+          sound_vi: p.L_sound_vi,
+          sound_en: p.L_sound_en
+        }))
+      };
+
+      q('#manifestOutput').textContent = JSON.stringify(manifest, null, 2);
+    };
+
+    // Export manifest nhẹ (Shelf) cho kệ sách: chỉ metadata cấp sách
+    q('#btnExportManifest').onclick = ()=>{
+      const includeHash = q('#includeHash').checked;
+      const m = collectShelfManifest();
+      if (includeHash && m.cover) m.cover = m.cover + '#' + genHash();
+
+      const json = JSON.stringify(m, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (m.id || 'book') + '-manifest.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    /* ========= Import / Export RAW JSON ========= */
+    // Export “raw” = toàn bộ dữ liệu đang nhập (book + pages)
+    q('#btnExport').onclick = ()=>{
+      const json = JSON.stringify(collectAll(), null, 2);
+      const blob = new Blob([json], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (q('#bookId').value || 'book') + '.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    // Import: chấp nhận 2 dạng
+    // 1) Manifest đầy đủ (id/title_vi/…/pages[])
+    // 2) “Raw” theo editor (id/title_vi/…/pages[] với field TDBook/IDPage/…)
+    q('#btnImport').onclick = ()=> q('#fileImport').click();
+    q('#fileImport').addEventListener('change', async (e)=>{
+      const f = e.target.files[0]; if (!f) return;
+      try{
+        const text = await f.text();
+        const data = JSON.parse(text);
+
+        // Nếu có dấu hiệu là manifest đầy đủ
+        if ('id' in data || 'title_vi' in data || 'pages' in data){
+          q('#bookId').value = data.id || "";
+          q('#titleVi').value = data.title_vi || "";
+          q('#titleEn').value = data.title_en || "";
+          q('#author').value  = data.author || "";
+          q('#design').value  = data.design || "";
+          q('#cover').value   = data.cover || "";
+          pages = Array.isArray(data.pages) ? data.pages.map(p=>({
+            TDBook: "", // manifest không có trường này
+            IDPage: p.id || "",
+            noidung_vi: p.text_vi || "",
+            noidung_en: p.text_en || "",
+            L_image_P: p.image || "",
+            L_sound_vi: p.sound_vi || "",
+            L_sound_en: p.sound_en || ""
+          })) : [];
+        } else {
+          // Mặc định coi là raw theo editor (an toàn)
+          q('#bookId').value = data.id || data.IDBook || "";
+          q('#titleVi').value = data.title_vi || data.little_vi || "";
+          q('#titleEn').value = data.title_en || data.little_en || "";
+          q('#author').value  = data.author || data.auther || "";
+          q('#design').value  = data.design || "";
+          q('#cover').value   = data.cover || data.L_imageBia || "";
+          pages = Array.isArray(data.pages) ? data.pages.map(p=>({
+            TDBook: p.TDBook || "",
+            IDPage: p.IDPage || p.id || "",
+            noidung_vi: p.noidung_vi || p.text_vi || "",
+            noidung_en: p.noidung_en || p.text_en || "",
+            L_image_P: p.L_image_P || p.image || "",
+            L_sound_vi: p.L_sound_vi || p.sound_vi || "",
+            L_sound_en: p.L_sound_en || p.sound_en || ""
+          })) : [];
+        }
+
+        current = 0;
+        renderPages(); setCurrentOptions(); saveDraft();
+      }catch(err){
+        alert('Import lỗi: ' + err.message);
+      } finally {
+        e.target.value = "";
+      }
+    });
+
+    /* ========= Khởi động & Autosave ========= */
+    // Gán hành vi cho các nút cơ bản
+    q('#btnAddPage').onclick = addPage;
+    q('#btnDeletePage').onclick = deletePage;
+    q('#currentIndex').onchange = (e)=>{ current = +e.target.value; renderPages(); };
+
+    // Nạp bản nháp nếu có
+    (function init(){
+      const draft = loadDraft();
+      if (draft){
+        q('#bookId').value = draft.id || "";
+        q('#titleVi').value = draft.title_vi || "";
+        q('#titleEn').value = draft.title_en || "";
+        q('#author').value  = draft.author || "";
+        q('#design').value  = draft.design || "";
+        q('#cover').value   = draft.cover || "";
+        pages = Array.isArray(draft.pages) ? draft.pages.map(p=>({
+          TDBook: p.TDBook || "",
+          IDPage: p.IDPage || p.id || "",
+          noidung_vi: p.noidung_vi || p.text_vi || "",
+          noidung_en: p.noidung_en || p.text_en || "",
+          L_image_P: p.L_image_P || p.image || "",
+          L_sound_vi: p.L_sound_vi || p.sound_vi || "",
+          L_sound_en: p.L_sound_en || p.sound_en || ""
+        })) : [];
+      } else {
+        // Khởi tạo tối thiểu 1 trang trống
+        pages = [ { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" } ];
+      }
+
+      renderPages(); setCurrentOptions();
+
+      // Autosave cho các input metadata
+      ['bookId','titleVi','titleEn','author','design','cover'].forEach(id=>{
+        q('#'+id).addEventListener('input', saveDraft);
+      });
+    })();
+
+    // Cảnh báo khi rời trang nếu có dữ liệu
+    window.addEventListener('beforeunload', (e)=>{
+      const d = collectAll();
+      const hasData = d.id || d.title_vi || d.title_en || d.author || d.design || d.cover ||
+                      (d.pages && d.pages.some(p => Object.values(p).some(Boolean)));
+      if (hasData) { e.preventDefault(); e.returnValue = ''; }
     });
   </script>
 </body>

@@ -301,4 +301,43 @@ body::after{
   background: rgba(0,0,0,.6);
   backdrop-filter: blur(2px);
 }
+/* ===== Reader calendar viewport ===== */
+#readerModal .calendar {
+  width: min(1100px, 92vw);
+  max-height: 88vh;
+  margin: 0 auto;
+}
+#readerModal .calendar-viewport {
+  position: relative;
+  aspect-ratio: 16 / 9;     /* giữ chỗ 16:9 để không nhảy layout */
+  background: #000;         /* nền tạm khi chưa có ảnh */
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* nền ảnh (dùng background-image) */
+#readerModal .calendar-bg {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;               /* fade-in sau khi tải xong */
+  transition: opacity .25s ease;
+}
+
+/* spinner */
+#readerModal .spinner {
+  position: absolute; left: 50%; top: 50%;
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  transform: translate(-50%,-50%);
+  animation: spin 1s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg);} }
+
+/* trạng thái */
+#readerModal .calendar-viewport.is-loading .spinner { display: block; }
+#readerModal .calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
+
 

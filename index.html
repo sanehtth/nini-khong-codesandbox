@@ -41,11 +41,9 @@
   <!-- ========== VIEWPORT ========== -->
   <main class="viewport">
     <section class="frame" id="frame">
-      
-  
-<!-- Mascot -->
+      <!-- Mascot -->
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-  <!-- [READER ADD] END -->
+
       <!-- 4 chips dưới -->
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
@@ -68,51 +66,44 @@
       <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
     </section>
   </main>
-<!-- [READER ADD] BEGIN — Modal “trình đọc sách” dùng cho kệ sách ở tab Spring -->
-<div class="modal" id="readerModal" aria-hidden="true">
-  <div class="modal__backdrop" data-reader-close></div>
-  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
-    <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-    <h3 id="readerTitle" class="modal__title">
-      <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-      <span id="readerBookTitle">Đang mở…</span>
-    </h3>
+  <!-- [READER ADD] BEGIN — Modal “trình đọc sách” dùng cho kệ sách ở tab Spring -->
+  <div class="modal" id="readerModal" aria-hidden="true">
+    <div class="modal__backdrop" data-reader-close></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-    <!-- [BOOK VIEW] BẮT ĐẦU -->
-    <div class="reader-book">
-      <!-- Trái: ảnh minh hoạ -->
-      <figure class="reader-left">
-        <img id="readerImage" alt="" />
-        <button class="btn reader-nav reader-nav-left" id="btnPrevPage">← Trang trước</button>
-      </figure>
+      <h3 id="readerTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+        <span id="readerBookTitle">Đang mở…</span>
+      </h3>
 
-      <!-- Phải: 2 ô nội dung + loa -->
-      <section class="reader-right">
-        <article class="reader-block">
-          <header class="reader-block__head">
-            <span class="muted">Tiếng Việt</span>
-            <button class="reader-speak" id="btnSpeakVi" title="Phát tiếng Việt">🔊</button>
-          </header>
-          <div id="readerTextVi" class="reader-text"></div>
-        </article>
+      <div id="readerViewport" style="position:relative">
+        <img id="readerImage" alt="" style="width:100%;border-radius:12px;display:block;"/>
+        <div class="row" style="margin-top:10px">
+          <audio id="readerAudioVi" controls style="flex:1;display:none"></audio>
+          <audio id="readerAudioEn" controls style="flex:1;display:none"></audio>
+        </div>
+        <div class="grid" style="margin-top:10px">
+          <div>
+            <label class="muted">Tiếng Việt</label>
+            <div id="readerTextVi"></div>
+          </div>
+          <div>
+            <label class="muted">English</label>
+            <div id="readerTextEn"></div>
+          </div>
+        </div>
+      </div>
 
-        <article class="reader-block">
-          <header class="reader-block__head">
-            <span class="muted">English</span>
-            <button class="reader-speak" id="btnSpeakEn" title="Play English">🔊</button>
-          </header>
-          <div id="readerTextEn" class="reader-text"></div>
-        </article>
-
-        <button class="btn reader-nav reader-nav-right" id="btnNextPage">Trang sau →</button>
-        <div class="reader-pageinfo" id="readerPageInfo">Trang 1/1</div>
-      </section>
+      <div class="row" style="justify-content:space-between;margin-top:14px">
+        <button class="btn" id="btnPrevPage">← Trang trước</button>
+        <div class="muted" id="readerPageInfo">Trang 1/1</div>
+        <button class="btn" id="btnNextPage">Trang sau →</button>
+      </div>
     </div>
-    <!-- [BOOK VIEW] KẾT THÚC -->
   </div>
-</div>
-
+  <!-- [READER ADD] END -->
 
   <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
@@ -178,5 +169,3 @@
   </div>
 </body>
 </html>
-
-

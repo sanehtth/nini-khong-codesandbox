@@ -609,3 +609,19 @@ body.is-reading .shelf-panel{ display:none; }
 /* Nút/overlay mượt mà mà không làm thay đổi layout */
 .reader-toolbar, .img-nav, .subtitle-bubble{ will-change: transform; }
 
+/* === NÂNG/HẠ KHUNG READER THEO Ý MUỐN === */
+/* Giá trị dương => hạ xuống; âm => nâng lên */
+:root{ --reader-offset-y: 28px; }   /* bạn thích 20–40px thì chỉnh ở đây */
+
+/* Cụm được căn giữa: mình dịch nó xuống một đoạn */
+#readerModal .reader-wrap{
+  position: relative;
+  width: min(92vw, 1120px);
+  transform: translateY(var(--reader-offset-y));
+}
+
+/* Nếu màn hình thấp, giảm bớt độ lệch cho an toàn */
+@media (max-height: 740px){
+  :root{ --reader-offset-y: 16px; }
+}
+

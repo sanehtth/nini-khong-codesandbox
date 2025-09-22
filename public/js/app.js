@@ -276,13 +276,15 @@
   }
 
   // ===== Modal show/hide =====
-  function showReader(show){
-    readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
-    if (!show) { audioVi.pause(); audioEn.pause(); }
+function showReader(show){
+  readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
+  if (show) {
+    document.body.classList.add("is-reading");
+  } else {
+    document.body.classList.remove("is-reading");
+    audioVi.pause(); audioEn.pause();
   }
-  readerModal?.querySelectorAll("[data-reader-close]")?.forEach(el=>{
-    el.addEventListener("click", ()=> showReader(false));
-  });
+}
 
   // ===== Language apply =====
   function applyReaderLang(lang){
@@ -424,4 +426,5 @@
     }
   }
 })(); // END IIFE
+
 

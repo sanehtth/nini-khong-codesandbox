@@ -245,3 +245,60 @@ body::after{
 @media (max-width: 640px){
   .nini{width:150px}
 }
+/* ========== FIX: căn giữa modal đọc sách giống Auth ========== */
+#readerModal {
+  position: fixed;           /* phủ toàn màn */
+  inset: 0;
+  display: flex;
+  align-items: center;       /* giữa dọc */
+  justify-content: center;   /* giữa ngang */
+  z-index: 1000;             /* cao hơn frame */
+}
+
+/* Panel bên trong của reader: hủy các vị trí cũ và giới hạn kích thước */
+#readerModal .modal__panel {
+  position: relative;        /* KHÔNG dùng top/left/translate */
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin: 0;                 /* flex đã căn giữa, không cần margin */
+  width: min(1100px, 92vw);
+  max-height: min(88vh, 900px);
+  overflow: hidden;          /* không tràn ra ngoài */
+  display: grid;
+  gap: 12px;
+}
+
+/* Ảnh trang: đảm bảo lấp chiều ngang panel, không “co kéo” sai tỷ lệ */
+#readerModal .page-img,
+#readerModal .calendar-img,
+#readerModal .reader-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;         /* Ảnh 16:9 vẫn nét, không bẹt */
+}
+
+/* Bong bóng phụ đề: luôn bám vào trung tâm dưới ảnh */
+#readerModal .subtitle-bubble {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 18px;
+}
+
+/* Điều hướng dưới ảnh: căn giữa tuyệt đối */
+#readerModal .nav-strip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 58px; /* tùy bạn chỉnh để không đè phụ đề */
+}
+
+/* (tuỳ chọn) Giảm tối nền backdrop một chút cho ảnh nổi hơn */
+#readerModal .modal__backdrop {
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(2px);
+}
+

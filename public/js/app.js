@@ -33,6 +33,21 @@
 }
 
   }
+// ===== STYLE TOGGLER =====
+const btnStyle = document.getElementById("toggleStyle");
+
+// áp dụng style đã lưu
+const savedStyle = localStorage.getItem("ui_style"); // 'modern' | 'classic'
+if (savedStyle === "modern") {
+  document.body.classList.add("theme-modern");
+  if (btnStyle) btnStyle.textContent = "Style: Modern";
+}
+
+btnStyle?.addEventListener("click", () => {
+  const modern = document.body.classList.toggle("theme-modern");
+  localStorage.setItem("ui_style", modern ? "modern" : "classic");
+  btnStyle.textContent = "Style: " + (modern ? "Modern" : "Classic");
+});
 
   // ====== INIT SEASON (từ hash) ======
   function bootSeasonFromHash() {
@@ -117,6 +132,7 @@
   // preload ảnh để chuyển mượt
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 })();
+
 
 
 

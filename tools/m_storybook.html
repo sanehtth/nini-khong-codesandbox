@@ -1,355 +1,211 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Storybook Editor</title>
-
-  <!-- ====== THEME / STYLE HIỆN ĐẠI ====== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Story Editor</title>
   <style>
-  :root{
-    --bg1:#0e1117; --bg2:#161b22;
-    --card:rgba(255,255,255,.06); --card-br:rgba(255,255,255,.12);
-    --text:#e6edf3; --text-dim:#9fb1c7;
-    --primary:#7bc6ff; --primary-2:#a6ffcb; --focus:#c2e7ff;
-  }
-
-  html,body{height:100%}
-  body{
-    margin:0; color:var(--text);
-    font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:
-      radial-gradient(1200px 700px at 50% -10%, rgba(88,130,193,.15), transparent 60%),
-      linear-gradient(180deg, var(--bg1), var(--bg2));
-  }
-  body::after{
-    content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
-    mix-blend-mode: overlay;
-  }
-
-  .app{ max-width:1100px; margin:24px auto 64px; padding:0 16px; }
-
-  .panel{
-    background:var(--card); border:1px solid var(--card-br);
-    border-radius:14px; padding:16px 16px 18px;
-    backdrop-filter:blur(6px);
-    box-shadow:0 8px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.03);
-    margin-bottom:14px;
-  }
-  .panel>h2{ margin:0 0 10px; font-size:16px; letter-spacing:.2px; font-weight:700; color:var(--focus); }
-  .panel.accent{ border-color:rgba(123,198,255,.35); box-shadow:0 8px 28px rgba(123,198,255,.1), inset 0 0 0 1px rgba(123,198,255,.08); }
-
-  .card{
-    background:rgba(255,255,255,.04); border:1px solid var(--card-br);
-    border-radius:12px; padding:12px; margin-bottom:12px;
-  }
-
-  .grid{ display:grid; gap:12px; }
-  .grid-2{ grid-template-columns:repeat(2, minmax(0,1fr)); }
-  @media (max-width:880px){ .grid-2{ grid-template-columns:1fr; } }
-
-  label{ display:block; font-size:13px; color:var(--text-dim); }
-  label>input, label>textarea{
-    width:100%; margin-top:6px; padding:10px 12px;
-    border-radius:10px; border:1px solid rgba(255,255,255,.14);
-    background:rgba(255,255,255,.06); color:var(--text); outline:none;
-  }
-  label>input:focus, label>textarea:focus{
-    border-color:var(--focus); box-shadow:0 0 0 3px rgba(194,231,255,.18);
-  }
-
-  .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .btn{
-    appearance:none; border:none; cursor:pointer;
-    padding:10px 14px; border-radius:999px;
-    color:#0b1220; background:linear-gradient(135deg, var(--primary), var(--primary-2));
-    box-shadow:0 6px 16px rgba(123,198,255,.25);
-  }
-  .btn:hover{ filter:brightness(1.05); }
-  .btn:active{ transform:translateY(1px); }
-  .btn-sm{ padding:6px 10px; font-size:13px; }
-  .btn.gray{
-    color:var(--text); background:linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.06));
-    box-shadow:none; border:1px solid rgba(255,255,255,.12);
-  }
-  .btn.danger{
-    background:linear-gradient(135deg, #ff9898, #ffb1a6);
-    color:#2a0a0a;
-  }
-
-  .page-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
-  .page-head strong{ font-size:14px; }
-
-  .muted{ color:var(--text-dim); font-size:12px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+    body {
+      position: relative;
+      color: #fff;
+      /* Nền trang phủ full màn hình với ảnh, căn giữa, không lặp, hiệu ứng mờ nhẹ */
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url("public/assets/bg/nini_home.webp") center center no-repeat;
+      background-size: cover;
+      filter: blur(5px);
+      z-index: -1;
+    }
+    .editor-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    h2, h3 {
+      margin: 0 0 1rem 0;
+    }
+    h3 {
+      font-size: 1.2em;
+      margin-top: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: normal;
+    }
+    input, textarea {
+      display: block;
+      width: 100%;
+      padding: 0.5rem 0;
+      border: none;
+      border-bottom: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-bottom: 2px solid #fff;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-right: 1rem;
+    }
+    button:hover {
+      background: #fff;
+      color: #000;
+    }
+    .hash-label {
+      display: inline-block;
+      margin-left: 1rem;
+      font-weight: normal;
+    }
+    .hash-label input {
+      margin-right: 0.25rem;
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- BOOK -->
-    <section class="panel">
-      <h2>Book</h2>
-
-      <div class="grid grid-2" id="bookForm">
-        <label>IDBook
-          <input id="IDBook" type="text" placeholder="VD: BK001">
-        </label>
-
-        <label>L_imageBia (Link ảnh bìa)
-          <input id="L_imageBia" type="text" placeholder="https://.../cover.webp">
-        </label>
-
-        <label>little_vi (Tên sách tiếng Việt)
-          <input id="little_vi" type="text" placeholder="NiNi và khu rừng">
-        </label>
-
-        <label>little_en (Book title in English)
-          <input id="little_en" type="text" placeholder="NiNi in the Forest">
-        </label>
-
-        <label>auther
-          <input id="auther" type="text" placeholder="Tên tác giả">
-        </label>
-
-        <label>design
-          <input id="design" type="text" placeholder="Tên họa sĩ/thiết kế">
-        </label>
+  <div class="editor-content">
+    <!-- Thông tin Sách -->
+    <div class="section book-section">
+      <h2>Thông tin Sách</h2>
+      <label for="bookId">ID Sách:</label>
+      <input type="text" id="bookId" placeholder="ID Sách" />
+      <label for="titleVi">Tiêu đề (VI):</label>
+      <input type="text" id="titleVi" placeholder="Tiêu đề tiếng Việt" />
+      <label for="titleEn">Tiêu đề (EN):</label>
+      <input type="text" id="titleEn" placeholder="Tiêu đề tiếng Anh" />
+      <label for="author">Tác giả:</label>
+      <input type="text" id="author" placeholder="Tác giả" />
+      <label for="design">Thiết kế:</label>
+      <input type="text" id="design" placeholder="Thiết kế" />
+      <label for="cover">Ảnh bìa:</label>
+      <input type="text" id="cover" placeholder="Đường dẫn ảnh bìa" />
+    </div>
+    <!-- Khu vực Thao tác -->
+    <div class="section actions-section">
+      <button type="button" id="generateManifest">Tạo Manifest</button>
+      <label class="hash-label"><input type="checkbox" id="includeHash" /> Thêm #hash vào liên kết</label>
+    </div>
+    <!-- Danh sách Các Trang -->
+    <div class="section pages-section">
+      <h2>Các Trang</h2>
+      <div id="pagesContainer">
+        <div class="page-entry">
+          <h3>Trang 1</h3>
+          <label>ID trang:</label>
+          <input type="text" class="page-id" placeholder="ID trang" />
+          <label>Nội dung (VI):</label>
+          <textarea class="page-text-vi" placeholder="Nội dung tiếng Việt"></textarea>
+          <label>Nội dung (EN):</label>
+          <textarea class="page-text-en" placeholder="Nội dung tiếng Anh"></textarea>
+          <label>Hình ảnh:</label>
+          <input type="text" class="page-image" placeholder="Đường dẫn hình ảnh" />
+          <label>Âm thanh (VI):</label>
+          <input type="text" class="page-sound-vi" placeholder="Đường dẫn âm thanh tiếng Việt" />
+          <label>Âm thanh (EN):</label>
+          <input type="text" class="page-sound-en" placeholder="Đường dẫn âm thanh tiếng Anh" />
+        </div>
       </div>
-      <div class="muted" style="margin-top:6px">Mẹo: dữ liệu tự lưu tạm (autosave) vào trình duyệt của bạn.</div>
-    </section>
-
-    <!-- ACTIONS -->
-    <section class="panel accent">
-      <h2>Actions</h2>
-      <div class="row">
-        <button id="btnSave"   class="btn">Lưu (draft)</button>
-        <button id="btnAdd"    class="btn">Add Page</button>
-        <button id="btnDel"    class="btn danger">Delete Page (cuối)</button>
-        <button id="btnImport" class="btn gray">Import JSON</button>
-        <button id="btnExport" class="btn gray">Export JSON</button>
-        <input id="fileImport" type="file" accept="application/json" style="display:none">
-      </div>
-    </section>
-
-    <!-- PAGES -->
-    <section class="panel">
-      <h2>Pages</h2>
-      <div id="pagesWrap"></div>
-    </section>
+      <button type="button" id="addPage">Thêm Trang</button>
+    </div>
+    <!-- Kết quả Manifest JSON -->
+    <div class="section manifest-section">
+      <h2>Kết quả Manifest</h2>
+      <pre id="manifestOutput"></pre>
+    </div>
   </div>
-
-  <!-- ====== SCRIPT ====== -->
   <script>
-  // ---------- Helpers ----------
-  const $ = (id) => document.getElementById(id);
-  const download = (name, data) => {
-    const blob = new Blob([data], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-
-  // ---------- State ----------
-  let book = {
-    IDBook: "", little_vi: "", little_en: "",
-    auther: "", design: "", L_imageBia: "",
-    pages: []
-  };
-
-  // ---------- Autosave ----------
-  let autosaveTimer;
-  function autosaveSoon(){
-    clearTimeout(autosaveTimer);
-    autosaveTimer = setTimeout(()=>{
-      localStorage.setItem('storybook_draft_full', JSON.stringify(book));
-    }, 350);
-  }
-
-  // ---------- Bind BOOK inputs ----------
-  function bindBookInputs(){
-    ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(k=>{
-      const el = $(k);
-      el.value = book[k] || "";
-      el.oninput = (e)=>{ book[k] = e.target.value; autosaveSoon(); };
-    });
-  }
-
-  // ---------- Render Pages ----------
-  function renderPages(){
-    const wrap = $("pagesWrap");
-    wrap.innerHTML = "";
-
-    if (!book.pages || book.pages.length === 0){
-      book.pages = [emptyPage()];
+    // Hàm tiện ích tạo chuỗi hash ngẫu nhiên
+    function generateHash() {
+      return Math.random().toString(36).substr(2, 6);
     }
-
-    book.pages.forEach((p, idx) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-
-      card.innerHTML = `
-        <div class="page-head">
-          <strong>Page #${idx+1}</strong>
-          <div class="row">
-            <button class="btn btn-sm" data-act="up">↑</button>
-            <button class="btn btn-sm" data-act="down">↓</button>
-            <button class="btn btn-sm danger" data-act="remove">Xoá</button>
-          </div>
-        </div>
-
-        <div class="grid grid-2">
-          <label>TDBook
-            <input data-f="TDBook" type="text" placeholder="Tiêu đề trang">
-          </label>
-          <label>IDPage
-            <input data-f="IDPage" type="text" placeholder="VD: P001">
-          </label>
-
-          <label>noidung_vi
-            <textarea data-f="noidung_vi" rows="3" placeholder="Nội dung tiếng Việt"></textarea>
-          </label>
-          <label>noidung_en
-            <textarea data-f="noidung_en" rows="3" placeholder="English content"></textarea>
-          </label>
-
-          <label>L_image_P (Link ảnh trang)
-            <input data-f="L_image_P" type="text" placeholder="https://.../page.webp">
-          </label>
-          <label>L_sound_vi (Link audio VI)
-            <input data-f="L_sound_vi" type="text" placeholder="https://.../voice-vi.mp3">
-          </label>
-
-          <label>L_sound_en (Link audio EN)
-            <input data-f="L_sound_en" type="text" placeholder="https://.../voice-en.mp3">
-          </label>
-        </div>
+    // Xử lý thêm trang mới
+    let pageCount = 1;
+    document.getElementById('addPage').addEventListener('click', () => {
+      pageCount++;
+      const pagesContainer = document.getElementById('pagesContainer');
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'page-entry';
+      pageDiv.innerHTML = `
+        <h3>Trang ${pageCount}</h3>
+        <label>ID trang:</label>
+        <input type="text" class="page-id" placeholder="ID trang" />
+        <label>Nội dung (VI):</label>
+        <textarea class="page-text-vi" placeholder="Nội dung tiếng Việt"></textarea>
+        <label>Nội dung (EN):</label>
+        <textarea class="page-text-en" placeholder="Nội dung tiếng Anh"></textarea>
+        <label>Hình ảnh:</label>
+        <input type="text" class="page-image" placeholder="Đường dẫn hình ảnh" />
+        <label>Âm thanh (VI):</label>
+        <input type="text" class="page-sound-vi" placeholder="Đường dẫn âm thanh tiếng Việt" />
+        <label>Âm thanh (EN):</label>
+        <input type="text" class="page-sound-en" placeholder="Đường dẫn âm thanh tiếng Anh" />
       `;
-      wrap.appendChild(card);
-
-      // fill & bind
-      card.querySelectorAll('[data-f]').forEach(inp=>{
-        const key = inp.dataset.f;
-        inp.value = p[key] || "";
-        inp.addEventListener('input', e=>{
-          book.pages[idx][key] = e.target.value;
-          autosaveSoon();
-        });
-      });
-
-      // controls
-      const btnUp = card.querySelector('[data-act="up"]');
-      const btnDn = card.querySelector('[data-act="down"]');
-      const btnRm = card.querySelector('[data-act="remove"]');
-      btnUp.disabled = idx === 0;
-      btnDn.disabled = idx === book.pages.length-1;
-
-      btnUp.addEventListener('click', ()=>{
-        if (idx === 0) return;
-        [book.pages[idx-1], book.pages[idx]] = [book.pages[idx], book.pages[idx-1]];
-        renderPages(); autosaveSoon();
-      });
-      btnDn.addEventListener('click', ()=>{
-        if (idx === book.pages.length-1) return;
-        [book.pages[idx+1], book.pages[idx]] = [book.pages[idx], book.pages[idx+1]];
-        renderPages(); autosaveSoon();
-      });
-      btnRm.addEventListener('click', ()=>{
-        if (!confirm(`Xoá Page #${idx+1}?`)) return;
-        book.pages.splice(idx, 1);
-        renderPages(); autosaveSoon();
-      });
+      pagesContainer.appendChild(pageDiv);
     });
-  }
-
-  function emptyPage(){
-    return { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" };
-  }
-
-  // ---------- Actions ----------
-  $("btnAdd").addEventListener('click', ()=>{
-    book.pages.push(emptyPage());
-    renderPages(); autosaveSoon();
-  });
-
-  $("btnDel").addEventListener('click', ()=>{
-    if (!book.pages.length) return;
-    if (!confirm("Xoá trang cuối cùng?")) return;
-    book.pages.pop();
-    renderPages(); autosaveSoon();
-  });
-
-  $("btnSave").addEventListener('click', ()=>{
-    localStorage.setItem('storybook_draft_full', JSON.stringify(book));
-    alert("Đã lưu bản nháp vào trình duyệt (localStorage).");
-  });
-
-  $("btnExport").addEventListener('click', ()=>{
-    const json = JSON.stringify(book, null, 2);
-    download((book.IDBook || 'book') + '.json', json);
-  });
-
-  $("btnImport").addEventListener('click', ()=> $("fileImport").click());
-  $("fileImport").addEventListener('change', async (e)=>{
-    const file = e.target.files[0]; if (!file) return;
-    try{
-      const text = await file.text();
-      const data = JSON.parse(text);
-      // map mềm, chấp nhận thiếu field
-      book = {
-        IDBook: data.IDBook || "",
-        little_vi: data.little_vi || "",
-        little_en: data.little_en || "",
-        auther: data.auther || "",
-        design: data.design || "",
-        L_imageBia: data.L_imageBia || "",
-        pages: Array.isArray(data.pages) ? data.pages.map(p => ({
-          TDBook: p.TDBook || "",
-          IDPage: p.IDPage || "",
-          noidung_vi: p.noidung_vi || "",
-          noidung_en: p.noidung_en || "",
-          L_image_P: p.L_image_P || "",
-          L_sound_vi: p.L_sound_vi || "",
-          L_sound_en: p.L_sound_en || ""
-        })) : []
+    // Xử lý tạo JSON manifest khi bấm nút
+    document.getElementById('generateManifest').addEventListener('click', () => {
+      const includeHash = document.getElementById('includeHash').checked;
+      const manifest = {
+        id: document.getElementById('bookId').value,
+        title_vi: document.getElementById('titleVi').value,
+        title_en: document.getElementById('titleEn').value,
+        author: document.getElementById('author').value,
+        design: document.getElementById('design').value,
+        cover: document.getElementById('cover').value,
+        pages: []
       };
-      bindBookInputs();
-      renderPages();
-      autosaveSoon();
-    }catch(err){
-      alert("Import lỗi: " + err.message);
-    } finally {
-      e.target.value = "";
-    }
-  });
-
-  // ---------- Warn before unload (nếu có dữ liệu) ----------
-  window.addEventListener('beforeunload', (e)=>{
-    const hasData =
-      $("IDBook").value.trim() ||
-      $("little_vi").value.trim() ||
-      $("little_en").value.trim() ||
-      $("auther").value.trim() ||
-      $("design").value.trim() ||
-      $("L_imageBia").value.trim() ||
-      (book.pages && book.pages.some(p => Object.values(p).some(Boolean)));
-    if (hasData) { e.preventDefault(); e.returnValue = ''; }
-  });
-
-  // ---------- Boot ----------
-  (function init(){
-    const saved = localStorage.getItem('storybook_draft_full');
-    if (saved){
-      try{
-        const d = JSON.parse(saved);
-        book = {...book, ...d};
-        if (Array.isArray(d.pages)) book.pages = d.pages;
-      }catch{}
-    }
-    bindBookInputs();
-    renderPages();
-  })();
+      // Thêm hash vào cover nếu tùy chọn bật
+      if (includeHash && manifest.cover) {
+        manifest.cover += '#' + generateHash();
+      }
+      // Lặp qua từng trang để thu thập dữ liệu
+      document.querySelectorAll('.page-entry').forEach(page => {
+        const pageData = {
+          id: page.querySelector('.page-id').value,
+          text_vi: page.querySelector('.page-text-vi').value,
+          text_en: page.querySelector('.page-text-en').value,
+          image: page.querySelector('.page-image').value,
+          sound_vi: page.querySelector('.page-sound-vi').value,
+          sound_en: page.querySelector('.page-sound-en').value
+        };
+        // Thêm hash vào các link hình/âm thanh nếu có tùy chọn
+        if (includeHash) {
+          if (pageData.image) pageData.image += '#' + generateHash();
+          if (pageData.sound_vi) pageData.sound_vi += '#' + generateHash();
+          if (pageData.sound_en) pageData.sound_en += '#' + generateHash();
+        }
+        manifest.pages.push(pageData);
+      });
+      // Chuyển đối tượng thành chuỗi JSON và hiển thị
+      const jsonStr = JSON.stringify(manifest, null, 2);
+      document.getElementById('manifestOutput').textContent = jsonStr;
+    });
   </script>
 </body>
 </html>

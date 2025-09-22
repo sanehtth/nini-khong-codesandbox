@@ -421,6 +421,15 @@ label > input:focus, label > textarea:focus{
 body.is-reading .shelf-panel{
   display: none;
 }
+.calendar-view{ position:relative; min-height:62vh; border-radius:16px; overflow:hidden }
+.calendar-bg{ position:absolute; inset:0; background:#000 center/cover no-repeat; transform-origin:bottom center; }
+
+/* Flip animation (tuỳ chọn) */
+.flip-out{ animation:flipOut .32s ease forwards }
+.flip-in{  animation:flipIn  .32s ease forwards }
+@keyframes flipOut{ 0%{transform:rotateX(0);opacity:1} 100%{transform:rotateX(-80deg) translateY(6%) scale(.98); opacity:.4} }
+@keyframes flipIn { 0%{transform:rotateX(80deg) translateY(6%) scale(.98); opacity:.4} 100%{transform:rotateX(0); opacity:1} }
+
 
 
 

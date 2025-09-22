@@ -69,90 +69,46 @@
     </section>
   </main>
 
-  <!-- [READER] Modal “trình đọc sách” kiểu 2 trang -->
+  <!-- ========== [READER] Modal trình đọc sách (16:9 + phụ đề đáy ảnh) ========== -->
   <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+    <!-- [SỬA] aria-labelledby trỏ đến #readerBookTitle -->
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerBookTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-      <!-- ============ READER CALENDAR VIEW ============ -->
-<div class="calendar-view mode-right" id="calendarView">
-  <!-- Ảnh nền phủ toàn khung (thay cho <img>) -->
-  <div class="calendar-bg" id="calendarBg"></div>
+      <!-- [ADDED] Tiêu đề để JS set tên sách -->
+      <h3 id="readerBookTitle" class="modal__title">Đang tải…</h3>
 
-  <!-- Phụ đề đè trên ảnh: hiển thị ngôn ngữ đối ứng -->
-  <div class="subtitle-bubble" id="subtitleBubble"></div>
+      <!-- ============ [ADDED] READER CALENDAR VIEW 16:9 ============ -->
+      <div class="calendar-view mode-169" id="calendarView">
+        <!-- Ảnh nền phủ toàn khung -->
+        <div class="calendar-bg" id="calendarBg"></div>
 
-  <!-- Nút Prev/Next nổi trên ảnh (cho dễ bấm) -->
-  <div class="img-nav">
-    <button class="pill-nav" id="imgPrev">◀</button>
-    <button class="pill-nav" id="imgNext">▶</button>
-  </div>
+        <!-- Toolbar góc trên-phải: chọn ngôn ngữ + phát -->
+        <div class="reader-toolbar">
+          <button id="langVi" class="pill">VI</button>
+          <button id="langEn" class="pill">EN</button>
+          <button id="btnSpeak" class="pill">🔊</button>
+        </div>
 
-  <!-- Panel kính mờ bên phải -->
-  <section class="calendar-panel panel-right" id="panelRight">
-    <header class="panel-head">
-      <div class="muted">Ngôn ngữ đọc</div>
-      <div class="buttons">
-        <button class="btn" id="langVi">VI</button>
-        <button class="btn" id="langEn">EN</button>
+        <!-- Nút nổi dưới ảnh -->
+        <div class="img-nav">
+          <button class="pill-nav" id="imgPrev">◀</button>
+          <div class="page-info" id="readerPageInfo">Trang 1/1</div>
+          <button class="pill-nav" id="imgNext">▶</button>
+        </div>
+
+        <!-- Phụ đề ở đáy ảnh -->
+        <div class="subtitle-bubble" id="subtitleBubble"></div>
+
+        <!-- [ADDED] Nút ẩn để JS reuse (không hiển thị) -->
+        <button id="btnPrevPage" style="display:none"></button>
+        <button id="btnNextPage" style="display:none"></button>
       </div>
-    </header>
+      <!-- /=========== READER CALENDAR VIEW ============ -->
 
-    <header class="panel-head">
-      <span class="muted">Tiếng Việt</span>
-      <button class="reader-speak" id="btnSpeakVi">🔊</button>
-    </header>
-    <div id="readerTextVi" class="panel-text"></div>
-
-    <hr class="panel-sep" />
-
-    <header class="panel-head">
-      <span class="muted">English</span>
-      <button class="reader-speak" id="btnSpeakEn">🔊</button>
-    </header>
-    <div id="readerTextEn" class="panel-text"></div>
-
-    <div class="panel-foot">
-      <button class="btn" id="btnPrevPage">← Trang trước</button>
-      <div class="muted" id="readerPageInfo">Trang 1/1</div>
-      <button class="btn" id="btnNextPage">Trang sau →</button>
-    </div>
-  </section>
-</div>
-<!-- /=========== READER CALENDAR VIEW ============ -->
-
-
-
-      <div class="reader-book">
-        <!-- Trái: ảnh minh hoạ + Back -->
-        <figure class="reader-left">
-          <img id="readerImage" alt="" />
-          <button class="btn reader-nav reader-nav-left" id="btnPrevPage">← Trang trước</button>
-        </figure>
-
-        <!-- Phải: VI + EN + Next -->
-        <section class="reader-right">
-          <article class="reader-block">
-            <header class="reader-block__head">
-              <span class="muted">Tiếng Việt</span>
-              <button class="reader-speak" id="btnSpeakVi" title="Phát tiếng Việt">🔊</button>
-            </header>
-            <div id="readerTextVi" class="reader-text"></div>
-          </article>
-
-          <article class="reader-block">
-            <header class="reader-block__head">
-              <span class="muted">English</span>
-              <button class="reader-speak" id="btnSpeakEn" title="Play English">🔊</button>
-            </header>
-            <div id="readerTextEn" class="reader-text"></div>
-          </article>
-
-          <button class="btn reader-nav reader-nav-right" id="btnNextPage">Trang sau →</button>
-          <div class="reader-pageinfo" id="readerPageInfo">Trang 1/1</div>
-        </section>
-      </div>
+      <!-- [REMOVED] Toàn bộ layout cũ “reader-book” gồm ảnh bên trái & cột text bên phải
+           để tránh đè layout mới và xung đột id (#btnPrevPage, #readerTextVi/En...). -->
     </div>
   </div>
 
@@ -220,5 +176,3 @@
   </div>
 </body>
 </html>
-
-

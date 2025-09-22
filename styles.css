@@ -358,5 +358,57 @@ label > input:focus, label > textarea:focus{
   .reader-right{ grid-template-rows: auto auto auto; }
   .reader-nav-left, .reader-nav-right{ position:static; margin-top:8px; }
 }
+/* ===== KỆ SÁCH NHỎ TRONG KHUNG ===== */
+.shelf-panel{
+  position:absolute;           /* bám vào .frame */
+  left:18px; bottom:12%;       /* góc dưới trái */
+  width:min(480px, 46%);       /* panel nhỏ */
+  padding:12px;
+  background:rgba(0,0,0,.28);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:14px;
+  backdrop-filter: blur(6px);
+  color:var(--text);
+}
+.shelf-panel h3{
+  margin:0 0 8px; font-size:16px; font-weight:700;
+}
+
+/* Lưới ô-ô nhỏ xíu */
+.shelf-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* thumbnail ~120px */
+  gap:10px;
+}
+
+/* Thẻ sách gọn gàng */
+.book-card{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.book-card:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,0,0,.35) }
+
+/* Bìa 16:9 rất nhỏ */
+.book-card__cover{
+  width:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  display:block;
+}
+
+/* Text rất gọn */
+.book-card__body{ padding:6px 8px }
+.book-card__title{ margin:0; font-size:12.5px; line-height:1.3; font-weight:700 }
+.book-card__meta{ margin:2px 0 0; font-size:11.5px; color:var(--text-dim) }
+
+/* Mobile: panel rộng hơn chút */
+@media (max-width: 900px){
+  .shelf-panel{ width:min(92%, 520px); bottom:10% }
+}
+
 
 

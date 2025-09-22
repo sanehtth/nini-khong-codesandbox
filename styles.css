@@ -1,4 +1,34 @@
-/* ==== Reader Modal (calendar/photo style) ==== */
+/* === CORE MODAL (phải có) === */
+.modal{position:fixed; inset:0; display:none; z-index:1000;}
+.modal[aria-hidden="false"]{display:block;}
+.modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(3px)}
+.modal__panel{
+  position:absolute; inset:0; margin:auto;
+  width:min(560px, 92vw);
+  background: var(--glass-2);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:16px; padding:18px;
+  color:var(--text);
+}
+.modal__close{
+  position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer
+}
+
+/* === SHELF CARD VỊ TRÍ TRONG FRAME === */
+.shelf-card{
+  position:absolute; top:18px; left:18px; width:min(680px, 70%);
+  background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18);
+  border-radius:12px; padding:10px; backdrop-filter: blur(6px)
+}
+.shelf{display:block}
+.shelf__title{margin:0 0 8px}
+.shelf__grid{display:flex; gap:10px; flex-wrap:wrap}
+.book-card{display:flex; gap:10px; align-items:center; cursor:pointer; padding:8px 10px; border-radius:10px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.12)}
+.book-card__cover{width:64px; height:64px; border-radius:8px; object-fit:cover; display:block}
+.book-card__title{margin:0; font-weight:700; font-size:14px}
+.book-card__meta{opacity:.8; font-size:12px}
+
+/* === READER (kiểu ảnh 16:9 + subtitle) === */
 .modal__panel--reader{
   width:min(1120px, 92vw);
   background: var(--glass-2);
@@ -7,9 +37,8 @@
   padding:14px 14px 18px;
   color:var(--text);
   position:absolute; inset:0; margin:auto;
-  top:52%; transform:translateY(-50%);   /* thấp hơn 1 chút cho đẹp */
+  top:56%; transform:translateY(-50%);     /* hạ thấp để nhìn cân khung */
 }
-
 .reader-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
 .reader-title{margin:0; font-size:18px; font-weight:700}
 .reader-tools{display:flex; gap:6px; align-items:center}

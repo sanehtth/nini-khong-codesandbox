@@ -544,6 +544,23 @@ body.is-reading .shelf-panel{ display:none; }
 .calendar-view.mode-169{
   margin: 0 auto;             /* bảo đảm giữa ngang */
 }
+/* Bật chế độ render sắc nét hơn cho nền ảnh */
+.calendar-bg{
+  image-rendering: -webkit-optimize-contrast; /* WebKit */
+  image-rendering: crisp-edges;                /* fallback */
+}
+
+/* Không cho khung 16:9 to hơn mức an toàn (tránh phóng quá ảnh 1080p) */
+.calendar-view.mode-169{
+  width: min(92vw, 1120px);   /* bạn có thể tăng 1120 -> 1280 nếu ảnh đủ lớn */
+  max-height: 72vh;
+}
+
+/* Nút/overlay không làm mờ ảnh */
+.reader-toolbar, .img-nav, .subtitle-bubble{
+  will-change: transform;
+}
+
 
 
 

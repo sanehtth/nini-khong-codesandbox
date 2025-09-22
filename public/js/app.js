@@ -13,6 +13,12 @@
   const frame = document.getElementById("frame");
   const content = document.getElementById("content");
 
+  // [SHELF ADD] PATHS — nơi đọc manifest & từng sách
+  // Manifest: /public/content/storybook/library-manifest.json
+  // Mỗi sách: /public/content/storybook/<ID>.json (vd: B001.json)
+  const LIBRARY_URL = "/public/content/storybook/library-manifest.json";
+  const BOOK_URL = (id) => `/public/content/storybook/${id}.json`;
+
   // ====== SET SEASON ======
   function setSeason(season) {
     const img = IMAGES[season] || IMAGES.home;
@@ -28,26 +34,34 @@
     // hash router (cho phép /#/winter hay /#winter đều ok)
     const newHash = `#/${season}`;
     if (location.hash !== newHash) {
-  history.replaceState({}, "", newHash);
-  window.dispatchEvent(new HashChangeEvent("hashchange"));
-}
+      history.replaceState({}, "", newHash);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    }
 
+    // [SHELF ADD] Khi vào Spring: tải & hiển thị kệ sách
+    if (season === "spring") {
+      loadLibrary().then(renderShelf);
+    } else {
+      // Tab khác: trả về nội dung mặc định (intro)
+      if (content) content.innerHTML = SECTIONS.intro;
+    }
   }
-// ===== STYLE TOGGLER =====
-const btnStyle = document.getElementById("toggleStyle");
 
-// áp dụng style đã lưu
-const savedStyle = localStorage.getItem("ui_style"); // 'modern' | 'classic'
-if (savedStyle === "modern") {
-  document.body.classList.add("theme-modern");
-  if (btnStyle) btnStyle.textContent = "Style: Modern";
-}
+  // ===== STYLE TOGGLER =====
+  const btnStyle = document.getElementById("toggleStyle");
 
-btnStyle?.addEventListener("click", () => {
-  const modern = document.body.classList.toggle("theme-modern");
-  localStorage.setItem("ui_style", modern ? "modern" : "classic");
-  btnStyle.textContent = "Style: " + (modern ? "Modern" : "Classic");
-});
+  // áp dụng style đã lưu
+  const savedStyle = localStorage.getItem("ui_style"); // 'modern' | 'classic'
+  if (savedStyle === "modern") {
+    document.body.classList.add("theme-modern");
+    if (btnStyle) btnStyle.textContent = "Style: Modern";
+  }
+
+  btnStyle?.addEventListener("click", () => {
+    const modern = document.body.classList.toggle("theme-modern");
+    localStorage.setItem("ui_style", modern ? "modern" : "classic");
+    btnStyle.textContent = "Style: " + (modern ? "Modern" : "Classic");
+  });
 
   // ====== INIT SEASON (từ hash) ======
   function bootSeasonFromHash() {
@@ -131,11 +145,132 @@ btnStyle?.addEventListener("click", () => {
 
   // preload ảnh để chuyển mượt
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
+
+  /* ******************************************************************
+   * [SHELF ADD] fetch & shelf — tải manifest và hiển thị kệ sách ở Spring
+   ****************************************************************** */
+  async function fetchJSON(url){
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status} - ${url}`);
+    return res.json();
+  }
+
+  async function loadLibrary(){
+    try{
+      const lib = await fetchJSON(LIBRARY_URL);
+      if(!Array.isArray(lib.books)) throw new Error("library.books missing");
+      return lib.books;
+    }catch(err){
+      console.warn("Library load failed:", err);
+      return null;
+    }
+  }
+
+  function renderShelf(books){
+    if(!content) return;
+    if(!books || !books.length){
+      content.innerHTML = `
+        <h2>Kệ sách</h2>
+        <p class="muted">Chưa tìm thấy <code>library-manifest.json</code> hoặc chưa có sách.
+        Hãy đặt file tại <code>/public/content/storybook/library-manifest.json</code> và
+        các sách ở <code>/public/content/storybook/&lt;ID&gt;.json</code>.</p>`;
+      return;
+    }
+
+    const html = books.map(b=>`
+      <article class="book-card" data-book="${b.id}">
+        <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}" alt="${b.title_vi || b.title_en || b.id}">
+        <div class="book-card__body">
+          <h4 class="book-card__title">${b.title_vi || b.title_en || b.id}</h4>
+          <p class="book-card__meta">${b.author ? `Tác giả: ${b.author}` : ''}</p>
+        </div>
+      </article>
+    `).join("");
+
+    content.innerHTML = `<h2>Kệ sách</h2><div class="shelf">${html}</div>`;
+
+    // click mở reader
+    content.querySelectorAll(".book-card").forEach(card=>{
+      card.addEventListener("click", ()=> openReader(card.dataset.book));
+    });
+  }
+
+  /* ******************************************************************
+   * [READER ADD] modal reader — trình đọc sách (Prev/Next, VI/EN, audio)
+   * (Cần phần HTML modal trong index.html — ghi ở cuối)
+   ****************************************************************** */
+  const readerModal   = document.getElementById("readerModal");
+  const readerTitleEl = document.getElementById("readerBookTitle");
+  const readerImg     = document.getElementById("readerImage");
+  const readerTextVi  = document.getElementById("readerTextVi");
+  const readerTextEn  = document.getElementById("readerTextEn");
+  const audioVi       = document.getElementById("readerAudioVi");
+  const audioEn       = document.getElementById("readerAudioEn");
+  const pageInfo      = document.getElementById("readerPageInfo");
+  const btnPrev       = document.getElementById("btnPrevPage");
+  const btnNext       = document.getElementById("btnNextPage");
+
+  let currentBook = null;
+  let pageIdx = 0;
+
+  function showReader(show){
+    readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+  readerModal?.querySelectorAll("[data-reader-close]")?.forEach(el=>{
+    el.addEventListener("click", ()=> showReader(false));
+  });
+
+  function renderPage(){
+    if(!currentBook) return;
+    const total = currentBook.pages.length || 0;
+    const p = currentBook.pages[pageIdx] || {};
+    if (readerImg) readerImg.src = p.image || currentBook.cover || "";
+    if (readerTextVi) readerTextVi.textContent = p.text_vi || "";
+    if (readerTextEn) readerTextEn.textContent = p.text_en || "";
+
+    if(audioVi){
+      if(p.sound_vi){ audioVi.src = p.sound_vi; audioVi.style.display="block"; }
+      else { audioVi.removeAttribute("src"); audioVi.style.display="none"; }
+    }
+    if(audioEn){
+      if(p.sound_en){ audioEn.src = p.sound_en; audioEn.style.display="block"; }
+      else { audioEn.removeAttribute("src"); audioEn.style.display="none"; }
+    }
+
+    if (pageInfo) pageInfo.textContent = `Trang ${Math.min(pageIdx+1,total)}/${total || 1}`;
+    if (btnPrev) btnPrev.disabled = pageIdx<=0;
+    if (btnNext) btnNext.disabled = pageIdx>=total-1;
+  }
+
+  btnPrev?.addEventListener("click", ()=>{ if(pageIdx>0){ pageIdx--; renderPage(); }});
+  btnNext?.addEventListener("click", ()=>{ if(currentBook && pageIdx<currentBook.pages.length-1){ pageIdx++; renderPage(); }});
+
+  async function openReader(bookId){
+    try{
+      const book = await fetchJSON(BOOK_URL(bookId));
+      // Chuẩn hoá field để reader dùng thống nhất
+      currentBook = {
+        id: book.id || book.IDBook || bookId,
+        title_vi: book.title_vi || book.little_vi || "",
+        title_en: book.title_en || book.little_en || "",
+        cover:    book.cover || book.L_imageBia || "",
+        pages: Array.isArray(book.pages) ? book.pages.map(p=>({
+          id: p.id || p.IDPage || "",
+          text_vi: p.text_vi || p.noidung_vi || "",
+          text_en: p.text_en || p.noidung_en || "",
+          image:   p.image || p.L_image_P || "",
+          sound_vi:p.sound_vi || p.L_sound_vi || "",
+          sound_en:p.sound_en || p.L_sound_en || ""
+        })) : []
+      };
+      if (readerTitleEl) {
+        readerTitleEl.textContent = currentBook.title_vi || currentBook.title_en || currentBook.id;
+      }
+      pageIdx = 0;
+      renderPage();
+      showReader(true);
+    }catch(err){
+      alert("Không mở được sách " + bookId + ": " + err.message);
+    }
+  }
 })();
-
-
-
-
-
-
-

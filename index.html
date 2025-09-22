@@ -10,12 +10,11 @@
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
   <!-- CSS -->
-  <link rel="stylesheet" href="/styles.css?v=7" />
+  <link rel="stylesheet" href="/styles.css?v=8" />
 
-  <!-- JS (đường dẫn tuyệt đối + defer + bust cache)
-       LƯU Ý: đặt trong <head> nhưng có 'defer', nên sẽ chạy sau khi DOM đã parse -->
+  <!-- JS (defer để chạy sau khi DOM parse) -->
   <script src="/public/js/effects.js?v=5" defer></script>
-  <script src="/public/js/app.js?v=10" defer></script>
+  <script src="/public/js/app.js?v=11" defer></script>
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -44,16 +43,19 @@
       <!-- Mascot -->
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
 
-      <!-- 4 chips dưới -->
+      <!-- Chips -->
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
         <button class="chip" data-section="rules">Luật chơi</button>
         <button class="chip" data-section="forum">Diễn đàn</button>
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
+
+      <!-- [SHELF IN FRAME] mount point (kệ sách nằm trong khung có hiệu ứng) -->
+      <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <!-- Nội dung thay đổi -->
+    <!-- Nội dung thay đổi (dùng cho tab khác) -->
     <section class="content" id="content">
       <h2>NiNi — Funny</h2>
       <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
@@ -67,7 +69,7 @@
     </section>
   </main>
 
-  <!-- [READER ADD] BEGIN — Modal “trình đọc sách” dùng cho kệ sách ở tab Spring -->
+  <!-- [READER] Modal “trình đọc sách” kiểu 2 trang -->
   <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
@@ -78,32 +80,37 @@
         <span id="readerBookTitle">Đang mở…</span>
       </h3>
 
-      <div id="readerViewport" style="position:relative">
-        <img id="readerImage" alt="" style="width:100%;border-radius:12px;display:block;"/>
-        <div class="row" style="margin-top:10px">
-          <audio id="readerAudioVi" controls style="flex:1;display:none"></audio>
-          <audio id="readerAudioEn" controls style="flex:1;display:none"></audio>
-        </div>
-        <div class="grid" style="margin-top:10px">
-          <div>
-            <label class="muted">Tiếng Việt</label>
-            <div id="readerTextVi"></div>
-          </div>
-          <div>
-            <label class="muted">English</label>
-            <div id="readerTextEn"></div>
-          </div>
-        </div>
-      </div>
+      <div class="reader-book">
+        <!-- Trái: ảnh minh hoạ + Back -->
+        <figure class="reader-left">
+          <img id="readerImage" alt="" />
+          <button class="btn reader-nav reader-nav-left" id="btnPrevPage">← Trang trước</button>
+        </figure>
 
-      <div class="row" style="justify-content:space-between;margin-top:14px">
-        <button class="btn" id="btnPrevPage">← Trang trước</button>
-        <div class="muted" id="readerPageInfo">Trang 1/1</div>
-        <button class="btn" id="btnNextPage">Trang sau →</button>
+        <!-- Phải: VI + EN + Next -->
+        <section class="reader-right">
+          <article class="reader-block">
+            <header class="reader-block__head">
+              <span class="muted">Tiếng Việt</span>
+              <button class="reader-speak" id="btnSpeakVi" title="Phát tiếng Việt">🔊</button>
+            </header>
+            <div id="readerTextVi" class="reader-text"></div>
+          </article>
+
+          <article class="reader-block">
+            <header class="reader-block__head">
+              <span class="muted">English</span>
+              <button class="reader-speak" id="btnSpeakEn" title="Play English">🔊</button>
+            </header>
+            <div id="readerTextEn" class="reader-text"></div>
+          </article>
+
+          <button class="btn reader-nav reader-nav-right" id="btnNextPage">Trang sau →</button>
+          <div class="reader-pageinfo" id="readerPageInfo">Trang 1/1</div>
+        </section>
       </div>
     </div>
   </div>
-  <!-- [READER ADD] END -->
 
   <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">

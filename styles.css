@@ -1,378 +1,267 @@
-/* =========================================================
-   NiNi — Funny  |  styles.css (clean/merged, absolute-center)
-   ========================================================= */
+/* =========================================================================
+ * NiNi — App JS (FULL, giữ nguyên modal kính mờ của bạn)
+ * ========================================================================= */
 
-/* ---------- THEME VARS ---------- */
-:root{
-  --bg-url: url("/public/assets/bg/nini_home.webp");
-  --text: #ffffff;
-  --text-dim:#e6edf6;
-  --chip-bg: rgba(255,255,255,.08);
-  --chip-border: rgba(255,255,255,.25);
-  --glass: rgba(0,0,0,.35);
-  --glass-2: rgba(0,0,0,.45);
+/* ----------------------- HẰNG & THAM CHIẾU CỐ ĐỊNH ---------------------- */
+const IMAGES = {
+  home:  "/public/assets/bg/nini_home.webp",
+  spring:"/public/assets/images/seasons/spring.webp",
+  summer:"/public/assets/images/seasons/summer.webp",
+  autumn:"/public/assets/images/seasons/autumn.webp",
+  winter:"/public/assets/images/seasons/winter.webp",
+};
 
-  /* dương = hạ khung reader xuống */
-  --reader-offset-y: 28px;
-}
+const LIB_PATH = "/public/content/storybook";
+const MANIFEST = `${LIB_PATH}/library-manifest.json`;
 
-/* ---------- RESET ---------- */
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; color:var(--text);
-  font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background:#0a1014;
-}
-body::before{
-  content:""; position:fixed; inset:0;
-  background-image: var(--bg-url);
-  background-size:cover; background-position:center;
-  filter: blur(8px) saturate(1.2) brightness(.8);
-  transform: scale(1.03);
-  z-index:-2;
-}
-body::after{
-  content:""; position:fixed; inset:0;
-  background: radial-gradient(1200px 600px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.75));
-  z-index:-1;
+const tabs      = document.querySelectorAll("#seasonTabs .tab");
+const frame     = document.getElementById("frame");
+const content   = document.getElementById("content");
+const shelfMount= document.getElementById("shelfMount");
+
+/* --------------------------- TRẠNG THÁI TOÀN CỤC ------------------------ */
+let library = [];
+let currentBook = null;
+let pageIdx = 0;
+let speakLang = "vi";
+
+// refs trong Reader (set sau ensureReaderDom/openReader)
+let readerModal, calendarBg, subtitleBubble, imgPrev, imgNext, pageInfoEl;
+
+/* ------------------------------ TIỆN ÍCH CƠ BẢN ------------------------ */
+async function fetchJSON(url){
+  try{ const r = await fetch(url, {cache:"no-store"}); if(!r.ok) throw 0; return await r.json(); }
+  catch(_){ console.warn("fetchJSON fail:", url); return null; }
 }
 
-/* ---------- HEADER ---------- */
-.site-header{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; gap:20px;
-  padding:12px min(4vw,24px);
-  backdrop-filter: blur(8px);
-  background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.05));
+/* ------------------------------ ĐỔI MÙA / ROUTER ------------------------ */
+function setSeason(season) {
+  const img = IMAGES[season] || IMAGES.home;
+  document.documentElement.style.setProperty("--bg-url", `url("${img}")`);
+  frame.style.backgroundImage = `url("${img}")`;
+  tabs.forEach(b => b.classList.toggle("is-active", b.dataset.season === season));
+
+  const newHash = `#/${season}`;
+  if (location.hash !== newHash) {
+    history.replaceState({}, "", newHash);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  }
+
+  if (season === "spring") { shelfMount.hidden = false; renderShelf(); }
+  else { shelfMount.hidden = true; }
 }
-.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit}
-.brand__logo{height:38px; width:auto}
-.brand__slogan{
-  font-weight:600; font-size:14px; letter-spacing:.2px;
-  background: linear-gradient(90deg, #ffd44d, #7bd86a, #b88752);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
+function bootSeasonFromHash(){
+  const raw = (location.hash || "").replace(/^#\/?/, "");
+  const s = (raw || "home").toLowerCase();
+  setSeason(IMAGES[s] ? s : "home");
 }
-.tabs{display:flex; gap:8px; margin-left:auto}
-.tab{
-  appearance:none; border:none; background:transparent; color:var(--text);
-  padding:8px 12px; border-radius:999px; cursor:pointer; opacity:.9
-}
-.tab:hover{opacity:1}
-.tab.is-active{text-decoration: underline}
-.auth-btn{
-  margin-left:12px;
-  padding:8px 14px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:var(--text); cursor:pointer;
+tabs.forEach(btn => btn.addEventListener("click", () => setSeason(btn.dataset.season)));
+
+/* ----------------------------- NỘI DUNG 4 CHIP -------------------------- */
+const chips = document.querySelectorAll(".chip");
+const SECTIONS = {
+  intro:`<h2>NiNi — Funny</h2><p>…</p>`,
+  rules:`<h2>Luật chơi</h2><p>…</p>`,
+  forum:`<h2>Diễn đàn</h2><p>…</p>`,
+  feedback:`<h2>Góp ý</h2><p>…</p>`
+};
+chips.forEach(ch=>{
+  ch.addEventListener("click", ()=>{
+    chips.forEach(c=>c.classList.toggle("is-active", c===ch));
+    content.innerHTML = SECTIONS[ch.dataset.section] || SECTIONS.intro;
+  });
+});
+
+/* ------------------------------- AUTH MODAL ----------------------------- */
+const authBtn   = document.getElementById("authBtn");
+const authModal = document.getElementById("authModal");
+if (authBtn && authModal){
+  const closeEls  = authModal.querySelectorAll("[data-close]");
+  const tabLines  = authModal.querySelectorAll("#authTabs .tab-line");
+  const panes     = authModal.querySelectorAll(".form");
+  const openAuth  = (which="login")=>{authModal.setAttribute("aria-hidden","false");switchAuth(which);};
+  const closeAuth = ()=>authModal.setAttribute("aria-hidden","true");
+  const switchAuth= (which)=>{tabLines.forEach(t=>t.classList.toggle("is-active",t.dataset.auth===which));
+                              panes.forEach(p=>p.classList.toggle("is-active",p.dataset.pane===which));};
+  authBtn.addEventListener("click",()=>openAuth("login"));
+  closeEls.forEach(el=>el.addEventListener("click",closeAuth));
+  authModal.addEventListener("click",e=>{ if(e.target===authModal||e.target.classList.contains("modal__backdrop")) closeAuth(); });
+  tabLines.forEach(t=>t.addEventListener("click",()=>switchAuth(t.dataset.auth)));
 }
 
-/* ---------- LAYOUT ---------- */
-.viewport{display:grid; place-items:center; padding:16px 16px 32px}
-.frame{
-  position:relative;
-  width:min(1120px, 92vw); aspect-ratio: 16/9;
-  border-radius:16px;
-  background:#000 center/cover no-repeat;
-  box-shadow: 0 22px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.04);
-  overflow:hidden;
+/* ============================== KỆ SÁCH ================================= */
+async function renderShelf(){
+  if (!library.length){
+    const m = await fetchJSON(MANIFEST);
+    library = Array.isArray(m?.books) ? m.books : [];
+  }
+  const html = library.map(b=>`
+    <article class="book-card" data-book="${b.id}">
+      <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}" alt="${b.title_vi||b.title_en||b.id}">
+      <div class="book-card__body">
+        <h4 class="book-card__title">${b.title_vi||b.title_en||b.id}</h4>
+        <div class="book-card__meta">Tác giả: ${b.author||""}</div>
+      </div>
+    </article>
+  `).join("");
+  shelfMount.innerHTML = `
+    <div class="shelf">
+      <h3 class="shelf__title">Kệ sách</h3>
+      <div class="shelf__grid">${html || `<div class="muted">Chưa có sách: <code>${MANIFEST}</code></div>`}</div>
+    </div>`;
+  shelfMount.querySelectorAll(".book-card").forEach(c=>c.addEventListener("click",()=>openReader(c.dataset.book)));
 }
 
-/* mascot */
-.nini{
-  position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
-  width:min(210px, 22vw); height:auto; pointer-events:none; user-select:none;
-  filter: drop-shadow(0 12px 20px rgba(0,0,0,.35));
+/* ========== TẠO READER DOM nhưng KHÔNG ĐỤNG CSS .modal/.modal__panel ===== */
+function ensureReaderDom(){
+  if (document.getElementById("readerModal")) return;
+
+  // chỉ thêm CSS nội bộ cho calendar view, không can thiệp modal kính mờ của bạn
+  const css = document.createElement("style");
+  css.id = "readerCalendarStyles";
+  css.textContent = `
+    /* Khu "tấm lịch" nằm bên trong modal__panel, không ảnh hưởng modal */
+    .calendar-view{position:relative;width:min(1120px,94vw);aspect-ratio:16/9;border-radius:16px;
+      box-shadow:0 22px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08);
+      overflow:hidden; margin:clamp(8px,5vh,28px) auto 0;}
+    .calendar-bg{position:absolute;inset:0;background:#000 center/cover no-repeat;
+      image-rendering:-webkit-optimize-contrast}
+    .subtitle-bubble{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+      max-width:93%; padding:12px 16px; border-radius:12px; color:#fff; line-height:1.55;
+      background:rgba(0,0,0,.55); backdrop-filter: blur(4px); text-align:center}
+    .img-nav{position:absolute;inset:auto 0 12px 0; display:flex; justify-content:space-between;
+      padding:0 18px; pointer-events:none}
+    .pill-nav{pointer-events:auto;border:none;border-radius:999px;padding:10px 12px;cursor:pointer;
+      background:rgba(255,255,255,.9)}
+    .page-info{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+      background:rgba(0,0,0,.5); color:#fff; padding:6px 10px; border-radius:999px;font-size:13px}
+    .flip-in{animation:flipIn .28s ease}
+    @keyframes flipIn{from{transform:scale(.985);opacity:.7}to{transform:scale(1);opacity:1}}
+  `;
+  document.head.appendChild(css);
+
+  // dùng cấu trúc modal có sẵn của bạn (class .modal/.modal__panel) để hưởng kính mờ
+  const wrap = document.createElement("div");
+  wrap.id = "readerModal";
+  wrap.className = "modal";
+  wrap.setAttribute("aria-hidden","true");
+  wrap.innerHTML = `
+    <div class="modal__backdrop" data-reader-close></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+      <div class="calendar-view" id="calendarView">
+        <div class="calendar-bg" id="calendarBg"></div>
+        <div class="subtitle-bubble" id="subtitleBubble"></div>
+        <div class="img-nav">
+          <button class="pill-nav" id="imgPrev">◀</button>
+          <button class="pill-nav" id="imgNext">▶</button>
+        </div>
+        <span class="page-info" id="readerPageInfo"></span>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
 }
 
-/* chips */
-.chips{
-  position:absolute; bottom:7%; left:50%; transform:translateX(-50%);
-  display:flex; gap:10px;
-}
-.chip{
-  background: var(--chip-bg); color:var(--text);
-  border:1px solid var(--chip-border); padding:10px 14px; border-radius:999px;
-  cursor:pointer; backdrop-filter: blur(6px);
-}
-.chip:hover{border-color:#fff}
-.chip.is-active{text-decoration: underline}
+/* -------------------------- OPEN / RENDER READER ------------------------ */
+async function openReader(bookId){
+  ensureReaderDom();
 
-/* content card dưới khung */
-.content{
-  width:min(1140px, 94vw);
-  margin:18px auto 0; padding:16px 20px 20px;
-  border-radius:16px; background: rgba(0,0,0,.25);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
-}
-.content h2{margin:0 0 8px}
-.content p{margin:0}
+  readerModal   = document.getElementById("readerModal");
+  calendarBg    = document.getElementById("calendarBg");
+  subtitleBubble= document.getElementById("subtitleBubble");
+  imgPrev       = document.getElementById("imgPrev");
+  imgNext       = document.getElementById("imgNext");
+  pageInfoEl    = document.getElementById("readerPageInfo");
 
-/* ---------- MODAL BASE ---------- */
-.modal{position:fixed; inset:0; display:none}
-.modal[aria-hidden="false"]{display:block}
-.modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(3px)}
-.modal__panel{
-  /* Auth modal sẽ override width; Reader sẽ override hoàn toàn cách căn giữa */
-  position:absolute; inset:0; margin:auto; width:min(560px, 92vw);
-  background: var(--glass-2); border:1px solid rgba(255,255,255,.18);
-  border-radius:16px; padding:18px; color:var(--text);
-  top:50%; transform:translateY(-50%);
-}
-.modal__close{
-  position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer;
-}
-.modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
-.modal__logo{width:28px; height:28px}
+  const closeAll = ()=>{
+    readerModal.setAttribute("aria-hidden","true");
+    try{ window.speechSynthesis.cancel(); }catch(_){}
+  };
+  readerModal.querySelectorAll("[data-reader-close]").forEach(el => el.onclick = closeAll);
+  readerModal.addEventListener("click", e=>{
+    if (e.target === readerModal || e.target.classList.contains("modal__backdrop")) closeAll();
+  });
 
-/* auth forms */
-.tabs-line{display:flex; gap:12px; margin:6px 0 12px}
-.tab-line{background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0}
-.tab-line.is-active{text-decoration: underline}
-.form{display:none}
-.form.is-active{display:block}
-.form label{display:block; font-size:13px; color:var(--text-dim); margin:10px 0 4px}
-.form input{
-  width:100%; padding:10px 12px; color:#fff; background:transparent; outline:none;
-  border:none; border-bottom:1px solid rgba(255,255,255,.4)
-}
-.form input::placeholder{color:#cfd8e3}
-.row{display:flex; gap:10px; margin-top:14px}
-.row.gap{align-items:center}
-.btn{
-  padding:10px 16px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:#fff; cursor:pointer;
-}
-.btn:hover{border-color:#fff}
-.btn-ghost{background:transparent}
-.btn.full{width:100%}
-.or{text-align:center; color:#d0d8e6; margin:8px 0 4px}
-.note{font-size:12px; color:#cfd8e3; margin-top:8px}
+  const meta = library.find(b => b.id === bookId);
+  if (!meta){ alert("Không tìm thấy sách."); return; }
+  const book = await fetchJSON(`${LIB_PATH}/${bookId}.json`);
+  if (!book){ alert("Không đọc được JSON sách."); return; }
 
-/* ---------- SHELF IN FRAME ---------- */
-.shelf-card{
-  position:absolute; left:18px; top:18px; z-index:3;
-  width:min(520px, 44%); padding:12px;
-  border-radius:14px; background: rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px);
-}
-.shelf-card[hidden]{display:none}
-.shelf-card h4{margin:0 0 8px; font-size:16px}
-.shelf-list{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px}
-.book-card{
-  display:flex; gap:10px; padding:8px; border-radius:10px;
-  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
-  cursor:pointer; transition:transform .12s ease, border-color .12s ease;
-}
-.book-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.28)}
-.book-card__cover{
-  width:64px; height:64px; border-radius:6px; object-fit:cover; flex:0 0 64px;
-  background:#111;
-}
-.book-card__title{margin:2px 0 2px; font-weight:600; font-size:14px}
-.book-card__meta{font-size:12px; color:#d9e2ef}
+  currentBook = { ...meta, ...book };
+  pageIdx = 0;
 
-/* =========================================================
-   READER 16:9 — CĂN GIỮA TUYỆT ĐỐI (không lệ thuộc caption)
-   ========================================================= */
+  imgPrev.onclick = ()=>{ pageIdx = Math.max(0, pageIdx-1); renderPage(true); };
+  imgNext.onclick = ()=>{ pageIdx = Math.min((currentBook.pages?.length||1)-1, pageIdx+1); renderPage(true); };
 
-/* Reader modal panel: bỏ kiểu center cũ, dùng absolute center */
-#readerModal .modal__panel{
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  /* không dùng flex/transform ở đây để tránh lệch */
+  readerModal.setAttribute("aria-hidden","false");
+  renderPage(false);
 }
 
-/* Khối được căn giữa thật sự */
-.reader-wrap{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, calc(-50% + var(--reader-offset-y)));
-  width: min(92vw, 1120px);
+function renderPage(withFlip){
+  if(!currentBook) return;
+  const pages = currentBook.pages || [];
+  const total = pages.length || 1;
+  const p = pages[pageIdx] || {};
+
+  const img = p.image || currentBook.cover || "/public/assets/bg/nini_home.webp";
+  calendarBg.style.backgroundImage = `url("${img}")`;
+  if (withFlip){ calendarBg.classList.remove("flip-in"); void calendarBg.offsetWidth; calendarBg.classList.add("flip-in"); }
+
+  const text = speakLang==="vi" ? (p.text_vi||"") : (p.text_en||"");
+  subtitleBubble.textContent = text;
+  pageInfoEl.textContent = `Trang ${pageIdx+1}/${total}`;
+
+  const onKey = (e)=>{
+    if (e.key==="ArrowLeft")  imgPrev.click();
+    if (e.key==="ArrowRight") imgNext.click();
+    if (e.key==="Escape")     readerModal.setAttribute("aria-hidden","true");
+  };
+  window.onkeydown = onKey;
 }
 
-/* Tiêu đề nổi, không đẩy khung */
-#readerModal .modal__title{
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, -110%);
-  margin: 0;
-  padding: 10px 14px;
-  max-width: 90vw;
-  border-radius: 12px;
-  background: rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.18);
-  backdrop-filter: blur(6px);
-}
+/* -------------------------- LANG QUICK SWITCH (optional) ---------------- */
+(function quickLang(){
+  if (document.getElementById("quickLangSwitch")) return;
+  const wrap = document.createElement("div");
+  wrap.id = "quickLangSwitch";
+  Object.assign(wrap.style,{position:"fixed",right:"14px",bottom:"14px",zIndex:"40",display:"flex",gap:"8px"});
+  wrap.innerHTML = `
+    <button id="qlVi" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;cursor:pointer">VI</button>
+    <button id="qlEn" style="padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.4);color:#fff;cursor:pointer">EN</button>`;
+  document.body.appendChild(wrap);
+  const paint=()=>{
+    wrap.querySelector("#qlVi").style.background = speakLang==="vi"?"#4ade80":"rgba(0,0,0,.4)";
+    wrap.querySelector("#qlEn").style.background = speakLang==="en"?"#60a5fa":"rgba(0,0,0,.4)";
+  };
+  paint();
+  wrap.querySelector("#qlVi").onclick = ()=>{speakLang="vi";paint();renderPage(false);};
+  wrap.querySelector("#qlEn").onclick = ()=>{speakLang="en";paint();renderPage(false);};
+})();
 
-/* Khung 16:9 */
-.calendar-view.mode-169{
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 72vh;
-  margin: 0;                 /* quan trọng: không để margin gây lệch */
-  border-radius:16px;
-  overflow:hidden;
-  box-shadow: 0 16px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
-}
+/* ------------------------------- KHỞI ĐỘNG ------------------------------ */
+renderShelf();
+bootSeasonFromHash();
+window.addEventListener("hashchange", bootSeasonFromHash);
+Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 
-/* Ảnh nền phủ khung */
-.calendar-bg{
-  position:absolute; inset:0;
-  background:#000 center/cover no-repeat;
-  z-index:1;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* Toolbar góc trên-phải */
-.reader-toolbar{
-  position:absolute; right:12px; top:12px; display:flex; gap:8px; z-index:3;
-}
-.pill{
-  min-width:38px; height:34px; padding:0 10px; border-radius:999px;
-  border:1px solid rgba(255,255,255,.55); background:rgba(0,0,0,.45);
-  color:#fff; cursor:pointer; backdrop-filter: blur(6px);
-}
-.pill.active{ background:rgba(255,255,255,.75); color:#111; }
-
-/* Phụ đề ở đáy ảnh */
-.subtitle-bubble{
-  position:absolute; left:16px; right:16px; bottom:58px; margin:auto;
-  max-width:min(960px, 90%); color:#fff; background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:10px 12px;
-  line-height:1.6; backdrop-filter:blur(6px); z-index:3; display:none;
-}
-
-/* Nút Prev/Next + info ở dưới */
-.img-nav{
-  position:absolute; left:0; right:0; bottom:10px; display:flex;
-  align-items:center; justify-content:center; gap:14px; z-index:3;
-}
-.pill-nav{
-  min-width:38px; height:38px; border-radius:999px; border:1px solid rgba(255,255,255,.55);
-  background:rgba(0,0,0,.45); color:#fff; cursor:pointer; backdrop-filter: blur(6px);
-}
-.page-info{ color:#fff; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,.6) }
-
-/* Hiệu ứng chuyển trang (tuỳ dùng) */
-.flip-out{ animation:flipOut .32s ease forwards }
-.flip-in{  animation:flipIn  .32s ease forwards }
-@keyframes flipOut{ 0%{transform:rotateX(0);opacity:1} 100%{transform:rotateX(-80deg) translateY(6%) scale(.98); opacity:.4} }
-@keyframes flipIn { 0%{transform:rotateX(80deg) translateY(6%) scale(.98); opacity:.4} 100%{transform:rotateX(0); opacity:1} }
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 640px){
-  .nini{width:150px}
-  .shelf-card{width:calc(100% - 36px)}
-  :root{ --reader-offset-y: 14px; }
-}
-@media (max-height: 740px){
-  :root{ --reader-offset-y: 16px; }
-}
-/* ============ Reader: caption nằm TRONG ảnh 16:9 ============ */
-
-/* khối reader căn giữa tuyệt đối, giữ như cũ nhưng hạ xuống chút */
-:root{ --reader-offset-y: 34px; } /* tăng số này nếu muốn hạ xuống thêm */
-
-#readerModal .modal__panel{
-  position: fixed;
-  inset: 0;
-  background: transparent;
-  border: 0;
-  padding: 0;
-}
-
-.reader-wrap{
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, calc(-50% + var(--reader-offset-y)));
-  width: min(92vw, 1120px);
-}
-
-/* khung 16:9 không có margin để khỏi đẩy lệch */
-.calendar-view.mode-169{
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16/9;
-  max-height: 72vh;
-  margin: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 16px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
-}
-
-/* ảnh nền (page image) */
-.calendar-bg{
-  position: absolute; inset: 0;
-  background: #000 center/cover no-repeat;
-  z-index: 1;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* ===== caption NẰM TRONG ảnh, bám đáy, căn giữa ngang ===== */
-.subtitle-bubble{
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: clamp(12px, 2.8vh, 22px);      /* đáy ảnh */
-  max-width: min(960px, 90%);
-  color: #fff;
-  background: rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 12px;
-  padding: 10px 12px;
-  line-height: 1.65;
-  backdrop-filter: blur(6px);
-  z-index: 3;
-  display: none;                         /* JS sẽ bật */
-}
-
-/* nút prev/next & info cũng NẰM TRONG ảnh */
-.img-nav{
-  position: absolute;
-  left: 0; right: 0; bottom: 10px;
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px; z-index: 3;
-}
-.pill-nav{
-  min-width: 38px; height: 38px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.55);
-  background: rgba(0,0,0,.45); color:#fff; cursor: pointer;
-  backdrop-filter: blur(6px);
-}
-.page-info{
-  color: #fff; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.6);
-}
-
-/* toolbar ngôn ngữ/loa trong ảnh (nếu dùng) */
-.reader-toolbar{
-  position: absolute; right: 12px; top: 12px; display: flex; gap: 8px; z-index: 3;
-}
-.pill{
-  min-width: 38px; height: 34px; padding: 0 10px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.55);
-  background: rgba(0,0,0,.45); color:#fff; cursor: pointer; backdrop-filter: blur(6px);
-}
-.pill.active{ background: rgba(255,255,255,.75); color:#111; }
-
-/* tiêu đề “NiNi và …” nổi phía trên reader (không đẩy layout) */
-#readerModal .modal__title{
-  position: absolute;
-  left: 50%; transform: translate(-50%, -110%);
-  margin: 0; padding: 10px 14px; max-width: 90vw;
-  border-radius: 12px; background: rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(6px);
-}
-
-/* phản hồi màn hình thấp */
-@media (max-height: 740px){
-  :root{ --reader-offset-y: 20px; }
-}
-
+/* --------- CSS nhỏ cho kệ (nếu styles.css chưa có), không đụng modal ----- */
+(function shelfCss(){
+  if (document.getElementById("shelfInlineStyles")) return;
+  const x = document.createElement("style");
+  x.id = "shelfInlineStyles";
+  x.textContent = `
+    .shelf{position:absolute; top:16px; left:16px; right:16px; margin:auto; max-width:720px;
+      background:rgba(0,0,0,.28); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,.14);
+      border-radius:14px; padding:12px}
+    .shelf__title{margin:0 0 10px; font-size:18px}
+    .shelf__grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+    .book-card{display:flex; gap:10px; align-items:center; padding:8px; border-radius:12px;
+      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); cursor:pointer}
+    .book-card:hover{border-color:rgba(255,255,255,.3)}
+    .book-card__cover{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+    .book-card__body{min-width:0}
+    .book-card__title{margin:0 0 4px; font-size:14px}
+    .book-card__meta{font-size:12px; opacity:.75}
+  `;
+  document.head.appendChild(x);
+})();

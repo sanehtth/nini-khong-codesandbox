@@ -326,6 +326,21 @@
   langViBtn?.addEventListener("click", ()=> applyReaderLang("vi"));
   langEnBtn?.addEventListener("click", ()=> applyReaderLang("en"));
 
+const calendarView   = document.getElementById("calendarView");
+let   calendarBg     = document.getElementById("calendarBg");
+const subtitleBubble = document.getElementById("subtitleBubble");
+
+// Nếu thiếu calendarBg trong HTML, tự tạo
+if (!calendarBg && calendarView) {
+  calendarBg = document.createElement("div");
+  calendarBg.id = "calendarBg";
+  calendarBg.className = "calendar-bg";
+  calendarView.prepend(calendarBg);
+}
+  //gan 2 nut noi, next+back
+document.getElementById("imgPrev")?.addEventListener("click", ()=> btnPrev?.click());
+document.getElementById("imgNext")?.addEventListener("click", ()=> btnNext?.click());
+
   // [THÊM] Phụ đề đè trên ảnh = ngôn ngữ đối ứng với giọng đọc
   function updateSubtitleOverlay(){
     if (!subtitleBubble || !currentBook) return;
@@ -440,3 +455,4 @@
     }
   }
 })(); // END IIFE
+

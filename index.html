@@ -77,11 +77,17 @@
 
       <!-- ============ READER CALENDAR VIEW ============ -->
 <div class="calendar-view mode-right" id="calendarView">
-  <!-- Ảnh nền phủ toàn khung -->
+  <!-- Ảnh nền phủ toàn khung (thay cho <img>) -->
   <div class="calendar-bg" id="calendarBg"></div>
 
   <!-- Phụ đề đè trên ảnh: hiển thị ngôn ngữ đối ứng -->
   <div class="subtitle-bubble" id="subtitleBubble"></div>
+
+  <!-- Nút Prev/Next nổi trên ảnh (cho dễ bấm) -->
+  <div class="img-nav">
+    <button class="pill-nav" id="imgPrev">◀</button>
+    <button class="pill-nav" id="imgNext">▶</button>
+  </div>
 
   <!-- Panel kính mờ bên phải -->
   <section class="calendar-panel panel-right" id="panelRight">
@@ -115,6 +121,7 @@
   </section>
 </div>
 <!-- /=========== READER CALENDAR VIEW ============ -->
+
 
 
       <div class="reader-book">
@@ -213,4 +220,5 @@
   </div>
 </body>
 </html>
+
 

@@ -358,18 +358,22 @@ label > input:focus, label > textarea:focus{
   .reader-right{ grid-template-rows: auto auto auto; }
   .reader-nav-left, .reader-nav-right{ position:static; margin-top:8px; }
 }
-/* ===== KỆ SÁCH NHỎ TRONG KHUNG ===== */
+/* ===== KỆ SÁCH NHỎ TRONG KHUNG (TOP-LEFT) ===== */
 .shelf-panel{
-  position:absolute;           /* bám vào .frame */
-  left:18px; bottom:12%;       /* góc dưới trái */
-  width:min(480px, 46%);       /* panel nhỏ */
+  position:absolute;            /* bám vào .frame */
+  left:18px; 
+  top:16px;                     /* <— đưa lên trên */
+  bottom:auto;                  /* không dính đáy nữa */
+  width:min(480px, 46%);
   padding:12px;
   background:rgba(0,0,0,.28);
   border:1px solid rgba(255,255,255,.18);
   border-radius:14px;
   backdrop-filter: blur(6px);
   color:var(--text);
+  z-index: 3;                   /* <— nằm trên hiệu ứng rơi */
 }
+
 .shelf-panel h3{
   margin:0 0 8px; font-size:16px; font-weight:700;
 }
@@ -409,6 +413,7 @@ label > input:focus, label > textarea:focus{
 @media (max-width: 900px){
   .shelf-panel{ width:min(92%, 520px); bottom:10% }
 }
+
 
 
 

@@ -274,3 +274,105 @@ body::after{
 @media (max-height: 740px){
   :root{ --reader-offset-y: 16px; }
 }
+/* ============ Reader: caption nằm TRONG ảnh 16:9 ============ */
+
+/* khối reader căn giữa tuyệt đối, giữ như cũ nhưng hạ xuống chút */
+:root{ --reader-offset-y: 34px; } /* tăng số này nếu muốn hạ xuống thêm */
+
+#readerModal .modal__panel{
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+.reader-wrap{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% + var(--reader-offset-y)));
+  width: min(92vw, 1120px);
+}
+
+/* khung 16:9 không có margin để khỏi đẩy lệch */
+.calendar-view.mode-169{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  max-height: 72vh;
+  margin: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
+}
+
+/* ảnh nền (page image) */
+.calendar-bg{
+  position: absolute; inset: 0;
+  background: #000 center/cover no-repeat;
+  z-index: 1;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ===== caption NẰM TRONG ảnh, bám đáy, căn giữa ngang ===== */
+.subtitle-bubble{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(12px, 2.8vh, 22px);      /* đáy ảnh */
+  max-width: min(960px, 90%);
+  color: #fff;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  line-height: 1.65;
+  backdrop-filter: blur(6px);
+  z-index: 3;
+  display: none;                         /* JS sẽ bật */
+}
+
+/* nút prev/next & info cũng NẰM TRONG ảnh */
+.img-nav{
+  position: absolute;
+  left: 0; right: 0; bottom: 10px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; z-index: 3;
+}
+.pill-nav{
+  min-width: 38px; height: 38px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(0,0,0,.45); color:#fff; cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+.page-info{
+  color: #fff; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+
+/* toolbar ngôn ngữ/loa trong ảnh (nếu dùng) */
+.reader-toolbar{
+  position: absolute; right: 12px; top: 12px; display: flex; gap: 8px; z-index: 3;
+}
+.pill{
+  min-width: 38px; height: 34px; padding: 0 10px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.55);
+  background: rgba(0,0,0,.45); color:#fff; cursor: pointer; backdrop-filter: blur(6px);
+}
+.pill.active{ background: rgba(255,255,255,.75); color:#111; }
+
+/* tiêu đề “NiNi và …” nổi phía trên reader (không đẩy layout) */
+#readerModal .modal__title{
+  position: absolute;
+  left: 50%; transform: translate(-50%, -110%);
+  margin: 0; padding: 10px 14px; max-width: 90vw;
+  border-radius: 12px; background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(6px);
+}
+
+/* phản hồi màn hình thấp */
+@media (max-height: 740px){
+  :root{ --reader-offset-y: 20px; }
+}
+

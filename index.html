@@ -77,13 +77,14 @@
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
       <!-- [ADDED] Tiêu đề để JS set tên sách -->
-      <h3 id="readerBookTitle" class="modal__title">Đang tải…</h3>
+    <!-- wrap để căn giữa -->
+<div class="reader-wrap">
+  <h3 id="readerBookTitle" class="modal__title">Đang tải…</h3>
 
-      <!-- ============ [ADDED] READER CALENDAR VIEW 16:9 ============ -->
-      <div class="calendar-view mode-169" id="calendarView">
-        <!-- Ảnh nền phủ toàn khung -->
-        <div class="calendar-bg" id="calendarBg"></div>
-
+  <div class="calendar-view mode-169" id="calendarView">
+    ...
+  </div>
+</div>
         <!-- Toolbar góc trên-phải: chọn ngôn ngữ + phát -->
         <div class="reader-toolbar">
           <button id="langVi" class="pill">VI</button>
@@ -176,3 +177,4 @@
   </div>
 </body>
 </html>
+

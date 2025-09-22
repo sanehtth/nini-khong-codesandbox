@@ -1,4 +1,109 @@
-/* === CORE MODAL (phải có) === */
+:root{
+  --bg-url: url("/public/assets/bg/nini_home.webp"); /* nền ngoài khung (JS đổi) */
+  --text: #ffffff;
+  --text-dim:#e6edf6;
+  --chip-bg: rgba(255,255,255,.08);
+  --chip-border: rgba(255,255,255,.25);
+  --glass: rgba(0,0,0,.35);
+  --glass-2: rgba(0,0,0,.45);
+}
+
+/* ===== Reset & Layout gốc ===== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--text); font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background: #0a1014;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image: var(--bg-url);
+  background-size:cover; background-position:center;
+  filter: blur(8px) saturate(1.2) brightness(.8);
+  transform: scale(1.03);
+  z-index:-2;
+}
+body::after{
+  content:""; position:fixed; inset:0;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.75));
+  z-index:-1;
+}
+
+/* ===== Header ===== */
+.site-header{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:20px;
+  padding:12px min(4vw,24px);
+  backdrop-filter: blur(8px);
+  background: linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.05));
+}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit}
+.brand__logo{height:38px; width:auto}
+.brand__slogan{
+  font-weight:600; font-size:14px; letter-spacing:.2px;
+  background: linear-gradient(90deg, #ffd44d, #7bd86a, #b88752);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.tabs{display:flex; gap:8px; margin-left:auto}
+.tab{
+  appearance:none; border:none; background:transparent; color:var(--text);
+  padding:8px 12px; border-radius:999px; cursor:pointer; opacity:.9
+}
+.tab:hover{opacity:1}
+.tab.is-active{ text-decoration: underline }
+
+/* Auth button */
+.auth-btn{
+  margin-left:12px;
+  padding:8px 14px; border-radius:999px; border:1px solid var(--chip-border);
+  background:transparent; color:var(--text); cursor:pointer;
+}
+
+/* ===== Viewport / Frame ===== */
+.viewport{display:grid; place-items:center; padding: 16px 16px 32px}
+.frame{
+  position:relative;
+  width:min(1120px, 92vw); aspect-ratio: 16/9;
+  border-radius:16px;
+  background:#000 center/cover no-repeat;
+  box-shadow: 0 22px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.04);
+  overflow:hidden;
+}
+
+/* mascot */
+.nini{
+  position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
+  width:min(210px, 22vw); height:auto; pointer-events:none; user-select:none;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,.35));
+}
+
+/* chips */
+.chips{
+  position:absolute; bottom:7%; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px;
+}
+.chip{
+  background: var(--chip-bg); color:var(--text);
+  border:1px solid var(--chip-border); padding:10px 14px; border-radius:999px;
+  cursor:pointer; backdrop-filter: blur(6px);
+}
+.chip:hover{border-color:#fff}
+.chip.is-active{text-decoration: underline}
+
+/* nội dung dưới khung */
+.content{
+  width:min(1140px, 94vw);
+  margin:18px auto 0;
+  padding:16px 20px 20px;
+  border-radius:16px;
+  background: rgba(0,0,0,.25);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.content h2{margin:0 0 8px}
+.content p{margin:0}
+
+/* ===== Modal base (dùng chung) ===== */
 .modal{position:fixed; inset:0; display:none; z-index:1000;}
 .modal[aria-hidden="false"]{display:block;}
 .modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(3px)}
@@ -14,7 +119,35 @@
   position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer
 }
 
-/* === SHELF CARD VỊ TRÍ TRONG FRAME === */
+/* ===== Auth modal form ===== */
+.modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
+.modal__logo{width:28px; height:28px}
+.tabs-line{display:flex; gap:12px; margin:6px 0 12px}
+.tab-line{
+  background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0
+}
+.tab-line.is-active{ text-decoration: underline }
+.form{display:none}
+.form.is-active{display:block}
+.form label{display:block; font-size:13px; color:var(--text-dim); margin:10px 0 4px}
+.form input{
+  width:100%; padding:10px 12px; color:#fff; background:transparent; outline:none;
+  border:none; border-bottom:1px solid rgba(255,255,255,.4)
+}
+.form input::placeholder{color:#cfd8e3}
+.row{display:flex; gap:10px; margin-top:14px}
+.row.gap{align-items:center}
+.btn{
+  padding:10px 16px; border-radius:999px; border:1px solid var(--chip-border);
+  background:transparent; color:#fff; cursor:pointer
+}
+.btn:hover{border-color:#fff}
+.btn-ghost{background:transparent}
+.btn.full{width:100%}
+.or{ text-align:center; color:#d0d8e6; margin:8px 0 4px}
+.note{font-size:12px; color:#cfd8e3; margin-top:8px}
+
+/* ====== Shelf in frame ====== */
 .shelf-card{
   position:absolute; top:18px; left:18px; width:min(680px, 70%);
   background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18);
@@ -28,7 +161,7 @@
 .book-card__title{margin:0; font-weight:700; font-size:14px}
 .book-card__meta{opacity:.8; font-size:12px}
 
-/* === READER (kiểu ảnh 16:9 + subtitle) === */
+/* ====== Reader modal 16:9 + subtitle ====== */
 .modal__panel--reader{
   width:min(1120px, 92vw);
   background: var(--glass-2);
@@ -37,13 +170,14 @@
   padding:14px 14px 18px;
   color:var(--text);
   position:absolute; inset:0; margin:auto;
-  top:56%; transform:translateY(-50%);     /* hạ thấp để nhìn cân khung */
+  top:56%; transform:translateY(-50%); /* hạ thấp 1 chút cho cân khung */
 }
 .reader-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
 .reader-title{margin:0; font-size:18px; font-weight:700}
 .reader-tools{display:flex; gap:6px; align-items:center}
 .btn.btn-chip{padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border); background:transparent; color:#fff; cursor:pointer}
 .btn.btn-chip:hover{border-color:#fff}
+.btn.btn-chip.is-active{border-color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
 
 .reader-figure{position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; border-radius:12px; background:#000}
 .reader-figure img{
@@ -66,3 +200,9 @@
   background:transparent; color:#fff; cursor:pointer;
 }
 .pill-nav:hover{border-color:#fff}
+
+/* Responsive tweak */
+@media (max-width: 640px){
+  .nini{width:150px}
+  .shelf-card{width:calc(100% - 24px)}
+}

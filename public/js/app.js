@@ -16,26 +16,26 @@
   const tabs       = document.querySelectorAll("#seasonTabs .tab");
   const frame      = document.getElementById("frame");
   const content    = document.getElementById("content");
-  const shelfMount = document.getElementById("shelfMount"); // Vị trí gắn kệ trong .frame
+  const shelfMount = document.getElementById("shelfMount"); // nơi gắn kệ trong .frame
 
   function setSeason(season) {
     const img = IMAGES[season] || IMAGES.home;
 
-    // Đổi nền ngoài & trong khung
+    // đổi nền ngoài & trong khung
     document.documentElement.style.setProperty("--bg-url", `url("${img}")`);
     if (frame) frame.style.backgroundImage = `url("${img}")`;
 
-    // Active tab
+    // active tab
     tabs.forEach(b => b.classList.toggle("is-active", b.dataset.season === season));
 
-    // Chuẩn hoá hash: #/season
+    // chuẩn hoá hash #/season
     const newHash = `#/${season}`;
     if (location.hash !== newHash) {
       history.replaceState({}, "", newHash);
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     }
 
-    // Khi vào Spring: hiển thị kệ trong khung
+    // khi ở Spring → render kệ trong frame
     if (season === "spring") {
       if (shelfMount) shelfMount.hidden = false;
       loadLibrary().then(renderShelfInFrame);
@@ -129,12 +129,13 @@
    * [6] KỆ SÁCH TRONG KHUNG (SPRING)
    * ===================================================================== */
 
-  // [THÊM] Fallback nhiều đường dẫn để tránh lỗi /public khi deploy tĩnh
+  // [THÊM] Thử nhiều đường dẫn manifest để an toàn khi deploy tĩnh
   const LIB_CANDIDATES = [
     "/public/content/storybook/library-manifest.json",
     "/content/storybook/library-manifest.json",
     "content/storybook/library-manifest.json"
   ];
+  // [THÊM] Thử nhiều đường dẫn book theo id
   const BOOK_CANDIDATES = (id) => [
     `/public/content/storybook/${id}.json`,
     `/content/storybook/${id}.json`,
@@ -146,7 +147,7 @@
     if (!res.ok) throw new Error(`HTTP ${res.status} - ${url}`);
     return res.json();
   }
-  // [THÊM] Thử nhiều URL cho tới khi thành công
+  // [THÊM] Lấy URL đầu tiên thành công
   async function fetchFirstAvailable(urls){
     let lastErr;
     for (const u of urls){
@@ -170,7 +171,6 @@
   function renderShelfInFrame(books){
     if (!shelfMount) return;
 
-    // Panel kệ: luôn nằm trong .frame (CSS định vị top-left)
     if (!books || !books.length){
       shelfMount.innerHTML = `
         <div class="shelf-panel">
@@ -201,7 +201,7 @@
       </div>
     `;
 
-    // Click bìa → mở reader
+    // click bìa → mở reader
     shelfMount.querySelectorAll(".book-card").forEach(card=>{
       card.addEventListener("click", ()=> openReader(card.dataset.book));
     });
@@ -216,7 +216,7 @@
   const readerTitleEl = document.getElementById("readerBookTitle");
 
   const calendarView   = document.getElementById("calendarView");
-  let   calendarBg     = document.getElementById("calendarBg"); // có thể bị thiếu trong HTML
+  let   calendarBg     = document.getElementById("calendarBg");
   const subtitleBubble = document.getElementById("subtitleBubble");
 
   const readerTextVi = document.getElementById("readerTextVi");
@@ -225,6 +225,9 @@
   const pageInfo = document.getElementById("readerPageInfo");
   const btnPrev  = document.getElementById("btnPrevPage");
   const btnNext  = document.getElementById("btnNextPage");
+
+  const imgPrev  = document.getElementById("imgPrev"); // [THÊM] nút nổi trên ảnh
+  const imgNext  = document.getElementById("imgNext"); // [THÊM] nút nổi trên ảnh
 
   const langViBtn = document.getElementById("langVi");
   const langEnBtn = document.getElementById("langEn");
@@ -244,21 +247,21 @@
   let currentBook = null;
   let pageIdx = 0;
 
-  // Hai audio riêng cho VI/EN
+  // hai audio riêng cho VI/EN
   const audioVi = new Audio();
   const audioEn = new Audio();
 
-  // [THÊM] Lưu ngôn ngữ đọc (VI → phụ đề EN; EN → phụ đề VI)
+  // [THÊM] nhớ ngôn ngữ đọc (VI ↔ EN)
   let readerLang = localStorage.getItem("reader_lang") || "vi";
 
   // ---------- Helpers ----------
-  // [THÊM] Chuẩn hoá URL thành tuyệt đối (đỡ lỗi khi file để cùng domain)
+  // [THÊM] Chuẩn hoá URL tuyệt đối
   function absUrl(raw){
     if (!raw) return "";
     return raw.startsWith("http") ? raw : new URL(raw, location.origin).href;
   }
 
-  // [THÊM] Preload & decode ảnh trước khi hiển thị → mượt hơn
+  // [THÊM] Preload ảnh các trang để chuyển mượt
   function preloadBookImages(book){
     if (!book?.pages) return;
     book._imgPromises = book.pages.map(p=>{
@@ -270,27 +273,26 @@
     });
   }
 
-  // [THÊM] Set background cho #calendarBg (đợi decode nếu được)
+  // [THÊM] Set background cho #calendarBg (cover, không cần 16:9)
   async function setCalendarBg(url){
     if (!calendarBg) return;
     const u = absUrl(url);
     if (!u) { calendarBg.style.backgroundImage = "none"; return; }
     try{
       const img = new Image(); img.src = u;
-      await img.decode(); // giải mã trước
+      await img.decode();
       calendarBg.style.backgroundImage = `url("${u}")`;
     }catch{
-      // fallback: vẫn set dù chưa decode
       calendarBg.style.backgroundImage = `url("${u}")`;
     }
   }
 
   // ---------- Modal show/hide ----------
-  // [SỬA] Thêm class is-reading vào <body> để ẩn kệ (tránh đè modal)
+  // [SỬA] thêm class is-reading để ẩn kệ, tránh đè modal
   function showReader(show){
     readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
     if (show) {
-      document.body.classList.add("is-reading"); // kệ bị ẩn bằng CSS
+      document.body.classList.add("is-reading");
     } else {
       document.body.classList.remove("is-reading");
       audioVi.pause(); audioEn.pause();
@@ -308,11 +310,11 @@
     langViBtn?.classList.toggle("active", readerLang === "vi");
     langEnBtn?.classList.toggle("active", readerLang === "en");
 
-    // Nút loa: chỉ hiển thị cái cùng ngôn ngữ đọc
+    // nút loa chỉ hiện theo ngôn ngữ đọc
     btnSpeakVi?.classList.toggle("reader-hide", readerLang !== "vi");
     btnSpeakEn?.classList.toggle("reader-hide", readerLang !== "en");
 
-    // Nếu đang phát thì chuyển đúng audio
+    // nếu đang phát thì chuyển đúng audio
     if (readerLang === "vi"){
       if (!audioVi.paused){ audioEn.pause(); audioVi.play().catch(()=>{}); }
       else { audioEn.pause(); }
@@ -326,22 +328,7 @@
   langViBtn?.addEventListener("click", ()=> applyReaderLang("vi"));
   langEnBtn?.addEventListener("click", ()=> applyReaderLang("en"));
 
-const calendarView   = document.getElementById("calendarView");
-let   calendarBg     = document.getElementById("calendarBg");
-const subtitleBubble = document.getElementById("subtitleBubble");
-
-// Nếu thiếu calendarBg trong HTML, tự tạo
-if (!calendarBg && calendarView) {
-  calendarBg = document.createElement("div");
-  calendarBg.id = "calendarBg";
-  calendarBg.className = "calendar-bg";
-  calendarView.prepend(calendarBg);
-}
-  //gan 2 nut noi, next+back
-document.getElementById("imgPrev")?.addEventListener("click", ()=> btnPrev?.click());
-document.getElementById("imgNext")?.addEventListener("click", ()=> btnNext?.click());
-
-  // [THÊM] Phụ đề đè trên ảnh = ngôn ngữ đối ứng với giọng đọc
+  // [THÊM] Phụ đề: hiển thị ngôn ngữ đối ứng (EN khi đọc VI, và ngược lại)
   function updateSubtitleOverlay(){
     if (!subtitleBubble || !currentBook) return;
     const p = currentBook.pages[pageIdx] || {};
@@ -374,32 +361,37 @@ document.getElementById("imgNext")?.addEventListener("click", ()=> btnNext?.clic
     const total = currentBook.pages.length || 0;
     const p = currentBook.pages[pageIdx] || {};
 
-    // [THÊM] Ảnh nền phủ toàn khung
+    // [THÊM] Ảnh nền phủ toàn khung qua #calendarBg (cover)
     setCalendarBg(p.image || currentBook.cover || "");
 
-    // Text panel
+    // text panel
     if (readerTextVi) readerTextVi.textContent = p.text_vi || "";
     if (readerTextEn) readerTextEn.textContent = p.text_en || "";
 
-    // Audio
+    // audio
     audioVi.pause(); audioEn.pause();
     audioVi.src = p.sound_vi || "";
     audioEn.src = p.sound_en || "";
     if (btnSpeakVi) btnSpeakVi.disabled = !p.sound_vi;
     if (btnSpeakEn) btnSpeakEn.disabled = !p.sound_en;
 
-    // Nav / Info
+    // nav / info
     const info = `Trang ${Math.min(pageIdx+1,total)}/${total || 1}`;
     if (pageInfo) pageInfo.textContent = info;
     if (btnPrev) btnPrev.disabled = pageIdx<=0;
     if (btnNext) btnNext.disabled = pageIdx>=total-1;
 
-    // Ngôn ngữ + phụ đề
+    // ngôn ngữ + phụ đề
     applyReaderLang(readerLang);
   }
 
+  // điều hướng (panel)
   btnPrev?.addEventListener("click", ()=>{ if(pageIdx>0){ flipTo(()=>{ pageIdx--; renderPage(); }); }});
   btnNext?.addEventListener("click", ()=>{ if(currentBook && pageIdx<currentBook.pages.length-1){ flipTo(()=>{ pageIdx++; renderPage(); }); }});
+
+  // [THÊM] điều hướng nổi trên ảnh
+  imgPrev?.addEventListener("click", ()=> btnPrev?.click());
+  imgNext?.addEventListener("click", ()=> btnNext?.click());
 
   function stopOthers(who){
     if (who === 'vi'){ audioEn.pause(); audioEn.currentTime = 0; }
@@ -423,13 +415,13 @@ document.getElementById("imgNext")?.addEventListener("click", ()=> btnNext?.clic
   async function openReader(bookId){
     try{
       const book = await fetchFirstAvailable(BOOK_CANDIDATES(bookId));
-      // Chuẩn hoá cấu trúc dữ liệu (chấp nhận cả tên field cũ)
+      // chuẩn hoá dữ liệu: hỗ trợ tên field cũ/mới
       currentBook = {
         id: book.id || book.IDBook || bookId,
         title_vi: book.title_vi || book.little_vi || "",
         title_en: book.title_en || book.little_en || "",
-        author:   book.author || book.auther || "",
-        cover:    book.cover || book.L_imageBia || "",
+        author:   book.author   || book.auther   || "",
+        cover:    book.cover    || book.L_imageBia || "",
         pages: Array.isArray(book.pages) ? book.pages.map(p=>({
           id: p.id || p.IDPage || "",
           text_vi:  p.text_vi  || p.noidung_vi || "",
@@ -455,4 +447,3 @@ document.getElementById("imgNext")?.addEventListener("click", ()=> btnNext?.clic
     }
   }
 })(); // END IIFE
-

@@ -1,7 +1,7 @@
 {
   "type": "storybook.library",
-  "version": 3,
-  "updated_at": "2025-09-22T06:27:24.345Z",
+  "version": 6,
+  "updated_at": "2025-09-22T14:43:11.208Z",
   "books": [
     {
       "id": "B001",
@@ -9,10 +9,21 @@
       "title_en": "NiNi and the Empty Bran Bag",
       "author": "Sane.Htth",
       "design": "Auther & NiNi Team",
-      "cover": "/public/assets/images/storybook/B001_cover.png",
+      "cover": "/public/assets/images/storybook/B001_cover.webp",
       "pages_count": 8,
-      "content_hash": "e628acfca77676a4324b5b046f95ee17e2cb79e946d7063fa6b789ebb5efe26f",
-      "updated_at": "2025-09-22T06:27:24.344Z"
+      "content_hash": "a0d48ef5ab630d2aad42e72723d59545191a1341ce676086bb14743028f230fa",
+      "updated_at": "2025-09-22T14:43:11.208Z"
+    },
+    {
+      "id": "B002",
+      "title_vi": "Tìm nước cứu cây",
+      "title_en": "Water-Saving Mission",
+      "author": "Sane.Htth",
+      "design": "Nini Team",
+      "cover": "/public/assets/images/storybook/B002_cover.webp",
+      "pages_count": 8,
+      "content_hash": "b68990d5f5886c31b3affafa3e7cd47b0c6c9cf7bdbe3e9b5385ee9a16f20ee1",
+      "updated_at": "2025-09-22T14:16:47.953Z"
     }
   ]
 }

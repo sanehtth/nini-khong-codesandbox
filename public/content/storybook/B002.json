@@ -1,0 +1,82 @@
+{
+  "id": "B002",
+  "title_vi": "Tìm nước cứu cây",
+  "title_en": "Water-Saving Mission",
+  "author": "Sane.Htth",
+  "design": "Nini Team",
+  "cover": "/public/assets/images/storybook/B002_cover.webp",
+  "pages": [
+    {
+      "TDBook": "Page 01",
+      "IDPage": "P001",
+      "noidung_vi": "Trong một buổi sáng tinh mơ, chú nhím Nini, với trái tim nhiệt thành luôn hướng về cộng đồng, sững sờ khi chứng kiến cảnh bìa rừng tan hoang. Những thân cây khẳng khiu khô héo, từng bụi hoa dại ủ rũ nằm rạp xuống đất như đang than khóc. Cảnh tượng ấy khiến Nini không khỏi quặn lòng. \"Phải làm gì đó! Phải cứu lấy khu rừng!\" – chú nhủ thầm, đôi mắt lấp lánh sự quyết tâm.",
+      "noidung_en": "One bright morning, Nini the hedgehog, with a heart full of community spirit, was shocked to see the edge of the forest looking so sad. The trees were all dry and withered, and the wild flowers drooped to the ground as if crying. This sight truly broke Nini's heart. \"I have to do something! I must save the forest!\" – he thought to himself, his little eyes sparkling with determination.",
+      "L_image_P": "/public/assets/images/storybook/B002_P01.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV01.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE01.mp3"
+    },
+    {
+      "TDBook": "Page 02",
+      "IDPage": "P02",
+      "noidung_vi": "Quyết tâm tìm nguồn nước để hồi sinh những mầm sống, Nini hăm hở lao đi. Chú chạy mãi, chạy mãi qua bao con dốc, bờ suối, đến tận một góc rừng xa xôi mới tìm thấy một dòng nước trong lành. Nini mừng rỡ, vội vàng dùng đôi tay bé xíu của mình múc nước, nhưng nước cứ thế chảy tuột qua kẽ tay. Chú thử dùng chiếc lá to bản làm vật chứa, nhưng chỉ đi được vài bước, lượng nước đã vơi đi quá nửa. Sự vụng về đôi khi khiến Nini gặp không ít khó khăn.",
+      "noidung_en": "Determined to find water to revive the plants, Nini eagerly set off. He ran and ran over hills and past streams, all the way to a faraway corner of the forest where he finally found a clear stream. Nini was overjoyed! He quickly tried to scoop water with his tiny hands, but it just slipped through his fingers. He then tried using a large leaf as a cup, but after just a few steps, most of the water was gone. Nini's clumsiness sometimes caused him quite a few troubles.",
+      "L_image_P": "/public/assets/images/storybook/B002_P01.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV02.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE02.mp3"
+    },
+    {
+      "TDBook": "Page 03",
+      "IDPage": "P03",
+      "noidung_vi": "Đứng trước sự bất lực của mình, Nini bỗng lóe lên một ý tưởng độc đáo. Chú thốt lên đầy tự tin: \"Trời không chịu đất, thì đất phải chịu trời! Nếu nước không thể đến với cây, thì cây sẽ đến với nước!\"",
+      "noidung_en": "Facing his helplessness, Nini suddenly had a brilliant idea. He confidently declared: \"If the sky doesn't help the earth, then the earth must help the sky! If the water can't come to the trees, then the trees must come to the water!\"",
+      "L_image_P": "/public/assets/images/storybook/B002_P03.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV03.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE03.mp3"
+    },
+    {
+      "TDBook": "Page 04",
+      "IDPage": "P04",
+      "noidung_vi": "Nói là làm, Nini dồn hết sức lực, chạy thật nhanh trở lại bìa rừng. Với tinh thần hăng hái không ai sánh kịp, chú bắt đầu cặm cụi chặt phăng những cây khô héo, những bụi cây ủ rũ nhất, rồi kiên cường kéo lê chúng về phía nguồn nước. \"Cứu được rồi! Chắc chắn những cái cây này sẽ được hồi sinh!\" Nini vừa làm vừa hớn hở, mồ hôi nhễ nhại nhưng nụ cười vẫn thường trực trên môi.",
+      "noidung_en": "No sooner said than done, Nini gathered all his strength and quickly ran back to the forest edge. With enthusiasm unmatched, he diligently started chopping down the driest, most withered trees and bushes. Then, he bravely dragged them towards the stream. \"Saved them! These trees will definitely be revived!\" Nini chuckled as he worked, sweating, but with a constant smile on his face.",
+      "L_image_P": "/public/assets/images/storybook/B002_P04.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV04.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE04.mp3"
+    },
+    {
+      "TDBook": "Page 05",
+      "IDPage": "P05",
+      "noidung_vi": "Đúng lúc đó, chú Thỏ Lanh Lợi chạy ngang qua. Thấy Nini đang hì hục chặt phá một cách đầy nhiệt tình, Thỏ Lanh Lợi chẳng kịp hỏi han lấy một lời, liền nhảy bổ vào giúp sức. Hai người, một nhím, một thỏ, cùng nhau say sưa \"giải cứu\" khu rừng bằng cách chuyển hết cây cối về phía dòng suối.",
+      "noidung_en": "Just then, Quick Rabbit hopped by. Seeing Nini so enthusiastically chopping away, Quick Rabbit didn't even stop to ask, but immediately jumped in to help. The two, one hedgehog, one rabbit, eagerly \"rescued\" the forest by moving all the trees towards the stream.",
+      "L_image_P": "/public/assets/images/storybook/B002_P05.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV05.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE05.mp3"
+    },
+    {
+      "TDBook": "Page 06",
+      "IDPage": "P06",
+      "noidung_vi": "Một lúc sau, khi cả hai đã thấm mệt, Thỏ Lanh Lợi ngồi phịch xuống, thở hổn hển rồi hỏi: \n\"Này Nini, cậu chặt mấy cái cây khô này làm gì mà hăng hái thế?\"",
+      "noidung_en": "A little while later, when both were tired, Quick Rabbit plopped down, panting, and asked: \n\"Hey Nini, what are you chopping down all these dry trees for, so energetically?\"",
+      "L_image_P": "/public/assets/images/storybook/B002_P06.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV06.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE06.mp3"
+    },
+    {
+      "TDBook": "Page 07",
+      "IDPage": "P07",
+      "noidung_vi": "Nini, vẫn còn đang bận lau mồ hôi, ngây thơ đáp:\n\"Thì... thấy nó héo úa quá, mình định đưa chúng đến gần nguồn nước để cây được uống nước ấy mà!\"",
+      "noidung_en": "Nini, still wiping sweat from his brow, innocently replied:\n\"Well... they looked so withered, I thought I'd bring them closer to the water so they could drink!\"",
+      "L_image_P": "/public/assets/images/storybook/B002_P07.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV07.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE07.mp3"
+    },
+    {
+      "TDBook": "Page 08",
+      "IDPage": "P08",
+      "noidung_vi": "Thỏ Lanh Lợi nghe xong, trố mắt nhìn Nini, rồi bất ngờ vỗ mạnh vào trán mình một cái bốp: \"Trời ơi! Tớ... tớ cứ tưởng cậu đang... KHAI HOANG !",
+      "noidung_en": "Quick Rabbit heard this, stared wide-eyed at Nini, then surprisingly slapped his forehead with a \"Bop!\": \"Oh my goodness! I... I thought you were... CLEARING LAND!\"",
+      "L_image_P": "/public/assets/images/storybook/B002_P08.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B002_SV08.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B002_SE08.mp3"
+    }
+  ]
+}

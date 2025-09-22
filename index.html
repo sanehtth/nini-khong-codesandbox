@@ -11,6 +11,11 @@
 
   <!-- CSS -->
   <link rel="stylesheet" href="/styles.css?v=7" />
+
+  <!-- JS (đường dẫn tuyệt đối + defer + bust cache)
+       LƯU Ý: đặt trong <head> nhưng có 'defer', nên sẽ chạy sau khi DOM đã parse -->
+  <script src="/public/js/effects.js?v=5" defer></script>
+  <script src="/public/js/app.js?v=10" defer></script>
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -29,10 +34,6 @@
       <button class="tab" data-season="autumn">Autumn</button>
       <button class="tab" data-season="winter">Winter</button>
     </nav>
-    <!-- JS (đường dẫn tuyệt đối + defer + bust cache) -->
-
-<script src="/public/js/effects.js?v=5" defer></script>
-<script src="/public/js/app.js?v=10" defer></script>
 
     <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
   </header>
@@ -55,16 +56,54 @@
     <!-- Nội dung thay đổi -->
     <section class="content" id="content">
       <h2>NiNi — Funny</h2>
-       <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
-    <p>Với slogan "Chơi mê ly, bứt phá tư duy", NiNi-Funny không chỉ là một trò chơi giải trí, mà còn là công cụ giúp bạn:</p>
-    <ul>
-      <li>Đắm chìm vào cuộc phiêu lưu: Khám phá những màn chơi đầy màu sắc, giải đố những câu chuyện hấp dẫn và chinh phục các thử thách ngôn ngữ một cách tự nhiên.</li>
-      <li>Học mà như chơi: Mở rộng vốn từ vựng, rèn luyện ngữ pháp và tăng khả năng phản xạ tiếng Anh thông qua các mini-game vui nhộn và sáng tạo.</li>
-      <li>Phát triển bản thân: Bứt phá khỏi những giới hạn của bản thân, tư duy logic và kỹ năng giải quyết vấn đề của bạn sẽ được nâng cao một cách đáng kể.</li>
-    </ul>
+      <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
+      <p>Với slogan "Chơi mê ly, bứt phá tư duy", NiNi-Funny không chỉ là một trò chơi giải trí, mà còn là công cụ giúp bạn:</p>
+      <ul>
+        <li>Đắm chìm vào cuộc phiêu lưu: Khám phá những màn chơi đầy màu sắc, giải đố những câu chuyện hấp dẫn và chinh phục các thử thách ngôn ngữ một cách tự nhiên.</li>
+        <li>Học mà như chơi: Mở rộng vốn từ vựng, rèn luyện ngữ pháp và tăng khả năng phản xạ tiếng Anh thông qua các mini-game vui nhộn và sáng tạo.</li>
+        <li>Phát triển bản thân: Bứt phá khỏi những giới hạn của bản thân, tư duy logic và kỹ năng giải quyết vấn đề của bạn sẽ được nâng cao một cách đáng kể.</li>
+      </ul>
       <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
     </section>
-    </main>
+  </main>
+
+  <!-- [READER ADD] BEGIN — Modal “trình đọc sách” dùng cho kệ sách ở tab Spring -->
+  <div class="modal" id="readerModal" aria-hidden="true">
+    <div class="modal__backdrop" data-reader-close></div>
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+
+      <h3 id="readerTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+        <span id="readerBookTitle">Đang mở…</span>
+      </h3>
+
+      <div id="readerViewport" style="position:relative">
+        <img id="readerImage" alt="" style="width:100%;border-radius:12px;display:block;"/>
+        <div class="row" style="margin-top:10px">
+          <audio id="readerAudioVi" controls style="flex:1;display:none"></audio>
+          <audio id="readerAudioEn" controls style="flex:1;display:none"></audio>
+        </div>
+        <div class="grid" style="margin-top:10px">
+          <div>
+            <label class="muted">Tiếng Việt</label>
+            <div id="readerTextVi"></div>
+          </div>
+          <div>
+            <label class="muted">English</label>
+            <div id="readerTextEn"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:space-between;margin-top:14px">
+        <button class="btn" id="btnPrevPage">← Trang trước</button>
+        <div class="muted" id="readerPageInfo">Trang 1/1</div>
+        <button class="btn" id="btnNextPage">Trang sau →</button>
+      </div>
+    </div>
+  </div>
+  <!-- [READER ADD] END -->
 
   <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
@@ -128,18 +167,5 @@
       </form>
     </div>
   </div>
-
-  
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-

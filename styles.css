@@ -519,6 +519,32 @@ body.is-reading .shelf-panel{ display:none; }
   .calendar-panel{ left:14px; width:auto; }
 }
 
+/* Center toàn bộ panel của reader giữa màn hình */
+#readerModal .modal__panel{
+  position: fixed;            /* phủ toàn màn hình để canh giữa */
+  inset: 0;
+  display: grid;
+  place-items: center;        /* giữa ngang + dọc */
+  background: transparent;    /* để chỉ thấy title + khung 16:9 */
+  border: 0;
+  padding: 0;
+}
+
+/* Tiêu đề canh giữa theo bề ngang của khung đọc */
+#readerModal .modal__title{
+  width: min(92vw, 1120px);
+  margin: 12px auto 8px;      /* đặt giữa + tách với khung */
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.18);
+}
+
+/* Khung 16:9 vẫn giữa, không lệch */
+.calendar-view.mode-169{
+  margin: 0 auto;             /* bảo đảm giữa ngang */
+}
+
 
 
 

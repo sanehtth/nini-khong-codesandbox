@@ -168,32 +168,43 @@
   }
 
   function renderShelfInFrame(books){
-    if (!shelfMount) return;
+  if (!shelfMount) return;
 
-    if (!books || !books.length){
-      shelfMount.innerHTML = `
+  if (!books || !books.length){
+    shelfMount.innerHTML = `
+      <div class="shelf-panel">
         <h3>Kệ sách</h3>
-        <p class="muted">Chưa có sách. Đặt <code>/public/content/storybook/library-manifest.json</code>
-        và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.</p>`;
-      return;
-    }
-
-    const html = books.map(b=>`
-      <article class="book-card" data-book="${b.id}">
-        <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}"
-             alt="${b.title_vi || b.title_en || b.id}">
-        <div class="book-card__body">
-          <h4 class="book-card__title">${b.title_vi || b.title_en || b.id}</h4>
-          <p class="book-card__meta">${b.author ? `Tác giả: ${b.author}` : ''}</p>
-        </div>
-      </article>
-    `).join("");
-    shelfMount.innerHTML = `<h3>Kệ sách</h3><div class="shelf-grid compact">${html}</div>`;
-
-    shelfMount.querySelectorAll(".book-card").forEach(card=>{
-      card.addEventListener("click", ()=> openReader(card.dataset.book));
-    });
+        <p class="muted" style="margin:6px 0 0">
+          Chưa có sách. Đặt <code>/public/content/storybook/library-manifest.json</code>
+          và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.
+        </p>
+      </div>`;
+    return;
   }
+
+  const html = books.map(b=>`
+    <article class="book-card" data-book="${b.id}">
+      <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}"
+           alt="${b.title_vi || b.title_en || b.id}">
+      <div class="book-card__body">
+        <h4 class="book-card__title">${b.title_vi || b.title_en || b.id}</h4>
+        <p class="book-card__meta">${b.author ? `Tác giả: ${b.author}` : ''}</p>
+      </div>
+    </article>
+  `).join("");
+
+  shelfMount.innerHTML = `
+    <div class="shelf-panel">
+      <h3>Kệ sách</h3>
+      <div class="shelf-grid">${html}</div>
+    </div>
+  `;
+
+  shelfMount.querySelectorAll(".book-card").forEach(card=>{
+    card.addEventListener("click", ()=> openReader(card.dataset.book));
+  });
+}
+
 
   /* ==========================================================
    * [7] READER — CALENDAR VIEW + LANGUAGE + EFFECTS
@@ -413,3 +424,4 @@
     }
   }
 })(); // END IIFE
+

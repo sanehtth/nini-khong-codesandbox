@@ -413,6 +413,15 @@ label > input:focus, label > textarea:focus{
 @media (max-width: 900px){
   .shelf-panel{ width:min(92%, 520px); bottom:10% }
 }
+/* Modal luôn cao hơn kệ */
+.modal{ z-index: 50; }           /* nếu đã có rồi thì bỏ qua */
+.shelf-panel{ z-index: 3; }      /* kệ nằm dưới modal */
+
+/* Khi đang đọc sách thì ẩn kệ để khỏi cản click */
+body.is-reading .shelf-panel{
+  display: none;
+}
+
 
 
 

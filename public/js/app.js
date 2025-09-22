@@ -1,10 +1,10 @@
-/* ============================================================
- * NiNi — App JS (seasons + shelf-in-frame + calendar reader)
- * ============================================================ */
+/* ======================================================================
+ * NiNi — App JS (Seasons + Shelf-in-Frame + Calendar Reader)
+ * ====================================================================== */
 (() => {
-  /* =========================
+  /* =========================================================
    * [1] SEASONS / ROUTER
-   * ========================= */
+   * ========================================================= */
   const IMAGES = {
     home:  "/public/assets/bg/nini_home.webp",
     spring:"/public/assets/images/seasons/spring.webp",
@@ -16,25 +16,26 @@
   const tabs       = document.querySelectorAll("#seasonTabs .tab");
   const frame      = document.getElementById("frame");
   const content    = document.getElementById("content");
-  const shelfMount = document.getElementById("shelfMount"); // NOTE: div rỗng bên trong .frame
+  const shelfMount = document.getElementById("shelfMount"); // Vị trí gắn kệ trong .frame
 
   function setSeason(season) {
     const img = IMAGES[season] || IMAGES.home;
 
-    // nền ngoài & trong khung
+    // Đổi nền ngoài & trong khung
     document.documentElement.style.setProperty("--bg-url", `url("${img}")`);
     if (frame) frame.style.backgroundImage = `url("${img}")`;
 
+    // Active tab
     tabs.forEach(b => b.classList.toggle("is-active", b.dataset.season === season));
 
-    // chuẩn hóa hash #/season
+    // Chuẩn hoá hash: #/season
     const newHash = `#/${season}`;
     if (location.hash !== newHash) {
       history.replaceState({}, "", newHash);
       window.dispatchEvent(new HashChangeEvent("hashchange"));
     }
 
-    // Kệ sách trong tab Spring
+    // Khi vào Spring: hiển thị kệ trong khung
     if (season === "spring") {
       if (shelfMount) shelfMount.hidden = false;
       loadLibrary().then(renderShelfInFrame);
@@ -52,9 +53,9 @@
 
   tabs.forEach(btn => btn.addEventListener("click", () => setSeason(btn.dataset.season)));
 
-  /* =========================
-   * [2] STYLE TOGGLER (optional)
-   * ========================= */
+  /* =========================================================
+   * [2] STYLE TOGGLER (tuỳ chọn)
+   * ========================================================= */
   const btnStyle = document.getElementById("toggleStyle");
   const savedStyle = localStorage.getItem("ui_style");
   if (savedStyle === "modern") {
@@ -67,20 +68,18 @@
     if (btnStyle) btnStyle.textContent = "Style: " + (modern ? "Modern" : "Classic");
   });
 
-  /* =========================
+  /* =========================================================
    * [3] CHIPS (intro/rules/forum/feedback)
-   * ========================= */
+   * ========================================================= */
   const chips = document.querySelectorAll(".chip");
   const SECTIONS = {
     intro: `<h2>NiNi — Funny</h2>
       <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
-      <p>Với slogan "Chơi mê ly, bứt phá tư duy", NiNi-Funny không chỉ là một trò chơi giải trí, mà còn là công cụ giúp bạn:</p>
       <ul>
         <li>Đắm chìm vào cuộc phiêu lưu rực rỡ màu sắc.</li>
         <li>Học mà như chơi qua mini-game sáng tạo.</li>
-        <li>Phát triển tư duy và kỹ năng giải quyết vấn đề.</li>
-      </ul>
-      <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình.</p>`,
+        <li>Bứt phá tư duy và kỹ năng giải quyết vấn đề.</li>
+      </ul>`,
     rules: `<h2>Luật chơi</h2><p>Mỗi mini game có hướng dẫn ngắn ngay trước khi bắt đầu. Chơi vui, công bằng và tôn trọng bạn chơi.</p>`,
     forum: `<h2>Diễn đàn</h2><p>Góc khoe thành tích, trao đổi mẹo, đặt câu hỏi.</p>`,
     feedback:`<h2>Góp ý</h2><p>Hòm thư góp ý: suport@nini-funny.com</p>`
@@ -92,9 +91,9 @@
     });
   });
 
-  /* =========================
-   * [4] AUTH MODAL (giữ nguyên nếu có)
-   * ========================= */
+  /* =========================================================
+   * [4] AUTH MODAL (nếu dùng)
+   * ========================================================= */
   const authBtn   = document.getElementById("authBtn");
   const authModal = document.getElementById("authModal");
   const closeEls  = authModal?.querySelectorAll("[data-close]") || [];
@@ -119,18 +118,18 @@
   });
   tabLines.forEach(t => t.addEventListener("click", () => switchAuth(t.dataset.auth)));
 
-  /* =========================
-   * [5] BOOT + PRELOAD BACKGROUNDS
-   * ========================= */
+  /* =========================================================
+   * [5] BOOT + PRELOAD BACKGROUND
+   * ========================================================= */
   bootSeasonFromHash();
   window.addEventListener("hashchange", bootSeasonFromHash);
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
 
-  /* ==========================================================
+  /* =====================================================================
    * [6] KỆ SÁCH TRONG KHUNG (SPRING)
-   * ========================================================== */
+   * ===================================================================== */
 
-  // NOTE: thử nhiều đường dẫn để tránh lỗi /public khi deploy tĩnh
+  // [THÊM] Fallback nhiều đường dẫn để tránh lỗi /public khi deploy tĩnh
   const LIB_CANDIDATES = [
     "/public/content/storybook/library-manifest.json",
     "/content/storybook/library-manifest.json",
@@ -147,6 +146,7 @@
     if (!res.ok) throw new Error(`HTTP ${res.status} - ${url}`);
     return res.json();
   }
+  // [THÊM] Thử nhiều URL cho tới khi thành công
   async function fetchFirstAvailable(urls){
     let lastErr;
     for (const u of urls){
@@ -168,90 +168,97 @@
   }
 
   function renderShelfInFrame(books){
-  if (!shelfMount) return;
+    if (!shelfMount) return;
 
-  if (!books || !books.length){
+    // Panel kệ: luôn nằm trong .frame (CSS định vị top-left)
+    if (!books || !books.length){
+      shelfMount.innerHTML = `
+        <div class="shelf-panel">
+          <h3>Kệ sách</h3>
+          <p class="muted" style="margin:6px 0 0">
+            Chưa có sách. Đặt <code>/public/content/storybook/library-manifest.json</code>
+            và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.
+          </p>
+        </div>`;
+      return;
+    }
+
+    const html = books.map(b=>`
+      <article class="book-card" data-book="${b.id}">
+        <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}"
+             alt="${b.title_vi || b.title_en || b.id}">
+        <div class="book-card__body">
+          <h4 class="book-card__title">${b.title_vi || b.title_en || b.id}</h4>
+          <p class="book-card__meta">${b.author ? `Tác giả: ${b.author}` : ''}</p>
+        </div>
+      </article>
+    `).join("");
+
     shelfMount.innerHTML = `
       <div class="shelf-panel">
         <h3>Kệ sách</h3>
-        <p class="muted" style="margin:6px 0 0">
-          Chưa có sách. Đặt <code>/public/content/storybook/library-manifest.json</code>
-          và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.
-        </p>
-      </div>`;
-    return;
+        <div class="shelf-grid">${html}</div>
+      </div>
+    `;
+
+    // Click bìa → mở reader
+    shelfMount.querySelectorAll(".book-card").forEach(card=>{
+      card.addEventListener("click", ()=> openReader(card.dataset.book));
+    });
   }
 
-  const html = books.map(b=>`
-    <article class="book-card" data-book="${b.id}">
-      <img class="book-card__cover" src="${b.cover || '/public/assets/bg/nini_home.webp'}"
-           alt="${b.title_vi || b.title_en || b.id}">
-      <div class="book-card__body">
-        <h4 class="book-card__title">${b.title_vi || b.title_en || b.id}</h4>
-        <p class="book-card__meta">${b.author ? `Tác giả: ${b.author}` : ''}</p>
-      </div>
-    </article>
-  `).join("");
-
-  shelfMount.innerHTML = `
-    <div class="shelf-panel">
-      <h3>Kệ sách</h3>
-      <div class="shelf-grid">${html}</div>
-    </div>
-  `;
-
-  shelfMount.querySelectorAll(".book-card").forEach(card=>{
-    card.addEventListener("click", ()=> openReader(card.dataset.book));
-  });
-}
-
-
-  /* ==========================================================
+  /* =====================================================================
    * [7] READER — CALENDAR VIEW + LANGUAGE + EFFECTS
-   * ========================================================== */
+   * ===================================================================== */
 
   // --- Elements ---
   const readerModal   = document.getElementById("readerModal");
   const readerTitleEl = document.getElementById("readerBookTitle");
 
-  const calendarView = document.getElementById("calendarView");
-  const calendarBg   = document.getElementById("calendarBg");
-  const subtitleBubble = document.getElementById("subtitleBubble"); // phụ đề đè ảnh
+  const calendarView   = document.getElementById("calendarView");
+  let   calendarBg     = document.getElementById("calendarBg"); // có thể bị thiếu trong HTML
+  const subtitleBubble = document.getElementById("subtitleBubble");
 
-  const panelRight   = document.getElementById("panelRight");
   const readerTextVi = document.getElementById("readerTextVi");
   const readerTextEn = document.getElementById("readerTextEn");
 
-  const pageInfo     = document.getElementById("readerPageInfo");
-  const btnPrev      = document.getElementById("btnPrevPage");
-  const btnNext      = document.getElementById("btnNextPage");
+  const pageInfo = document.getElementById("readerPageInfo");
+  const btnPrev  = document.getElementById("btnPrevPage");
+  const btnNext  = document.getElementById("btnNextPage");
 
-  // language toggle buttons (đặt trong header modal)
   const langViBtn = document.getElementById("langVi");
   const langEnBtn = document.getElementById("langEn");
 
-  // speak buttons
-  const btnSpeakVi  = document.getElementById("btnSpeakVi");
-  const btnSpeakEn  = document.getElementById("btnSpeakEn");
+  const btnSpeakVi = document.getElementById("btnSpeakVi");
+  const btnSpeakEn = document.getElementById("btnSpeakEn");
+
+  // [THÊM] Nếu thiếu #calendarBg trong HTML → tự tạo để chắc chắn có chỗ gán ảnh
+  if (!calendarBg && calendarView) {
+    calendarBg = document.createElement("div");
+    calendarBg.id = "calendarBg";
+    calendarBg.className = "calendar-bg";
+    calendarView.prepend(calendarBg);
+  }
 
   // State
   let currentBook = null;
   let pageIdx = 0;
 
+  // Hai audio riêng cho VI/EN
   const audioVi = new Audio();
   const audioEn = new Audio();
 
-  // Layout mode: chỉ dùng panel phải (calendar-right). Nếu sau này bạn có panel bottom, thêm mode ở đây.
-  let readerMode = "right"; // giữ để tương thích API cũ
-
-  // Language: 'vi' | 'en'  (đọc VI => phụ đề EN; đọc EN => phụ đề VI)
+  // [THÊM] Lưu ngôn ngữ đọc (VI → phụ đề EN; EN → phụ đề VI)
   let readerLang = localStorage.getItem("reader_lang") || "vi";
 
-  // ===== Helper URL/Preload =====
+  // ---------- Helpers ----------
+  // [THÊM] Chuẩn hoá URL thành tuyệt đối (đỡ lỗi khi file để cùng domain)
   function absUrl(raw){
     if (!raw) return "";
     return raw.startsWith("http") ? raw : new URL(raw, location.origin).href;
   }
+
+  // [THÊM] Preload & decode ảnh trước khi hiển thị → mượt hơn
   function preloadBookImages(book){
     if (!book?.pages) return;
     book._imgPromises = book.pages.map(p=>{
@@ -262,31 +269,38 @@
       return img.decode().catch(()=>{});
     });
   }
+
+  // [THÊM] Set background cho #calendarBg (đợi decode nếu được)
   async function setCalendarBg(url){
+    if (!calendarBg) return;
     const u = absUrl(url);
     if (!u) { calendarBg.style.backgroundImage = "none"; return; }
     try{
       const img = new Image(); img.src = u;
-      await img.decode();
+      await img.decode(); // giải mã trước
       calendarBg.style.backgroundImage = `url("${u}")`;
     }catch{
-      // fallback: vẫn set, dù chưa decode
+      // fallback: vẫn set dù chưa decode
       calendarBg.style.backgroundImage = `url("${u}")`;
     }
   }
 
-  // ===== Modal show/hide =====
-function showReader(show){
-  readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
-  if (show) {
-    document.body.classList.add("is-reading");
-  } else {
-    document.body.classList.remove("is-reading");
-    audioVi.pause(); audioEn.pause();
+  // ---------- Modal show/hide ----------
+  // [SỬA] Thêm class is-reading vào <body> để ẩn kệ (tránh đè modal)
+  function showReader(show){
+    readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
+    if (show) {
+      document.body.classList.add("is-reading"); // kệ bị ẩn bằng CSS
+    } else {
+      document.body.classList.remove("is-reading");
+      audioVi.pause(); audioEn.pause();
+    }
   }
-}
+  readerModal?.querySelectorAll("[data-reader-close]")?.forEach(el=>{
+    el.addEventListener("click", ()=> showReader(false));
+  });
 
-  // ===== Language apply =====
+  // ---------- Language ----------
   function applyReaderLang(lang){
     readerLang = (lang === "en") ? "en" : "vi";
     localStorage.setItem("reader_lang", readerLang);
@@ -294,11 +308,11 @@ function showReader(show){
     langViBtn?.classList.toggle("active", readerLang === "vi");
     langEnBtn?.classList.toggle("active", readerLang === "en");
 
-    // Nút loa: chỉ show cái cùng ngôn ngữ
+    // Nút loa: chỉ hiển thị cái cùng ngôn ngữ đọc
     btnSpeakVi?.classList.toggle("reader-hide", readerLang !== "vi");
     btnSpeakEn?.classList.toggle("reader-hide", readerLang !== "en");
 
-    // Nếu đang phát, chuyển audio tương ứng
+    // Nếu đang phát thì chuyển đúng audio
     if (readerLang === "vi"){
       if (!audioVi.paused){ audioEn.pause(); audioVi.play().catch(()=>{}); }
       else { audioEn.pause(); }
@@ -312,7 +326,7 @@ function showReader(show){
   langViBtn?.addEventListener("click", ()=> applyReaderLang("vi"));
   langEnBtn?.addEventListener("click", ()=> applyReaderLang("en"));
 
-  // ===== Subtitle overlay (ngôn ngữ đối ứng) =====
+  // [THÊM] Phụ đề đè trên ảnh = ngôn ngữ đối ứng với giọng đọc
   function updateSubtitleOverlay(){
     if (!subtitleBubble || !currentBook) return;
     const p = currentBook.pages[pageIdx] || {};
@@ -326,7 +340,7 @@ function showReader(show){
     }
   }
 
-  // ===== Flip effect =====
+  // ---------- Flip effect ----------
   function flipTo(next){
     if(!calendarBg) { next(); return; }
     calendarBg.classList.remove("flip-in","flip-out");
@@ -339,35 +353,33 @@ function showReader(show){
     }, 160);
   }
 
-  // ===== Render trang =====
+  // ---------- Render trang ----------
   function renderPage(){
     if(!currentBook) return;
     const total = currentBook.pages.length || 0;
     const p = currentBook.pages[pageIdx] || {};
 
-    // ảnh nền (full-bleed)
+    // [THÊM] Ảnh nền phủ toàn khung
     setCalendarBg(p.image || currentBook.cover || "");
 
-    // text cho panel phải (đặt đủ 2 ngôn ngữ, overlay sẽ chọn ngôn ngữ đối ứng)
+    // Text panel
     if (readerTextVi) readerTextVi.textContent = p.text_vi || "";
     if (readerTextEn) readerTextEn.textContent = p.text_en || "";
 
-    // audio nguồn
+    // Audio
     audioVi.pause(); audioEn.pause();
     audioVi.src = p.sound_vi || "";
     audioEn.src = p.sound_en || "";
+    if (btnSpeakVi) btnSpeakVi.disabled = !p.sound_vi;
+    if (btnSpeakEn) btnSpeakEn.disabled = !p.sound_en;
 
-    // enable/disable nút loa
-    btnSpeakVi && (btnSpeakVi.disabled = !p.sound_vi);
-    btnSpeakEn && (btnSpeakEn.disabled = !p.sound_en);
-
-    // info & nav
+    // Nav / Info
     const info = `Trang ${Math.min(pageIdx+1,total)}/${total || 1}`;
-    pageInfo && (pageInfo.textContent = info);
-    btnPrev && (btnPrev.disabled = pageIdx<=0);
-    btnNext && (btnNext.disabled = pageIdx>=total-1);
+    if (pageInfo) pageInfo.textContent = info;
+    if (btnPrev) btnPrev.disabled = pageIdx<=0;
+    if (btnNext) btnNext.disabled = pageIdx>=total-1;
 
-    // ngôn ngữ & phụ đề overlay
+    // Ngôn ngữ + phụ đề
     applyReaderLang(readerLang);
   }
 
@@ -392,22 +404,24 @@ function showReader(show){
   btnSpeakVi?.addEventListener("click", playByLang);
   btnSpeakEn?.addEventListener("click", playByLang);
 
-  // ===== Mở sách =====
+  // ---------- Mở sách ----------
   async function openReader(bookId){
     try{
       const book = await fetchFirstAvailable(BOOK_CANDIDATES(bookId));
+      // Chuẩn hoá cấu trúc dữ liệu (chấp nhận cả tên field cũ)
       currentBook = {
         id: book.id || book.IDBook || bookId,
         title_vi: book.title_vi || book.little_vi || "",
         title_en: book.title_en || book.little_en || "",
+        author:   book.author || book.auther || "",
         cover:    book.cover || book.L_imageBia || "",
         pages: Array.isArray(book.pages) ? book.pages.map(p=>({
           id: p.id || p.IDPage || "",
-          text_vi: p.text_vi || p.noidung_vi || "",
-          text_en: p.text_en || p.noidung_en || "",
-          image:   p.image || p.L_image_P || "",
-          sound_vi:p.sound_vi || p.L_sound_vi || "",
-          sound_en:p.sound_en || p.L_sound_en || ""
+          text_vi:  p.text_vi  || p.noidung_vi || "",
+          text_en:  p.text_en  || p.noidung_en || "",
+          image:    p.image    || p.L_image_P  || "",
+          sound_vi: p.sound_vi || p.L_sound_vi || "",
+          sound_en: p.sound_en || p.L_sound_en || ""
         })) : []
       };
 
@@ -415,7 +429,7 @@ function showReader(show){
         readerTitleEl.textContent = currentBook.title_vi || currentBook.title_en || currentBook.id;
       }
 
-      // Preload ảnh trang để chuyển mượt
+      // [THÊM] Preload ảnh trang để chuyển mượt
       preloadBookImages(currentBook);
 
       pageIdx = 0;
@@ -426,5 +440,3 @@ function showReader(show){
     }
   }
 })(); // END IIFE
-
-

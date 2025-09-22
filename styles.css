@@ -560,11 +560,52 @@ body.is-reading .shelf-panel{ display:none; }
 .reader-toolbar, .img-nav, .subtitle-bubble{
   will-change: transform;
 }
+/* Căn panel ra giữa màn hình thật sự */
+#readerModal .modal__panel{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
 
+/* Khối được căn giữa là reader-wrap */
+.reader-wrap{
+  position: relative;
+  width: min(92vw, 1120px);
+}
 
+/* Tiêu đề nổi, không đẩy khung xuống */
+#readerModal .modal__title{
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -110%); /* nằm ngay trên khung */
+  margin: 0;
+  padding: 10px 14px;
+  width: auto;
+  max-width: 90vw;
+  border-radius: 12px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.18);
+}
 
+/* Khung 16:9 luôn đúng tâm theo reader-wrap */
+.calendar-view.mode-169{
+  width: 100%;
+  aspect-ratio: 16/9;
+  max-height: 72vh;
+  margin: 0 auto;
+}
 
+/* Cho ảnh đỡ “mềm” khi scale */
+.calendar-bg{
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
 
-
-
+/* Nút/overlay mượt mà mà không làm thay đổi layout */
+.reader-toolbar, .img-nav, .subtitle-bubble{ will-change: transform; }
 

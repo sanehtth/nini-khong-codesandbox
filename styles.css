@@ -1,20 +1,36 @@
+/* =========================================================
+   NiNi — Funny  |  styles.css (clean/merged)
+   - Reset + theme
+   - Header / chips / content
+   - Modal (auth + reader)
+   - Shelf in frame
+   - Reader 16:9 calendar-view (centered)
+   ========================================================= */
+
+/* ---------- THEME VARIABLES ---------- */
 :root{
-  /* Ảnh nền ngoài khung (đổi bằng JS) */
+  /* BG lớn ngoài khung: thay bằng JS qua --bg-url */
   --bg-url: url("/public/assets/bg/nini_home.webp");
+
+  /* Palette */
   --text: #ffffff;
   --text-dim:#e6edf6;
   --chip-bg: rgba(255,255,255,.08);
   --chip-border: rgba(255,255,255,.25);
-  --glass: rgba(255,255,255,.08);
-  --glass-2: rgba(255,255,255,.15);
+  --glass: rgba(0,0,0,.35);
+  --glass-2: rgba(0,0,0,.45);
+
+  /* Reader offset (dương = hạ xuống) */
+  --reader-offset-y: 28px;
 }
 
-/* Reset */
+/* ---------- RESET ---------- */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0; color:var(--text); font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  background: #0a1014;
+  margin:0; color:var(--text);
+  font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:#0a1014;
 }
 body::before{
   content:"";
@@ -26,18 +42,12 @@ body::before{
   z-index:-2;
 }
 body::after{
-  content:"";
-  position:fixed; inset:0;
-  /* ví dụ: bớt đen và thêm hơi xanh */
-  background: radial-gradient(
-    1200px 600px at 50% -10%,
-    rgba(0, 30, 60, 0.25),   /* màu ở tâm */
-    rgba(0, 0, 0, 0.45)      /* màu ở xa */
-  );
+  content:""; position:fixed; inset:0;
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(0,0,0,.35), rgba(0,0,0,.75));
   z-index:-1;
 }
 
-/* Header */
+/* ---------- HEADER ---------- */
 .site-header{
   position:sticky; top:0; z-index:10;
   display:flex; align-items:center; gap:20px;
@@ -58,17 +68,15 @@ body::after{
   padding:8px 12px; border-radius:999px; cursor:pointer; opacity:.9
 }
 .tab:hover{opacity:1}
-.tab.is-active{ text-decoration: underline }
-
-/* Auth button */
+.tab.is-active{text-decoration: underline}
 .auth-btn{
   margin-left:12px;
   padding:8px 14px; border-radius:999px; border:1px solid var(--chip-border);
   background:transparent; color:var(--text); cursor:pointer;
 }
 
-/* Layout */
-.viewport{display:grid; place-items:center; padding: 16px 16px 32px}
+/* ---------- LAYOUT ---------- */
+.viewport{display:grid; place-items:center; padding:16px 16px 32px}
 .frame{
   position:relative;
   width:min(1120px, 92vw); aspect-ratio: 16/9;
@@ -77,15 +85,15 @@ body::after{
   box-shadow: 0 22px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.04);
   overflow:hidden;
 }
-/* ảnh nền trong khung do JS đặt inline style background-image */
 
+/* NiNi mascot */
 .nini{
   position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
   width:min(210px, 22vw); height:auto; pointer-events:none; user-select:none;
   filter: drop-shadow(0 12px 20px rgba(0,0,0,.35));
 }
 
-/* chips */
+/* Chips */
 .chips{
   position:absolute; bottom:7%; left:50%; transform:translateX(-50%);
   display:flex; gap:10px;
@@ -98,40 +106,38 @@ body::after{
 .chip:hover{border-color:#fff}
 .chip.is-active{text-decoration: underline}
 
-/* Content */
+/* Content card dưới khung */
 .content{
   width:min(1140px, 94vw);
   margin:18px auto 0;
   padding:16px 20px 20px;
   border-radius:16px;
-  background: rgba(255,255,255,.18);
+  background: rgba(0,0,0,.25);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
 }
 .content h2{margin:0 0 8px}
 .content p{margin:0}
 
-/* Modal */
+/* ---------- MODAL (cơ bản) ---------- */
 .modal{position:fixed; inset:0; display:none}
 .modal[aria-hidden="false"]{display:block}
 .modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(3px)}
 .modal__panel{
   position:absolute; inset:0; margin:auto; width:min(560px, 92vw);
   background: var(--glass-2); border:1px solid rgba(255,255,255,.18);
-  border-radius:16px; padding:18px 18px 20px; color:var(--text);
+  border-radius:16px; padding:18px; color:var(--text);
   top:50%; transform:translateY(-50%);
 }
 .modal__close{
-  position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer
+  position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer;
 }
 .modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
 .modal__logo{width:28px; height:28px}
 
+/* Tabs line trong auth modal */
 .tabs-line{display:flex; gap:12px; margin:6px 0 12px}
-.tab-line{
-  background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0
-}
-.tab-line.is-active{ text-decoration: underline }
-
+.tab-line{background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0}
+.tab-line.is-active{text-decoration: underline}
 .form{display:none}
 .form.is-active{display:block}
 .form label{display:block; font-size:13px; color:var(--text-dim); margin:10px 0 4px}
@@ -144,297 +150,80 @@ body::after{
 .row.gap{align-items:center}
 .btn{
   padding:10px 16px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:#fff; cursor:pointer
+  background:transparent; color:#fff; cursor:pointer;
 }
 .btn:hover{border-color:#fff}
 .btn-ghost{background:transparent}
 .btn.full{width:100%}
-.or{ text-align:center; color:#d0d8e6; margin:8px 0 4px}
+.or{text-align:center; color:#d0d8e6; margin:8px 0 4px}
 .note{font-size:12px; color:#cfd8e3; margin-top:8px}
 
-/* Responsive tweak */
-@media (max-width: 640px){
-  .nini{width:150px}
+/* ---------- SHELF IN FRAME (gọn, nằm góc trái trên) ---------- */
+.shelf-card{
+  position:absolute; left:18px; top:18px; z-index:3;
+  width:min(520px, 44%); padding:12px;
+  border-radius:14px; background: rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px);
 }
-/* Mặc định: các hàng .row căn giữa */
-.row { justify-content: center; }
-
-/* Riêng .row.gap (có nhiều phần tử) vẫn căn trái */
-.row.gap { justify-content: flex-start; }
-
-/* ==== Nền & phông chữ chung storybook==== */
-:root{
-  --bg1: #0e1117;
-  --bg2: #161b22;
-  --card: rgba(255,255,255,0.06);
-  --card-br: rgba(255,255,255,0.12);
-  --text: #e6edf3;
-  --text-dim: #9fb1c7;
-  --primary: #7bc6ff;
-  --primary-2: #a6ffcb;
-  --focus: #c2e7ff;
-}
-
-html,body{height:100%}
-body{
-  margin:0;
-  color:var(--text);
-  font:15px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  background:
-    radial-gradient(1200px 700px at 50% -10%, rgba(88,130,193,.15), transparent 60%),
-    linear-gradient(180deg, var(--bg1), var(--bg2));
-}
-
-/* Hạt noise rất nhẹ để nền có texture */
-body::after{
-  content:"";
-  position:fixed; inset:0; pointer-events:none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/	filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
-  z-index:-1;
-}
-
-/* ==== Khung ứng dụng ==== */
-.app{
-  max-width: 1100px;
-  margin: 24px auto 64px;
-  padding: 0 16px;
-}
-
-/* ==== Panel & Card ==== */
-.panel{
-  background: var(--card);
-  border: 1px solid var(--card-br);
-  border-radius: 14px;
-  padding: 16px 16px 18px;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 8px 28px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.03);
-  margin-bottom: 14px;
-}
-.panel > h2{
-  margin: 0 0 10px;
-  font-size: 16px;
-  letter-spacing: .2px;
-  font-weight: 700;
-  color: var(--focus);
-}
-.card{
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--card-br);
-  border-radius: 12px;
-  padding: 12px;
-}
-
-/* ==== Lưới gọn gàng ==== */
-.grid{ display:grid; gap: 12px; }
-.grid-2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-@media (max-width: 880px){
-  .grid-2{ grid-template-columns: 1fr; }
-}
-
-/* ==== Form ==== */
-label{ display:block; font-size:13px; color: var(--text-dim); }
-label > input, label > textarea{
-  width:100%;
-  margin-top: 6px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  outline: none;
-}
-label > input:focus, label > textarea:focus{
-  border-color: var(--focus);
-  box-shadow: 0 0 0 3px rgba(194,231,255,.18);
-}
-
-/* ==== Hàng nút & nút ==== */
-.row{ display:flex; gap:8px; align-items:center; }
-.btn{
-  appearance:none; border:none; cursor:pointer;
-  padding:10px 14px; border-radius:999px;
-  color:#0b1220; background: linear-gradient(135deg, var(--primary), var(--primary-2));
-  box-shadow: 0 6px 16px rgba(123,198,255,.25);
-}
-.btn:hover{ filter: brightness(1.05); }
-.btn:active{ transform: translateY(1px); }
-.btn-sm{ padding:6px 10px; font-size:13px; }
-
-/* Nút phụ (xám) nếu cần */
-.btn.gray{
-  color:var(--text);
-  background: linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.06));
-  box-shadow: none;
-  border:1px solid rgba(255,255,255,.12);
-}
-
-/* ==== Tiêu đề Page & nhóm mũi tên ==== */
-.page-head{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:10px; margin-bottom:8px;
-}
-.page-head strong{ font-size:14px; }
-
-/* ==== Khoảng cách giữa các section ==== */
-#pagesWrap .card{ margin-bottom:12px; }
-/* Shelf grid ở tab Spring */
-.shelf{
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
-  gap:14px;
-}
+.shelf-card[hidden]{display:none}
+.shelf-card h4{margin:0 0 8px; font-size:16px}
+.shelf-list{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px}
 .book-card{
-  background: rgba(0,0,0,.22);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:12px;
-  overflow:hidden;
-  cursor:pointer;
-  transition: transform .12s ease, box-shadow .12s ease;
+  display:flex; gap:10px; padding:8px; border-radius:10px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  cursor:pointer; transition:transform .12s ease, border-color .12s ease;
 }
-.book-card:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0,0,0,.35);
-}
-.book-card__cover{width:100%;aspect-ratio: 3/4;object-fit:cover;display:block}
-.book-card__body{padding:8px 10px}
-.book-card__title{margin:0;font-weight:600}
-.book-card__meta{margin:2px 0 0;font-size:13px;color:var(--text-dim)}
-
-/* ===== Book Reader (2 trang) ===== */
-.reader-book{
-  display:grid;
-  grid-template-columns: 1.2fr 1.5fr;
-  gap:16px;
-}
-.reader-left{
-  margin:0; position:relative;
-  background: rgba(0,0,0,.18);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:12px; overflow:hidden;
-}
-.reader-left img{
-  width:100%; height:100%; object-fit:cover; display:block;
-}
-.reader-right{
-  position:relative;
-  display:grid;
-  grid-template-rows: 1fr 1fr auto;
-  gap:12px;
-}
-.reader-block{
-  background: rgba(0,0,0,.22);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:12px; padding:12px;
-}
-.reader-block__head{
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:6px;
-}
-.reader-text{
-  white-space:pre-wrap;
-}
-.reader-speak{
-  appearance:none; border:1px solid rgba(255,255,255,.5);
-  background:transparent; color:#fff; cursor:pointer;
-  width:34px; height:34px; border-radius:999px; font-size:16px;
-  display:grid; place-items:center;
-}
-.reader-speak[disabled]{ opacity:.4; cursor:not-allowed; }
-
-.reader-nav{
-  position:absolute; bottom:10px; /* nằm sát đáy */
-}
-.reader-nav-left{ left:10px; }
-.reader-nav-right{ right:10px; }
-
-.reader-pageinfo{
-  text-align:center; opacity:.85; margin-top:8px;
-}
-
-/* Responsive: xếp dọc khi màn hẹp */
-@media (max-width: 900px){
-  .reader-book{ grid-template-columns: 1fr; }
-  .reader-right{ grid-template-rows: auto auto auto; }
-  .reader-nav-left, .reader-nav-right{ position:static; margin-top:8px; }
-}
-/* ===== KỆ SÁCH NHỎ TRONG KHUNG (TOP-LEFT) ===== */
-.shelf-panel{
-  position:absolute;            /* bám vào .frame */
-  left:18px; 
-  top:16px;                     /* <— đưa lên trên */
-  bottom:auto;                  /* không dính đáy nữa */
-  width:min(480px, 46%);
-  padding:12px;
-  background:rgba(0,0,0,.28);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:14px;
-  backdrop-filter: blur(6px);
-  color:var(--text);
-  z-index: 3;                   /* <— nằm trên hiệu ứng rơi */
-}
-
-.shelf-panel h3{
-  margin:0 0 8px; font-size:16px; font-weight:700;
-}
-
-/* Lưới ô-ô nhỏ xíu */
-.shelf-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* thumbnail ~120px */
-  gap:10px;
-}
-
-/* Thẻ sách gọn gàng */
-.book-card{
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:10px;
-  overflow:hidden;
-  cursor:pointer;
-  transition: transform .12s ease, box-shadow .12s ease;
-}
-.book-card:hover{ transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,0,0,.35) }
-
-/* Bìa 16:9 rất nhỏ */
+.book-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.28)}
 .book-card__cover{
-  width:100%;
-  aspect-ratio:16/9;
-  object-fit:cover;
-  display:block;
+  width:64px; height:64px; border-radius:6px; object-fit:cover; flex:0 0 64px;
+  background:#111;
+}
+.book-card__title{margin:2px 0 2px; font-weight:600; font-size:14px}
+.book-card__meta{font-size:12px; color:#d9e2ef}
+
+/* ---------- READER: CENTERED 16:9 VIEW ---------- */
+/* Panel của reader chi dùng để căn giữa (không dùng style modal mặc định) */
+#readerModal .modal__panel{
+  position: fixed; inset: 0; border:0; padding:0; background:transparent;
+  display:flex; align-items:center; justify-content:center;
 }
 
-/* Text rất gọn */
-.book-card__body{ padding:6px 8px }
-.book-card__title{ margin:0; font-size:12.5px; line-height:1.3; font-weight:700 }
-.book-card__meta{ margin:2px 0 0; font-size:11.5px; color:var(--text-dim) }
+/* Khối được căn giữa + có thể hạ xuống chút bằng biến --reader-offset-y */
+.reader-wrap{ position: relative; width: min(92vw, 1120px); transform: translateY(var(--reader-offset-y)); }
 
-/* Mobile: panel rộng hơn chút */
-@media (max-width: 900px){
-  .shelf-panel{ width:min(92%, 520px); bottom:10% }
+/* Tiêu đề nổi ngay trên khung, không đẩy layout lệch tâm */
+#readerModal .modal__title{
+  position:absolute; left:50%; transform:translate(-50%, -110%);
+  margin:0; padding:10px 14px;
+  max-width: 90vw;
+  border-radius: 12px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.18);
+  backdrop-filter: blur(6px);
 }
-/* Modal luôn cao hơn kệ */
-.modal{ z-index: 50; }           /* nếu đã có rồi thì bỏ qua */
-.shelf-panel{ z-index: 3; }      /* kệ nằm dưới modal */
 
-/* Khi đang đọc sách thì ẩn kệ để khỏi cản click */
-body.is-reading .shelf-panel{
-  display: none;
-}
-.calendar-view{ position:relative; min-height:62vh; border-radius:16px; overflow:hidden }
-.calendar-bg{ position:absolute; inset:0; background:#000 center/cover no-repeat; transform-origin:bottom center; }
-
-
-/* 16:9 container, ưu tiên chiều cao màn hình */
+/* Khung 16:9 */
 .calendar-view.mode-169{
   position:relative;
-  width: min(92vw, 1120px);
-  aspect-ratio: 16 / 9;      /* giữ đúng 16:9 */
-  max-height: 72vh;          /* không vượt quá khung hình */
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 72vh;
   border-radius:16px; overflow:hidden;
+  box-shadow: 0 16px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.05);
   margin: 0 auto;
 }
-.calendar-bg{ position:absolute; inset:0; background:#000 center/cover no-repeat; z-index:1; }
+
+/* Ảnh nền phủ khung */
+.calendar-bg{
+  position:absolute; inset:0;
+  background:#000 center/cover no-repeat;
+  z-index:1;
+  /* render sắc nét hơn khi scale */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Toolbar góc trên-phải */
 .reader-toolbar{
   position:absolute; right:12px; top:12px; display:flex; gap:8px; z-index:3;
 }
@@ -445,6 +234,15 @@ body.is-reading .shelf-panel{
 }
 .pill.active{ background:rgba(255,255,255,.75); color:#111; }
 
+/* Phụ đề ở đáy ảnh */
+.subtitle-bubble{
+  position:absolute; left:16px; right:16px; bottom:58px; margin:auto;
+  max-width:min(960px, 90%); color:#fff; background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:10px 12px;
+  line-height:1.6; backdrop-filter:blur(6px); z-index:3; display:none;
+}
+
+/* Nút Prev/Next + info ở dưới */
 .img-nav{
   position:absolute; left:0; right:0; bottom:10px; display:flex;
   align-items:center; justify-content:center; gap:14px; z-index:3;
@@ -453,175 +251,23 @@ body.is-reading .shelf-panel{
   min-width:38px; height:38px; border-radius:999px; border:1px solid rgba(255,255,255,.55);
   background:rgba(0,0,0,.45); color:#fff; cursor:pointer; backdrop-filter: blur(6px);
 }
-.page-info{ color:#fff; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,.6); }
+.page-info{ color:#fff; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,.6) }
 
-.subtitle-bubble{
-  position:absolute; left:16px; right:16px; bottom:58px; margin:auto;
-  max-width:min(960px, 90%); color:#fff; background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:10px 12px;
-  line-height:1.6; backdrop-filter:blur(6px); z-index:3; display:none;
-}
+/* Mượt UI */
+.reader-toolbar, .img-nav, .subtitle-bubble{ will-change: transform }
 
-/* Ẩn kệ khi đang đọc (tránh đè modal) */
-body.is-reading .shelf-panel{ display:none; }
-
-/* Flip effect (như trước) */
+/* Flip animate (khi chuyển trang nếu bạn bật trong JS) */
 .flip-out{ animation:flipOut .32s ease forwards }
 .flip-in{  animation:flipIn  .32s ease forwards }
 @keyframes flipOut{ 0%{transform:rotateX(0);opacity:1} 100%{transform:rotateX(-80deg) translateY(6%) scale(.98); opacity:.4} }
 @keyframes flipIn { 0%{transform:rotateX(80deg) translateY(6%) scale(.98); opacity:.4} 100%{transform:rotateX(0); opacity:1} }
 
-/* ===== Calendar view (ảnh nền full + panel bên phải) ===== */
-.calendar-view{
-  position:relative; height:72vh; border-radius:16px; overflow:hidden;
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 640px){
+  .nini{width:150px}
+  .shelf-card{width:calc(100% - 36px)}
+  :root{ --reader-offset-y: 14px; }
 }
-.calendar-bg{
-  position:absolute; inset:0; background:#000 center/cover no-repeat;
-  transform-origin:bottom center; z-index:1;
-}
-
-/* Nút Prev/Next nổi trên ảnh */
-.img-nav{ position:absolute; left:0; right:0; bottom:14px; display:flex; justify-content:center; gap:16px; z-index:3 }
-.pill-nav{
-  min-width:38px; height:38px; border-radius:999px;
-  border:1px solid rgba(255,255,255,.55); background:rgba(0,0,0,.45); color:#fff; cursor:pointer;
-  backdrop-filter: blur(6px);
-}
-
-/* Phụ đề đè ảnh */
-.subtitle-bubble{
-  position:absolute; left:16px; right:16px; bottom:64px; margin:auto;
-  max-width:min(860px,90%); color:#fff; background:rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:10px 12px; backdrop-filter:blur(6px);
-  line-height:1.6; z-index:3; display:none;
-}
-
-/* Panel kính mờ bên phải */
-.calendar-panel{
-  position:absolute; right:14px; top:14px; bottom:14px; width:min(36%,460px);
-  color:var(--text); background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.15); backdrop-filter:blur(8px);
-  border-radius:14px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; z-index:4;
-}
-.panel-head{ display:flex; justify-content:space-between; align-items:center; gap:8px }
-.reader-speak{ width:34px; height:34px; border-radius:999px; border:1px solid rgba(255,255,255,.5); background:transparent; color:#fff; cursor:pointer }
-.panel-text{ white-space:pre-wrap; overflow:auto; max-height:34vh }
-.panel-sep{ border:none; border-top:1px solid rgba(255,255,255,.15); opacity:.6 }
-.panel-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:10px }
-
-.reader-hide{ display:none !important; }
-
-/* Ẩn kệ khi đang đọc (tránh đè modal) */
-body.is-reading .shelf-panel{ display:none; }
-
-/* Mobile: panel co giãn */
-@media (max-width: 900px){
-  .calendar-panel{ left:14px; width:auto; }
-}
-
-/* Center toàn bộ panel của reader giữa màn hình */
-#readerModal .modal__panel{
-  position: fixed;            /* phủ toàn màn hình để canh giữa */
-  inset: 0;
-  display: grid;
-  place-items: center;        /* giữa ngang + dọc */
-  background: transparent;    /* để chỉ thấy title + khung 16:9 */
-  border: 0;
-  padding: 0;
-}
-
-/* Tiêu đề canh giữa theo bề ngang của khung đọc */
-#readerModal .modal__title{
-  width: min(92vw, 1120px);
-  margin: 12px auto 8px;      /* đặt giữa + tách với khung */
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.18);
-}
-
-/* Khung 16:9 vẫn giữa, không lệch */
-.calendar-view.mode-169{
-  margin: 0 auto;             /* bảo đảm giữa ngang */
-}
-/* Bật chế độ render sắc nét hơn cho nền ảnh */
-.calendar-bg{
-  image-rendering: -webkit-optimize-contrast; /* WebKit */
-  image-rendering: crisp-edges;                /* fallback */
-}
-
-/* Không cho khung 16:9 to hơn mức an toàn (tránh phóng quá ảnh 1080p) */
-.calendar-view.mode-169{
-  width: min(92vw, 1120px);   /* bạn có thể tăng 1120 -> 1280 nếu ảnh đủ lớn */
-  max-height: 72vh;
-}
-
-/* Nút/overlay không làm mờ ảnh */
-.reader-toolbar, .img-nav, .subtitle-bubble{
-  will-change: transform;
-}
-/* Căn panel ra giữa màn hình thật sự */
-#readerModal .modal__panel{
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 0;
-  padding: 0;
-}
-
-/* Khối được căn giữa là reader-wrap */
-.reader-wrap{
-  position: relative;
-  width: min(92vw, 1120px);
-}
-
-/* Tiêu đề nổi, không đẩy khung xuống */
-#readerModal .modal__title{
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, -110%); /* nằm ngay trên khung */
-  margin: 0;
-  padding: 10px 14px;
-  width: auto;
-  max-width: 90vw;
-  border-radius: 12px;
-  background: rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.18);
-}
-
-/* Khung 16:9 luôn đúng tâm theo reader-wrap */
-.calendar-view.mode-169{
-  width: 100%;
-  aspect-ratio: 16/9;
-  max-height: 72vh;
-  margin: 0 auto;
-}
-
-/* Cho ảnh đỡ “mềm” khi scale */
-.calendar-bg{
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* Nút/overlay mượt mà mà không làm thay đổi layout */
-.reader-toolbar, .img-nav, .subtitle-bubble{ will-change: transform; }
-
-/* === NÂNG/HẠ KHUNG READER THEO Ý MUỐN === */
-/* Giá trị dương => hạ xuống; âm => nâng lên */
-:root{ --reader-offset-y: 28px; }   /* bạn thích 20–40px thì chỉnh ở đây */
-
-/* Cụm được căn giữa: mình dịch nó xuống một đoạn */
-#readerModal .reader-wrap{
-  position: relative;
-  width: min(92vw, 1120px);
-  transform: translateY(var(--reader-offset-y));
-}
-
-/* Nếu màn hình thấp, giảm bớt độ lệch cho an toàn */
 @media (max-height: 740px){
   :root{ --reader-offset-y: 16px; }
 }
-

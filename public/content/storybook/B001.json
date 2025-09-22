@@ -1,0 +1,82 @@
+{
+  "id": "B001",
+  "title_vi": "NiNi và Bao Cám Rỗng",
+  "title_en": "NiNi and the Empty Bran Bag",
+  "author": "Sane.Htth",
+  "design": "Auther & NiNi Team",
+  "cover": "/public/assets/images/storybook/B001_cover.png",
+  "pages": [
+    {
+      "TDBook": "Page 01",
+      "IDPage": "P01",
+      "noidung_vi": "Ngày xửa ngày xưa, trong khu rừng nhỏ có một chú nhím tên là Nini. Ai cũng biết Nini rất vụng về, thường làm rơi đồ đạc lách cách khắp nơi. Thế nhưng, Nini lại có một trái tim nhân hậu, luôn thích giúp đỡ người khác.",
+      "noidung_en": "Once upon a time, in a small forest, there was a hedgehog named Nini. Everyone knew that Nini was very clumsy, often dropping things everywhere. However, Nini had a kind heart and always liked to help others.",
+      "L_image_P": "/public/assets/images/storybook/B001_P01.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV01.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE01.mp3"
+    },
+    {
+      "TDBook": "Page 02",
+      "IDPage": "P02",
+      "noidung_vi": "Một buổi sáng, Nini lon ton đi trên con đường mòn thì thấy bác Rùa già đang cố gắng vác một bao cám thật to trên lưng. Bác Rùa bước đi chậm chạp, hơi thở phì phò mệt nhọc.",
+      "noidung_en": "One morning, Nini was walking along the trail when she saw the old turtle trying to carry a big bag of bran on his back. The turtle walked slowly, breathing heavily and tiredly.",
+      "L_image_P": "/public/assets/images/storybook/B001_P02.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV02.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE02.mp3"
+    },
+    {
+      "TDBook": "Page 03",
+      "IDPage": "P03",
+      "noidung_vi": "“Ôi, nặng quá! Để mình giúp bác nhé!” – Nini vừa nói vừa nhanh nhẹn chộp lấy bao cám rồi chạy thẳng.\nBác Rùa còn chưa kịp phản ứng thì Nini đã chạy biến. Vì chậm chạp nên bác chẳng thể đuổi kịp, chỉ biết lo lắng gọi với theo.",
+      "noidung_en": "“Oh, it’s too heavy! Let me help you!” – Nini said as she quickly grabbed the bag of bran and ran straight.\nBefore Uncle Turtle could react, Nini had already run away. Because he was slow, he couldn’t catch up, he could only anxiously call out after him.",
+      "L_image_P": "/public/assets/images/storybook/B001_P03.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV03.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE03.mp3"
+    },
+    {
+      "TDBook": "Page 04",
+      "IDPage": "P04",
+      "noidung_vi": "Nini hớn hở chạy, vừa chạy vừa thấy bao cám hình như… nhẹ dần đi. Chú khoái chí nghĩ thầm:\n“Chắc mình giỏi quá! Mình khỏe hơn mình tưởng!”\nThế là Nini càng chạy nhanh hơn về phía nhà bác Heo để mang cám đến.",
+      "noidung_en": "Nini ran happily, and as he ran, he felt the bag of bran seem to… get lighter. He thought happily:\n“I must be really good! I am stronger than I thought!”\nSo Nini ran even faster towards Uncle Pig’s house to bring the bran.",
+      "L_image_P": "/public/assets/images/storybook/B001_P04.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV03.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE03.mp3"
+    },
+    {
+      "TDBook": "Page 05",
+      "IDPage": "P05",
+      "noidung_vi": "Nhưng Nini nào ngờ, những chiếc gai nhọn sau lưng đã vô tình đâm thủng bao. Hạt cám rơi vãi dọc khắp con đường, thành một vệt dài như vệt mưa vàng.",
+      "noidung_en": "But Nini did not expect that the sharp thorns on her back accidentally pierced the bag. The bran seeds fell all over the road, forming a long trail like a golden rain.",
+      "L_image_P": "/public/assets/images/storybook/B001_P05.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV05.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE05.mp3"
+    },
+    {
+      "TDBook": "Page 06",
+      "IDPage": "P06",
+      "noidung_vi": "Đến nơi, Nini đặt phịch bao xuống trước cửa nhà bác Heo. Mở ra thì… chỉ còn cái bao rỗng!\nNini trố mắt, ngơ ngác:\n“Ơ… Ủa? Bao cám đâu mất rồi?”",
+      "noidung_en": "When they arrived, Nini put the bag down in front of Uncle Pig's house. When she opened it, there was only an empty bag!\nNini's eyes widened, bewildered:\n\"Huh... Huh? Where did the bag of bran go?",
+      "L_image_P": "/public/assets/images/storybook/B001_P06.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV06.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE06.mp3"
+    },
+    {
+      "TDBook": "Page 07",
+      "IDPage": "P07",
+      "noidung_vi": "Bác Heo cũng ngạc nhiên, còn bác Rùa thì sau đó cũng từ từ đến nơi, nhìn theo con đường cám vương vãi. Bác Rùa mỉm cười hiền hậu:\n“Nini à, con có lòng tốt, nhưng phải biết giúp sao cho đúng cách. Vụng về quá thì chưa chắc đã giúp được đâu.”",
+      "noidung_en": "Uncle Pig was also surprised, and Uncle Turtle slowly arrived, looking at the scattered bran path. Uncle Turtle smiled kindly: \n\"Nini, you have a good heart, but you have to know how to help properly. If you are too clumsy, you may not be able to help.\"",
+      "L_image_P": "/public/assets/images/storybook/B001_P07.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV07.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE07.mp3"
+    },
+    {
+      "TDBook": "Page 08",
+      "IDPage": "P08",
+      "noidung_vi": "Nini đỏ bừng cả mặt, ngượng nghịu gãi đầu. Từ hôm đó, chú nhím nhỏ bắt đầu học cách suy nghĩ cẩn thận hơn trước khi hành động, để lòng tốt của mình thực sự trở thành sự giúp đỡ.",
+      "noidung_en": "Nini blushed and scratched her head in embarrassment. From that day on, the little hedgehog began to learn to think more carefully before acting, so that his kindness could truly become a help.",
+      "L_image_P": "/public/assets/images/storybook/B001_P08.webp",
+      "L_sound_vi": "/public/assets/videos/storybook/B001_SV08.mp3",
+      "L_sound_en": "/public/assets/videos/storybook/B001_SE08.mp3"
+    }
+  ]
+}

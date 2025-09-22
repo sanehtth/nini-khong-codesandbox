@@ -1,0 +1,18 @@
+{
+  "type": "storybook.library",
+  "version": 3,
+  "updated_at": "2025-09-22T06:27:24.345Z",
+  "books": [
+    {
+      "id": "B001",
+      "title_vi": "NiNi và Bao Cám Rỗng",
+      "title_en": "NiNi and the Empty Bran Bag",
+      "author": "Sane.Htth",
+      "design": "Auther & NiNi Team",
+      "cover": "/public/assets/images/storybook/B001_cover.png",
+      "pages_count": 8,
+      "content_hash": "e628acfca77676a4324b5b046f95ee17e2cb79e946d7063fa6b789ebb5efe26f",
+      "updated_at": "2025-09-22T06:27:24.344Z"
+    }
+  ]
+}

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NiNi — Storybook Editor (Whole-Book Manifest + Next ID)</title>
+  <title>NiNi — Storybook Editor (Simple • Whole-Book Manifest + Next ID)</title>
 
+  <!-- UI gọn: nền ảnh full + input gạch chân -->
   <style>
     html, body { margin:0; padding:0; height:100%; }
     body { color:#fff; font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
@@ -16,8 +17,6 @@
     .editor-content{ max-width: 980px; margin: 0 auto; padding: 24px 16px 72px; }
     .section{ margin-bottom: 24px; }
     h2{ margin: 0 0 12px; }
-    h3{ margin: 12px 0 8px; font-size: 1.08rem; }
-
     label{ display:block; margin-bottom:6px; opacity:.9 }
     input, textarea{
       width:100%; padding:8px 0; border:0; border-bottom:1px solid #fff;
@@ -25,7 +24,6 @@
     }
     input:focus, textarea:focus{ outline:none; border-bottom:2px solid #fff; }
     textarea{ resize:vertical; min-height: 80px; }
-
     .row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
     .btn{
       background:transparent; color:#fff; border:1px solid #fff;
@@ -34,23 +32,19 @@
     .btn:hover{ background:#fff; color:#000; }
     .btn.danger{ border-color:#ffb0b0; color:#ffb0b0; }
     .btn.danger:hover{ background:#ffb0b0; color:#2a0a0a; }
-
     .select{
       border:1px solid #fff; padding:6px 10px; border-radius:6px;
       background:transparent; color:#fff;
     }
     .select:focus{ outline:none; border-width:2px; }
-
     .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
-
     .page-entry{
       border:1px dashed rgba(255,255,255,.35);
       padding:12px; border-radius:8px; margin-bottom:14px;
       background: rgba(0,0,0,.15);
     }
     .page-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
-
     pre{
       white-space:pre-wrap; background:rgba(0,0,0,.35);
       padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,.25);
@@ -84,25 +78,21 @@
     <div class="section">
       <h2>Actions</h2>
       <div class="row">
-        <!-- New Book: xoá sạch form và gợi ý ID kế tiếp -->
-        <button class="btn" id="btnNewBook" title="Xoá sạch dữ liệu để nhập cuốn mới (tự gợi ý ID tiếp theo)">New Book</button>
+        <!-- New Book: yêu cầu đã import Library trước, sẽ tự gợi ý ID tiếp theo -->
+        <button class="btn" id="btnNewBook" title="Bắt đầu cuốn mới (cần Import Library manifest trước)">New Book</button>
 
         <!-- Pages -->
         <button class="btn" id="btnAddPage">Add Page</button>
-        <button class="btn danger" id="btnDeletePage">Delete Page</button>
-        <select id="deleteTarget" class="select" title="Chọn hình thức xóa">
-          <option value="current">Trang đang chọn</option>
-          <option value="last">Trang cuối</option>
-        </select>
+        <!-- ĐÃ BỎ: Delete Page & dropdown; chỉ dùng nút Xoá trong từng trang -->
 
         <!-- Raw JSON -->
         <button class="btn" id="btnImport">Import JSON</button>
-        <button class="btn" id="btnExport">Export JSON</button>
+        <button class="btn" id="btnExport">Export JSON (book + library)</button>
         <input id="fileImport" type="file" accept="application/json" style="display:none">
 
-        <!-- Manifest toàn cuốn -->
-        <button class="btn" id="btnManifest" title="Tạo manifest đầy đủ để đọc truyện">Tạo Manifest (full)</button>
-        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Nối #hash vào URL cover/image/sound khi tạo manifest">
+        <!-- ĐÃ BỎ: nút tạo manifest full (app dùng raw + library manifest) -->
+
+        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Khi export có thể thêm #hash vào URL asset trong file book">
           <input type="checkbox" id="includeHash"> Thêm #hash vào URL tài nguyên
         </label>
       </div>
@@ -112,15 +102,9 @@
       <!-- LIBRARY MANIFEST -->
       <h2>Library Manifest</h2>
       <div class="row">
-        <button class="btn" id="btnImportLibrary">Import Library Manifest</button>
+        <button class="btn" id="btnImportLibrary" title="Nạp manifest thư viện mới nhất trước khi tạo sách mới">Import Library Manifest</button>
         <button class="btn" id="btnExportLibrary">Export Library Manifest</button>
-        <button class="btn" id="btnUpdateLibraryFromThisBook" title="Cập nhật/ghi đè sách đang mở (B001/B002...) vào Library; chỉ tăng version khi có thay đổi">Update Library (from current book)</button>
         <input id="fileImportLibrary" type="file" accept="application/json" style="display:none">
-
-        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Khi bật: mỗi lần bạn Export JSON hoặc Tạo Manifest, Library sẽ tự cập nhật & tăng version nếu có thay đổi">
-          <input type="checkbox" id="autoUpdateLibrary" checked>
-          Auto update Library
-        </label>
       </div>
     </div>
 
@@ -138,17 +122,17 @@
   </div>
 
   <script>
-    /* ========= Utils ========= */
+    /* =================== Utils =================== */
     const q  = (sel, root=document) => root.querySelector(sel);
     const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
     const genHash = () => Math.random().toString(36).slice(2,8);
 
-    /* ========= Draft (raw editor) ========= */
+    /* =================== Draft (raw editor) =================== */
     const LS_DRAFT_KEY = 'storybook_editor_draft_min';
     const saveDraft = () => localStorage.setItem(LS_DRAFT_KEY, JSON.stringify(collectAll()));
     const loadDraft = () => { try { return JSON.parse(localStorage.getItem(LS_DRAFT_KEY)||'null'); } catch { return null; } };
 
-    /* ========= Library Manifest (nhiều cuốn) ========= */
+    /* =================== Library Manifest =================== */
     let libraryManifest = {
       type: "storybook.library",
       version: 1,
@@ -157,38 +141,29 @@
     };
     const LS_LIBRARY_KEY = 'storybook_library_manifest_min';
 
-    // Load Library trước để có thể gợi ý ID kế tiếp
     (function loadLibraryFromStorage(){
       const raw = localStorage.getItem(LS_LIBRARY_KEY);
       if (raw) { try { libraryManifest = JSON.parse(raw); } catch {} }
     })();
 
-    // ==== NEXT-ID SUGGESTION ====
-    // Phân tích ID dạng: PREFIX + NUMBER (vd: B001, BK0007)
     function parseId(id){
       const m = String(id||'').match(/^([A-Za-z]+)(\d+)$/);
       if (!m) return null;
       return { prefix: m[1], num: parseInt(m[2], 10), width: m[2].length };
     }
-    // Tìm cuốn có số lớn nhất trong library -> sinh ID kế tiếp, giữ prefix & zero-padding
     function suggestNextBookId(){
-      const arr = libraryManifest.books
+      const arr = (libraryManifest.books||[])
         .map(b => parseId(b.id))
         .filter(Boolean);
-      if (!arr.length) return 'B001';
-      // lấy số lớn nhất
+      if (!arr.length) return null; // chưa có library
       let best = arr[0];
-      for (const r of arr) {
-        if (r.num > best.num) best = r;
-      }
-      const nextNum = best.num + 1;
-      const padded = String(nextNum).padStart(best.width, '0');
+      for (const r of arr) if (r.num > best.num) best = r;
+      const padded = String(best.num + 1).padStart(best.width, '0');
       return `${best.prefix}${padded}`;
     }
 
-    /* ========= State trang ========= */
+    /* =================== State pages =================== */
     let pages = [];
-    let current = 0;
 
     function collectAll(){
       return {
@@ -202,28 +177,19 @@
       };
     }
 
-    function setCurrentOptions(){
-      const sel = q('#currentIndex');
-      if (!sel) return;
-      sel.innerHTML = pages.map((_,i)=>`<option value="${i}">#${i+1}</option>`).join('');
-      sel.value = String(current);
-    }
-
     function renderPages(){
       const wrap = q('#pagesContainer');
       wrap.innerHTML = '';
-
       pages.forEach((p, idx) => {
         const div = document.createElement('div');
         div.className = 'page-entry';
         div.innerHTML = `
           <div class="page-head">
-            <strong>Page #${idx+1}${idx===current ? ' (đang chọn)' : ''}</strong>
+            <strong>Page #${idx+1}</strong>
             <div class="row">
-              <button class="btn" data-act="up">↑</button>
-              <button class="btn" data-act="down">↓</button>
-              <button class="btn danger" data-act="remove">Xoá</button>
-              <button class="btn" data-act="pick">Chọn</button>
+              <button class="btn" data-act="up" title="Lên">↑</button>
+              <button class="btn" data-act="down" title="Xuống">↓</button>
+              <button class="btn danger" data-act="remove" title="Xoá trang này">Xoá</button>
             </div>
           </div>
           <div class="grid">
@@ -269,24 +235,17 @@
         div.querySelector('[data-act="up"]').onclick = ()=>{
           if (idx===0) return;
           [pages[idx-1], pages[idx]] = [pages[idx], pages[idx-1]];
-          if (current===idx) current=idx-1;
-          renderPages(); setCurrentOptions(); saveDraft();
+          renderPages(); saveDraft();
         };
         div.querySelector('[data-act="down"]').onclick = ()=>{
           if (idx===pages.length-1) return;
           [pages[idx+1], pages[idx]] = [pages[idx], pages[idx+1]];
-          if (current===idx) current=idx+1;
-          renderPages(); setCurrentOptions(); saveDraft();
+          renderPages(); saveDraft();
         };
         div.querySelector('[data-act="remove"]').onclick = ()=>{
           if (!confirm(`Xoá Page #${idx+1}?`)) return;
           pages.splice(idx,1);
-          if (current>=pages.length) current = Math.max(0, pages.length-1);
-          renderPages(); setCurrentOptions(); saveDraft();
-        };
-        div.querySelector('[data-act="pick"]').onclick = ()=>{
-          current = idx;
-          renderPages(); setCurrentOptions(); saveDraft();
+          renderPages(); saveDraft();
         };
       });
     }
@@ -296,20 +255,10 @@
     }
     function addPage(){
       pages.push(emptyPage());
-      current = pages.length-1;
-      renderPages(); setCurrentOptions(); saveDraft();
-    }
-    function deletePage(){
-      if (!pages.length) return;
-      const mode = q('#deleteTarget').value;
-      const idx = (mode==='last') ? (pages.length-1) : current;
-      if (!confirm(`Xoá Page #${idx+1}?`)) return;
-      pages.splice(idx,1);
-      if (current>=pages.length) current = Math.max(0, pages.length-1);
-      renderPages(); setCurrentOptions(); saveDraft();
+      renderPages(); saveDraft();
     }
 
-    /* ========= Manifest toàn cuốn + content_hash ========= */
+    /* =================== Hash toàn cuốn (để tăng version) =================== */
     function normalizeBookForHash(raw) {
       return {
         id: raw.id || "",
@@ -333,7 +282,8 @@
       const hash = await crypto.subtle.digest('SHA-256', buf);
       return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
     }
-    async function buildWholeBookManifest(raw, {addAssetHash=false} = {}) {
+
+    async function buildWholeBook(raw, {addAssetHash=false} = {}) {
       const data = structuredClone(raw);
       if (addAssetHash) {
         const addH = s => s ? (s + '#' + genHash()) : s;
@@ -345,35 +295,17 @@
           L_sound_en: addH(p.L_sound_en),
         }));
       }
-      const manifest = {
-        id: data.id,
-        title_vi: data.title_vi,
-        title_en: data.title_en,
-        author: data.author,
-        design: data.design,
-        cover: data.cover,
-        pages: data.pages.map(p=>({
-          id: p.IDPage,
-          text_vi: p.noidung_vi,
-          text_en: p.noidung_en,
-          image: p.L_image_P,
-          sound_vi: p.L_sound_vi,
-          sound_en: p.L_sound_en
-        }))
-      };
       const norm = normalizeBookForHash(raw);
       const content_hash = await sha256Hex(JSON.stringify(norm));
-      return { manifest, content_hash, pages_count: norm.pages.length };
+      return { book: data, content_hash, pages_count: norm.pages.length };
     }
 
-    /* ========= Update Library (version tăng khi đổi) ========= */
     function findBookIndexInLibrary(bookId) {
       return libraryManifest.books.findIndex(b => (b.id || "") === (bookId || ""));
     }
 
     async function updateLibraryWithBook(raw){
-      const { content_hash, pages_count } = await buildWholeBookManifest(raw, { addAssetHash:false });
-
+      const { content_hash, pages_count } = await buildWholeBook(raw, { addAssetHash:false });
       const entry = {
         id: raw.id || "",
         title_vi: raw.title_vi || "",
@@ -385,7 +317,6 @@
         content_hash,
         updated_at: new Date().toISOString()
       };
-
       const i = findBookIndexInLibrary(entry.id);
       const now = new Date().toISOString();
 
@@ -416,98 +347,38 @@
       }
     }
 
-    async function maybeUpdateLibraryFromCurrent(){
-      const auto = q('#autoUpdateLibrary');
-      if (!auto || !auto.checked) return;
-      const raw = collectAll();
-      if (!raw.id) return;
-
-      const result = await updateLibraryWithBook(raw);
-      localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
-
-      // Sau khi cập nhật library, cập nhật luôn gợi ý ID kế tiếp
-      nextIdHint = suggestNextBookId();
-
-      const log = `[Library] ${raw.id}: ${result.action}. Version: v${libraryManifest.version} (bumped=${result.bumped})`;
-      const pre = q('#manifestOutput');
-      pre.textContent = (pre.textContent ? pre.textContent + '\n\n' : '') + log;
+    /* =================== Export JSON (2 file) =================== */
+    function download(text, filename){
+      const blob = new Blob([text], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
     }
 
-    /* ========= Import/Export Library ========= */
-    q('#btnImportLibrary').onclick = ()=> q('#fileImportLibrary').click();
-    q('#fileImportLibrary').addEventListener('change', async (e)=>{
-      const f = e.target.files[0]; if (!f) return;
-      try {
-        const text = await f.text();
-        const data = JSON.parse(text);
-        if (data?.type !== 'storybook.library') {
-          if (!confirm('File không có type=storybook.library. Import vẫn tiếp tục?')) return;
-        }
-        libraryManifest = {
-          type: "storybook.library",
-          version: Number.isInteger(data.version) ? data.version : 1,
-          updated_at: data.updated_at || new Date().toISOString(),
-          books: Array.isArray(data.books) ? data.books : []
-        };
-        localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
-        q('#manifestOutput').textContent = JSON.stringify(libraryManifest, null, 2);
-
-        // Cập nhật gợi ý ID sau khi import
-        nextIdHint = suggestNextBookId();
-        alert('Đã import Library Manifest.');
-      } catch(err) {
-        alert('Import lỗi: ' + err.message);
-      } finally { e.target.value = ""; }
-    });
-
-    q('#btnExportLibrary').onclick = ()=>{
-      const json = JSON.stringify(libraryManifest, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'library-manifest-v' + (libraryManifest.version||1) + '.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    };
-
-    q('#btnUpdateLibraryFromThisBook').onclick = async ()=>{
+    q('#btnExport').onclick = async ()=>{
       const raw = collectAll();
-      if (!raw.id) { alert('Chưa có ID Sách. Nhập ID trước (vd: B001).'); return; }
+      if (!raw.id) { alert('Chưa có ID Sách. Hãy nhập ID (vd: B001).'); return; }
 
+      // 1) Cập nhật Library (tăng version nếu đổi) rồi export ngay cả 2 file
       const result = await updateLibraryWithBook(raw);
       localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
-      q('#manifestOutput').textContent = JSON.stringify(libraryManifest, null, 2);
 
-      // cập nhật gợi ý ID mới
-      nextIdHint = suggestNextBookId();
-
-      if (result.bumped) {
-        alert(`Library đã ${result.action==='added'?'thêm':'cập nhật'} ${raw.id} và tăng version lên v${libraryManifest.version}.`);
-      } else {
-        alert(`Không có thay đổi cho ${raw.id}. Library giữ nguyên v${libraryManifest.version}.`);
-      }
-    };
-
-    /* ========= Manifest/Raw actions ========= */
-    q('#btnManifest').onclick = async ()=>{
-      const raw = collectAll();
+      // 2) Xuất BOOK (raw, có thể nối #hash vào asset nếu tick)
       const addAssetHash = q('#includeHash').checked;
-      const { manifest } = await buildWholeBookManifest(raw, { addAssetHash });
-      q('#manifestOutput').textContent = JSON.stringify(manifest, null, 2);
-      await maybeUpdateLibraryFromCurrent();
+      const { book } = await buildWholeBook(raw, { addAssetHash });
+      download(JSON.stringify(book, null, 2), (raw.id || 'book') + '.json');
+
+      // 3) Xuất LIBRARY MANIFEST mới nhất
+      download(JSON.stringify(libraryManifest, null, 2), 'library-manifest-v' + (libraryManifest.version||1) + '.json');
+
+      // Log
+      const pre = q('#manifestOutput');
+      pre.textContent = `[Export] ${raw.id}: ${result.action}. Library v${libraryManifest.version} (bumped=${result.bumped})`;
     };
 
-    q('#btnExport').onclick = async ()=>{
-      const json = JSON.stringify(collectAll(), null, 2);
-      const blob = new Blob([json], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (q('#bookId').value || 'book') + '.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      await maybeUpdateLibraryFromCurrent();
-    };
-
+    /* =================== Import JSON (book) =================== */
     q('#btnImport').onclick = ()=> q('#fileImport').click();
     q('#fileImport').addEventListener('change', async (e)=>{
       const f = e.target.files[0]; if (!f) return;
@@ -516,7 +387,7 @@
         const data = JSON.parse(text);
 
         if ('id' in data || 'title_vi' in data || 'pages' in data){
-          // manifest full
+          // manifest/book form chuẩn
           q('#bookId').value = data.id || "";
           q('#titleVi').value = data.title_vi || "";
           q('#titleEn').value = data.title_en || "";
@@ -550,20 +421,48 @@
             L_sound_en: p.L_sound_en || p.sound_en || ""
           })) : [];
         }
-
-        current = 0;
-        renderPages(); setCurrentOptions(); saveDraft();
+        renderPages(); saveDraft();
       }catch(err){
         alert('Import lỗi: ' + err.message);
       } finally { e.target.value = ""; }
     });
 
-    /* ========= New Book ========= */
-    function resetBook({ askConfirm = true } = {}) {
-      if (askConfirm && !confirm("Xóa hết dữ liệu hiện tại để tạo sách mới?")) return;
+    /* =================== Import/Export Library =================== */
+    q('#btnImportLibrary').onclick = ()=> q('#fileImportLibrary').click();
+    q('#fileImportLibrary').addEventListener('change', async (e)=>{
+      const f = e.target.files[0]; if (!f) return;
+      try {
+        const text = await f.text();
+        const data = JSON.parse(text);
+        if (data?.type !== 'storybook.library') {
+          if (!confirm('File không có type=storybook.library. Import vẫn tiếp tục?')) return;
+        }
+        libraryManifest = {
+          type: "storybook.library",
+          version: Number.isInteger(data.version) ? data.version : 1,
+          updated_at: data.updated_at || new Date().toISOString(),
+          books: Array.isArray(data.books) ? data.books : []
+        };
+        localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
+        q('#manifestOutput').textContent = 'Đã import Library Manifest. Tổng sách: ' + libraryManifest.books.length;
+      } catch(err) {
+        alert('Import lỗi: ' + err.message);
+      } finally { e.target.value = ""; }
+    });
 
-      // Metadata sách
-      q('#bookId').value = "";
+    q('#btnExportLibrary').onclick = ()=>{
+      download(JSON.stringify(libraryManifest, null, 2), 'library-manifest-v' + (libraryManifest.version||1) + '.json');
+    };
+
+    /* =================== New Book =================== */
+    function resetBookWithNextId(){
+      // cần có library để gợi ý ID
+      if (!libraryManifest || !Array.isArray(libraryManifest.books) || !libraryManifest.books.length){
+        alert('Hãy Import Library Manifest mới nhất trước khi tạo sách mới (để tự gợi ý ID tiếp theo).');
+        return;
+      }
+      // reset metadata
+      q('#bookId').value = suggestNextBookId() || '';
       q('#titleVi').value = "";
       q('#titleEn').value = "";
       q('#author').value  = "";
@@ -572,31 +471,19 @@
 
       // 1 trang trống
       pages = [ { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" } ];
-      current = 0;
       renderPages();
-      setCurrentOptions();
 
-      // Xoá draft cũ
+      // Xoá draft cũ + log
       try { localStorage.removeItem(LS_DRAFT_KEY); } catch {}
-
-      // Điền sẵn ID gợi ý
-      q('#bookId').value = nextIdHint || suggestNextBookId();
-
-      // Xoá log
-      const pre = q('#manifestOutput');
-      if (pre) pre.textContent = "";
-
+      q('#manifestOutput').textContent = 'Đã tạo form sách mới. Đề xuất ID: ' + q('#bookId').value;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    q('#btnNewBook').onclick = () => resetBook({ askConfirm: true });
+    q('#btnNewBook').onclick = ()=> resetBookWithNextId();
+    q('#btnAddPage').onclick  = addPage;
 
-    /* ========= Boot & Autosave ========= */
-    // gợi ý ID toàn cục (update sau mỗi import/update library)
-    let nextIdHint = suggestNextBookId();
-
+    /* =================== Boot =================== */
     (function init(){
-      // Nếu chưa có draft, gợi ý ID ngay; nếu có draft, giữ nguyên draft
       const draft = loadDraft();
       if (draft){
         q('#bookId').value = draft.id || "";
@@ -613,16 +500,15 @@
           L_image_P: p.L_image_P || p.image || "",
           L_sound_vi: p.L_sound_vi || p.sound_vi || "",
           L_sound_en: p.L_sound_en || p.sound_en || ""
-        })) : [];
+        })) : [ emptyPage() ];
+        renderPages();
       } else {
-        // không có draft -> gợi ý ID kế tiếp & 1 trang trống
-        q('#bookId').value = nextIdHint || 'B001';
-        pages = [ { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" } ];
+        // chưa có draft -> chờ bạn import library rồi bấm New Book
+        pages = [ emptyPage() ];
+        renderPages();
       }
 
-      renderPages(); setCurrentOptions();
-
-      // autosave cho input meta
+      // autosave meta
       ['bookId','titleVi','titleEn','author','design','cover'].forEach(id=>{
         q('#'+id).addEventListener('input', saveDraft);
       });

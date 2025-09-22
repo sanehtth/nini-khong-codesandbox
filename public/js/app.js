@@ -18,106 +18,6 @@
   // Mỗi sách: /public/content/storybook/<ID>.json (vd: B001.json)
   const LIBRARY_URL = "/public/content/storybook/library-manifest.json";
   const BOOK_URL = (id) => `/public/content/storybook/${id}.json`;
-// ====== READER (modal) ======
-const readerModal   = document.getElementById("readerModal");
-const readerTitleEl = document.getElementById("readerBookTitle");
-const readerImg     = document.getElementById("readerImage");
-const readerTextVi  = document.getElementById("readerTextVi");
-const readerTextEn  = document.getElementById("readerTextEn");
-const pageInfo      = document.getElementById("readerPageInfo");
-
-//========>>>>> Nút điều hướng & nút loa <<<<<===============
-const btnPrev       = document.getElementById("btnPrevPage");
-const btnNext       = document.getElementById("btnNextPage");
-const btnSpeakVi    = document.getElementById("btnSpeakVi");
-const btnSpeakEn    = document.getElementById("btnSpeakEn");
-
-// ===========>>> Audio objects (không dùng <audio> controls) <<<<<============== 
-const audioVi = new Audio();
-const audioEn = new Audio();
-
-let currentBook = null;
-let pageIdx = 0; 
-  
-// ========>>>>>>> ham doc trang sach <<<<<========================
-
-  function showReader(show){
-  readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
-  if (!show) { audioVi.pause(); audioEn.pause(); }
-}
-readerModal?.querySelectorAll("[data-reader-close]")?.forEach(el=>{
-  el.addEventListener("click", ()=> showReader(false));
-});
-function renderPage(){
-  if(!currentBook) return;
-  const total = currentBook.pages.length || 0;
-  const p = currentBook.pages[pageIdx] || {};
-
-  if (readerImg)    readerImg.src = p.image || currentBook.cover || "";
-  if (readerTextVi) readerTextVi.textContent = p.text_vi || "";
-  if (readerTextEn) readerTextEn.textContent = p.text_en || "";
-
-  // gán src cho audio
-  audioVi.pause(); audioEn.pause();
-  audioVi.src = p.sound_vi || "";
-  audioEn.src = p.sound_en || "";
-
-  // enable/disable nút loa
-  if (btnSpeakVi) btnSpeakVi.disabled = !p.sound_vi;
-  if (btnSpeakEn) btnSpeakEn.disabled = !p.sound_en;
-
-  // info + prev/next
-  if (pageInfo) pageInfo.textContent = `Trang ${Math.min(pageIdx+1,total)}/${total || 1}`;
-  if (btnPrev)  btnPrev.disabled = pageIdx<=0;
-  if (btnNext)  btnNext.disabled = pageIdx>=total-1;
-}
-btnPrev?.addEventListener("click", ()=>{ if(pageIdx>0){ pageIdx--; renderPage(); }});
-btnNext?.addEventListener("click", ()=>{ if(currentBook && pageIdx<currentBook.pages.length-1){ pageIdx++; renderPage(); }});
-
-// ====>>>>>> chỉ cho một audio phát mỗi lần <<<<<==========
-function stopOthers(who){
-  if (who === 'vi'){ audioEn.pause(); audioEn.currentTime = 0; }
-  if (who === 'en'){ audioVi.pause(); audioVi.currentTime = 0; }
-}
-
-btnSpeakVi?.addEventListener("click", ()=>{
-  if (!audioVi.src) return;
-  if (audioVi.paused){ stopOthers('vi'); audioVi.play(); }
-  else { audioVi.pause(); }
-});
-
-btnSpeakEn?.addEventListener("click", ()=>{
-  if (!audioEn.src) return;
-  if (audioEn.paused){ stopOthers('en'); audioEn.play(); }
-  else { audioEn.pause(); }
-});
-async function openReader(bookId){
-  try{
-    const book = await fetchJSON(BOOK_URL(bookId));
-    currentBook = {
-      id: book.id || book.IDBook || bookId,
-      title_vi: book.title_vi || book.little_vi || "",
-      title_en: book.title_en || book.little_en || "",
-      cover:    book.cover || book.L_imageBia || "",
-      pages: Array.isArray(book.pages) ? book.pages.map(p=>({
-        id: p.id || p.IDPage || "",
-        text_vi: p.text_vi || p.noidung_vi || "",
-        text_en: p.text_en || p.noidung_en || "",
-        image:   p.image || p.L_image_P || "",
-        sound_vi:p.sound_vi || p.L_sound_vi || "",
-        sound_en:p.sound_en || p.L_sound_en || ""
-      })) : []
-    };
-    if (readerTitleEl) {
-      readerTitleEl.textContent = currentBook.title_vi || currentBook.title_en || currentBook.id;
-    }
-    pageIdx = 0;
-    renderPage();
-    showReader(true);
-  }catch(err){
-    alert("Không mở được sách " + bookId + ": " + err.message);
-  }
-}
 
   // ====== SET SEASON ======
   function setSeason(season) {
@@ -374,5 +274,6 @@ async function openReader(bookId){
     }
   }
 })();
+
 
 

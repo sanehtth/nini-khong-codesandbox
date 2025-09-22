@@ -278,4 +278,27 @@ label > input:focus, label > textarea:focus{
 
 /* ==== Khoảng cách giữa các section ==== */
 #pagesWrap .card{ margin-bottom:12px; }
+/* Shelf grid ở tab Spring */
+.shelf{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+  gap:14px;
+}
+.book-card{
+  background: rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.book-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+.book-card__cover{width:100%;aspect-ratio: 3/4;object-fit:cover;display:block}
+.book-card__body{padding:8px 10px}
+.book-card__title{margin:0;font-weight:600}
+.book-card__meta{margin:2px 0 0;font-size:13px;color:var(--text-dim)}
+
 

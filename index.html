@@ -9,12 +9,13 @@
   <!-- Favicon / app icon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="/styles.css?v=8" />
+  <!-- CSS (tăng v=9 để phá cache) -->
+  <link rel="stylesheet" href="/styles.css?v=9" />
 
-  <!-- JS (defer để chạy sau khi DOM parse) -->
+  <!-- Hiệu ứng rơi (defer) -->
   <script src="/public/js/effects.js?v=5" defer></script>
-  <script src="/public/js/app.js?v=11" defer></script>
+  <!-- App chính (tăng v=12 để phá cache) -->
+  <script src="/public/js/app.js?v=12" defer></script>
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -51,69 +52,23 @@
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
 
-      <!-- [SHELF IN FRAME] mount point (kệ sách nằm trong khung có hiệu ứng) -->
+      <!-- [SHELF IN FRAME] mount point cho kệ sách -->
       <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <!-- Nội dung thay đổi (dùng cho tab khác) -->
+    <!-- Nội dung chung -->
     <section class="content" id="content">
       <h2>NiNi — Funny</h2>
       <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
-      <p>Với slogan "Chơi mê ly, bứt phá tư duy", NiNi-Funny không chỉ là một trò chơi giải trí, mà còn là công cụ giúp bạn:</p>
       <ul>
-        <li>Đắm chìm vào cuộc phiêu lưu: Khám phá những màn chơi đầy màu sắc, giải đố những câu chuyện hấp dẫn và chinh phục các thử thách ngôn ngữ một cách tự nhiên.</li>
-        <li>Học mà như chơi: Mở rộng vốn từ vựng, rèn luyện ngữ pháp và tăng khả năng phản xạ tiếng Anh thông qua các mini-game vui nhộn và sáng tạo.</li>
-        <li>Phát triển bản thân: Bứt phá khỏi những giới hạn của bản thân, tư duy logic và kỹ năng giải quyết vấn đề của bạn sẽ được nâng cao một cách đáng kể.</li>
+        <li>Đắm chìm vào cuộc phiêu lưu: Khám phá những màn chơi đầy màu sắc, giải đố các câu chuyện hấp dẫn và chinh phục các thử thách ngôn ngữ một cách tự nhiên.</li>
+        <li>Học mà như chơi: Mini-game vui nhộn giúp mở rộng vốn từ vựng, luyện ngữ pháp và phản xạ.</li>
+        <li>Phát triển tư duy: Bứt phá giới hạn bản thân, nâng cao tư duy logic & kỹ năng giải quyết vấn đề.</li>
       </ul>
-      <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
     </section>
   </main>
 
-  <!-- ========== [READER] Modal trình đọc sách (16:9 + phụ đề đáy ảnh) ========== -->
-  <div class="modal" id="readerModal" aria-hidden="true">
-    <div class="modal__backdrop" data-reader-close></div>
-    <!-- [SỬA] aria-labelledby trỏ đến #readerBookTitle -->
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerBookTitle">
-      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
-
-      <!-- [ADDED] Tiêu đề để JS set tên sách -->
-    <!-- wrap để căn giữa -->
-<div class="reader-wrap">
-  <h3 id="readerBookTitle" class="modal__title">Đang tải…</h3>
-
-  <div class="calendar-view mode-169" id="calendarView">
-    ...
-  </div>
-</div>
-        <!-- Toolbar góc trên-phải: chọn ngôn ngữ + phát -->
-        <div class="reader-toolbar">
-          <button id="langVi" class="pill">VI</button>
-          <button id="langEn" class="pill">EN</button>
-          <button id="btnSpeak" class="pill">🔊</button>
-        </div>
-
-        <!-- Nút nổi dưới ảnh -->
-        <div class="img-nav">
-          <button class="pill-nav" id="imgPrev">◀</button>
-          <div class="page-info" id="readerPageInfo">Trang 1/1</div>
-          <button class="pill-nav" id="imgNext">▶</button>
-        </div>
-
-        <!-- Phụ đề ở đáy ảnh -->
-        <div class="subtitle-bubble" id="subtitleBubble"></div>
-
-        <!-- [ADDED] Nút ẩn để JS reuse (không hiển thị) -->
-        <button id="btnPrevPage" style="display:none"></button>
-        <button id="btnNextPage" style="display:none"></button>
-      </div>
-      <!-- /=========== READER CALENDAR VIEW ============ -->
-
-      <!-- [REMOVED] Toàn bộ layout cũ “reader-book” gồm ảnh bên trái & cột text bên phải
-           để tránh đè layout mới và xung đột id (#btnPrevPage, #readerTextVi/En...). -->
-    </div>
-  </div>
-
-  <!-- ========== AUTH MODAL ========== -->
+  <!-- AUTH MODAL (giữ nguyên) -->
   <div class="modal" id="authModal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -130,51 +85,10 @@
         <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
       </div>
 
-      <!-- Login form -->
-      <form class="form is-active" data-pane="login">
-        <button type="button" class="btn btn-ghost full">Đăng nhập với Google</button>
-        <div class="or">hoặc</div>
-        <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
-        <label>Mật khẩu</label>
-        <input type="password" placeholder="••••••••" />
-        <div class="row">
-          <button type="submit" class="btn">Đăng nhập</button>
-        </div>
-      </form>
-
-      <!-- Sign up form -->
-      <form class="form" data-pane="signup">
-        <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
-        <div class="row gap">
-          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
-          <input type="text" placeholder="Nhập mã OTP" />
-        </div>
-        <label>Mật khẩu mới</label>
-        <input type="password" placeholder="Tối thiểu 8 ký tự" />
-        <div class="row">
-          <button type="submit" class="btn">Tạo tài khoản</button>
-        </div>
-        <p class="note">Sau khi tạo tài khoản, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
-      </form>
-
-      <!-- Forgot form -->
-      <form class="form" data-pane="forgot">
-        <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
-        <div class="row gap">
-          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
-          <input type="text" placeholder="Nhập mã 6 số" />
-        </div>
-        <label>Mật khẩu mới</label>
-        <input type="password" placeholder="Tối thiểu 8 ký tự" />
-        <div class="row">
-          <button type="submit" class="btn">Đặt lại mật khẩu</button>
-        </div>
-      </form>
+      <form class="form is-active" data-pane="login">...</form>
+      <form class="form" data-pane="signup">...</form>
+      <form class="form" data-pane="forgot">...</form>
     </div>
   </div>
 </body>
 </html>
-

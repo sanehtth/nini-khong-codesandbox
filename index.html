@@ -75,10 +75,47 @@
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-      <h3 id="readerTitle" class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-        <span id="readerBookTitle">Đang mở…</span>
-      </h3>
+      <!-- ============ READER CALENDAR VIEW ============ -->
+<div class="calendar-view mode-right" id="calendarView">
+  <!-- Ảnh nền phủ toàn khung -->
+  <div class="calendar-bg" id="calendarBg"></div>
+
+  <!-- Phụ đề đè trên ảnh: hiển thị ngôn ngữ đối ứng -->
+  <div class="subtitle-bubble" id="subtitleBubble"></div>
+
+  <!-- Panel kính mờ bên phải -->
+  <section class="calendar-panel panel-right" id="panelRight">
+    <header class="panel-head">
+      <div class="muted">Ngôn ngữ đọc</div>
+      <div class="buttons">
+        <button class="btn" id="langVi">VI</button>
+        <button class="btn" id="langEn">EN</button>
+      </div>
+    </header>
+
+    <header class="panel-head">
+      <span class="muted">Tiếng Việt</span>
+      <button class="reader-speak" id="btnSpeakVi">🔊</button>
+    </header>
+    <div id="readerTextVi" class="panel-text"></div>
+
+    <hr class="panel-sep" />
+
+    <header class="panel-head">
+      <span class="muted">English</span>
+      <button class="reader-speak" id="btnSpeakEn">🔊</button>
+    </header>
+    <div id="readerTextEn" class="panel-text"></div>
+
+    <div class="panel-foot">
+      <button class="btn" id="btnPrevPage">← Trang trước</button>
+      <div class="muted" id="readerPageInfo">Trang 1/1</div>
+      <button class="btn" id="btnNextPage">Trang sau →</button>
+    </div>
+  </section>
+</div>
+<!-- /=========== READER CALENDAR VIEW ============ -->
+
 
       <div class="reader-book">
         <!-- Trái: ảnh minh hoạ + Back -->
@@ -176,3 +213,4 @@
   </div>
 </body>
 </html>
+

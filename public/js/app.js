@@ -18,6 +18,34 @@
   // Mỗi sách: /public/content/storybook/<ID>.json (vd: B001.json)
   const LIBRARY_URL = "/public/content/storybook/library-manifest.json";
   const BOOK_URL = (id) => `/public/content/storybook/${id}.json`;
+// ====== READER (modal) ======
+const readerModal   = document.getElementById("readerModal");
+const readerTitleEl = document.getElementById("readerBookTitle");
+const readerImg     = document.getElementById("readerImage");
+const readerTextVi  = document.getElementById("readerTextVi");
+const readerTextEn  = document.getElementById("readerTextEn");
+const pageInfo      = document.getElementById("readerPageInfo");
+
+//========>>>>> Nút điều hướng & nút loa <<<<<===============
+const btnPrev       = document.getElementById("btnPrevPage");
+const btnNext       = document.getElementById("btnNextPage");
+const btnSpeakVi    = document.getElementById("btnSpeakVi");
+const btnSpeakEn    = document.getElementById("btnSpeakEn");
+
+// ===========>>> Audio objects (không dùng <audio> controls) <<<<<============== 
+const audioVi = new Audio();
+const audioEn = new Audio();
+
+let currentBook = null;
+let pageIdx = 0;
+
+function showReader(show){
+  readerModal?.setAttribute("aria-hidden", show ? "false" : "true");
+  if (!show) { audioVi.pause(); audioEn.pause(); }
+}
+readerModal?.querySelectorAll("[data-reader-close]")?.forEach(el=>{
+  el.addEventListener("click", ()=> showReader(false));
+});
 
   // ====== SET SEASON ======
   function setSeason(season) {
@@ -274,3 +302,4 @@
     }
   }
 })();
+

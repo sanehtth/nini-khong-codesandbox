@@ -3,42 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NiNi — Storybook Editor (Full)</title>
+  <title>NiNi — Storybook Editor (Simplified: Whole-Book Manifest)</title>
 
   <!-- ================================
-       CSS: giao diện phẳng, nền ảnh full
-       - Nền: public/assets/bg/nini_home.webp phủ toàn trang + blur nhẹ
-       - Input/Textarea: chỉ có gạch chân trắng, không fill
-       - Bố cục gọn, dễ đọc
+       CSS: nền ảnh full + form gạch chân
      ================================= -->
   <style>
     html, body { margin:0; padding:0; height:100%; }
     body { color:#fff; font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; }
-    /* NỀN ẢNH phủ full + mờ nhẹ để nội dung phía trước rõ hơn */
     body::before{
       content:""; position:fixed; inset:0; z-index:-1;
       background: url("/public/assets/bg/nini_home.webp") center/cover no-repeat;
       filter: blur(5px);
     }
-
-    /* Khung nội dung căn giữa */
-    .editor-content{ max-width: 1000px; margin: 0 auto; padding: 24px 16px 72px; }
+    .editor-content{ max-width: 980px; margin: 0 auto; padding: 24px 16px 72px; }
     .section{ margin-bottom: 24px; }
     h2{ margin: 0 0 12px; }
     h3{ margin: 12px 0 8px; font-size: 1.08rem; }
 
-    /* Nhãn + Input/Textarea kiểu “gạch chân” trắng, không nền */
     label{ display:block; margin-bottom:6px; opacity:.9 }
     input, textarea{
-      width:100%;
-      padding:8px 0;
-      border:0; border-bottom:1px solid #fff;
+      width:100%; padding:8px 0; border:0; border-bottom:1px solid #fff;
       background:transparent; color:#fff; margin-bottom:14px; font:inherit;
     }
     input:focus, textarea:focus{ outline:none; border-bottom:2px solid #fff; }
     textarea{ resize:vertical; min-height: 80px; }
 
-    /* Hàng nút + nút phẳng */
     .row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
     .btn{
       background:transparent; color:#fff; border:1px solid #fff;
@@ -47,16 +37,16 @@
     .btn:hover{ background:#fff; color:#000; }
     .btn.danger{ border-color:#ffb0b0; color:#ffb0b0; }
     .btn.danger:hover{ background:#ffb0b0; color:#2a0a0a; }
+
     .select{
-      border:1px solid #fff; padding:6px 10px; border-radius:6px; background:transparent; color:#fff;
+      border:1px solid #fff; padding:6px 10px; border-radius:6px;
+      background:transparent; color:#fff;
     }
     .select:focus{ outline:none; border-width:2px; }
 
-    /* Lưới 2 cột cho form page, tự về 1 cột khi màn hình hẹp */
     .grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
 
-    /* Mỗi trang là một “card” viền nét đứt nhẹ để tách khối */
     .page-entry{
       border:1px dashed rgba(255,255,255,.35);
       padding:12px; border-radius:8px; margin-bottom:14px;
@@ -64,15 +54,11 @@
     }
     .page-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
 
-    /* Khung hiển thị manifest */
     pre{
-      white-space:pre-wrap;
-      background:rgba(0,0,0,.35);
-      padding:12px; border-radius:8px;
-      border:1px solid rgba(255,255,255,.25);
+      white-space:pre-wrap; background:rgba(0,0,0,.35);
+      padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,.25);
       max-height: 50vh; overflow:auto;
     }
-
     .muted{ opacity:.85; }
     .hr { height:1px; background:rgba(255,255,255,.3); margin:10px 0; }
   </style>
@@ -80,10 +66,7 @@
 <body>
   <div class="editor-content">
 
-    <!-- ======================================================
-         BOOK: Thông tin sách (metadata cấp sách)
-         - ID Sách, tiêu đề VI/EN, tác giả, thiết kế, ảnh bìa
-       ====================================================== -->
+    <!-- BOOK META -->
     <div class="section">
       <h2>Thông tin Sách</h2>
       <label>ID Sách</label>
@@ -100,118 +83,82 @@
       <input id="cover" placeholder="https://.../cover.webp"/>
     </div>
 
-    <!-- ======================================================
-         ACTIONS (Sách hiện tại)
-         - Thêm/Xóa trang, chọn trang đang chỉnh
-         - Import/Export JSON (raw)
-         - Tạo Manifest (đủ trang) & Export Manifest (Shelf)
-         - Tùy chọn thêm #hash vào URL tài nguyên
-       ====================================================== -->
+    <!-- ACTIONS (book hiện tại) -->
     <div class="section">
-      <h2>Actions (Sách hiện tại)</h2>
+      <h2>Actions</h2>
       <div class="row">
-        <!-- Trang -->
-        <button class="btn" id="btnAddPage" title="Thêm 1 trang trống">Add Page</button>
-        <button class="btn danger" id="btnDeletePage" title="Xoá trang theo lựa chọn bên cạnh">Delete Page</button>
+        <!-- Pages -->
+        <button class="btn" id="btnAddPage">Add Page</button>
+        <button class="btn danger" id="btnDeletePage">Delete Page</button>
         <select id="deleteTarget" class="select" title="Chọn hình thức xóa">
           <option value="current">Trang đang chọn</option>
           <option value="last">Trang cuối</option>
         </select>
 
-        <!-- Dữ liệu thô -->
-        <button class="btn" id="btnImport" title="Import JSON raw (book + pages)">Import JSON</button>
-        <button class="btn" id="btnExport" title="Export JSON raw (book + pages)">Export JSON</button>
+        <!-- Raw JSON -->
+        <button class="btn" id="btnImport">Import JSON</button>
+        <button class="btn" id="btnExport">Export JSON</button>
         <input id="fileImport" type="file" accept="application/json" style="display:none">
 
         <!-- Manifest -->
-        <button class="btn" id="btnManifest" title="Tạo manifest đầy đủ để đọc truyện">Tạo Manifest (đủ trang)</button>
-        <button class="btn" id="btnExportManifest" title="Xuất manifest nhẹ chỉ metadata (cho kệ sách)">Export Manifest (Shelf)</button>
-        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Nối #hash vào URL cover/image/sound khi tạo/ghi manifest">
-          <input type="checkbox" id="includeHash"> Thêm #hash vào liên kết
+        <button class="btn" id="btnManifest" title="Tạo manifest đầy đủ để đọc truyện">Tạo Manifest (full)</button>
+        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Nối #hash vào URL cover/image/sound khi tạo manifest">
+          <input type="checkbox" id="includeHash"> Thêm #hash vào URL tài nguyên
         </label>
-
-        <!-- Trang đang chọn -->
-        <span class="muted">Trang đang chọn:
-          <select id="currentIndex" class="select" title="Chọn trang để chỉnh"></select>
-        </span>
       </div>
 
       <div class="hr"></div>
 
-      <!-- ======================================================
-           LIBRARY MANIFEST (nhiều cuốn: B001, B002, ...)
-           - Import/Export manifest thư viện
-           - Update từ cuốn hiện tại (tự tăng version nếu có thay đổi)
-           - Auto update: bật/tắt cập nhật thư viện khi bạn Lưu/Manifest/Export
-         ====================================================== -->
+      <!-- LIBRARY MANIFEST -->
       <h2>Library Manifest</h2>
       <div class="row">
         <button class="btn" id="btnImportLibrary">Import Library Manifest</button>
         <button class="btn" id="btnExportLibrary">Export Library Manifest</button>
-        <button class="btn" id="btnUpdateLibraryFromThisBook" title="Cập nhật mục của cuốn đang mở (B001, B002...) trong Library; chỉ tăng version nếu có thay đổi">Update Library Manifest (from current book)</button>
+        <button class="btn" id="btnUpdateLibraryFromThisBook" title="Cập nhật/ghi đè sách đang mở (B001/B002...) vào Library; chỉ tăng version khi có thay đổi">Update Library (from current book)</button>
         <input id="fileImportLibrary" type="file" accept="application/json" style="display:none">
 
-        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Khi bật: mỗi lần bạn Lưu/Manifest/Export ở cuốn này, Library Manifest sẽ tự merge & tăng version nếu có thay đổi">
+        <label class="muted" style="display:flex;align-items:center;gap:6px;" title="Khi bật: mỗi lần bạn Export JSON hoặc Tạo Manifest, Library sẽ tự cập nhật & tăng version nếu có thay đổi">
           <input type="checkbox" id="autoUpdateLibrary" checked>
-          Auto update Library Manifest
+          Auto update Library
         </label>
       </div>
     </div>
 
-    <!-- ======================================================
-         PAGES: Khu nhập nội dung các trang của sách
-       ====================================================== -->
+    <!-- PAGES -->
     <div class="section">
       <h2>Các Trang</h2>
       <div id="pagesContainer"></div>
     </div>
 
-    <!-- ======================================================
-         KẾT QUẢ: Manifest (đầy đủ) / Library manifest
-       ====================================================== -->
+    <!-- OUTPUT -->
     <div class="section">
       <h2>Kết quả / Log</h2>
       <pre id="manifestOutput"></pre>
     </div>
   </div>
 
-  <!-- ================================
-       SCRIPT: Logic biên tập & export
-       - Quản lý state trang, autosave
-       - Import/Export raw JSON (book + pages)
-       - Tạo manifest đầy đủ & manifest cho kệ sách
-       - Library Manifest (nhiều cuốn) + auto update version
-     ================================= -->
   <script>
-    /* ==========================================================
-       0) TIỆN ÍCH CƠ BẢN
+    /* ===========================
+       TIỆN ÍCH & STATE CƠ BẢN
        - q/qa: chọn DOM nhanh
-       - genHash: tạo đoạn hash ngắn để nối URL (chống cache / versioning nhẹ)
-       - saveDraft/loadDraft: lưu & nạp bản nháp raw (book + pages) vào localStorage
-       ========================================================== */
+       - genHash: hash ngắn để nối URL asset
+       - Draft: autosave vào localStorage
+     =========================== */
     const q  = (sel, root=document) => root.querySelector(sel);
     const qa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
     const genHash = () => Math.random().toString(36).slice(2,8);
 
-    const LS_DRAFT_KEY   = 'storybook_editor_draft';
+    const LS_DRAFT_KEY = 'storybook_editor_draft_min';
     const saveDraft = () => localStorage.setItem(LS_DRAFT_KEY, JSON.stringify(collectAll()));
-    const loadDraft = () => {
-      try { return JSON.parse(localStorage.getItem(LS_DRAFT_KEY)||'null'); } catch { return null; }
-    };
+    const loadDraft = () => { try { return JSON.parse(localStorage.getItem(LS_DRAFT_KEY)||'null'); } catch { return null; } };
 
-    /* ==========================================================
-       1) STATE SÁCH HIỆN TẠI
-       - pages: mảng các trang đang biên tập
-       - current: index trang đang chọn để chỉnh
-       ========================================================== */
     let pages = [];
     let current = 0;
 
-    /* ==========================================================
-       2) THU THẬP DỮ LIỆU "RAW" CỦA SÁCH
-       - collectAll(): gom metadata cấp sách + mảng pages (định dạng editor)
-       - collectShelfManifest(): manifest nhẹ cho kệ sách (không kèm pages)
-       ========================================================== */
+    /* ===========================
+       THU THẬP DỮ LIỆU RAW SÁCH
+       - collectAll(): metadata + pages (định dạng editor)
+     =========================== */
     function collectAll(){
       return {
         id:       q('#bookId').value.trim(),
@@ -224,29 +171,12 @@
       };
     }
 
-    function collectShelfManifest(){
-      return {
-        id:       q('#bookId').value.trim(),
-        title_vi: q('#titleVi').value.trim(),
-        title_en: q('#titleEn').value.trim(),
-        author:   q('#author').value.trim(),
-        design:   q('#design').value.trim(),
-        cover:    q('#cover').value.trim(),
-        // Có thể thêm nếu muốn hiển thị ngoài kệ:
-        // pages_count: pages.length,
-        // updated_at: new Date().toISOString(),
-      };
-    }
-
-    /* ==========================================================
-       3) RENDER DANH SÁCH TRANG
-       - setCurrentOptions(): cập nhật dropdown chọn "Trang đang chọn"
-       - renderPages(): vẽ UI từng trang + bind sự kiện gõ / di chuyển / xoá / chọn
-       - emptyPage(): tạo trang trống
-       - addPage(), deletePage(): thêm / xoá trang
-       ========================================================== */
+    /* ===========================
+       UI PAGES
+     =========================== */
     function setCurrentOptions(){
       const sel = q('#currentIndex');
+      if (!sel) return;
       sel.innerHTML = pages.map((_,i)=>`<option value="${i}">#${i+1}</option>`).join('');
       sel.value = String(current);
     }
@@ -262,13 +192,12 @@
           <div class="page-head">
             <strong>Page #${idx+1}${idx===current ? ' (đang chọn)' : ''}</strong>
             <div class="row">
-              <button class="btn" data-act="up"    title="Đưa trang này lên trên">↑</button>
-              <button class="btn" data-act="down"  title="Đưa trang này xuống dưới">↓</button>
-              <button class="btn danger" data-act="remove" title="Xoá trang này">Xoá</button>
-              <button class="btn" data-act="pick"  title="Chọn trang này để chỉnh">Chọn</button>
+              <button class="btn" data-act="up">↑</button>
+              <button class="btn" data-act="down">↓</button>
+              <button class="btn danger" data-act="remove">Xoá</button>
+              <button class="btn" data-act="pick">Chọn</button>
             </div>
           </div>
-
           <div class="grid">
             <div>
               <label>TDBook</label>
@@ -278,7 +207,6 @@
               <label>IDPage</label>
               <input data-f="IDPage" placeholder="VD: P001" value="${p.IDPage||''}">
             </div>
-
             <div>
               <label>noidung_vi</label>
               <textarea data-f="noidung_vi" placeholder="Nội dung tiếng Việt">${p.noidung_vi||''}</textarea>
@@ -287,7 +215,6 @@
               <label>noidung_en</label>
               <textarea data-f="noidung_en" placeholder="English content">${p.noidung_en||''}</textarea>
             </div>
-
             <div>
               <label>L_image_P (URL hình)</label>
               <input data-f="L_image_P" placeholder="https://.../page.webp" value="${p.L_image_P||''}">
@@ -304,7 +231,6 @@
         `;
         wrap.appendChild(div);
 
-        // Cập nhật state khi gõ
         qa('[data-f]', div).forEach(inp=>{
           inp.addEventListener('input', (e)=>{
             pages[idx][inp.dataset.f] = e.target.value;
@@ -312,7 +238,6 @@
           });
         });
 
-        // Nút điều hướng/xoá/chọn trang
         div.querySelector('[data-act="up"]').onclick = ()=>{
           if (idx===0) return;
           [pages[idx-1], pages[idx]] = [pages[idx], pages[idx-1]];
@@ -328,7 +253,7 @@
         div.querySelector('[data-act="remove"]').onclick = ()=>{
           if (!confirm(`Xoá Page #${idx+1}?`)) return;
           pages.splice(idx,1);
-          if (current>=pages.length) current = Math.max(0,pages.length-1);
+          if (current>=pages.length) current = Math.max(0, pages.length-1);
           renderPages(); setCurrentOptions(); saveDraft();
         };
         div.querySelector('[data-act="pick"]').onclick = ()=>{
@@ -348,7 +273,7 @@
     }
     function deletePage(){
       if (!pages.length) return;
-      const mode = q('#deleteTarget').value;       // 'current' | 'last'
+      const mode = q('#deleteTarget').value;
       const idx = (mode==='last') ? (pages.length-1) : current;
       if (!confirm(`Xoá Page #${idx+1}?`)) return;
       pages.splice(idx,1);
@@ -356,19 +281,40 @@
       renderPages(); setCurrentOptions(); saveDraft();
     }
 
-    /* ==========================================================
-       4) TẠO MANIFEST
-       - Manifest đầy đủ (để app đọc truyện)
-       - Manifest nhẹ (Shelf) để hiển thị kệ sách
-       - Tùy chọn nối #hash vào URL cover/image/sound
-       ========================================================== */
-    q('#btnManifest').onclick = async ()=>{
-      const includeHash = q('#includeHash').checked;
-      const data = collectAll();
-
-      const addH = (s)=> s ? (s + '#' + genHash()) : s;
-      if (includeHash && data.cover) data.cover = addH(data.cover);
-      if (includeHash){
+    /* ===========================
+       MANIFEST “TOÀN CUỐN”
+       - Chỉ có content_hash (SHA-256) cho cả sách
+       - Không có per_page_hash
+       - Có thể nối #hash vào URL asset khi xuất
+     =========================== */
+    function normalizeBookForHash(raw) {
+      return {
+        id: raw.id || "",
+        title_vi: raw.title_vi || "",
+        title_en: raw.title_en || "",
+        author: raw.author || "",
+        design: raw.design || "",
+        cover: raw.cover || "",
+        pages: (raw.pages || []).map(p => ({
+          id: p.IDPage || p.id || "",
+          text_vi: p.noidung_vi || p.text_vi || "",
+          text_en: p.noidung_en || p.text_en || "",
+          image: p.L_image_P || p.image || "",
+          sound_vi: p.L_sound_vi || p.sound_vi || "",
+          sound_en: p.L_sound_en || p.sound_en || ""
+        }))
+      };
+    }
+    async function sha256Hex(str) {
+      const buf = new TextEncoder().encode(str);
+      const hash = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    async function buildWholeBookManifest(raw, {addAssetHash=false} = {}) {
+      const data = structuredClone(raw);
+      if (addAssetHash) {
+        const addH = s => s ? (s + '#' + genHash()) : s;
+        if (data.cover) data.cover = addH(data.cover);
         data.pages = data.pages.map(p=>({
           ...p,
           L_image_P: addH(p.L_image_P),
@@ -376,7 +322,7 @@
           L_sound_en: addH(p.L_sound_en),
         }));
       }
-
+      // manifest full để đọc
       const manifest = {
         id: data.id,
         title_vi: data.title_vi,
@@ -394,30 +340,24 @@
         }))
       };
 
+      // hash toàn cuốn (đã chuẩn hóa) cho mục đích so đổi
+      const norm = normalizeBookForHash(raw);
+      const content_hash = await sha256Hex(JSON.stringify(norm));
+
+      return { manifest, content_hash, pages_count: norm.pages.length };
+    }
+
+    q('#btnManifest').onclick = async ()=>{
+      const raw = collectAll();
+      const addAssetHash = q('#includeHash').checked;
+      const { manifest } = await buildWholeBookManifest(raw, { addAssetHash });
       q('#manifestOutput').textContent = JSON.stringify(manifest, null, 2);
-      await maybeUpdateLibraryFromCurrent(); // ← cập nhật Library nếu bật auto
+      await maybeUpdateLibraryFromCurrent(); // auto-update Library nếu bật
     };
 
-    // Export manifest nhẹ (Shelf)
-    q('#btnExportManifest').onclick = ()=>{
-      const includeHash = q('#includeHash').checked;
-      const m = collectShelfManifest();
-      if (includeHash && m.cover) m.cover = m.cover + '#' + genHash();
-
-      const json = JSON.stringify(m, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (m.id || 'book') + '-manifest.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    };
-
-    /* ==========================================================
-       5) IMPORT / EXPORT RAW JSON
-       - Export: ghi toàn bộ dữ liệu đang nhập (book + pages)
-       - Import: nhận cả 2 dạng (manifest đầy đủ / raw của editor)
-       ========================================================== */
+    /* ===========================
+       RAW JSON Import / Export
+     =========================== */
     q('#btnExport').onclick = async ()=>{
       const json = JSON.stringify(collectAll(), null, 2);
       const blob = new Blob([json], {type:'application/json'});
@@ -427,7 +367,7 @@
       a.click();
       URL.revokeObjectURL(a.href);
 
-      await maybeUpdateLibraryFromCurrent(); // ← cập nhật Library nếu bật auto
+      await maybeUpdateLibraryFromCurrent(); // auto-update Library nếu bật
     };
 
     q('#btnImport').onclick = ()=> q('#fileImport').click();
@@ -438,7 +378,7 @@
         const data = JSON.parse(text);
 
         if ('id' in data || 'title_vi' in data || 'pages' in data){
-          // coi như manifest đầy đủ
+          // manifest full
           q('#bookId').value = data.id || "";
           q('#titleVi').value = data.title_vi || "";
           q('#titleEn').value = data.title_en || "";
@@ -455,7 +395,7 @@
             L_sound_en: p.sound_en || ""
           })) : [];
         } else {
-          // raw theo editor
+          // raw editor
           q('#bookId').value = data.id || data.IDBook || "";
           q('#titleVi').value = data.title_vi || data.little_vi || "";
           q('#titleEn').value = data.title_en || data.little_en || "";
@@ -482,23 +422,19 @@
       }
     });
 
-    /* ==========================================================
-       6) LIBRARY MANIFEST (nhiều cuốn)
-       - libraryManifest: JSON tổng chứa nhiều sách (B001, B002, ...)
-       - buildBookMaster(): tạo “master” cho 1 cuốn (hash tổng + hash từng trang)
-       - mergeBookIntoLibrary(): ghép 1 cuốn vào library & tăng version khi có thay đổi
-       - maybeUpdateLibraryFromCurrent(): cập nhật library khi bạn chủ động Lưu/Manifest/Export
-       - Import/Export Library
-       ========================================================== */
+    /* ===========================
+       LIBRARY MANIFEST (nhiều cuốn)
+       - version tăng khi bất kỳ sách nào đổi (theo content_hash)
+       - KHÔNG lưu per_page_hash nữa
+     =========================== */
     let libraryManifest = {
       type: "storybook.library",
       version: 1,
       updated_at: new Date().toISOString(),
-      books: []
+      books: [] // { id, title_vi, title_en, author, design, cover, pages_count, content_hash, updated_at }
     };
-    const LS_LIBRARY_KEY = 'storybook_library_manifest';
+    const LS_LIBRARY_KEY = 'storybook_library_manifest_min';
 
-    // Nạp library từ localStorage (nếu đã có)
     (function loadLibraryFromStorage(){
       const raw = localStorage.getItem(LS_LIBRARY_KEY);
       if (raw) { try { libraryManifest = JSON.parse(raw); } catch {} }
@@ -508,77 +444,44 @@
       return libraryManifest.books.findIndex(b => (b.id || "") === (bookId || ""));
     }
 
-    // Chuẩn hoá dữ liệu 1 cuốn để hash (đảm bảo ổn định)
-    function normalizeBookForHash(raw) {
-      return {
+    async function updateLibraryWithBook(raw){
+      const addAssetHash = false; // Library chỉ cần meta, không cần nối hash asset
+      const { content_hash, pages_count } = await buildWholeBookManifest(raw, { addAssetHash });
+
+      const entry = {
         id: raw.id || "",
         title_vi: raw.title_vi || "",
         title_en: raw.title_en || "",
         author: raw.author || "",
         design: raw.design || "",
         cover: raw.cover || "",
-        pages: (raw.pages || []).map(p => ({
-          id: p.IDPage || p.id || "",
-          text_vi: p.noidung_vi || p.text_vi || "",
-          text_en: p.noidung_en || p.text_en || "",
-          image: p.L_image_P || p.image || "",
-          sound_vi: p.L_sound_vi || p.sound_vi || "",
-          sound_en: p.L_sound_en || p.sound_en || ""
-        }))
-      };
-    }
-
-    // SHA-256 (trả hex)
-    async function sha256Hex(str) {
-      const buf = new TextEncoder().encode(str);
-      const hash = await crypto.subtle.digest('SHA-256', buf);
-      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
-    }
-
-    // Tạo master 1 cuốn: content_hash + per_page_hash (để biết trang nào đổi)
-    async function buildBookMaster(raw) {
-      const norm = normalizeBookForHash(raw);
-      const perPage = {};
-      for (const p of norm.pages) perPage[p.id || ""] = await sha256Hex(JSON.stringify(p));
-      const contentHash = await sha256Hex(JSON.stringify(norm));
-      return {
-        id: norm.id,
-        title_vi: norm.title_vi,
-        title_en: norm.title_en,
-        author: norm.author,
-        design: norm.design,
-        cover: norm.cover,
-        pages_count: norm.pages.length,
-        content_hash: contentHash,
-        per_page_hash: perPage,
+        pages_count,
+        content_hash,
         updated_at: new Date().toISOString()
       };
-    }
 
-    // Ghép 1 cuốn vào library + tăng version nếu có thay đổi
-    function mergeBookIntoLibrary(bookMaster) {
-      const i = findBookIndexInLibrary(bookMaster.id);
+      const i = findBookIndexInLibrary(entry.id);
       const now = new Date().toISOString();
 
       if (i === -1) {
-        libraryManifest.books.push(bookMaster);
+        libraryManifest.books.push(entry);
         libraryManifest.version += 1;
         libraryManifest.updated_at = now;
         return { action: 'added', bumped: true };
       } else {
         const old = libraryManifest.books[i];
         const changed =
-          old.content_hash !== bookMaster.content_hash ||
-          old.title_vi !== bookMaster.title_vi ||
-          old.title_en !== bookMaster.title_en ||
-          old.author   !== bookMaster.author   ||
-          old.design   !== bookMaster.design   ||
-          old.cover    !== bookMaster.cover    ||
-          old.pages_count !== bookMaster.pages_count;
+          old.content_hash !== entry.content_hash ||
+          old.title_vi !== entry.title_vi ||
+          old.title_en !== entry.title_en ||
+          old.author   !== entry.author   ||
+          old.design   !== entry.design   ||
+          old.cover    !== entry.cover    ||
+          old.pages_count !== entry.pages_count;
 
         if (changed) {
-          libraryManifest.books[i] = bookMaster;
-          libraryManifest.version += 1;     // chỉ tăng khi có thay đổi
+          libraryManifest.books[i] = entry;
+          libraryManifest.version += 1;
           libraryManifest.updated_at = now;
           return { action: 'updated', bumped: true };
         } else {
@@ -587,26 +490,20 @@
       }
     }
 
-    // Nếu bật "Auto update Library", khi bạn Lưu/Manifest/Export
-    // => tự build master cho cuốn hiện tại, merge vào Library & tăng version nếu nội dung đổi
-    async function maybeUpdateLibraryFromCurrent() {
+    async function maybeUpdateLibraryFromCurrent(){
       const auto = q('#autoUpdateLibrary');
       if (!auto || !auto.checked) return;
-
       const raw = collectAll();
-      if (!raw.id) return; // cần ID (B001…)
+      if (!raw.id) return;
 
-      const master = await buildBookMaster(raw);
-      const result = mergeBookIntoLibrary(master);
-
+      const result = await updateLibraryWithBook(raw);
       localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
-      // Log gọn ra khu kết quả (tuỳ chọn)
-      const log = `[Library] ${master.id}: ${result.action}. Version: v${libraryManifest.version} (bumped=${result.bumped})`;
+
+      const log = `[Library] ${raw.id}: ${result.action}. Version: v${libraryManifest.version} (bumped=${result.bumped})`;
       const pre = q('#manifestOutput');
       pre.textContent = (pre.textContent ? pre.textContent + '\n\n' : '') + log;
     }
 
-    // Import/Export Library
     q('#btnImportLibrary').onclick = ()=> q('#fileImportLibrary').click();
     q('#fileImportLibrary').addEventListener('change', async (e)=>{
       const f = e.target.files[0]; if (!f) return;
@@ -644,28 +541,22 @@
       const raw = collectAll();
       if (!raw.id) { alert('Chưa có ID Sách. Nhập ID trước (vd: B001).'); return; }
 
-      const master = await buildBookMaster(raw);
-      const result = mergeBookIntoLibrary(master);
-
+      const result = await updateLibraryWithBook(raw);
       localStorage.setItem(LS_LIBRARY_KEY, JSON.stringify(libraryManifest));
       q('#manifestOutput').textContent = JSON.stringify(libraryManifest, null, 2);
 
       if (result.bumped) {
-        alert(`Library đã ${result.action === 'added' ? 'thêm' : 'cập nhật'} ${master.id} và tăng version lên v${libraryManifest.version}.`);
+        alert(`Library đã ${result.action==='added'?'thêm':'cập nhật'} ${raw.id} và tăng version lên v${libraryManifest.version}.`);
       } else {
-        alert(`Không có thay đổi cho ${master.id}. Library giữ nguyên v${libraryManifest.version}.`);
+        alert(`Không có thay đổi cho ${raw.id}. Library giữ nguyên v${libraryManifest.version}.`);
       }
     };
 
-    /* ==========================================================
-       7) KHỞI ĐỘNG & AUTOSAVE
-       - Nạp bản nháp (nếu có)
-       - Tạo sẵn 1 trang trống nếu chưa có gì
-       - Bind sự kiện các input metadata để autosave
-       ========================================================== */
+    /* ===========================
+       BOOT & AUTOSAVE
+     =========================== */
     q('#btnAddPage').onclick = addPage;
     q('#btnDeletePage').onclick = deletePage;
-    q('#currentIndex').onchange = (e)=>{ current = +e.target.value; renderPages(); };
 
     (function init(){
       const draft = loadDraft();
@@ -686,19 +577,16 @@
           L_sound_en: p.L_sound_en || p.sound_en || ""
         })) : [];
       } else {
-        // Khởi tạo tối thiểu 1 trang trống
-        pages = [ { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" } ];
+        pages = [ emptyPage() ];
       }
-
       renderPages(); setCurrentOptions();
 
-      // Autosave cho các input metadata
+      // autosave cho input meta
       ['bookId','titleVi','titleEn','author','design','cover'].forEach(id=>{
         q('#'+id).addEventListener('input', saveDraft);
       });
     })();
 
-    // Cảnh báo khi rời trang nếu có dữ liệu
     window.addEventListener('beforeunload', (e)=>{
       const d = collectAll();
       const hasData = d.id || d.title_vi || d.title_en || d.author || d.design || d.cover ||

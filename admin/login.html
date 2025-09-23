@@ -5,45 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Login — NiNi</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=11" />
+  <!-- tái dùng CSS chung để giữ phong cách -->
+  <link rel="stylesheet" href="/styles.css?v=admin1" />
   <style>
-    .card{ width:min(480px, 92vw); margin:10vh auto 0; background:#fff; border:1px solid var(--line); border-radius:16px; padding:16px 16px 18px; box-shadow:0 24px 64px rgba(31,56,73,.16)}
+    /* Trang trắng sáng, kính mờ */
+    body::before{ filter: blur(10px) saturate(1.1) brightness(1); }
+    body::after{ background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,.25), rgba(255,255,255,.65)); }
+
+    .admin-wrap{
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .card{
+      width: min(520px, 92vw);
+      background: rgba(255,255,255,.75);
+      border:1px solid rgba(17,24,39,.12);
+      border-radius:16px;
+      backdrop-filter: blur(10px);
+      color:#0b1220;
+      box-shadow: 0 10px 40px rgba(0,0,0,.08);
+      padding: 22px;
+    }
+    .card h1{ margin:0 0 4px; font-size:22px }
+    .muted{ color:#4b5563; margin:0 0 16px; }
+    label{ display:block; margin:12px 0 6px; color:#111827; font-weight:600 }
+    input{
+      width:100%; padding:12px 14px;
+      border-radius:10px; border:1px solid rgba(17,24,39,.15);
+      outline:none; background:#fff; color:#0b1220;
+    }
+    input:focus{ border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15) }
+    .row{ display:flex; gap:10px; margin-top:16px; align-items:center }
+    .btn{
+      padding:10px 16px; border-radius:999px; border:1px solid rgba(17,24,39,.15);
+      background:#111827; color:#fff; cursor:pointer;
+    }
+    .btn:hover{ background:#0b1220 }
+    .link{ color:#2563eb; text-decoration:none }
+    .err{ margin-top:10px; color:#b91c1c; font-weight:600; display:none }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </div>
-    <nav class="tabs"><a class="tab" href="/" style="text-decoration:none">← Về trang chủ</a></nav>
-    <span></span>
-  </header>
+  <div class="admin-wrap">
+    <div class="card">
+      <h1>Đăng nhập Admin</h1>
+      <p class="muted">Nhập mật khẩu bí mật để vào trang quản trị.</p>
 
-  <main class="viewport" style="place-items:center">
-    <section class="card">
-      <h2 class="panel-title" style="margin:0 0 8px">Đăng nhập Admin</h2>
-      <p class="panel-text" style="margin-bottom:12px">Nhập <strong>ADMIN_SECRET</strong> để vào khu vực quản trị.</p>
-      <div class="fld"><span>ADMIN_SECRET</span><input id="secret" type="password" placeholder="••••••••" /></div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn" id="go">Đăng nhập</button>
-        <a class="btn btn-ghost" href="/">Về trang chủ</a>
-      </div>
-      <div class="note" id="msg" hidden></div>
-    </section>
-  </main>
+      <form id="adminForm">
+        <label for="pass">Mật khẩu</label>
+        <input id="pass" name="pass" type="password" placeholder="••••••••" autocomplete="current-password" required />
+        <div class="row">
+          <button class="btn" type="submit">Đăng nhập</button>
+          <a class="link" href="/">← Về trang chủ</a>
+        </div>
+        <div id="err" class="err">Sai mật khẩu. Vui lòng thử lại.</div>
+      </form>
+    </div>
+  </div>
 
   <script>
-    document.getElementById('go').onclick = async ()=>{
-      const val = document.getElementById('secret').value.trim();
-      if(!val){ alert('Vui lòng nhập ADMIN_SECRET'); return; }
-      const r = await fetch('/.netlify/functions/admin-login', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ secret: val })
-      }).then(r=>r.json()).catch(()=>({ok:false, error:'Fetch error'}));
-      const msg = document.getElementById('msg');
-      if(r.ok){ location.href = '/admin/'; }
-      else { msg.hidden=false; msg.textContent = 'Sai secret hoặc lỗi máy chủ.'; }
-    };
+    // DEMO: mật khẩu tạm. Đổi ở đây cho nhanh (ví dụ: 'admin_secret')
+    const ADMIN_PASSWORD = 'admin_secret';
+
+    // Nếu đã đăng nhập rồi thì đi thẳng vào /admin/index.html
+    if (sessionStorage.getItem('admin_ok') === '1') {
+      location.replace('/admin/index.html');
+    }
+
+    const form = document.getElementById('adminForm');
+    const pass = document.getElementById('pass');
+    const err  = document.getElementById('err');
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (pass.value === ADMIN_PASSWORD) {
+        sessionStorage.setItem('admin_ok','1');   // flag đăng nhập cho phiên
+        location.replace('/admin/index.html');
+      } else {
+        err.style.display = 'block';
+        pass.focus();
+        pass.select();
+      }
+    });
   </script>
 </body>
 </html>

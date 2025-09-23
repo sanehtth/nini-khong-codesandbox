@@ -9,8 +9,8 @@
   <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- CSS (dùng bản đã gộp/fix) -->
-  <link rel="stylesheet" href="/styles.css?v=9" />
+  <!-- NOTE: dùng bản styles mới đã vá modal & pointer-events -->
+  <link rel="stylesheet" href="/styles.css?v=10" />
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -68,45 +68,42 @@
   </main>
 
   <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
-  <!-- LƯU Ý: các ID dưới đây khớp với app.js + styles.css -->
+  <!-- NOTE: CẢ block phải nằm TRONG #readerModal & aria-hidden="true" để ẩn mặc định -->
   <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
 
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-      <!-- Thanh tiêu đề + điều khiển ngôn ngữ/đọc -->
+      <!-- Thanh tiêu đề + điều khiển ngôn ngữ -->
       <header class="reader-head">
         <h3 id="readerTitle" class="reader-title">Đang tải…</h3>
         <div class="reader-tools">
-          <button id="langVi" class="btn btn-chip" title="Sub tiếng Việt">VI</button>
-          <button id="langEn" class="btn btn-chip" title="Sub English">EN</button>
-          <!-- nút đọc to optional: <button id="btnSpeak" class="btn btn-chip" title="Đọc to">🔊</button> -->
+          <button id="langVi" class="btn btn-chip">VI</button>
+          <button id="langEn" class="btn btn-chip">EN</button>
         </div>
       </header>
 
-      <!-- Viewport: ảnh nền phủ 16:9 + phụ đề + điều hướng -->
+      <!-- Viewport: ảnh nền phủ toàn khung + phụ đề + điều hướng -->
       <div id="calendarViewport" class="calendar-viewport">
-        <!-- Ảnh trang vẽ bằng background -->
+        <!-- Ảnh trang render dạng background -->
         <div id="calendarBg" class="calendar-bg"></div>
 
-        <!-- Phụ đề (1 ngôn ngữ, đổi bằng VI/EN) -->
+        <!-- Phụ đề (1 ngôn ngữ) -->
         <div id="subtitleBubble" class="subtitle-bubble"></div>
 
-        <!-- Điều hướng ảnh (nổi 2 bên) -->
+        <!-- Điều hướng ảnh + số trang -->
         <div class="img-nav">
           <button id="imgPrev" class="pill-nav" title="Trang trước">◀</button>
           <button id="imgNext" class="pill-nav" title="Trang sau">▶</button>
         </div>
 
-        <!-- Số trang -->
         <div id="pageCounter" class="page-indicator">Trang 1/1</div>
-
-        <!-- Spinner -->
         <div class="spinner"></div>
       </div>
     </div>
   </div>
+  <!-- /READER MODAL -->
 
   <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
@@ -171,8 +168,8 @@
     </div>
   </div>
 
-  <!-- JS -->
+  <!-- JS (defer để tải sau khi DOM sẵn sàng) -->
   <script src="/public/js/effects.js?v=5" defer></script>
-  <script src="/public/js/app.js?v=12" defer></script>
+  <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>

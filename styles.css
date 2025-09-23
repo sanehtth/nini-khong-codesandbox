@@ -407,18 +407,18 @@ body::after{
 
 /* kệ sách trong frame */
 .shelf-card{
-  background: rgba(255,255,255,.78);
+  background: rgba(255,255,255,.18);
   border-color: rgba(17,24,39,.12);
 }
 .book-card{
-  background: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.2);
   border-color: rgba(17,24,39,.12);
 }
 
 /* modal backdrop sáng hơn, KHÔNG blur để tránh halo */
 .modal__backdrop,
 #readerModal .modal__backdrop{
-  background: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.18);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -474,5 +474,6 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 

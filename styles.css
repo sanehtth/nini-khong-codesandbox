@@ -475,7 +475,7 @@ body::after{
 /* Base: vẫn là pill trong suốt, chỉ tô chữ bằng gradient */
 .tabs .tab{
   position: relative;
-  font-weight: 600;
+  font-weight: 650;
   letter-spacing: .2px;
   background: linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752);
   background-size: 300% 100%;
@@ -528,6 +528,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

@@ -63,7 +63,7 @@ body::after{
 .auth-btn{
   margin-left:12px;
   padding:8px 14px; border-radius:999px; border:2px solid var(--chip-border);
-  background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.05)); color:var(--text); cursor:pointer;
+  background:linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.05)); color:var(--text); cursor:pointer;
 }
 
 /* ---------- Main / Frame ---------- */
@@ -545,6 +545,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

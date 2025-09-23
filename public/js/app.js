@@ -1,4 +1,4 @@
-/* NiNi — App JS (full) */
+/* NiNi — App JS (full, patched) */
 (() => {
   // ========================================================================
   // 0) CONSTANTS & SAFE GETTERS
@@ -189,16 +189,76 @@
   // NOTE: Khối HTML tương ứng đã có trong index.html:
   // <div id="readerModal"> ... <div id="calendarViewport" class="calendar-viewport"> <div id="calendarBg" class="calendar-bg"></div> <div class="spinner"></div> ... </div>
   const readerModal  = $("#readerModal");
-  const calViewport  = $("#calendarViewport") || $("#calendarView") || $(".calendar-view"); // chấp nhận vài id/class cũ
-  const calBg        = $("#calendarBg") || (calViewport && $(".calendar-bg", calViewport));
-  const btnPrevImg   = $("#imgPrev");
-  const btnNextImg   = $("#imgNext");
+  let   calViewport  = $("#calendarViewport") || $("#calendarView") || $(".calendar-view"); // chấp nhận id/class cũ
+  let   calBg        = $("#calendarBg") || (calViewport && $(".calendar-bg", calViewport));
+  let   btnPrevImg   = $("#imgPrev");
+  let   btnNextImg   = $("#imgNext");
+  let   subtitleBubble = $("#subtitleBubble");
 
   // tùy HTML của bạn có thể có mấy nút lang khác nhau
   const btnLangVi = $("#langVi") || $('[data-lang="vi"]') || $("#ctlVi");
   const btnLangEn = $("#langEn") || $('[data-lang="en"]') || $("#ctlEn");
 
   const btnReaderClose = readerModal && $('[data-reader-close]', readerModal);
+
+  // PATCH: đảm bảo DOM trong viewport luôn đủ (spinner / subtitle / nav)
+  function ensureReaderDom() {
+    if (!calViewport) {
+      calViewport = document.createElement("div");
+      calViewport.id = "calendarViewport";
+      calViewport.className = "calendar-viewport";
+      const panel = readerModal?.querySelector(".modal__panel") || readerModal;
+      panel?.appendChild(calViewport);
+    }
+
+    if (!calBg) {
+      calBg = document.createElement("div");
+      calBg.id = "calendarBg";
+      calBg.className = "calendar-bg";
+      calViewport.appendChild(calBg);
+    }
+
+    // spinner non-blocking
+    let sp = calViewport.querySelector(".spinner");
+    if (!sp) {
+      sp = document.createElement("div");
+      sp.className = "spinner";
+      sp.setAttribute("aria-hidden", "true");
+      // PATCH: spinner không chặn click
+      sp.style.pointerEvents = "none";
+      calViewport.appendChild(sp);
+    }
+
+    if (!subtitleBubble) {
+      subtitleBubble = document.createElement("div");
+      subtitleBubble.id = "subtitleBubble";
+      subtitleBubble.className = "subtitle";
+      calViewport.appendChild(subtitleBubble);
+    }
+
+    if (!btnPrevImg) {
+      btnPrevImg = document.createElement("button");
+      btnPrevImg.id = "imgPrev";
+      btnPrevImg.className = "pill-nav pill-nav--prev";
+      btnPrevImg.textContent = "◀";
+      calViewport.appendChild(btnPrevImg);
+    }
+    if (!btnNextImg) {
+      btnNextImg = document.createElement("button");
+      btnNextImg.id = "imgNext";
+      btnNextImg.className = "pill-nav pill-nav--next";
+      btnNextImg.textContent = "▶";
+      calViewport.appendChild(btnNextImg);
+    }
+
+    // counter
+    if (!$("#pageCounter", calViewport) && !$("#readerPageInfo")) {
+      const ctr = document.createElement("div");
+      ctr.id = "pageCounter";
+      ctr.className = "pagebar";
+      calViewport.appendChild(ctr);
+    }
+  }
 
   let currentBook = null;
   let pageIdx = 0;
@@ -226,17 +286,18 @@
 
   // Hiển thị phụ đề (bubble) ở dưới ảnh, chỉ 1 ngôn ngữ đang chọn
   function renderSubtitle() {
-    const bubble = $("#subtitleBubble");
-    if (!bubble || !currentBook) return;
+    if (!subtitleBubble || !currentBook) return;
     const p = (currentBook.pages || [])[pageIdx] || {};
     const txt = speakLang === "en" ? pageTextEn(p) : pageTextVi(p);
-    bubble.textContent = txt || "";
+    subtitleBubble.textContent = txt || "";
   }
 
+  // PATCH: bật/tắt loading bằng class, không khóa pointer-events
   function setLoading(on) {
     if (!calViewport) return;
     calViewport.classList.toggle("is-loading", !!on);
     calViewport.classList.toggle("is-ready", !on);
+    calViewport.setAttribute("aria-busy", on ? "true" : "false");
   }
 
   function renderPageCounter() {
@@ -248,7 +309,8 @@
 
   // === CORE: render 1 trang ảnh (preload rồi mới show) ===
   function renderCalendarPage() {
-    if (!calViewport || !calBg || !currentBook) return;
+    if (!currentBook) return;
+    ensureReaderDom();
 
     const pages = currentBook.pages || [];
     const total = pages.length || 0;
@@ -287,7 +349,8 @@
     // mở modal
     readerModal?.setAttribute("aria-hidden", "false");
 
-    // render trang đầu
+    // Đảm bảo DOM và render trang đầu
+    ensureReaderDom();
     renderCalendarPage();
   }
 
@@ -296,15 +359,21 @@
   }
 
   // NAV ảnh
-  btnPrevImg?.addEventListener("click", () => {
-    if (!currentBook) return;
-    const total = (currentBook.pages || []).length || 0;
-    if (pageIdx > 0) { pageIdx--; renderCalendarPage(); }
-  });
-  btnNextImg?.addEventListener("click", () => {
-    if (!currentBook) return;
-    const total = (currentBook.pages || []).length || 0;
-    if (pageIdx < total - 1) { pageIdx++; renderCalendarPage(); }
+  // (dùng event delegation/đảm bảo đã có DOM)
+  function wireNav() {
+    btnPrevImg?.addEventListener("click", () => {
+      if (!currentBook) return;
+      if (pageIdx > 0) { pageIdx--; renderCalendarPage(); }
+    });
+    btnNextImg?.addEventListener("click", () => {
+      if (!currentBook) return;
+      const total = (currentBook.pages || []).length || 0;
+      if (pageIdx < total - 1) { pageIdx++; renderCalendarPage(); }
+    });
+  }
+  // PATCH: ESC để đóng
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && readerModal?.getAttribute("aria-hidden") === "false") closeReader();
   });
 
   btnLangVi?.addEventListener("click", () => setLang("vi"));
@@ -314,6 +383,7 @@
     if (e.target === readerModal || e.target.classList.contains("modal__backdrop")) closeReader();
   });
   setLang(speakLang); // init active state
+  wireNav();
 
   // ========================================================================
   // 5) STARTUP

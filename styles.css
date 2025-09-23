@@ -340,4 +340,49 @@ body::after{
 #readerModal .calendar-viewport.is-loading .spinner { display: block; }
 #readerModal .calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
 
+/* ===== Fix modal click-through ===== */
+
+/* Panel luôn cao hơn backdrop và nhận click */
+.modal__panel{
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+/* Backdrop ở dưới, chỉ dùng để đóng modal khi click */
+.modal__backdrop{
+  z-index: 1;
+  pointer-events: auto; /* để click ra ngoài thì đóng */
+}
+
+/* Bảo đảm vùng nội dung trong modal nhận click */
+.calendar-viewport{
+  position: relative;
+  pointer-events: auto;
+}
+
+/* Spinner không bao giờ chặn click */
+.calendar-viewport .spinner,
+.calendar-viewport .spinner *{
+  pointer-events: none !important;
+}
+
+/* Khi đang loading: vẫn cho click vào header/nút, chỉ đổi con trỏ */
+.calendar-viewport.is-loading{ cursor: progress; }
+
+/* Nếu bạn dùng lớp phủ mờ khi loading, nhớ để click-through */
+.calendar-viewport.is-loading::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Phòng trường hợp có phần tử phủ kín vô tình nuốt click */
+.calendar-viewport > .calendar-bg{ pointer-events: none; }  /* ảnh nền */
+.subtitle, .pagebar, .calendar-head, .calendar-tools{
+  pointer-events: auto; /* các nút, phụ đề vẫn bấm được */
+}
+
 

@@ -1,5 +1,5 @@
 /* ================================
-   NiNi — Funny  • styles.css (full)
+   NiNi — Funny • styles.css (FULL)
    Gộp & tinh gọn • Reader fix "2 frame"
    ================================ */
 
@@ -115,7 +115,9 @@ body::after{
   border-radius:14px; backdrop-filter: blur(8px);
 }
 .shelf-card[hidden]{display:none}
-.shelf-grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:10px}
+.shelf{display:block}
+.shelf__title{margin:4px 6px 8px; font-weight:700}
+.shelf__grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:6px}
 .book-card{
   display:flex; gap:10px; align-items:center;
   padding:8px 10px; border-radius:12px;
@@ -130,13 +132,15 @@ body::after{
 .book-card__title{margin:0; font-weight:700; font-size:14px}
 .book-card__meta{opacity:.8; font-size:12px}
 
-/* ---------- Modal base ---------- */
+/* ---------- Modal (base) ---------- */
 .modal{position:fixed; inset:0; display:none}
 .modal[aria-hidden="false"]{display:block}
 .modal__backdrop{
   position:absolute; inset:0;
   background:rgba(0,0,0,.55);
   backdrop-filter: blur(4px);
+  z-index:1;                 /* dưới panel */
+  pointer-events:auto;       /* click ra ngoài để đóng */
 }
 .modal__panel{
   position:absolute; inset:0; margin:auto; width:min(960px, 94vw);
@@ -144,14 +148,16 @@ body::after{
   border:1px solid rgba(255,255,255,.18);
   border-radius:16px; padding:16px 16px 18px; color:var(--text);
   top:50%; transform:translateY(-50%);
+  z-index:2;                 /* cao hơn backdrop */
+  pointer-events:auto;
 }
 .modal__close{
   position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer
 }
-
-/* ---------- Auth modal ---------- */
 .modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
 .modal__logo{width:28px; height:28px}
+
+/* ---------- Auth modal ---------- */
 .tabs-line{display:flex; gap:12px; margin:6px 0 12px}
 .tab-line{background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0}
 .tab-line.is-active{ text-decoration: underline }
@@ -175,214 +181,113 @@ body::after{
 .or{ text-align:center; color:#d0d8e6; margin:8px 0 4px}
 .note{font-size:12px; color:#cfd8e3; margin-top:8px}
 
-/* ---------- READER (calendar style, 1 panel gọn) ---------- */
-/* Panel reader: bỏ nền/viền/padding để không còn “frame ngoài” */
-.modal__panel--reader{
-  width:min(1120px, 92vw);
-  background: transparent;
-  border:none;
-  border-radius:0;
-  padding:0;
-  position:absolute; inset:0; margin:auto;
-  top:50%; transform:translateY(-50%);
-  color:var(--text);
+/* ---------- READER (calendar – 1 layer duy nhất trong modal) ---------- */
+/* Căn giữa modal reader giống auth */
+#readerModal{
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+#readerModal .modal__backdrop{
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(2px);
 }
 
-/* Header mỏng nổi */
-.reader-head{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  margin:0 0 8px;
-  background: rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.18);
-  border-radius:12px;
-  padding:10px 12px;
-  backdrop-filter: blur(4px);
-}
-.reader-title{margin:0; font-size:18px; font-weight:700}
-.reader-tools{display:flex; gap:6px; align-items:center}
-.btn.btn-chip{
-  padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:#fff; cursor:pointer
-}
-.btn.btn-chip:hover{border-color:#fff}
-.btn.btn-chip.is-active{border-color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
-
-/* Khung ảnh 16:9 */
-.reader-figure{
-  position:relative; width:100%; aspect-ratio:16/9;
-  overflow:hidden; border-radius:12px; background:#000;
-}
-.reader-figure img{
-  width:100%; height:100%; object-fit:cover; display:block;
-  transform: translateZ(0); image-rendering:-webkit-optimize-contrast;
+/* Panel của reader: trung tâm, gọn */
+#readerModal .modal__panel{
+  position: relative;            /* hủy top/transform cũ */
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  margin: 0;
+  width: min(1100px, 92vw);
+  max-height: min(88vh, 900px);
+  overflow: hidden;
+  background: var(--glass-2);
+  display: grid;
+  gap: 10px;
 }
 
-/* Subtitles nổi trên ảnh */
-.subtitle-bubble{
+/* Viewport 16:9 */
+#readerModal .calendar-viewport{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 14px;
+  overflow: hidden;
+  pointer-events:auto;
+}
+/* Ảnh nền trang (dùng background-image) */
+#readerModal .calendar-bg{
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity .25s ease;
+  pointer-events: none;          /* không nuốt click */
+}
+/* Trạng thái */
+#readerModal .calendar-viewport.is-loading .spinner{ display:block; }
+#readerModal .calendar-viewport.is-ready   .calendar-bg{ opacity: 1; }
+#readerModal .calendar-viewport.is-loading{ cursor: progress; }
+
+/* Spinner */
+#readerModal .spinner{
+  position:absolute; left:50%; top:50%;
+  width:22px; height:22px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.35);
+  border-top-color:#fff;
+  transform: translate(-50%,-50%);
+  animation: spin 1s linear infinite;
+  display:none;
+  pointer-events:none !important;
+}
+@keyframes spin{ to{ transform: translate(-50%,-50%) rotate(360deg);} }
+
+/* Phụ đề */
+#readerModal .subtitle-bubble{
   position:absolute; left:50%; transform:translateX(-50%);
-  bottom:10px; max-width:90%;
-  background: rgba(0,0,0,.55); color:#fff; border:1px solid rgba(255,255,255,.18);
+  bottom:14px; max-width: calc(100% - 48px);
+  background: rgba(0,0,0,.55); color:#fff;
+  border:1px solid rgba(255,255,255,.18);
   border-radius:12px; padding:10px 12px; line-height:1.45;
   backdrop-filter: blur(4px);
 }
 
-/* Nút prev/next + page info */
-.reader-bottom{
-  margin-top:10px; display:flex; align-items:center; justify-content:center; gap:14px;
-}
-.pill-nav{
-  width:34px; height:34px; border-radius:999px; border:1px solid var(--chip-border);
+/* Điều hướng ảnh */
+#readerModal .img-nav{ position:absolute; inset:0; pointer-events:none; }
+#readerModal .pill-nav{
+  pointer-events:auto;
+  position:absolute; top:50%; transform:translateY(-50%);
+  width:36px; height:36px; border-radius:999px;
+  border:1px solid var(--chip-border);
   background:transparent; color:#fff; cursor:pointer;
 }
-.pill-nav:hover{border-color:#fff}
-.page-indicator{opacity:.9; font-weight:600}
+#readerModal #imgPrev{ left:10px; }
+#readerModal #imgNext{ right:10px; }
+#readerModal .pill-nav:hover{ border-color:#fff }
+
+/* Nhóm UI (ngôn ngữ + page counter) */
+#readerModal .calendar-ui{
+  position:absolute; left:12px; top:12px;
+  display:flex; gap:8px; align-items:center;
+}
+#readerModal .lang-switch .btn{
+  padding:6px 10px; font-size:12px; border-radius:999px;
+  border:1px solid var(--chip-border); background:transparent; color:#fff; cursor:pointer;
+}
+#readerModal .lang-switch .btn.is-active{ background:#2ecc71; color:#101214; border-color:#2ecc71; }
+#readerModal .page-counter{
+  position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
+  color:#fff; font-size:12px; opacity:.9; font-weight:600;
+}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 840px){
   .shelf-card{width:calc(100% - 24px)}
-  .shelf-grid{grid-template-columns:1fr}
+  .shelf__grid{grid-template-columns:1fr}
 }
 @media (max-width: 640px){
   .nini{width:150px}
 }
-/* ========== FIX: căn giữa modal đọc sách giống Auth ========== */
-#readerModal {
-  position: fixed;           /* phủ toàn màn */
-  inset: 0;
-  display: flex;
-  align-items: center;       /* giữa dọc */
-  justify-content: center;   /* giữa ngang */
-  z-index: 1000;             /* cao hơn frame */
-}
-
-/* Panel bên trong của reader: hủy các vị trí cũ và giới hạn kích thước */
-#readerModal .modal__panel {
-  position: relative;        /* KHÔNG dùng top/left/translate */
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  transform: none !important;
-  margin: 0;                 /* flex đã căn giữa, không cần margin */
-  width: min(1100px, 92vw);
-  max-height: min(88vh, 900px);
-  overflow: hidden;          /* không tràn ra ngoài */
-  display: grid;
-  gap: 12px;
-}
-
-/* Ảnh trang: đảm bảo lấp chiều ngang panel, không “co kéo” sai tỷ lệ */
-#readerModal .page-img,
-#readerModal .calendar-img,
-#readerModal .reader-img {
-  width: 100%;
-  height: auto;
-  display: block;
-  object-fit: cover;         /* Ảnh 16:9 vẫn nét, không bẹt */
-}
-
-/* Bong bóng phụ đề: luôn bám vào trung tâm dưới ảnh */
-#readerModal .subtitle-bubble {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 18px;
-}
-
-/* Điều hướng dưới ảnh: căn giữa tuyệt đối */
-#readerModal .nav-strip {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 58px; /* tùy bạn chỉnh để không đè phụ đề */
-}
-
-/* (tuỳ chọn) Giảm tối nền backdrop một chút cho ảnh nổi hơn */
-#readerModal .modal__backdrop {
-  background: rgba(0,0,0,.6);
-  backdrop-filter: blur(2px);
-}
-/* ===== Reader calendar viewport ===== */
-#readerModal .calendar {
-  width: min(1100px, 92vw);
-  max-height: 88vh;
-  margin: 0 auto;
-}
-#readerModal .calendar-viewport {
-  position: relative;
-  aspect-ratio: 16 / 9;     /* giữ chỗ 16:9 để không nhảy layout */
-  background: #000;         /* nền tạm khi chưa có ảnh */
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-/* nền ảnh (dùng background-image) */
-#readerModal .calendar-bg {
-  position: absolute; inset: 0;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;               /* fade-in sau khi tải xong */
-  transition: opacity .25s ease;
-}
-
-/* spinner */
-#readerModal .spinner {
-  position: absolute; left: 50%; top: 50%;
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.35);
-  border-top-color: #fff;
-  transform: translate(-50%,-50%);
-  animation: spin 1s linear infinite;
-  display: none;
-}
-@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg);} }
-
-/* trạng thái */
-#readerModal .calendar-viewport.is-loading .spinner { display: block; }
-#readerModal .calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
-
-/* ===== Fix modal click-through ===== */
-
-/* Panel luôn cao hơn backdrop và nhận click */
-.modal__panel{
-  position: relative;
-  z-index: 2;
-  pointer-events: auto;
-}
-
-/* Backdrop ở dưới, chỉ dùng để đóng modal khi click */
-.modal__backdrop{
-  z-index: 1;
-  pointer-events: auto; /* để click ra ngoài thì đóng */
-}
-
-/* Bảo đảm vùng nội dung trong modal nhận click */
-.calendar-viewport{
-  position: relative;
-  pointer-events: auto;
-}
-
-/* Spinner không bao giờ chặn click */
-.calendar-viewport .spinner,
-.calendar-viewport .spinner *{
-  pointer-events: none !important;
-}
-
-/* Khi đang loading: vẫn cho click vào header/nút, chỉ đổi con trỏ */
-.calendar-viewport.is-loading{ cursor: progress; }
-
-/* Nếu bạn dùng lớp phủ mờ khi loading, nhớ để click-through */
-.calendar-viewport.is-loading::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  pointer-events: none;
-}
-
-/* Phòng trường hợp có phần tử phủ kín vô tình nuốt click */
-.calendar-viewport > .calendar-bg{ pointer-events: none; }  /* ảnh nền */
-.subtitle, .pagebar, .calendar-head, .calendar-tools{
-  pointer-events: auto; /* các nút, phụ đề vẫn bấm được */
-}
-
-

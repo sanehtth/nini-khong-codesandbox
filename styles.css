@@ -471,6 +471,48 @@ body::after{
 .admin-btn.is-hidden{ display:none; }
 /* ============================================== */
 
+/* ===== Gradient tabs like slogan ===== */
+/* Base: vẫn là pill trong suốt, chỉ tô chữ bằng gradient */
+.tabs .tab{
+  position: relative;
+  font-weight: 600;
+  letter-spacing: .2px;
+  background: linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;   /* Safari/Chromium */
+          color: transparent;             /* Fallback */
+  transition: background-position .8s ease, transform .15s ease, opacity .2s ease;
+  text-shadow: 0 1px 0 rgba(0,0,0,.15);   /* giúp dễ đọc trên nền sáng */
+}
+
+/* Hover: chạy gradient và nổi nhẹ */
+.tabs .tab:hover{
+  background-position: 100% 0;
+  transform: translateY(-1px);
+  opacity: 1;
+}
+
+/* Active tab: gạch chân gradient + giữ vị trí gradient ở cuối để “đậm” */
+.tabs .tab.is-active{
+  background-position: 100% 0;
+}
+
+/* Vạch gạch chân gradient (ẩn mặc định, hiện khi hover/active) */
+.tabs .tab::after{
+  content:"";
+  position:absolute; left:10px; right:10px; bottom:2px;
+  height:2px; border-radius:2px; opacity:0;
+  background: linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752);
+  transition: opacity .25s ease;
+}
+.tabs .tab:hover::after,
+.tabs .tab.is-active::after{ opacity:.9; }
+
+/* Giảm độ mờ mặc định của .tab cũ để chữ luôn rõ */
+.tab{ opacity: 1; }
+
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
    ============================================================ */
@@ -486,6 +528,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

@@ -1,8 +1,7 @@
-/* NiNi — App JS (full, patched)
-   NOTE:
-   - Không tự mở reader khi boot (chỉ mở khi click book)
-   - Đồng bộ ID/class với HTML/CSS mới
-   - Thêm fallback & an toàn pointer-events
+/* NiNi — App JS (full, đã chỉnh)
+   - [THÊM] TTS (nút 🔊) đọc phụ đề theo ngôn ngữ đang chọn
+   - [SỬA]  Bộ đếm trang hiển thị ở góc trên-phải (#pageCounterTop)
+   - [SỬA]  Render phụ đề vào #subtitleText
 */
 (() => {
   // ========================================================================
@@ -16,11 +15,11 @@
     winter: "/public/assets/images/seasons/winter.webp",
   };
 
-  // Đường dẫn manifest & book
+  // đường dẫn manifest & book
   const LIB_MANIFEST_URL = "/public/content/storybook/library-manifest.json";
   const BOOK_URL = (id) => `/public/content/storybook/${id}.json`;
 
-  // Safe query
+  // safe query
   const $  = (sel, root=document) => root.querySelector(sel);
   const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
@@ -54,7 +53,7 @@
       renderShelfInFrame();
     } else {
       const mount = $("#shelfMount");
-      if (mount) { mount.hidden = true; mount.innerHTML = ""; }
+      if (mount) mount.hidden = true, mount.innerHTML = "";
     }
   }
 
@@ -191,23 +190,75 @@
   // ========================================================================
   // 4) READER “CALENDAR” 16:9 — preload ảnh + spinner + Prev/Next + VI/EN
   // ========================================================================
-  // NOTE: khớp ID/class với index.html
   const readerModal  = $("#readerModal");
   const calViewport  = $("#calendarViewport");
   const calBg        = $("#calendarBg");
   const btnPrevImg   = $("#imgPrev");
   const btnNextImg   = $("#imgNext");
-  const btnLangVi    = $("#langVi");
-  const btnLangEn    = $("#langEn");
+
+  const btnLangVi = $("#btnLangVi");
+  const btnLangEn = $("#btnLangEn");
+  const btnSpeak  = $("#btnSpeak");
+
   const btnReaderClose = readerModal && $('[data-reader-close]', readerModal);
 
   let currentBook = null;
   let pageIdx = 0;
   let speakLang = localStorage.getItem("reader_lang") || "vi"; // 'vi' | 'en'
 
-  function pickPageImage(p = {}) { return p.image || p.L_image_P || p.img || p.L_image || ""; }
-  function pageTextVi(p = {})   { return p.text_vi || p.noidung_vi || ""; }
-  function pageTextEn(p = {})   { return p.text_en || p.noidung_en || ""; }
+  // ===== [THÊM] TTS (Text-to-Speech) =====
+  let isSpeaking = false;
+  let speakUtter = null;
+  let speakVoices = [];
+
+  function loadVoices() {
+    try { speakVoices = speechSynthesis.getVoices(); } catch { speakVoices = []; }
+  }
+  loadVoices();
+  if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function pickVoice(langCode) {
+    if (!speakVoices.length) loadVoices();
+    const primary = speakVoices.find(v => v.lang?.toLowerCase().startsWith(langCode));
+    return primary || speakVoices.find(v => v.lang?.toLowerCase().startsWith("en")) || null;
+  }
+
+  function stopSpeak() {
+    isSpeaking = false;
+    try { window.speechSynthesis.cancel(); } catch {}
+  }
+
+  function speakCurrent() {
+    stopSpeak();
+    if (!currentBook || !window.SpeechSynthesisUtterance) return;
+    const p = (currentBook.pages || [])[pageIdx] || {};
+    const text = (speakLang === "en" ? pageTextEn(p) : pageTextVi(p)) || "";
+    if (!text.trim()) return;
+
+    speakUtter = new SpeechSynthesisUtterance(text);
+    const voice = pickVoice(speakLang === "en" ? "en" : "vi");
+    if (voice) speakUtter.voice = voice;
+    speakUtter.rate = 1; speakUtter.pitch = 1; speakUtter.volume = 1;
+
+    speakUtter.onend = () => { isSpeaking = false; };
+    speakUtter.onerror = () => { isSpeaking = false; };
+
+    window.speechSynthesis.speak(speakUtter);
+    isSpeaking = true;
+  }
+  // ===== HẾT PHẦN THÊM TTS =====
+
+  function pickPageImage(p = {}) {
+    return p.image || p.L_image_P || p.img || p.L_image || "";
+  }
+  function pageTextVi(p = {}) {
+    return p.text_vi || p.noidung_vi || "";
+  }
+  function pageTextEn(p = {}) {
+    return p.text_en || p.noidung_en || "";
+  }
 
   function setLang(lang) {
     speakLang = lang === "en" ? "en" : "vi";
@@ -216,14 +267,16 @@
     if (speakLang === "vi") btnLangVi?.classList.add("is-active");
     else btnLangEn?.classList.add("is-active");
     renderSubtitle();
+    if (isSpeaking) speakCurrent(); // đọc lại theo ngôn ngữ mới
   }
 
+  // [SỬA] Render phụ đề vào #subtitleText (thay vì #subtitleBubble)
   function renderSubtitle() {
-    const bubble = $("#subtitleBubble");
-    if (!bubble || !currentBook) return;
+    const el = $("#subtitleText");
+    if (!el || !currentBook) return;
     const p = (currentBook.pages || [])[pageIdx] || {};
     const txt = speakLang === "en" ? pageTextEn(p) : pageTextVi(p);
-    bubble.textContent = txt || "";
+    el.textContent = txt || "";
   }
 
   function setLoading(on) {
@@ -232,13 +285,17 @@
     calViewport.classList.toggle("is-ready", !on);
   }
 
+  // [SỬA] Ghi đếm trang vào #pageCounterTop (và #pageCounter nếu còn)
   function renderPageCounter() {
-    const el = $("#pageCounter");
-    if (!el || !currentBook) return;
-    const total = (currentBook.pages || []).length || 1;
-    el.textContent = `Trang ${Math.min(pageIdx + 1, total)}/${total}`;
+    const total = (currentBook?.pages || []).length || 1;
+    const txt = `Trang ${Math.min(pageIdx + 1, total)}/${total}`;
+    const elTop = $("#pageCounterTop");
+    if (elTop) elTop.textContent = txt;
+    const elOld = $("#pageCounter");
+    if (elOld) elOld.textContent = txt;
   }
 
+  // === CORE: render 1 trang ảnh (preload rồi mới show) ===
   function renderCalendarPage() {
     if (!calViewport || !calBg || !currentBook) return;
 
@@ -259,6 +316,7 @@
     tmp.onload = () => {
       calBg.style.backgroundImage = `url("${url}")`;
       setLoading(false);
+      if (isSpeaking) speakCurrent();
     };
     tmp.onerror = () => {
       calBg.style.backgroundImage = "";
@@ -274,13 +332,13 @@
     const h = readerModal && $("#readerTitle", readerModal);
     if (h) h.textContent = book.title_vi || book.title_en || book.id || "NiNi Book";
 
-    // NOTE: CHỈ mở modal khi click book
     readerModal?.setAttribute("aria-hidden", "false");
-
+    setLang(speakLang); // set active nút VI/EN
     renderCalendarPage();
   }
 
   function closeReader() {
+    stopSpeak(); // [THÊM] dừng TTS khi đóng
     readerModal?.setAttribute("aria-hidden", "true");
   }
 
@@ -297,6 +355,8 @@
 
   btnLangVi?.addEventListener("click", () => setLang("vi"));
   btnLangEn?.addEventListener("click", () => setLang("en"));
+  btnSpeak?.addEventListener("click", () => { if (isSpeaking) stopSpeak(); else speakCurrent(); });
+
   btnReaderClose?.addEventListener("click", closeReader);
   readerModal?.addEventListener("click", e => {
     if (e.target === readerModal || e.target.classList.contains("modal__backdrop")) closeReader();
@@ -306,12 +366,6 @@
   // ========================================================================
   // 5) STARTUP
   // ========================================================================
-  // NOTE: đảm bảo reader ẩn khi vừa load
-  document.addEventListener("DOMContentLoaded", () => {
-    const m = document.getElementById("readerModal");
-    if (m) m.setAttribute("aria-hidden", "true");
-  });
-
   bootSeasonFromHash();
   window.addEventListener("hashchange", bootSeasonFromHash);
 

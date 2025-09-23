@@ -9,7 +9,7 @@
   <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- CSS (nhớ dùng bản styles.css mới đã vá pointer-events / loading) -->
+  <!-- CSS (dùng bản đã gộp/fix) -->
   <link rel="stylesheet" href="/styles.css?v=9" />
 </head>
 <body>
@@ -68,42 +68,42 @@
   </main>
 
   <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
-  <!-- LƯU Ý: các ID dưới đây phải khớp với app.js -->
+  <!-- LƯU Ý: các ID dưới đây khớp với app.js + styles.css -->
+  <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
-    <div class="modal__backdrop"></div>
 
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
       <!-- Thanh tiêu đề + điều khiển ngôn ngữ/đọc -->
-      <header class="calendar-head">
-        <h3 id="readerTitle" class="calendar-title">Đang tải…</h3>
-        <div class="calendar-tools">
-          <button id="btnLangVi" class="chip" title="Xem phụ đề Tiếng Việt">VI</button>
-          <button id="btnLangEn" class="chip" title="Xem phụ đề English">EN</button>
-          <button id="btnSpeak"  class="chip" title="Đọc to">🔊</button>
+      <header class="reader-head">
+        <h3 id="readerTitle" class="reader-title">Đang tải…</h3>
+        <div class="reader-tools">
+          <button id="langVi" class="btn btn-chip" title="Sub tiếng Việt">VI</button>
+          <button id="langEn" class="btn btn-chip" title="Sub English">EN</button>
+          <!-- nút đọc to optional: <button id="btnSpeak" class="btn btn-chip" title="Đọc to">🔊</button> -->
         </div>
       </header>
 
-      <!-- Viewport: ảnh nền phủ toàn khung + phụ đề + điều hướng -->
-      <div id="calendarViewport" class="calendar-viewport is-ready">
-        <!-- Ảnh trang được vẽ dưới dạng background -->
+      <!-- Viewport: ảnh nền phủ 16:9 + phụ đề + điều hướng -->
+      <div id="calendarViewport" class="calendar-viewport">
+        <!-- Ảnh trang vẽ bằng background -->
         <div id="calendarBg" class="calendar-bg"></div>
 
-        <!-- Phụ đề (1 ngôn ngữ, đổi bằng nút VI/EN) -->
-        <div class="subtitle">
-          <div id="subtitleText" class="subtitle-text"></div>
-        </div>
+        <!-- Phụ đề (1 ngôn ngữ, đổi bằng VI/EN) -->
+        <div id="subtitleBubble" class="subtitle-bubble"></div>
 
-        <!-- Điều hướng ảnh + số trang -->
-        <div class="pagebar">
+        <!-- Điều hướng ảnh (nổi 2 bên) -->
+        <div class="img-nav">
           <button id="imgPrev" class="pill-nav" title="Trang trước">◀</button>
-          <div id="pageCounter" class="muted">Trang 1/1</div>
           <button id="imgNext" class="pill-nav" title="Trang sau">▶</button>
         </div>
 
-        <!-- Spinner loading an toàn (không nuốt click khi ẩn) -->
-        <div class="spinner"><div class="dot"></div></div>
+        <!-- Số trang -->
+        <div id="pageCounter" class="page-indicator">Trang 1/1</div>
+
+        <!-- Spinner -->
+        <div class="spinner"></div>
       </div>
     </div>
   </div>
@@ -171,9 +171,8 @@
     </div>
   </div>
 
-  <!-- JS (defer để tải sau khi DOM sẵn sàng) -->
+  <!-- JS -->
   <script src="/public/js/effects.js?v=5" defer></script>
   <script src="/public/js/app.js?v=12" defer></script>
 </body>
 </html>
-

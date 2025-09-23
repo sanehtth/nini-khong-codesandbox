@@ -458,6 +458,18 @@ body::after{
   border-bottom-color: rgba(17,24,39,.28);
 }
 .form input::placeholder{ color:#98a2b3 }
+/* ================= Admin button ================ */
+.admin-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 14px; border-radius:999px;
+  border:1px solid var(--chip-border);
+  background: var(--chip-bg); color: var(--text);
+  text-decoration:none; cursor:pointer;
+  transition: transform .15s ease, border-color .15s ease;
+}
+.admin-btn:hover{ border-color: rgba(17,24,39,.35); transform: translateY(-1px); }
+.admin-btn.is-hidden{ display:none; }
+/* ============================================== */
 
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
@@ -474,6 +486,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

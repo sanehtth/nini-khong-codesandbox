@@ -6,6 +6,55 @@
   <title>Admin — NiNi</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=11" />
+<!-- ===== ADMIN GUARD (kiểm tra + gia hạn phiên) ===== -->
+<script>
+(function(){
+  const KEY = 'nini_admin';
+  function readSession(){
+    try { return JSON.parse(localStorage.getItem(KEY) || 'null'); }
+    catch { return null; }
+  }
+  function writeSession(s){
+    localStorage.setItem(KEY, JSON.stringify(s));
+  }
+  const s = readSession();
+
+  // 1) Chưa có hoặc hết hạn -> về login
+  if(!s || !s.ok || !s.exp || Date.now() > s.exp){
+    localStorage.removeItem(KEY);
+    location.replace('/admin/login.html');
+    return;
+  }
+
+  // 2) Nếu còn < 5 phút -> gia hạn lên 6h (sliding)
+  const FIVE_MIN  = 5 * 60 * 1000;
+  const SIX_HOURS = 6 * 60 * 60 * 1000;
+  if (s.exp - Date.now() < FIVE_MIN) {
+    s.exp = Date.now() + SIX_HOURS;
+    writeSession(s);
+  }
+
+  // 3) Auto renew mỗi 3 phút khi người dùng vẫn ở trang
+  setInterval(()=>{
+    const cur = readSession();
+    if(!cur || !cur.ok) return;
+    cur.exp = Date.now() + SIX_HOURS;
+    writeSession(cur);
+  }, 3 * 60 * 1000);
+
+  // 4) Gắn sẵn nút “Đăng xuất Admin” nếu trang có #adminLogout
+  window.addEventListener('DOMContentLoaded', ()=>{
+    const btn = document.getElementById('adminLogout');
+    if(btn){
+      btn.addEventListener('click', ()=>{
+        localStorage.removeItem(KEY);
+        location.replace('/admin/login.html');
+      });
+    }
+  });
+})();
+</script>
+<!-- ===== END ADMIN GUARD ===== -->
 
   <!-- =========================================================
        BEGIN: Admin page light-glass theming (không đụng code chung)
@@ -289,3 +338,4 @@
        ========================================================= -->
 </body>
 </html>
+

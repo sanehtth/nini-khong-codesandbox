@@ -346,6 +346,118 @@ body::after{
 /* State */
 #readerModal .calendar-viewport.is-loading .spinner { display: block; }
 #readerModal .calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
+/* ============================================================
+   LIGHT SKIN — kính trắng mờ, tông sáng cho trẻ em
+   Thêm đoạn này vào CUỐI file styles.css để override toàn cục
+   ============================================================ */
+:root{
+  /* nền chung phía sau */
+  --text: #121418;
+  --text-dim: #364152;
+
+  /* kính trắng */
+  --glass: rgba(255,255,255,.55);
+  --glass-2: rgba(255,255,255,.72);
+  --chip-bg: rgba(255,255,255,.75);
+  --chip-border: rgba(17,24,39,.15);
+}
+
+/* nền mờ hậu cảnh: sáng hơn, bỏ tối */
+body::before{
+  filter: blur(8px) saturate(1.05) brightness(1.06);
+}
+body::after{
+  background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,.0), rgba(255,255,255,.0));
+}
+
+/* header sáng & kính trắng */
+.site-header{
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.45));
+  color: var(--text);
+  border-bottom: 1px solid rgba(17,24,39,.08);
+}
+.auth-btn,.tab{
+  color: var(--text);
+  border-color: rgba(17,24,39,.15);
+}
+.tab.is-active{ text-decoration: underline }
+
+/* khung chính (frame) viền sáng */
+.frame{
+  box-shadow: 0 22px 60px rgba(17,24,39,.08), inset 0 0 0 1px rgba(17,24,39,.06);
+  background-color:#fff; /* fallback sau ảnh */
+}
+
+/* chip & nút dạng kính trắng */
+.chip,.btn,.btn.btn-chip,.pill-nav{
+  color: var(--text);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+}
+.chip:hover,.btn:hover,.btn.btn-chip:hover,.pill-nav:hover{
+  border-color: rgba(17,24,39,.3);
+}
+
+/* hộp mô tả dưới khung — nền sáng */
+.content{
+  background: rgba(255,255,255,.78);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(17,24,39,.06);
+}
+
+/* kệ sách trong frame */
+.shelf-card{
+  background: rgba(255,255,255,.78);
+  border-color: rgba(17,24,39,.12);
+}
+.book-card{
+  background: rgba(255,255,255,.9);
+  border-color: rgba(17,24,39,.12);
+}
+
+/* modal backdrop sáng hơn, KHÔNG blur để tránh halo */
+.modal__backdrop,
+#readerModal .modal__backdrop{
+  background: rgba(255,255,255,.55);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* panel modal sáng */
+.modal__panel{
+  background: var(--glass-2);
+  border: 1px solid rgba(17,24,39,.12);
+  color: var(--text);
+}
+
+/* thanh tiêu đề reader */
+.calendar-head,
+#readerModal .pagebar{
+  background: rgba(255,255,255,.85);
+  border:1px solid rgba(17,24,39,.12);
+}
+#readerModal .pagebar .muted{ color: var(--text); }
+
+/* phụ đề trên ảnh: nền TRẮNG, chữ tối */
+#readerModal .subtitle{
+  background: rgba(255,255,255,.92);
+  color: var(--text);
+  border:1px solid rgba(17,24,39,.12);
+}
+
+/* spinner màu tối nhẹ */
+#readerModal .spinner{
+  border-color: rgba(17,24,39,.25);
+  border-top-color: rgba(17,24,39,.65);
+}
+
+/* input & label trong auth modal */
+.form label{ color: #475467; }
+.form input{
+  color: var(--text);
+  border-bottom-color: rgba(17,24,39,.28);
+}
+.form input::placeholder{ color:#98a2b3 }
 
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
@@ -362,3 +474,4 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+

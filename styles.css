@@ -280,3 +280,20 @@ body::after{
 @media (max-width: 640px){
   .nini{width:150px}
 }
+/* Ẩn bộ đếm cũ dưới chân ảnh nếu vẫn còn trong DOM */
+#pageCounter { display: none !important; }
+
+/* Đếm trang góc trên-phải */
+.page-indicator--top{
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.2);
+  font-weight: 600;
+  line-height: 1;
+  backdrop-filter: blur(4px);
+}
+

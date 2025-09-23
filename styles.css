@@ -62,8 +62,8 @@ body::after{
 
 .auth-btn{
   margin-left:12px;
-  padding:8px 14px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:var(--text); cursor:pointer;
+  padding:8px 14px; border-radius:999px; border:2px solid var(--chip-border);
+  background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.05)); color:var(--text); cursor:pointer;
 }
 
 /* ---------- Main / Frame ---------- */
@@ -395,7 +395,7 @@ body::after{
 }
 .auth-btn,.tab{
   color: var(--text);
-  border-color: rgba(17,24,39,.15);
+  border-color: rgba(255,255,255,.85);
 }
 .tab.is-active{ text-decoration: underline }
 
@@ -545,6 +545,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

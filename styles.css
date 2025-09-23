@@ -1,6 +1,9 @@
 /* ================================
-   NiNi — Funny • styles.css (FULL)
-   Gộp & tinh gọn • Reader fix "2 frame"
+   NiNi — Funny  • styles.css (full)
+   Đã gộp & fix:
+   - Modal chỉ hiển thị khi aria-hidden="false"
+   - Reader 1 khung, căn giữa, không nuốt click
+   - Spinner/loading không chặn thao tác
    ================================ */
 
 /* ---------- CSS Variables ---------- */
@@ -115,9 +118,7 @@ body::after{
   border-radius:14px; backdrop-filter: blur(8px);
 }
 .shelf-card[hidden]{display:none}
-.shelf{display:block}
-.shelf__title{margin:4px 6px 8px; font-weight:700}
-.shelf__grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:6px}
+.shelf__grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:10px}
 .book-card{
   display:flex; gap:10px; align-items:center;
   padding:8px 10px; border-radius:12px;
@@ -132,15 +133,14 @@ body::after{
 .book-card__title{margin:0; font-weight:700; font-size:14px}
 .book-card__meta{opacity:.8; font-size:12px}
 
-/* ---------- Modal (base) ---------- */
+/* ---------- Modal base ---------- */
+/* NOTE: modal ẩn mặc định, chỉ hiện khi aria-hidden="false" */
 .modal{position:fixed; inset:0; display:none}
 .modal[aria-hidden="false"]{display:block}
 .modal__backdrop{
   position:absolute; inset:0;
   background:rgba(0,0,0,.55);
   backdrop-filter: blur(4px);
-  z-index:1;                 /* dưới panel */
-  pointer-events:auto;       /* click ra ngoài để đóng */
 }
 .modal__panel{
   position:absolute; inset:0; margin:auto; width:min(960px, 94vw);
@@ -148,16 +148,14 @@ body::after{
   border:1px solid rgba(255,255,255,.18);
   border-radius:16px; padding:16px 16px 18px; color:var(--text);
   top:50%; transform:translateY(-50%);
-  z-index:2;                 /* cao hơn backdrop */
-  pointer-events:auto;
 }
 .modal__close{
   position:absolute; right:10px; top:8px; font-size:20px; background:transparent; color:#fff; border:none; cursor:pointer
 }
-.modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
-.modal__logo{width:28px; height:28px}
 
 /* ---------- Auth modal ---------- */
+.modal__title{display:flex; align-items:center; gap:10px; margin:0 0 10px}
+.modal__logo{width:28px; height:28px}
 .tabs-line{display:flex; gap:12px; margin:6px 0 12px}
 .tab-line{background:transparent; color:#fff; border:none; cursor:pointer; padding:8px 0}
 .tab-line.is-active{ text-decoration: underline }
@@ -181,107 +179,98 @@ body::after{
 .or{ text-align:center; color:#d0d8e6; margin:8px 0 4px}
 .note{font-size:12px; color:#cfd8e3; margin-top:8px}
 
-/* ---------- READER (calendar – 1 layer duy nhất trong modal) ---------- */
-/* Căn giữa modal reader giống auth */
-#readerModal{
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000;
+/* ---------- READER (calendar style, 1 panel gọn) ---------- */
+.reader-head{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin:0 0 8px;
+  background: rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;
+  padding:10px 12px;
+  backdrop-filter: blur(4px);
 }
-#readerModal .modal__backdrop{
-  background: rgba(0,0,0,.6);
-  backdrop-filter: blur(2px);
+.reader-title{margin:0; font-size:18px; font-weight:700}
+.reader-tools{display:flex; gap:6px; align-items:center}
+.btn.btn-chip{
+  padding:6px 10px; border-radius:999px; border:1px solid var(--chip-border);
+  background:transparent; color:#fff; cursor:pointer
 }
+.btn.btn-chip:hover{border-color:#fff}
+.btn.btn-chip.is-active{border-color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
 
-/* Panel của reader: trung tâm, gọn */
-#readerModal .modal__panel{
-  position: relative;            /* hủy top/transform cũ */
-  top: auto !important;
-  left: auto !important;
-  transform: none !important;
-  margin: 0;
-  width: min(1100px, 92vw);
-  max-height: min(88vh, 900px);
-  overflow: hidden;
-  background: var(--glass-2);
-  display: grid;
-  gap: 10px;
-}
-
-/* Viewport 16:9 */
-#readerModal .calendar-viewport{
+/* Khung ảnh 16:9 */
+.calendar-viewport{
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
+  width: min(1120px, 92vw);
+  max-height: 88vh;
+  margin: 0 auto;
+  aspect-ratio: 16/9;
   background: #000;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
-  pointer-events:auto;
 }
-/* Ảnh nền trang (dùng background-image) */
-#readerModal .calendar-bg{
+
+/* nền ảnh (dùng background-image) */
+.calendar-bg{
   position: absolute; inset: 0;
   background-size: cover;
   background-position: center;
   opacity: 0;
   transition: opacity .25s ease;
-  pointer-events: none;          /* không nuốt click */
 }
-/* Trạng thái */
-#readerModal .calendar-viewport.is-loading .spinner{ display:block; }
-#readerModal .calendar-viewport.is-ready   .calendar-bg{ opacity: 1; }
-#readerModal .calendar-viewport.is-loading{ cursor: progress; }
 
-/* Spinner */
-#readerModal .spinner{
-  position:absolute; left:50%; top:50%;
-  width:22px; height:22px; border-radius:50%;
-  border:3px solid rgba(255,255,255,.35);
-  border-top-color:#fff;
-  transform: translate(-50%,-50%);
-  animation: spin 1s linear infinite;
-  display:none;
-  pointer-events:none !important;
-}
-@keyframes spin{ to{ transform: translate(-50%,-50%) rotate(360deg);} }
-
-/* Phụ đề */
-#readerModal .subtitle-bubble{
+/* Subtitles nổi trên ảnh */
+.subtitle-bubble{
   position:absolute; left:50%; transform:translateX(-50%);
-  bottom:14px; max-width: calc(100% - 48px);
-  background: rgba(0,0,0,.55); color:#fff;
-  border:1px solid rgba(255,255,255,.18);
+  bottom:14px; max-width:90%;
+  background: rgba(0,0,0,.55); color:#fff; border:1px solid rgba(255,255,255,.18);
   border-radius:12px; padding:10px 12px; line-height:1.45;
   backdrop-filter: blur(4px);
 }
 
-/* Điều hướng ảnh */
-#readerModal .img-nav{ position:absolute; inset:0; pointer-events:none; }
-#readerModal .pill-nav{
-  pointer-events:auto;
-  position:absolute; top:50%; transform:translateY(-50%);
-  width:36px; height:36px; border-radius:999px;
-  border:1px solid var(--chip-border);
-  background:transparent; color:#fff; cursor:pointer;
+/* Nút prev/next + page info */
+.img-nav{
+  position:absolute; left:0; right:0; bottom:50%; transform:translateY(50%);
+  display:flex; align-items:center; justify-content:space-between; padding:0 10px;
+  pointer-events:none; /* container không bắt click */
 }
-#readerModal #imgPrev{ left:10px; }
-#readerModal #imgNext{ right:10px; }
-#readerModal .pill-nav:hover{ border-color:#fff }
+.pill-nav{
+  width:34px; height:34px; border-radius:999px; border:1px solid var(--chip-border);
+  background:transparent; color:#fff; cursor:pointer; pointer-events:auto; /* nút vẫn click được */
+}
+.pill-nav:hover{border-color:#fff}
+.page-indicator{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:10px; opacity:.9; font-weight:600; background: rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.18); padding:6px 10px; border-radius:999px;
+}
 
-/* Nhóm UI (ngôn ngữ + page counter) */
-#readerModal .calendar-ui{
-  position:absolute; left:12px; top:12px;
-  display:flex; gap:8px; align-items:center;
+/* spinner */
+.spinner{
+  position: absolute; left: 50%; top: 50%;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  transform: translate(-50%,-50%);
+  animation: spin 1s linear infinite;
+  display: none;
 }
-#readerModal .lang-switch .btn{
-  padding:6px 10px; font-size:12px; border-radius:999px;
-  border:1px solid var(--chip-border); background:transparent; color:#fff; cursor:pointer;
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg);} }
+
+/* trạng thái loading/ready */
+.calendar-viewport.is-loading .spinner { display: block; }
+.calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
+
+/* ===== Fix modal click-through ===== */
+.modal__panel{ position: relative; z-index: 2; pointer-events: auto; }
+.modal__backdrop{ z-index: 1; pointer-events: auto; }
+.calendar-viewport{ position: relative; pointer-events: auto; }
+.calendar-viewport .spinner, .calendar-viewport .spinner *{ pointer-events: none !important; }
+.calendar-viewport.is-loading{ cursor: progress; }
+.calendar-viewport.is-loading::after{
+  content: ""; position: absolute; inset: 0; background: transparent; pointer-events: none;
 }
-#readerModal .lang-switch .btn.is-active{ background:#2ecc71; color:#101214; border-color:#2ecc71; }
-#readerModal .page-counter{
-  position:absolute; left:50%; bottom:8px; transform:translateX(-50%);
-  color:#fff; font-size:12px; opacity:.9; font-weight:600;
-}
+.calendar-viewport > .calendar-bg{ pointer-events: none; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 840px){

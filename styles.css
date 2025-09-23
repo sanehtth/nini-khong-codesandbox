@@ -9,9 +9,9 @@
   --text: #ffffff;
   --text-dim:#e6edf6;
   --chip-bg: rgba(255,255,255,.08);
-  --chip-border: rgba(255,255,255,.25);
-  --glass: rgba(0,0,0,.35);
-  --glass-2: rgba(0,0,0,.45);
+  --chip-border: rgba(255,255,255,.15);
+  --glass: rgba(255,255,255,.15);
+  --glass-2: rgba(255,255,255,.25);
 }
 
 /* ---------- Reset ---------- */
@@ -101,7 +101,7 @@ body::after{
   margin:18px auto 0;
   padding:16px 20px 20px;
   border-radius:16px;
-  background: rgba(0,0,0,.25);
+  background: rgba(255,255,255,.15);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
 }
 .content h2{margin:0 0 8px}
@@ -111,7 +111,7 @@ body::after{
 .shelf-card{
   position:absolute; top:18px; left:18px;
   width:min(560px, 52%); padding:12px;
-  background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.35); border:1px solid rgba(255,255,255,.18);
   border-radius:14px; backdrop-filter: blur(8px);
 }
 .shelf-card[hidden]{display:none}
@@ -308,7 +308,7 @@ body::after{
 #readerModal .subtitle{
   position:absolute; left:50%; transform:translateX(-50%);
   bottom:14px; max-width:92%;
-  background: rgba(0,0,0,.55); color:#fff;
+  background: rgba(255,255,255,.35); color:#fff;
   border:1px solid rgba(255,255,255,.18);
   border-radius:12px; padding:10px 12px; line-height:1.45;
   backdrop-filter: blur(4px);
@@ -319,7 +319,7 @@ body::after{
 #readerModal .pagebar{
   position:absolute; right:12px; top:8px;  /* đưa lên góc phải như yêu cầu */
   display:flex; align-items:center; gap:10px;
-  background:rgba(0,0,0,.45);
+  background:rgba(255,255,255,.25);
   border:1px solid rgba(255,255,255,.18);
   border-radius:999px; padding:6px 8px;
   backdrop-filter: blur(4px);
@@ -474,6 +474,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

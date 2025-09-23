@@ -6,22 +6,23 @@
   <base href="/" />
   <title>NiNi — Funny</title>
 
+  <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=9" />
 
-  <script src="/public/js/effects.js?v=5" defer></script>
-  <script src="/public/js/app.js?v=12" defer></script>
+  <!-- CSS (nhớ dùng bản styles.css mới đã vá pointer-events / loading) -->
+  <link rel="stylesheet" href="/styles.css?v=9" />
 </head>
 <body>
   <!-- ========== HEADER ========== -->
   <header class="site-header">
-    <a class="brand" href="#">
+    <a class="brand" href="#/home">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">
         <span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span>
       </div>
     </a>
 
+    <!-- Tabs mùa (router hash) -->
     <nav class="tabs" id="seasonTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
@@ -35,10 +36,12 @@
 
   <!-- ========== VIEWPORT ========== -->
   <main class="viewport">
+    <!-- Khung chính có nền theo mùa -->
     <section class="frame" id="frame">
+      <!-- Mascot -->
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
 
-      <!-- chips -->
+      <!-- Chips nội dung nhanh -->
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
         <button class="chip" data-section="rules">Luật chơi</button>
@@ -46,11 +49,11 @@
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
 
-      <!-- mount kệ sách trong frame -->
+      <!-- Mount kệ sách (nằm trong frame) -->
       <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <!-- Nội dung bên dưới -->
+    <!-- Nội dung mô tả dưới khung -->
     <section class="content" id="content">
       <h2>NiNi — Funny</h2>
       <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
@@ -64,37 +67,48 @@
     </section>
   </main>
 
-  <!-- ========== READER MODAL (kiểu lịch/ảnh full, subtitle + prev/next) ========== -->
+  <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
+  <!-- LƯU Ý: các ID dưới đây phải khớp với app.js -->
   <div class="modal" id="readerModal" aria-hidden="true">
-    <div class="modal__backdrop" data-reader-close></div>
-    <div class="modal__panel modal__panel--reader" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
-      <!-- Head -->
-      <header class="reader-head">
-        <h3 id="readerTitle" class="reader-title">Đang tải…</h3>
-        <div class="reader-tools">
-          <button class="btn btn-chip" id="langVi"  title="Đọc tiếng Việt">VI</button>
-          <button class="btn btn-chip" id="langEn"  title="Read English">EN</button>
-          <button class="btn btn-chip" id="btnSpeak" title="Đọc to">🔊</button>
-          <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+    <div class="modal__backdrop"></div>
+
+    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+
+      <!-- Thanh tiêu đề + điều khiển ngôn ngữ/đọc -->
+      <header class="calendar-head">
+        <h3 id="readerTitle" class="calendar-title">Đang tải…</h3>
+        <div class="calendar-tools">
+          <button id="btnLangVi" class="chip" title="Xem phụ đề Tiếng Việt">VI</button>
+          <button id="btnLangEn" class="chip" title="Xem phụ đề English">EN</button>
+          <button id="btnSpeak"  class="chip" title="Đọc to">🔊</button>
         </div>
       </header>
 
-      <!-- Hình (16:9), caption là phụ đề -->
-      <figure class="reader-figure">
-        <img id="readerImage" alt="" />
-        <figcaption class="subtitle-bubble" id="subtitleBubble"></figcaption>
-      </figure>
+      <!-- Viewport: ảnh nền phủ toàn khung + phụ đề + điều hướng -->
+      <div id="calendarViewport" class="calendar-viewport is-ready">
+        <!-- Ảnh trang được vẽ dưới dạng background -->
+        <div id="calendarBg" class="calendar-bg"></div>
 
-      <!-- Điều hướng dưới hình -->
-      <footer class="reader-bottom">
-        <button class="pill-nav" id="btnPrevPage">←</button>
-        <div class="muted" id="readerPageInfo">Trang 1/1</div>
-        <button class="pill-nav" id="btnNextPage">→</button>
-      </footer>
+        <!-- Phụ đề (1 ngôn ngữ, đổi bằng nút VI/EN) -->
+        <div class="subtitle">
+          <div id="subtitleText" class="subtitle-text"></div>
+        </div>
+
+        <!-- Điều hướng ảnh + số trang -->
+        <div class="pagebar">
+          <button id="imgPrev" class="pill-nav" title="Trang trước">◀</button>
+          <div id="pageCounter" class="muted">Trang 1/1</div>
+          <button id="imgNext" class="pill-nav" title="Trang sau">▶</button>
+        </div>
+
+        <!-- Spinner loading an toàn (không nuốt click khi ẩn) -->
+        <div class="spinner"><div class="dot"></div></div>
+      </div>
     </div>
   </div>
 
-  <!-- ========== AUTH MODAL (giữ nguyên) ========== -->
+  <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -111,6 +125,7 @@
         <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
       </div>
 
+      <!-- Login -->
       <form class="form is-active" data-pane="login">
         <button type="button" class="btn btn-ghost full">Đăng nhập với Google</button>
         <div class="or">hoặc</div>
@@ -123,6 +138,7 @@
         </div>
       </form>
 
+      <!-- Sign up -->
       <form class="form" data-pane="signup">
         <label>Email</label>
         <input type="email" placeholder="you@example.com" />
@@ -138,6 +154,7 @@
         <p class="note">Sau khi tạo tài khoản, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
       </form>
 
+      <!-- Forgot -->
       <form class="form" data-pane="forgot">
         <label>Email</label>
         <input type="email" placeholder="you@example.com" />
@@ -153,5 +170,9 @@
       </form>
     </div>
   </div>
+
+  <!-- JS (defer để tải sau khi DOM sẵn sàng) -->
+  <script src="/public/js/effects.js?v=5" defer></script>
+  <script src="/public/js/app.js?v=12" defer></script>
 </body>
 </html>

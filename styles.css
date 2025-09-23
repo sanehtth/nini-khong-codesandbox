@@ -433,14 +433,14 @@ body::after{
 /* thanh tiêu đề reader */
 .calendar-head,
 #readerModal .pagebar{
-  background: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.25);
   border:1px solid rgba(17,24,39,.12);
 }
 #readerModal .pagebar .muted{ color: var(--text); }
 
 /* phụ đề trên ảnh: nền TRẮNG, chữ tối */
 #readerModal .subtitle{
-  background: rgba(255,255,255,.92);
+  background: rgba(255,255,255,.20);
   color: var(--text);
   border:1px solid rgba(17,24,39,.12);
 }
@@ -474,4 +474,5 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 

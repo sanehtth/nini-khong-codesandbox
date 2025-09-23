@@ -64,46 +64,78 @@
     </form>
   </main>
 
-  <script>
-    /* ===============================
-       Helpers: SHA-256 → hex string
-       =============================== */
-    async function sha256Hex(str){
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-      return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+ <script>
+  /* ===============================
+     SHA-256 helpers
+     =============================== */
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
+  }
+
+  /* ============================================================
+   * Lấy "hash kỳ vọng" theo thứ tự ưu tiên:
+   * 1) window.admin_secret:
+   *    - Nếu là 64 ký tự [0-9a-f]  -> coi như SHA-256
+   *    - Ngược lại -> coi là plaintext, tự sha256
+   * 2) window.ADMIN_SHA256 (hash)
+   * 3) <meta name="admin-sha256" content="...">
+   * ============================================================ */
+  async function getExpectedHash(){
+    // 1) window.admin_secret (env hoặc biến global bạn nhúng)
+    if (typeof window.admin_secret === 'string' && window.admin_secret.trim()) {
+      const v = window.admin_secret.trim();
+      const isHex64 = /^[0-9a-f]{64}$/i.test(v);
+      return isHex64 ? v.toLowerCase() : await sha256Hex(v);
     }
 
-    /* ============================================================
-       CẦN THAY: ADMIN_SHA256 = sha256Hex('mat_khau_that')
-       (dán chuỗi hex vào đây – ví dụ: "2bb80d53...") 
-       ============================================================ */
-    const ADMIN_SHA256 = "nini12345678";
+    // 2) window.ADMIN_SHA256 (hash)
+    if (typeof window.ADMIN_SHA256 === 'string' && window.ADMIN_SHA256.trim()) {
+      return window.ADMIN_SHA256.trim().toLowerCase();
+    }
 
-    /* =========================================
-       Đăng nhập:
-       - So sánh hash
-       - Tạo phiên 6 giờ (localStorage) { ok, exp }
-       ========================================= */
-    const form = document.getElementById('loginForm');
-    const pwd  = document.getElementById('pwd');
-    const err  = document.getElementById('err');
+    // 3) meta tag
+    const meta = document.querySelector('meta[name="admin-sha256"]');
+    if (meta && meta.content) {
+      return meta.content.trim().toLowerCase();
+    }
 
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      err.textContent = "";
-      const pass = (pwd.value || "").trim();
-      if(!pass){ pwd.focus(); return; }
+    // Nếu không có cấu hình nào -> luôn fail có chủ đích
+    return '__no_hash_config__';
+  }
 
-      const ok = (await sha256Hex(pass)) === ADMIN_SHA256;
-      if(!ok){ err.textContent = "Sai mật khẩu. Vui lòng thử lại."; return; }
+  /* =========================================
+     Submit: so sánh hash và tạo phiên 6 giờ
+     ========================================= */
+  const form = document.getElementById('loginForm');
+  const pwd  = document.getElementById('pwd');
+  const err  = document.getElementById('err');
 
-      const SIX_HOURS = 6 * 60 * 60 * 1000;
-      const session = { ok:true, exp: Date.now() + SIX_HOURS };
-      localStorage.setItem('nini_admin', JSON.stringify(session));   // dùng localStorage để sống qua reload/tab
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    err.textContent = '';
 
-      location.replace('/admin/index.html');
-    });
-  </script>
+    const pass = (pwd.value || '').trim();
+    if (!pass) { pwd.focus(); return; }
+
+    const expected = await getExpectedHash();
+    const inputHash = await sha256Hex(pass);
+
+    if (inputHash !== expected) {
+      err.textContent = 'Sai mật khẩu. Vui lòng thử lại.';
+      return;
+    }
+
+    // OK -> tạo phiên 6 giờ và chuyển sang /admin/index.html
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
+    const session = { ok: true, exp: Date.now() + SIX_HOURS };
+    localStorage.setItem('nini_admin', JSON.stringify(session));
+
+    location.replace('/admin/index.html'); // <-- chuyển trang tại đây
+  });
+</script>
+
 </body>
 </html>
+
 

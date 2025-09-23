@@ -1,9 +1,6 @@
 /* ================================
-   NiNi — Funny  • styles.css (full)
-   Đã gộp & fix:
-   - Modal chỉ hiển thị khi aria-hidden="false"
-   - Reader 1 khung, căn giữa, không nuốt click
-   - Spinner/loading không chặn thao tác
+   NiNi — Funny • styles.css (FULL)
+   Gộp & tinh gọn + Reader fix
    ================================ */
 
 /* ---------- CSS Variables ---------- */
@@ -118,6 +115,7 @@ body::after{
   border-radius:14px; backdrop-filter: blur(8px);
 }
 .shelf-card[hidden]{display:none}
+.shelf__title{margin:0 0 8px}
 .shelf__grid{display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-top:10px}
 .book-card{
   display:flex; gap:10px; align-items:center;
@@ -134,7 +132,6 @@ body::after{
 .book-card__meta{opacity:.8; font-size:12px}
 
 /* ---------- Modal base ---------- */
-/* NOTE: modal ẩn mặc định, chỉ hiện khi aria-hidden="false" */
 .modal{position:fixed; inset:0; display:none}
 .modal[aria-hidden="false"]{display:block}
 .modal__backdrop{
@@ -180,6 +177,19 @@ body::after{
 .note{font-size:12px; color:#cfd8e3; margin-top:8px}
 
 /* ---------- READER (calendar style, 1 panel gọn) ---------- */
+/* Panel reader: bỏ nền/viền/padding để không còn “frame ngoài” */
+.modal__panel--reader{
+  width:min(1120px, 92vw);
+  background: transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  position:absolute; inset:0; margin:auto;
+  top:50%; transform:translateY(-50%);
+  color:var(--text);
+}
+
+/* Header mỏng nổi */
 .reader-head{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   margin:0 0 8px;
@@ -199,78 +209,34 @@ body::after{
 .btn.btn-chip.is-active{border-color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.4) inset}
 
 /* Khung ảnh 16:9 */
-.calendar-viewport{
-  position: relative;
-  width: min(1120px, 92vw);
-  max-height: 88vh;
-  margin: 0 auto;
-  aspect-ratio: 16/9;
-  background: #000;
-  border-radius: 16px;
-  overflow: hidden;
+.reader-figure{
+  position:relative; width:100%; aspect-ratio:16/9;
+  overflow:hidden; border-radius:12px; background:#000;
 }
-
-/* nền ảnh (dùng background-image) */
-.calendar-bg{
-  position: absolute; inset: 0;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  transition: opacity .25s ease;
+.reader-figure img{
+  width:100%; height:100%; object-fit:cover; display:block;
+  transform: translateZ(0); image-rendering:-webkit-optimize-contrast;
 }
 
 /* Subtitles nổi trên ảnh */
 .subtitle-bubble{
   position:absolute; left:50%; transform:translateX(-50%);
-  bottom:14px; max-width:90%;
+  bottom:10px; max-width:90%;
   background: rgba(0,0,0,.55); color:#fff; border:1px solid rgba(255,255,255,.18);
   border-radius:12px; padding:10px 12px; line-height:1.45;
   backdrop-filter: blur(4px);
 }
 
 /* Nút prev/next + page info */
-.img-nav{
-  position:absolute; left:0; right:0; bottom:50%; transform:translateY(50%);
-  display:flex; align-items:center; justify-content:space-between; padding:0 10px;
-  pointer-events:none; /* container không bắt click */
+.reader-bottom{
+  margin-top:10px; display:flex; align-items:center; justify-content:center; gap:14px;
 }
 .pill-nav{
   width:34px; height:34px; border-radius:999px; border:1px solid var(--chip-border);
-  background:transparent; color:#fff; cursor:pointer; pointer-events:auto; /* nút vẫn click được */
+  background:transparent; color:#fff; cursor:pointer
 }
 .pill-nav:hover{border-color:#fff}
-.page-indicator{
-  position:absolute; left:50%; transform:translateX(-50%);
-  bottom:10px; opacity:.9; font-weight:600; background: rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.18); padding:6px 10px; border-radius:999px;
-}
-
-/* spinner */
-.spinner{
-  position: absolute; left: 50%; top: 50%;
-  width: 22px; height: 22px; border-radius: 50%;
-  border: 3px solid rgba(255,255,255,.35);
-  border-top-color: #fff;
-  transform: translate(-50%,-50%);
-  animation: spin 1s linear infinite;
-  display: none;
-}
-@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg);} }
-
-/* trạng thái loading/ready */
-.calendar-viewport.is-loading .spinner { display: block; }
-.calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
-
-/* ===== Fix modal click-through ===== */
-.modal__panel{ position: relative; z-index: 2; pointer-events: auto; }
-.modal__backdrop{ z-index: 1; pointer-events: auto; }
-.calendar-viewport{ position: relative; pointer-events: auto; }
-.calendar-viewport .spinner, .calendar-viewport .spinner *{ pointer-events: none !important; }
-.calendar-viewport.is-loading{ cursor: progress; }
-.calendar-viewport.is-loading::after{
-  content: ""; position: absolute; inset: 0; background: transparent; pointer-events: none;
-}
-.calendar-viewport > .calendar-bg{ pointer-events: none; }
+.page-indicator{opacity:.9; font-weight:600}
 
 /* ---------- Responsive ---------- */
 @media (max-width: 840px){
@@ -280,20 +246,119 @@ body::after{
 @media (max-width: 640px){
   .nini{width:150px}
 }
-/* Ẩn bộ đếm cũ dưới chân ảnh nếu vẫn còn trong DOM */
-#pageCounter { display: none !important; }
 
-/* Đếm trang góc trên-phải */
-.page-indicator--top{
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(0,0,0,.55);
-  border: 1px solid rgba(255,255,255,.2);
-  font-weight: 600;
-  line-height: 1;
-  backdrop-filter: blur(4px);
+/* ============================================================
+   [FIX] Căn giữa & click-through cho READER modal
+   ============================================================ */
+#readerModal{
+  position: fixed;
+  inset: 0;
+  display: none;            /* ẩn mặc định */
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#readerModal[aria-hidden="false"]{ display:flex; }
+
+#readerModal .modal__panel{
+  position: relative;        /* KHÔNG dùng transform dịch */
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin: 0;
+  width: min(1100px, 92vw);
+  max-height: min(88vh, 900px);
+  overflow: hidden;
+  display: grid;
+  gap: 12px;
+  background: var(--glass-2);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:16px;
 }
 
+/* [FIX click-through] */
+.modal__panel{ z-index:2; pointer-events:auto; }
+.modal__backdrop{ z-index:1; pointer-events:auto; }
+
+/* ===== Calendar viewport ===== */
+#readerModal .calendar-viewport{
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  pointer-events: auto;
+  /* [FIX compositing] ép layer riêng */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+/* nền ảnh (dùng background-image) */
+#readerModal .calendar-bg{
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;                      /* fade-in sau khi tải xong */
+  transition: opacity .25s ease;
+  will-change: transform, opacity; /* [FIX compositing] */
+  transform: translateZ(0);
+}
+
+/* Phụ đề */
+#readerModal .subtitle{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:14px; max-width:92%;
+  background: rgba(0,0,0,.55); color:#fff;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:12px; padding:10px 12px; line-height:1.45;
+  backdrop-filter: blur(4px);
+}
+#readerModal .subtitle-text{ font-size:14px }
+
+/* Thanh trang + nút điều hướng */
+#readerModal .pagebar{
+  position:absolute; right:12px; top:8px;  /* đưa lên góc phải như yêu cầu */
+  display:flex; align-items:center; gap:10px;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px; padding:6px 8px;
+  backdrop-filter: blur(4px);
+}
+#readerModal .pagebar .pill-nav{
+  width:30px; height:30px; display:grid; place-items:center;
+}
+#readerModal .pagebar .muted{ opacity:.95; font-weight:700; }
+
+/* Spinner */
+#readerModal .spinner{
+  position: absolute; left: 50%; top: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  transform: translate(-50%,-50%);
+  animation: spin 1s linear infinite;
+  display: none;
+  pointer-events: none !important;   /* [SAFE spinner] */
+}
+#readerModal .spinner *{ pointer-events: none !important; }
+@keyframes spin { to { transform: translate(-50%,-50%) rotate(360deg);} }
+
+/* State */
+#readerModal .calendar-viewport.is-loading .spinner { display: block; }
+#readerModal .calendar-viewport.is-ready   .calendar-bg { opacity: 1; }
+
+/* ============================================================
+   [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
+   ============================================================ */
+#readerModal .modal__backdrop{
+  background: rgba(0,0,0,.62);
+  backdrop-filter: none;           /* quan trọng: tắt blur cho reader backdrop */
+  -webkit-backdrop-filter: none;
+}
+
+/* (Tuỳ chọn) Nếu môi trường GPU vẫn glitch, có thể giảm blur nền toàn site:
+   body::before{ filter: saturate(1.2) brightness(.85); } */
+
+/* ============================================================
+   HẾT FILE
+   ============================================================ */

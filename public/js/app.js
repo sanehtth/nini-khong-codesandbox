@@ -362,7 +362,29 @@
     if (e.target === readerModal || e.target.classList.contains("modal__backdrop")) closeReader();
   });
   setLang(speakLang); // init active state
+/* ================= Admin hotkey toggle =================
+   - Mặc định ẩn nút Admin.
+   - Bấm Alt + A để bật/ẩn nhanh.
+   - Trạng thái được lưu ở localStorage: nini_admin_btn=on|off
+========================================================= */
+(() => {
+  const ADMIN_KEY = "nini_admin_btn";
+  const adminBtn = document.getElementById("adminBtn");
+  if (!adminBtn) return;
 
+  // khôi phục trạng thái
+  const saved = localStorage.getItem(ADMIN_KEY);
+  if (saved === "on") adminBtn.classList.remove("is-hidden");
+
+  // phím tắt Alt + A
+  window.addEventListener("keydown", (e) => {
+    if (e.altKey && (e.key === "a" || e.key === "A")) {
+      e.preventDefault();
+      adminBtn.classList.toggle("is-hidden");
+      localStorage.setItem(ADMIN_KEY, adminBtn.classList.contains("is-hidden") ? "off" : "on");
+    }
+  });
+})();
   // ========================================================================
   // 5) STARTUP
   // ========================================================================
@@ -371,4 +393,6 @@
 
   // Preload ảnh nền mùa để chuyển mượt
   Object.values(IMAGES).forEach(src => { const i = new Image(); i.src = src; });
+   
 })();
+

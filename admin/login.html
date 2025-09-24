@@ -5,79 +5,80 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Admin Login</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=11" />
+  <link rel="stylesheet" href="/styles.css?v=admin1" />
   <style>
-    .center-wrap{min-height:100vh;display:grid;place-items:center}
-    .card{width:min(640px,92vw);border-radius:16px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);padding:18px 18px 14px;box-shadow:0 18px 60px rgba(0,0,0,.18)}
-    .row{display:flex;gap:10px;align-items:center;margin-top:12px}
-    input[type="password"]{width:100%;padding:10px 12px;border:1px solid var(--line, #cfd6df);border-radius:10px;outline:none}
-    button{padding:9px 14px;border-radius:10px;border:1px solid var(--line, #cfd6df);background:#fff;cursor:pointer}
-    button:hover{background:#f7fafc}
-    .muted{color:#6b7a8c;font-size:14px}
-    .err{color:#c53030;margin-top:8px}
+    /* NOTE: cùng phong cách “kính trắng mờ” như site chính */
+    .wrap { min-height: 100dvh; display:flex; align-items:center; justify-content:center; }
+    .card {
+      width:min(560px, 92vw);
+      background: rgba(255,255,255,.7);
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:16px; padding:18px 18px 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.15), inset 0 0 0 1px rgba(255,255,255,.35);
+      backdrop-filter: blur(8px);
+      color:#22313f;
+    }
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    input[type=password]{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.15);
+      background:#fff; color:#22313f; outline:none;
+    }
+    .btn{padding:10px 14px; border-radius:999px; border:1px solid rgba(0,0,0,.15); background:#fff; cursor:pointer}
+    .btn:hover{border-color:#000}
+    .muted{color:#6b7b8c; font-size:13px}
+    .err{color:#c21d1d; margin-top:10px}
   </style>
 </head>
 <body>
-  <main class="center-wrap">
+  <main class="wrap">
     <section class="card">
-      <h2 style="margin:0 0 6px">NiNi — Admin</h2>
-      <p class="muted" style="margin:0 0 10px">Nhập mật khẩu admin để vào bảng điều khiển.</p>
+      <h2 style="margin:0 0 10px">NiNi — Admin</h2>
+      <p class="muted" style="margin:0 0 12px">Nhập mật khẩu admin để vào bảng điều khiển.</p>
+
       <div class="row">
-        <input id="iPass" type="password" placeholder="Mật khẩu admin" autocomplete="current-password" />
+        <input id="pw" type="password" placeholder="Mật khẩu admin" autocomplete="current-password" />
       </div>
       <div class="row">
-        <button id="btnLogin">Đăng nhập</button>
-        <a href="/" class="muted" style="margin-left:auto;text-decoration:none">↘ Về trang chủ</a>
+        <button id="btnLogin" class="btn">Đăng nhập</button>
+        <a class="btn" href="/">↘ Về trang chủ</a>
       </div>
       <div id="msg" class="err" hidden>Sai mật khẩu. Vui lòng thử lại.</div>
     </section>
   </main>
 
   <script>
-    // ========== START PATCH: Login + lưu token ==========
-    const $ = s => document.querySelector(s);
-    const msg = $('#msg');
+    const API = "/.netlify/functions/admin-auth";
 
-    async function apiLogin(pass){
-      const r = await fetch('/.netlify/functions/admin-auth/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ pass })
-      });
-      if (!r.ok) throw new Error('login-failed');
-      return r.json();
-    }
-
-    $('#btnLogin').addEventListener('click', async () => {
-      msg.hidden = true;
-      const pass = $('#iPass').value.trim();
-      if (!pass) { msg.textContent = 'Vui lòng nhập mật khẩu.'; msg.hidden = false; return; }
-      try {
-        const res = await apiLogin(pass);
-        if (!res.ok || !res.token) throw new Error('bad-response');
-
-        // Lưu token -> localStorage (không dựa vào cookie)
-        localStorage.setItem('nini_admin_token', res.token);
-        // chuyển qua dashboard
-        location.href = '/admin/index.html';
-      } catch (e) {
-        msg.textContent = 'Sai mật khẩu. Vui lòng thử lại.';
-        msg.hidden = false;
-      }
-    });
-
-    // Nếu đã có token hợp lệ -> tự qua index (tránh vòng lặp login)
+    // NOTE: nếu đã có phiên -> chuyển thẳng vào /admin/index.html
     (async () => {
-      const tok = localStorage.getItem('nini_admin_token');
-      if (!tok) return;
       try{
-        const r = await fetch('/.netlify/functions/admin-auth/ping', {
-          headers: { authorization: 'Bearer ' + tok }
-        });
-        if (r.ok) location.replace('/admin/index.html');
+        const r = await fetch(`${API}/check`, { credentials: "include" });
+        const j = await r.json().catch(_=>({}));
+        if (j && j.ok) location.href = "/admin/index.html";
       }catch(_){}
     })();
-    // ========== END PATCH ==========
+
+    document.getElementById("btnLogin").onclick = async () => {
+      const pw = document.getElementById("pw").value.trim();
+      const msg = document.getElementById("msg");
+      msg.hidden = true;
+
+      try{
+        const r = await fetch(`${API}/login`, {
+          method:"POST",
+          headers:{"content-type":"application/json"},
+          body: JSON.stringify({ password: pw }),
+          credentials: "include"
+        });
+        if (!r.ok) throw new Error("bad");
+        const j = await r.json();
+        if (!j.ok) throw new Error("bad");
+        location.href = "/admin/index.html";
+      }catch(_){
+        msg.hidden = false;
+      }
+    };
   </script>
 </body>
 </html>
+<!-- --------------- HẾT FILE login.html --------------- -->

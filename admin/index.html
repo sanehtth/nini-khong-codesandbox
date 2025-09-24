@@ -1,193 +1,84 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Admin</title>
-
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=12" />
-
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
+  <link rel="stylesheet" href="/styles.css?v=white-glass"/>
   <style>
-    /* NOTE: một ít style “kính trắng” cho admin */
-    .admin-wrap{width:min(1100px,92vw); margin:20px auto 80px}
-    .admin-tabs{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0}
-    .admin-tab{padding:9px 14px; border-radius:999px; background:#fff; color:#26313d; border:1px solid #d7e0ea; cursor:pointer}
-    .admin-tab:hover{background:#fafcff}
-    .admin-tab.is-active{ text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:2px; border-color:#1a91ff }
-    .admin-panel{ display:none; background: rgba(255,255,255,.86); border:1px solid rgba(0,0,0,.08); border-radius:16px; padding:18px; }
-    .admin-panel.is-current{ display:block }
-    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
-    .toolbar input{padding:8px 10px;border-radius:10px;border:1px solid #d7e0ea;background:#fff;color:#26313d}
-    .toolbar button{padding:9px 12px;border-radius:10px;border:1px solid #d7e0ea;background:#fff;color:#26313d;cursor:pointer}
-    .toolbar button:hover{background:#fafcff}
-    .toolbar .muted{color:#607080}
-    .note{margin-top:10px; padding:12px 14px; border-radius:12px; background:#ffffff; color:#415060; border:1px dashed #d7e0ea; box-shadow: 0 0 0 4px rgba(26,145,255,.06) inset;}
-    .table{overflow:auto;background:#fff;border-radius:10px;border:1px solid #e8eef6}
-    table{width:100%; border-collapse:collapse}
-    th,td{padding:10px 12px; border-bottom:1px solid #eef3f8; text-align:left; font-size:14px; color:#2b3a4a}
-    thead th{position:sticky; top:0; background:#f7fbff; z-index:1}
-    .site-header{position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,.8); backdrop-filter: blur(6px); border-bottom:1px solid rgba(0,0,0,.06)}
-    .brand{display:flex; align-items:center; gap:8px}
-    .brand__logo{height:34px}
-    .brand__slogan{font-weight:700; color:#1a91ff}
-    .auth-btn{margin-left:auto; padding:8px 14px; border-radius:999px; border:1px solid #d7e0ea; background:#fff; color:#26313d; text-decoration:none}
+    /* ===== BLOCK: Dashboard skin (white glass) ===== */
+    body::before{ filter: blur(10px) saturate(1.1) brightness(1.15); }
+    .wrap{ width:min(1140px,94vw); margin:24px auto 90px }
+    .head{ display:flex; align-items:center; justify-content:space-between; gap:12px }
+    .badge{font-weight:700; background:linear-gradient(90deg,#ffd44d,#7bd86a,#b88752);
+      -webkit-background-clip:text;background-clip:text;color:transparent;font-size:22px}
+    .tabs{display:flex; gap:8px; margin:16px 0}
+    .tab{padding:10px 14px; border-radius:999px; border:1px solid rgba(10,20,40,.18); background:#fff; cursor:pointer}
+    .tab.is-active{ text-decoration:underline; text-underline-offset:6px }
+    .panel{display:none} .panel.is-show{display:block}
+    table{width:100%; border-collapse:collapse; background:#fff; border:1px solid rgba(10,20,40,.12); border-radius:12px; overflow:hidden}
+    th,td{padding:10px 12px; border-bottom:1px solid rgba(10,20,40,.08); text-align:left; color:#234}
+    th{background:#f7f9fb}
+    .toolbar{display:flex; gap:10px; align-items:center; margin:12px 0}
+    .btn{padding:9px 12px; border-radius:12px; border:1px solid rgba(10,20,40,.18); background:#fff; cursor:pointer}
+    .btn-ghost{background:transparent}
   </style>
-
-  <!-- NOTE: Gateway kiểm cookie – nếu hết hạn, đá về login -->
-  <!-- NOTE: BLOCK START – Cookie Gate -->
-  <script>
-    (function(){
-      var has = document.cookie.split('; ').includes('nini_admin=1');
-      if (!has) { location.replace('/admin/login.html?expired=1'); }
-    })();
-  </script>
-  <!-- NOTE: BLOCK END – Cookie Gate -->
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-      <div class="brand__slogan">NiNi — Admin</div>
-    </div>
-    <nav class="tabs"><a class="tab" href="/" style="text-decoration:none">← Về trang chủ</a></nav>
-    <a class="auth-btn" id="adminLogout" href="javascript:void(0)">Đăng xuất</a>
-  </header>
+  <div class="wrap">
+    <header class="head">
+      <div class="badge">NiNi — Admin</div>
+      <nav>
+        <button id="btnLogout" class="btn">Đăng xuất</button>
+        <a class="btn btn-ghost" href="/">Về trang chủ</a>
+      </nav>
+    </header>
 
-  <main class="admin-wrap">
-    <nav class="admin-tabs" id="adminTabs">
-      <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
-      <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
-      <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-tab="scores">Bảng điểm</button>
+      <button class="tab" data-tab="queue">Hàng đợi</button>
+      <button class="tab" data-tab="reports">Báo cáo</button>
     </nav>
 
-    <!-- Scores -->
-    <section class="admin-panel is-current" id="panel-scores">
+    <!-- Panel Scores -->
+    <section id="p-scores" class="panel is-show">
       <div class="toolbar">
-        <label>Ngày: <input type="date" id="pickDate"></label>
-        <button id="btnLoad">Tải dữ liệu</button>
-        <button id="btnCsv">Tải CSV</button>
-        <span class="muted" id="stat"></span>
+        <label>Ngày <input type="date" id="pickDate"></label>
+        <button id="btnLoad" class="btn">Tải dữ liệu</button>
+        <button id="btnCsv" class="btn">Tải CSV</button>
+        <span id="stat" style="opacity:.7"></span>
       </div>
-      <div class="table">
-        <table id="grid">
-          <thead>
-            <tr>
-              <th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th>
-              <th>Session</th><th>Điểm</th><th>Tối đa</th><th>Thời lượng(s)</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <p class="note">Đọc từ <code>/.netlify/functions/get-scores?date=YYYY-MM-DD</code>. Mỗi lượt chơi là một dòng trong blobs <code>scores/yyyy-mm-dd.jsonl</code>.</p>
+      <table>
+        <thead><tr><th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th><th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th></tr></thead>
+        <tbody id="grid"></tbody>
+      </table>
     </section>
 
-    <!-- Queue -->
-    <section class="admin-panel" id="panel-queue">
+    <!-- Panel Queue -->
+    <section id="p-queue" class="panel">
       <div class="toolbar">
-        <button id="qCount">Đếm mục</button>
-        <button id="qExportCsv">Export CSV</button>
-        <button id="qExportEnc">Export gói mã hoá</button>
-        <button id="qUploadEnc">Upload gói mã hoá</button>
-        <button id="qClear">Xoá hết hàng đợi</button>
-        <span class="muted" id="qStat"></span>
+        <button id="qCount" class="btn">Đếm mục</button>
+        <button id="qExportCsv" class="btn">Export CSV</button>
+        <button id="qExportEnc" class="btn">Export gói mã hoá</button>
+        <button id="qUploadEnc" class="btn">Upload gói mã hoá</button>
+        <button id="qClear" class="btn">Xoá hết</button>
+        <span id="qStat" style="opacity:.7"></span>
       </div>
-      <p class="note">Bản sao dự phòng lưu trên <strong>trình duyệt này</strong> (localStorage).</p>
+      <p class="btn-ghost">Hàng đợi lưu localStorage trình duyệt này.</p>
     </section>
 
-    <!-- Reports -->
-    <section class="admin-panel" id="panel-reports">
+    <!-- Panel Reports -->
+    <section id="p-reports" class="panel">
       <div class="toolbar">
-        <button id="btnRoll">Tạo báo cáo “hôm qua” (giờ VN)</button>
-        <span class="muted" id="rollStat"></span>
+        <button id="btnRoll" class="btn">Tạo báo cáo “hôm qua”</button>
+        <span id="rollStat" style="opacity:.7"></span>
       </div>
-      <p class="note">Gọi <code>/.netlify/functions/daily-rollup</code> để tạo CSV của <em>ngày hôm qua</em> vào blobs <code>reports/YYYY-MM-DD.csv</code>.</p>
     </section>
-  </main>
+  </div>
 
-  <!-- NOTE: JS cho tab + bảng điểm + queue + logout -->
-  <!-- NOTE: BLOCK START – Admin UI JS -->
-  <script>
-    // Tabs
-    const tabs = document.getElementById('adminTabs');
-    tabs.addEventListener('click', e=>{
-      const b = e.target.closest('.admin-tab'); if(!b) return;
-      const id = b.dataset.tab;
-      document.querySelectorAll('.admin-tab').forEach(x=>x.classList.toggle('is-active', x===b));
-      document.querySelectorAll('.admin-panel').forEach(p=>p.classList.toggle('is-current', p.id === `panel-${id}`));
-    });
-
-    // (Tùy chọn) Logout: xóa cookie phía client rồi về login
-    document.getElementById('adminLogout').onclick = ()=>{
-      // Xóa cookie (client-side) – Netlify function riêng là tốt nhất, nhưng tạm thời đủ dùng
-      document.cookie = 'nini_admin=; Max-Age=0; Path=/; SameSite=Lax; Secure';
-      location.replace('/admin/login.html?expired=1');
-    };
-
-    // Helpers
-    const $ = s => document.querySelector(s);
-    const pick = $('#pickDate'), btnLoad = $('#btnLoad'), btnCsv = $('#btnCsv');
-    const grid = $('#grid tbody'), stat = $('#stat'); let rows = [];
-    const today = new Date().toISOString().slice(0,10); pick.value = today;
-    btnLoad.onclick = load; btnCsv.onclick = downloadCsv; load();
-
-    async function load(){
-      const d = pick.value || today;
-      stat.textContent = 'Đang tải...'; grid.innerHTML = ''; rows = [];
-      try{
-        const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { cache:'no-store' }).then(r=>r.json());
-        if(!r.ok) throw new Error(r.error || 'Không lấy được dữ liệu');
-        rows = r.events || [];
-        stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
-        render(rows);
-      }catch(e){ stat.textContent = 'Lỗi: ' + e.message; }
-    }
-    function render(list){
-      grid.innerHTML = list.map(e=>{
-        const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
-        return `<tr>
-          <td>${t}</td>
-          <td>${esc(e.userId)}</td>
-          <td>${esc(e.displayName)}</td>
-          <td>${esc(e.gameId)}</td>
-          <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
-          <td>${e.score}</td>
-          <td>${e.maxScore}</td>
-          <td>${e.durationSec ?? ''}</td>
-        </tr>`;
-      }).join('');
-    }
-    function esc(v){ return v==null?'':String(v).replace(/[&<>"']/g,s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
-    function toCSV(arr){
-      if(!arr.length) return '';
-      const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
-      const escCSV = s => { if(s==null) return ''; s=String(s); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; };
-      const head = cols.join(','); const lines = arr.map(o => cols.map(c => escCSV(o[c])).join(','));
-      return [head, ...lines].join('\n');
-    }
-    function downloadCsv(){
-      if(!rows.length){ alert('Chưa có dữ liệu để tải.'); return; }
-      const csv = toCSV(rows), d = (pick.value || today).replace(/-/g,'');
-      const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `nini-scores-${d}.csv`;
-      document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
-    }
-
-    // Queue cục bộ (để tương thích queue.js nếu bạn dùng)
-    const qStat = document.getElementById('qStat');
-    window.Queue = window.Queue || {
-      exportCSV(){ alert('Chưa gắn queue.js.'); },
-      exportEncrypted(){ alert('Chưa gắn queue.js.'); },
-      uploadEncrypted(){ alert('Chưa gắn queue.js.'); },
-      clear(){ localStorage.removeItem('nini_queue_v1'); }
-    };
-    document.getElementById('qCount').onclick     = ()=>{ const arr = JSON.parse(localStorage.getItem('nini_queue_v1')||'[]'); qStat.textContent = `Có ${arr.length} mục.`; };
-    document.getElementById('qExportCsv').onclick = ()=> Queue.exportCSV();
-    document.getElementById('qExportEnc').onclick = ()=> Queue.exportEncrypted();
-    document.getElementById('qUploadEnc').onclick = ()=> Queue.uploadEncrypted();
-    document.getElementById('qClear').onclick     = ()=>{ if(confirm('Xoá tất cả hàng đợi cục bộ trên trình duyệt này?')){ Queue.clear(); qStat.textContent='Đã xoá.'; } };
-  </script>
-  <!-- NOTE: BLOCK END – Admin UI JS -->
+  <!-- ===== BLOCK: App scripts ===== -->
+  <script src="/public/js/queue.js" defer></script>
+  <script src="/public/js/admin.js" defer></script>
 </body>
 </html>

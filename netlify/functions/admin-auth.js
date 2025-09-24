@@ -1,166 +1,158 @@
-// netlify/functions/admin-auth.js
-// NiNi — Admin Auth (Netlify Function)
-// NOTE:
-// - Remove top-level await (causing build fail with CJS output).
-// - Use lazy resolver getSubtle() to access WebCrypto when needed.
+/* Admin auth (Netlify Function, CommonJS)
+   - POST   /.netlify/functions/admin-auth/login   {secret}
+   - POST   /.netlify/functions/admin-auth/logout
+   - GET    /.netlify/functions/admin-auth/check
+   - GET    /.netlify/functions/admin-auth/ping
+*/
+const crypto = require("node:crypto");
 
-const TOKEN_TTL = Number(process.env.ADMIN_TOKEN_TTL || 6 * 60 * 60); // 6h
-const SECRET     = process.env.ADMIN_SECRET || "";
-const COOKIE     = "nini_admin_token";
-const SECURE     = true; // production
-const DOMAIN     = undefined; // let browser infer
-
-// ---------- helpers ----------
-function json(status, body, extra = {}) {
-  return new Response(JSON.stringify(body), {
-    status,
+// ===== helpers =====
+function json(status, data, headers = {}) {
+  return {
+    statusCode: status,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
-      ...extra,
+      ...headers,
     },
-  });
+    body: JSON.stringify(data),
+  };
 }
+function badRequest(msg) { return json(400, { ok: false, error: msg }); }
+function unauthorized(msg) { return json(401, { ok: false, error: msg }); }
+function internal(msg) { return json(500, { ok: false, error: msg }); }
 
-function parseBody(req) {
-  return req.json().catch(() => ({}));
-}
-
-function setCookie(resHeaders, value, maxAge) {
-  const parts = [
-    `${COOKIE}=${value}`,
-    `Path=/`,
-    `HttpOnly`,
-    SECURE ? `Secure` : ``,
-    `SameSite=Lax`,
-    maxAge ? `Max-Age=${maxAge}` : ``,
-    DOMAIN ? `Domain=${DOMAIN}` : ``,
-  ].filter(Boolean);
-  resHeaders.append("set-cookie", parts.join("; "));
-}
-
-function clearCookie(resHeaders) {
-  const parts = [
-    `${COOKIE}=`,
-    `Path=/`,
-    `HttpOnly`,
-    SECURE ? `Secure` : ``,
-    `SameSite=Lax`,
-    `Max-Age=0`,
-    DOMAIN ? `Domain=${DOMAIN}` : ``,
-  ].filter(Boolean);
-  resHeaders.append("set-cookie", parts.join("; "));
-}
-
-// ===== Fix: lazy WebCrypto (no top-level await) =====
-let _subtle = null;
-async function getSubtle() {
-  if (_subtle) return _subtle;
-  // Node 18+: crypto.webcrypto
+function parseBody(event) {
   try {
-    // dynamic import nhưng NẰM TRONG HÀM (không còn top-level await)
-    const mod = await import("node:crypto");
-    if (mod?.webcrypto?.subtle) {
-      _subtle = mod.webcrypto.subtle;
-      return _subtle;
+    if (!event.body) return {};
+    // Netlify có thể base64 body; nhưng mặc định là string UTF-8
+    const isJson = (event.headers["content-type"] || "")
+      .toLowerCase()
+      .includes("application/json");
+    if (!isJson) return {}; // để báo lỗi 400 phía dưới
+    return JSON.parse(event.body);
+  } catch (_) {
+    return {}; // để logic phía dưới trả 400 thay vì 502
+  }
+}
+
+// ký/kiểm tra token HMAC
+function sign(payload, secret) {
+  const h = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  return `${payload}.${h}`;
+}
+function verify(signed, secret) {
+  const i = signed.lastIndexOf(".");
+  if (i < 0) return null;
+  const payload = signed.slice(0, i);
+  const mac = signed.slice(i + 1);
+  const mac2 = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  const ok = crypto.timingSafeEqual(Buffer.from(mac), Buffer.from(mac2));
+  if (!ok) return null;
+  try { return JSON.parse(Buffer.from(payload, "base64url").toString("utf8")); }
+  catch { return null; }
+}
+
+// cookie helpers
+function cookieAttrs(maxAgeSec = 0) {
+  // Netlify là https ⇒ nên dùng secure; nếu test local http thì bỏ Secure
+  const attrs = [
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    "Secure",
+  ];
+  if (maxAgeSec > 0) attrs.push(`Max-Age=${maxAgeSec}`);
+  else attrs.push("Max-Age=0");
+  return attrs.join("; ");
+}
+function setCookie(name, value, maxAgeSec) {
+  return { "set-cookie": `${name}=${value}; ${cookieAttrs(maxAgeSec)}` };
+}
+function clearCookie(name) {
+  return { "set-cookie": `${name}=; ${cookieAttrs(0)}` };
+}
+
+function getCookie(event, name) {
+  const raw = event.headers.cookie || event.headers.Cookie || "";
+  const m = raw.split(/;\s*/).find(p => p.startsWith(name + "="));
+  return m ? decodeURIComponent(m.split("=").slice(1).join("=")) : "";
+}
+
+// ===== main handler =====
+exports.handler = async (event) => {
+  try {
+    const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
+    const TTL = parseInt(process.env.ADMIN_TOKEN_TTL || "21600", 10); // 6h mặc định
+    if (!ADMIN_SECRET) {
+      // Không khiến 502 nữa – trả 500 có thông báo
+      return internal("Missing ADMIN_SECRET env");
     }
-  } catch (_) {}
-  // Edge/Browser fallback (nếu có)
-  if (globalThis.crypto?.subtle) {
-    _subtle = globalThis.crypto.subtle;
-    return _subtle;
+
+    const [, , , segment] = (event.path || "").split("/"); // .../admin-auth/<segment>
+    const method = event.httpMethod || "GET";
+
+    // CORS tối thiểu (nếu bạn gọi từ domain khác)
+    if (method === "OPTIONS") {
+      return {
+        statusCode: 204,
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET,POST,OPTIONS",
+          "access-control-allow-headers": "content-type",
+        },
+        body: "",
+      };
+    }
+
+    if (segment === "ping") {
+      return json(200, { ok: true, hasSecret: !!ADMIN_SECRET });
+    }
+
+    // ---- /login ----
+    if (segment === "login" && method === "POST") {
+      const { secret } = parseBody(event);
+      if (!secret) return badRequest("Thiếu body JSON {secret} hoặc Content-Type.");
+      // so sánh bí mật (constant time)
+      const ok = crypto.timingSafeEqual(
+        Buffer.from(String(secret)),
+        Buffer.from(String(ADMIN_SECRET))
+      );
+      if (!ok) return unauthorized("Sai mật khẩu.");
+
+      const payload = { iat: Date.now(), exp: Date.now() + TTL * 1000 };
+      const b64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
+      const token = sign(b64, ADMIN_SECRET);
+
+      return json(
+        200,
+        { ok: true },
+        setCookie("nini_admin", token, TTL)
+      );
+    }
+
+    // ---- /logout ----
+    if (segment === "logout" && method === "POST") {
+      return json(200, { ok: true }, clearCookie("nini_admin"));
+    }
+
+    // ---- /check ----
+    if (segment === "check" && method === "GET") {
+      const token = getCookie(event, "nini_admin");
+      if (!token) return unauthorized("No token.");
+      const data = verify(token, ADMIN_SECRET);
+      if (!data) return unauthorized("Bad token.");
+      if (Date.now() > data.exp) {
+        // hết hạn
+        return json(401, { ok: false, error: "Expired" }, clearCookie("nini_admin"));
+      }
+      return json(200, { ok: true, exp: data.exp });
+    }
+
+    // default
+    return json(404, { ok: false, error: "Not found" });
+  } catch (err) {
+    // Bất kỳ lỗi nào cũng trả 500 JSON thay vì rơi 502
+    return internal(err && err.message ? err.message : "Internal error");
   }
-  throw new Error("WebCrypto subtle is not available in this runtime.");
-}
-
-async function sha256Hex(str) {
-  const subtle = await getSubtle();
-  const enc = new TextEncoder().encode(str);
-  const buf = await subtle.digest("SHA-256", enc);
-  return Buffer.from(buf).toString("hex");
-}
-
-async function makeToken() {
-  const now = Math.floor(Date.now() / 1000);
-  const exp = now + TOKEN_TTL;
-  const payload = `${now}.${exp}`;
-  const sig = await sha256Hex(`${payload}.${SECRET}`);
-  return `${payload}.${sig}`;
-}
-
-async function verifyToken(token) {
-  if (!token) return false;
-  const [iat, exp, sig] = token.split(".");
-  if (!iat || !exp || !sig) return false;
-  const want = await sha256Hex(`${iat}.${exp}.${SECRET}`);
-  if (want !== sig) return false;
-  const now = Math.floor(Date.now() / 1000);
-  return now < Number(exp);
-}
-
-function readCookie(req) {
-  const raw = req.headers.get("cookie") || "";
-  const map = new Map(
-    raw.split(/;\s*/).map((p) => {
-      const i = p.indexOf("=");
-      return i > -1 ? [p.slice(0, i), p.slice(i + 1)] : ["", ""];
-    })
-  );
-  return map.get(COOKIE);
-}
-
-// ---------- Handlers ----------
-export async function onRequestPost(context) {
-  const { request } = context;
-  if (!SECRET) return json(500, { ok: false, error: "Missing ADMIN_SECRET" });
-
-  const { password } = await parseBody(request);
-  if (!password) return json(400, { ok: false, error: "Missing password" });
-
-  if (password !== SECRET) return json(400, { ok: false, error: "Wrong password" });
-
-  const token = await makeToken();
-  const headers = new Headers();
-  setCookie(headers, token, TOKEN_TTL);
-
-  // redirect tới /admin/index.html sau khi login
-  headers.set("location", "/admin/index.html");
-  return new Response(null, { status: 302, headers });
-}
-
-export async function onRequestGet(context) {
-  // route nhỏ:
-  //  /.netlify/functions/admin-auth/ping        -> check secret tồn tại
-  //  /.netlify/functions/admin-auth/status      -> {ok, valid}
-  //  /.netlify/functions/admin-auth/logout      -> clear cookie
-  //  /admin/guard                               -> (proxy) bảo vệ trang admin
-  const { request } = context;
-  const url = new URL(request.url);
-
-  if (url.pathname.endsWith("/ping")) {
-    return json(200, { ok: true, hasSecret: Boolean(SECRET) });
-  }
-
-  if (url.pathname.endsWith("/status")) {
-    const t = readCookie(request);
-    const valid = await verifyToken(t);
-    return json(200, { ok: true, valid });
-  }
-
-  if (url.pathname.endsWith("/logout")) {
-    const h = new Headers();
-    clearCookie(h);
-    h.set("location", "/admin/login.html");
-    return new Response(null, { status: 302, headers: h });
-  }
-
-  // Guard: dùng trong /admin/index.html bằng fetch trước khi render (tuỳ bạn)
-  if (url.pathname.endsWith("/guard")) {
-    const t = readCookie(request);
-    const valid = await verifyToken(t);
-    if (!valid) return json(401, { ok: false, error: "Unauthorized" });
-    return json(200, { ok: true });
-  }
-
-  return json(404, { ok: false, error: "Not found" });
-}
+};

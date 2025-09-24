@@ -1,141 +1,71 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Admin Login — NiNi</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=12" />
+
+  <!-- dùng nền và font giống site -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
+  <link rel="stylesheet" href="/styles.css?v=12"/>
+
   <style>
-    /* --- Khung form đơn giản, dùng tone sáng giống site --- */
-    .auth-wrap{
-      min-height: 100dvh; display:flex; align-items:center; justify-content:center;
-      padding: 32px 16px;
+    /* Chỉ thêm lớp layout riêng cho trang login admin */
+    body{min-height:100dvh; display:grid; place-items:center;}
+    .admin-login-box{
+      width:min(480px,92vw);
+      border-radius:16px; padding:18px;
+      background:rgba(255,255,255,.58);
+      border:1px solid rgba(255,255,255,.9);
+      color:#0b4032;
+      backdrop-filter: blur(10px) saturate(120%);
+      box-shadow:0 14px 36px rgba(0,0,0,.10);
     }
-    .auth-card{
-      width:min(520px, 94vw);
-      background:#fff; color:#2a3340;
-      border-radius:16px; padding:22px 20px 20px;
-      border:1px solid rgba(20,30,50,.1);
-      box-shadow:0 18px 60px rgba(30,60,120,.12);
+    .admin-login-box h1{margin:0 0 6px}
+    .row{display:flex; gap:10px; margin:10px 0}
+    .row input{
+      flex:1; padding:12px; border-radius:12px;
+      border:1px solid rgba(0,0,0,.08); background:#fff; color:#0b4032;
     }
-    .auth-card h1{font-size:20px; margin:0 0 6px}
-    .auth-card p{margin:0 0 12px; color:#5a6b7c}
-    .auth-row{display:flex; gap:10px; margin:8px 0 12px}
-    .auth-input{
-      width:100%; padding:12px 12px; border-radius:12px;
-      border:1px solid rgba(20,30,50,.18); outline:none; font-size:16px;
-    }
-    .auth-input:focus{border-color:#7bc67b; box-shadow:0 0 0 3px rgba(123,198,123,.18)}
     .btn{
-      padding:10px 14px; border-radius:12px; border:1px solid rgba(20,30,50,.18);
-      background:#0b8a45; color:#fff; cursor:pointer;
+      padding:10px 14px; border-radius:12px;
+      border:1px solid rgba(0,0,0,.12); background:transparent; color:#0b4032; cursor:pointer;
     }
-    .btn:hover{filter:brightness(.98)}
-    .link{color:#2a5bd7; text-decoration:none}
-    .err{color:#c62828; margin-top:6px; min-height:20px}
+    .btn.primary{border-color:#9fe7d1; box-shadow:0 0 0 2px #ffffffa6 inset}
+    .muted{color:#1d6a57; font-size:13px}
+    .err{color:#c03131}
   </style>
 </head>
 <body>
-  <main class="auth-wrap">
-    <form class="auth-card" id="loginForm" autocomplete="off">
-      <h1>Đăng nhập Admin</h1>
-      <p>Nhập mật khẩu bí mật để vào trang quản trị.</p>
+  <form class="admin-login-box" id="f">
+    <h1>NiNi — Admin</h1>
+    <div class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</div>
+    <div class="row"><input id="pw" type="password" autocomplete="current-password" placeholder="Mật khẩu admin" required></div>
+    <div class="row">
+      <button class="btn primary" type="submit" id="btnLogin">Đăng nhập</button>
+      <a class="btn" href="/">Về trang chủ</a>
+    </div>
+    <div class="muted" id="msg"></div>
+  </form>
 
-      <div class="auth-row">
-        <input id="pwd" class="auth-input" type="password" placeholder="Mật khẩu" autofocus />
-      </div>
-
-      <div class="auth-row" style="justify-content:space-between">
-        <button class="btn" type="submit">Đăng nhập</button>
-        <a class="link" href="/">← Về trang chủ</a>
-      </div>
-
-      <div id="err" class="err"></div>
-
-      <details style="margin-top:8px; color:#5a6b7c">
-        <summary>Hướng dẫn thay mật khẩu</summary>
-        <div style="margin-top:6px; font-size:13px; line-height:1.5">
-          1) Mở DevTools (F12) → Console<br>
-          2) Chạy: <code>await sha256Hex('mat_khau_moi')</code><br>
-          3) Copy kết quả, dán vào biến <code>ADMIN_SHA256</code> bên dưới.
-        </div>
-      </details>
-    </form>
-  </main>
-
- <script>
-  /* ===============================
-     SHA-256 helpers
-     =============================== */
-  async function sha256Hex(str){
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(x=>x.toString(16).padStart(2,'0')).join('');
-  }
-
-  /* ============================================================
-   * Lấy "hash kỳ vọng" theo thứ tự ưu tiên:
-   * 1) window.admin_secret:
-   *    - Nếu là 64 ký tự [0-9a-f]  -> coi như SHA-256
-   *    - Ngược lại -> coi là plaintext, tự sha256
-   * 2) window.ADMIN_SHA256 (hash)
-   * 3) <meta name="admin-sha256" content="...">
-   * ============================================================ */
-  async function getExpectedHash(){
-    // 1) window.admin_secret (env hoặc biến global bạn nhúng)
-    if (typeof window.admin_secret === 'string' && window.admin_secret.trim()) {
-      const v = window.admin_secret.trim();
-      const isHex64 = /^[0-9a-f]{64}$/i.test(v);
-      return isHex64 ? v.toLowerCase() : await sha256Hex(v);
-    }
-
-    // 2) window.ADMIN_SHA256 (hash)
-    if (typeof window.ADMIN_SHA256 === 'string' && window.ADMIN_SHA256.trim()) {
-      return window.ADMIN_SHA256.trim().toLowerCase();
-    }
-
-    // 3) meta tag
-    const meta = document.querySelector('meta[name="admin-sha256"]');
-    if (meta && meta.content) {
-      return meta.content.trim().toLowerCase();
-    }
-
-    // Nếu không có cấu hình nào -> luôn fail có chủ đích
-    return '__no_hash_config__';
-  }
-
-  /* =========================================
-     Submit: so sánh hash và tạo phiên 6 giờ
-     ========================================= */
-  const form = document.getElementById('loginForm');
-  const pwd  = document.getElementById('pwd');
-  const err  = document.getElementById('err');
-
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    err.textContent = '';
-
-    const pass = (pwd.value || '').trim();
-    if (!pass) { pwd.focus(); return; }
-
-    const expected = await getExpectedHash();
-    const inputHash = await sha256Hex(pass);
-
-    if (inputHash !== expected) {
-      err.textContent = 'Sai mật khẩu. Vui lòng thử lại.';
-      return;
-    }
-
-    // OK -> tạo phiên 6 giờ và chuyển sang /admin/index.html
-    const SIX_HOURS = 6 * 60 * 60 * 1000;
-    const session = { ok: true, exp: Date.now() + SIX_HOURS };
-    localStorage.setItem('nini_admin', JSON.stringify(session));
-
-    location.replace('/admin/index.html'); // <-- chuyển trang tại đây
-  });
-</script>
-
+  <script src="/public/js/admin-auth.js?v=3" defer></script>
+  <script>
+    // Trang login: gọi login(password), hiển thị lỗi nếu có
+    window.addEventListener('DOMContentLoaded', () => {
+      const f = document.getElementById('f');
+      const msg = document.getElementById('msg');
+      f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.classList.remove('err'); msg.textContent = 'Đang kiểm tra…';
+        try {
+          const ok = await AdminAuth.login(document.getElementById('pw').value);
+          if (!ok) { msg.classList.add('err'); msg.textContent = 'Sai mật khẩu. Vui lòng thử lại.'; return; }
+          location.replace('/admin/');
+        } catch (err) {
+          msg.classList.add('err'); msg.textContent = err.message || 'Không thể đăng nhập.';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
-
-

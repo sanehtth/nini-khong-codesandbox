@@ -1,54 +1,58 @@
-﻿// Issues a signed, expiring cookie for /admin
-const crypto = require("crypto");
+// NOTE: BLOCK START – Netlify Function admin-auth
+// Chức năng: nhận {secret}, đối chiếu biến môi trường ADMIN_SECRET,
+// nếu đúng -> set cookie nini_admin=1 (tồn tại 6 giờ) và trả {ok:true}
 
-// parse "15m", "2h", "7d" or "3600" → seconds
-function ttlToSeconds(ttl) {
-  const s = String(ttl || "24h").trim();
-  const m = s.match(/^(\d+)\s*([smhd])?$/i);
-  if (!m) return 86400;
-  const n = parseInt(m[1], 10);
-  const u = (m[2] || "s").toLowerCase();
-  const mul = u === "m" ? 60 : u === "h" ? 3600 : u === "d" ? 86400 : 1;
-  // clamp 1 minute .. 30 days
-  return Math.max(60, Math.min(n * mul, 30 * 86400));
-}
-function b64url(input) {
-  return Buffer.from(input).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/,"");
-}
-function sign(secret, data) {
-  return b64url(crypto.createHmac("sha256", secret).update(data).digest());
-}
+const baseHeaders = {
+  'Content-Type': 'application/json',
+  'Cache-Control': 'no-store'
+};
 
 exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
+  try {
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        headers: baseHeaders,
+        body: JSON.stringify({ ok: false, msg: 'Method Not Allowed' })
+      };
+    }
 
-  const { password } = JSON.parse(event.body || "{}");
-  const ADMIN_SECRET = process.env.ADMIN_SECRET || "";
-  const COOKIE_NAME  = process.env.COOKIE_NAME  || "nini_admin";
-  const ttlSec       = ttlToSeconds(process.env.ADMIN_TOKEN_TTL);
+    const { secret } = JSON.parse(event.body || '{}');
 
-  if (!ADMIN_SECRET) return { statusCode: 500, body: "ADMIN_SECRET not set" };
-  if (!password || password !== ADMIN_SECRET)
-    return { statusCode: 401, body: JSON.stringify({ ok:false, msg:"Sai mật khẩu" }) };
+    // Chấp nhận cả ADMIN_SECRET và admin_secret cho linh hoạt
+    const ADMIN = process.env.ADMIN_SECRET || process.env.admin_secret || '';
+    const ok = ADMIN && secret && secret === ADMIN;
 
-  const now = Math.floor(Date.now()/1000);
-  const payloadObj = { sub:"admin", iat:now, exp:now + ttlSec, v:1, r:b64url(crypto.randomBytes(8)) };
-  const payload = b64url(JSON.stringify(payloadObj));
-  const sig = sign(ADMIN_SECRET, payload);
-  const token = `${payload}.${sig}`;
+    if (!ok) {
+      return {
+        statusCode: 401,
+        headers: baseHeaders,
+        body: JSON.stringify({ ok: false, msg: 'Sai mật khẩu' })
+      };
+    }
 
-  const cookie = [
-    `${COOKIE_NAME}=${token}`,
-    "Path=/",
-    "HttpOnly",
-    "Secure",
-    "SameSite=Lax",
-    `Max-Age=${ttlSec}`
-  ].join("; ");
+    // Set cookie 6 giờ – Path=/ để mọi trang đọc được; Secure vì HTTPS; SameSite=Lax là đủ
+    const cookie = [
+      'nini_admin=1',
+      'Max-Age=21600',   // 6h
+      'Path=/',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Secure'
+    ].join('; ');
 
-  return {
-    statusCode: 200,
-    headers: { "Set-Cookie": cookie, "Content-Type":"application/json" },
-    body: JSON.stringify({ ok:true, ttl: ttlSec })
-  };
+    return {
+      statusCode: 200,
+      headers: { ...baseHeaders, 'Set-Cookie': cookie },
+      body: JSON.stringify({ ok: true })
+    };
+
+  } catch (e) {
+    return {
+      statusCode: 500,
+      headers: baseHeaders,
+      body: JSON.stringify({ ok: false, msg: 'Server error' })
+    };
+  }
 };
+// NOTE: BLOCK END – Netlify Function admin-auth

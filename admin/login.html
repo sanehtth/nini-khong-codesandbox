@@ -1,43 +1,151 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Admin Login</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
-  <link rel="stylesheet" href="/styles.css?v=white-glass"/>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+
+  <!-- NOTE (bắt đầu): nền kính trắng mờ cùng style nhẹ nhàng, đồng bộ với site -->
   <style>
-    /* ===== BLOCK: Login white-glass ===== */
-    body::before{ filter: blur(10px) saturate(1.15) brightness(1.15); } /* nền sáng */
-    .box{ width:min(520px,92vw); margin:14vh auto 0; background:rgba(255,255,255,.88);
-      border:1px solid rgba(10,20,40,.12); box-shadow:0 30px 80px rgba(0,0,0,.18);
-      border-radius:16px; padding:22px 20px; color:#214; }
-    .box h1{margin:0 0 10px; font-size:22px}
-    .muted{opacity:.8}
-    .row{display:flex; gap:10px; align-items:center; margin-top:12px}
-    .input{width:100%; padding:12px 14px; border:1px solid rgba(10,20,40,.18); border-radius:12px; outline:0}
-    .btn{padding:10px 14px; border-radius:12px; border:1px solid rgba(10,20,40,.18); background:#fff; cursor:pointer}
-    .btn-prim{background:linear-gradient(90deg,#ffd44d,#7bd86a,#b88752); border:none; color:#183; font-weight:700}
-    .err{color:#c02323; margin-top:8px}
-    .topbar{position:fixed; right:16px; top:16px}
+    :root{
+      --ink:#233443; --ink-dim:#5a6a78;
+      --line:#d9e2ec; --accent:#2dbf6f;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--ink);
+      background:#f6fbff;
+    }
+    /* Backdrop từ ảnh nền của site (nếu có) */
+    body::before{
+      content:""; position:fixed; inset:0;
+      background: url("/public/assets/images/seasons/spring.webp") center/cover no-repeat;
+      filter: blur(8px) saturate(1.05) brightness(1.05);
+      transform:scale(1.02);
+      z-index:-2;
+    }
+    body::after{
+      content:""; position:fixed; inset:0;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(255,255,255,.75), rgba(255,255,255,.65));
+      backdrop-filter: blur(2px);
+      z-index:-1;
+    }
+
+    .wrap{min-height:100%; display:grid; place-items:center; padding:24px}
+    .card{
+      width:min(560px, 94vw);
+      background: rgba(255,255,255,.82);
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:16px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.12);
+      backdrop-filter: blur(8px);
+      padding: 18px 18px 16px;
+    }
+    h1{font-size:20px; margin:0 0 10px; letter-spacing:.2px}
+    p.top{margin:0 0 16px; color:var(--ink-dim)}
+    .row{display:flex; gap:10px; align-items:center}
+    input[type="password"]{
+      width:100%; padding:12px 14px; border-radius:12px;
+      border:1px solid var(--line); outline:none; color:var(--ink);
+      background:#fff;
+    }
+    input[type="password"]:focus{box-shadow:0 0 0 3px rgba(45,191,111,.15)}
+    .btn{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--line);
+      background:#fff; color:var(--ink); cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(180deg, #ffffff, #f6fff9);
+      border-color:#cfe7d9;
+    }
+    .btn:hover{box-shadow:0 0 0 3px rgba(45,191,111,.12)}
+    .muted{color:var(--ink-dim)}
+    .msg{margin-top:10px; color:#c21d1d}
+    .actions{display:flex; gap:10px; margin-top:12px; align-items:center; flex-wrap:wrap}
+    a.link{color:#266dff; text-decoration:none}
+    a.link:hover{text-decoration:underline}
   </style>
+  <!-- NOTE (hết) -->
 </head>
 <body>
-  <div class="topbar"><a class="btn" href="/">← Về trang chủ</a></div>
-  <main class="box">
-    <h1>NiNi — Admin</h1>
-    <div class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</div>
+  <main class="wrap">
+    <section class="card">
+      <h1>NiNi — Admin</h1>
+      <p class="top">Nhập mật khẩu admin để vào bảng điều khiển.</p>
 
-    <div class="row">
-      <input id="adminPass" type="password" class="input" placeholder="Mật khẩu admin" autocomplete="current-password" />
-    </div>
-    <div class="row">
-      <button id="btnLogin" class="btn btn-prim">Đăng nhập</button>
-      <button class="btn" onclick="location.href='/'">Về trang chủ</button>
-    </div>
-    <div id="err" class="err" hidden>Sai mật khẩu. Vui lòng thử lại.</div>
+      <form id="adminLoginForm" class="form" autocomplete="off">
+        <input id="adminPass" type="password" placeholder="Mật khẩu admin" autofocus />
+        <div class="actions">
+          <button class="btn primary" type="submit">Đăng nhập</button>
+          <a class="btn" href="/">Về trang chủ</a>
+          <span class="muted" id="loginHint"></span>
+        </div>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+    </section>
   </main>
 
-  <script src="/public/js/admin.js" defer></script>
+  <!-- NOTE (bắt đầu): JS đăng nhập – gửi JSON chuẩn, xử lý lỗi rõ ràng, redirect khi OK -->
+  <script>
+  (() => {
+    const $ = s => document.querySelector(s);
+    const form = $('#adminLoginForm');
+    const input = $('#adminPass');
+    const msg   = $('#loginMsg');
+    const hint  = $('#loginHint');
+
+    hint.textContent = ''; // có thể ghi “Nhập mật khẩu bí mật do bạn đặt…”
+
+    async function login(pass) {
+      msg.textContent = 'Đang kiểm tra...';
+      try {
+        const res = await fetch('/.netlify/functions/admin-auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ pass })
+        });
+
+        // đọc detail để debug nếu cần
+        let detail = '';
+        try { detail = await res.text(); } catch (_){}
+
+        if (res.ok) {
+          // cookie HttpOnly do server set; lưu flag localStorage để dùng FE nếu cần
+          localStorage.setItem('nini_admin_authed', '1');
+          location.href = '/admin/index.html';
+          return;
+        }
+
+        if (res.status === 401) {
+          msg.textContent = 'Sai mật khẩu. Vui lòng thử lại.';
+        } else if (res.status === 429) {
+          msg.textContent = 'Bạn thử quá nhiều lần. Chờ một lát rồi thử lại.';
+        } else if (res.status === 400) {
+          msg.textContent = 'Yêu cầu không hợp lệ (thiếu dữ liệu).';
+          console.warn('400 detail:', detail);
+        } else {
+          msg.textContent = 'Lỗi máy chủ. Thử lại sau.';
+          console.error('Login failed:', res.status, detail);
+        }
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Không thể kết nối máy chủ.';
+      }
+    }
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const pass = input.value.trim();
+      if (!pass) {
+        msg.textContent = 'Vui lòng nhập mật khẩu.';
+        return;
+      }
+      login(pass);
+    });
+  })();
+  </script>
+  <!-- NOTE (hết) -->
 </body>
 </html>

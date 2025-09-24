@@ -1,105 +1,43 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin Login — NiNi</title>
-
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=12" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NiNi — Admin Login</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
+  <link rel="stylesheet" href="/styles.css?v=white-glass"/>
   <style>
-    .auth-wrap { min-height: 100dvh; display:grid; place-items:center; padding:24px }
-    .card { width:min(560px, 92vw); padding:22px 22px 20px; border-radius:16px;
-            background: rgba(255,255,255,.86); border:1px solid rgba(0,0,0,.08);
-            box-shadow: 0 20px 60px rgba(0,0,0,.12); color:#2b3a4a; }
-    .h3 { margin:0 0 8px; font-size:20px; font-weight:800 }
-    .muted { color:#607080; margin:0 0 14px }
-    .label { display:block; font-weight:600; margin:6px 0 6px; color:#415060 }
-    .input { width:100%; padding:12px 12px; border-radius:10px; border:1px solid #d7e0ea; background:#fff; color:#26313d }
-    .row { display:flex; gap:10px; align-items:center; margin-top:14px }
-    .btn { padding:10px 14px; border-radius:999px; border:1px solid #d7e0ea; background:#fff; color:#26313d; cursor:pointer }
-    .btn-primary { background:#1a91ff; color:#fff; border-color:#1a91ff }
-    .btn:hover { filter:brightness(.98) }
-    .err { color:#d22; font-weight:600 }
+    /* ===== BLOCK: Login white-glass ===== */
+    body::before{ filter: blur(10px) saturate(1.15) brightness(1.15); } /* nền sáng */
+    .box{ width:min(520px,92vw); margin:14vh auto 0; background:rgba(255,255,255,.88);
+      border:1px solid rgba(10,20,40,.12); box-shadow:0 30px 80px rgba(0,0,0,.18);
+      border-radius:16px; padding:22px 20px; color:#214; }
+    .box h1{margin:0 0 10px; font-size:22px}
+    .muted{opacity:.8}
+    .row{display:flex; gap:10px; align-items:center; margin-top:12px}
+    .input{width:100%; padding:12px 14px; border:1px solid rgba(10,20,40,.18); border-radius:12px; outline:0}
+    .btn{padding:10px 14px; border-radius:12px; border:1px solid rgba(10,20,40,.18); background:#fff; cursor:pointer}
+    .btn-prim{background:linear-gradient(90deg,#ffd44d,#7bd86a,#b88752); border:none; color:#183; font-weight:700}
+    .err{color:#c02323; margin-top:8px}
+    .topbar{position:fixed; right:16px; top:16px}
   </style>
 </head>
 <body>
-  <main class="auth-wrap">
-    <form id="adminForm" class="card">
-      <h1 class="h3">NiNi — Admin</h1>
-      <p class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</p>
+  <div class="topbar"><a class="btn" href="/">← Về trang chủ</a></div>
+  <main class="box">
+    <h1>NiNi — Admin</h1>
+    <div class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</div>
 
-      <label class="label">Mật khẩu admin</label>
-      <input id="adminSecret" type="password" class="input" placeholder="••••••••" autocomplete="current-password" />
-
-      <div class="row">
-        <button type="submit" class="btn btn-primary">Đăng nhập</button>
-        <a class="btn" href="/">Về trang chủ</a>
-      </div>
-
-      <p id="adminMsg" class="err" style="margin-top:10px"></p>
-    </form>
+    <div class="row">
+      <input id="adminPass" type="password" class="input" placeholder="Mật khẩu admin" autocomplete="current-password" />
+    </div>
+    <div class="row">
+      <button id="btnLogin" class="btn btn-prim">Đăng nhập</button>
+      <button class="btn" onclick="location.href='/'">Về trang chủ</button>
+    </div>
+    <div id="err" class="err" hidden>Sai mật khẩu. Vui lòng thử lại.</div>
   </main>
 
-  <!-- NOTE: Login JS – gọi admin-auth, rồi poll admin-whoami 2–3 lần để chắc cookie đã set -->
-  <!-- NOTE: BLOCK START -->
-  <script>
-  (() => {
-    const form  = document.getElementById('adminForm');
-    const input = document.getElementById('adminSecret');
-    const msg   = document.getElementById('adminMsg');
-
-    // helper: ping whoami
-    async function whoAmI() {
-      try {
-        const r = await fetch('/.netlify/functions/admin-whoami', { credentials:'include', cache:'no-store' });
-        const j = await r.json();
-        return !!(j && j.admin);
-      } catch { return false; }
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = '';
-      const secret = input.value.trim();
-      if (!secret) { msg.textContent = 'Vui lòng nhập mật khẩu.'; return; }
-
-      try {
-        const r = await fetch('/.netlify/functions/admin-auth', {
-          method: 'POST',
-          credentials: 'include', // QUAN TRỌNG: để nhận cookie
-          headers: { 'Content-Type':'application/json', 'Cache-Control':'no-store' },
-          body: JSON.stringify({ secret })
-        });
-        const data = await r.json().catch(()=>({}));
-        if (!(r.ok && data && data.ok)) {
-          msg.textContent = (data && data.msg) || 'Sai mật khẩu. Vui lòng thử lại.'; return;
-        }
-
-        // Cookie vừa set có thể cần 1 nhịp -> poll whoami
-        const tryUntil = Date.now() + 1500; // tối đa ~1.5s
-        let ok = false;
-        while (Date.now() < tryUntil) {
-          // nhỏ giọt 150ms
-          /* eslint-disable no-await-in-loop */
-          await new Promise(res=>setTimeout(res, 150));
-          ok = await whoAmI();
-          if (ok) break;
-        }
-        if (ok) location.replace('/admin/index.html');
-        else msg.textContent = 'Đăng nhập chưa hoàn tất. Vui lòng thử lại (cookie chưa được lưu).';
-      } catch (err) {
-        msg.textContent = 'Không thể kết nối máy chủ. Vui lòng thử lại.';
-      }
-    });
-
-    // hiện thông báo hết hạn nếu có
-    const u = new URL(location.href);
-    if (u.searchParams.get('expired') === '1') {
-      msg.textContent = 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.';
-    }
-  })();
-  </script>
-  <!-- NOTE: BLOCK END -->
+  <script src="/public/js/admin.js" defer></script>
 </body>
 </html>

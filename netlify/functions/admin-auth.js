@@ -1,178 +1,166 @@
 // netlify/functions/admin-auth.js
+// NiNi — Admin Auth (Netlify Function)
+// NOTE:
+// - Remove top-level await (causing build fail with CJS output).
+// - Use lazy resolver getSubtle() to access WebCrypto when needed.
 
-/* ==========================================================
-   NiNi — Admin Auth (single function)
-   Endpoints:
-     - POST  /.netlify/functions/admin-auth/login
-     - POST  /.netlify/functions/admin-auth/logout
-     - GET   /.netlify/functions/admin-auth/ping
-     - POST  /.netlify/functions/admin-auth/refresh
-   Yêu cầu ENV:  admin_secret
-   Ghi chú: token ký HMAC, không cần DB. TTL mặc định 6h.
-   ========================================================== */
-
-export const config = { path: "/.netlify/functions/admin-auth/*" };
-
-const crypto = await import("node:crypto");
-
-const TTL_SEC = 6 * 60 * 60;          // 6 giờ
-const REFRESH_THRESHOLD = 25 * 60;     // nếu còn <25' thì cho refresh
+const TOKEN_TTL = Number(process.env.ADMIN_TOKEN_TTL || 6 * 60 * 60); // 6h
+const SECRET     = process.env.ADMIN_SECRET || "";
+const COOKIE     = "nini_admin_token";
+const SECURE     = true; // production
+const DOMAIN     = undefined; // let browser infer
 
 // ---------- helpers ----------
-function json(status, body, headers = {}) {
+function json(status, body, extra = {}) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
-      ...headers,
+      ...extra,
     },
   });
 }
 
-// Ký HMAC (sha256)
-function hmac(secret, data) {
-  return crypto.createHmac("sha256", secret).update(data).digest("hex");
+function parseBody(req) {
+  return req.json().catch(() => ({}));
 }
 
-// Sinh token: base64url(payload).<sig>
-function createToken(secret, sub = "admin", ttlSec = TTL_SEC) {
-  const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    sub,
-    iat: now,
-    exp: now + ttlSec,
-    rnd: crypto.randomBytes(8).toString("hex"),
-  };
-  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  const sig = hmac(secret, body);
-  return `${body}.${sig}`;
+function setCookie(resHeaders, value, maxAge) {
+  const parts = [
+    `${COOKIE}=${value}`,
+    `Path=/`,
+    `HttpOnly`,
+    SECURE ? `Secure` : ``,
+    `SameSite=Lax`,
+    maxAge ? `Max-Age=${maxAge}` : ``,
+    DOMAIN ? `Domain=${DOMAIN}` : ``,
+  ].filter(Boolean);
+  resHeaders.append("set-cookie", parts.join("; "));
 }
 
-function verifyToken(secret, token) {
+function clearCookie(resHeaders) {
+  const parts = [
+    `${COOKIE}=`,
+    `Path=/`,
+    `HttpOnly`,
+    SECURE ? `Secure` : ``,
+    `SameSite=Lax`,
+    `Max-Age=0`,
+    DOMAIN ? `Domain=${DOMAIN}` : ``,
+  ].filter(Boolean);
+  resHeaders.append("set-cookie", parts.join("; "));
+}
+
+// ===== Fix: lazy WebCrypto (no top-level await) =====
+let _subtle = null;
+async function getSubtle() {
+  if (_subtle) return _subtle;
+  // Node 18+: crypto.webcrypto
   try {
-    const [body, sig] = token.split(".");
-    if (!body || !sig) return { ok: false, reason: "bad-format" };
-    const expect = hmac(secret, body);
-    if (expect !== sig) return { ok: false, reason: "bad-signature" };
-    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-    const now = Math.floor(Date.now() / 1000);
-    if (now >= payload.exp) return { ok: false, reason: "expired" };
-    return { ok: true, payload };
-  } catch {
-    return { ok: false, reason: "invalid" };
-  }
-}
-
-function getAuthTokenFrom(req) {
-  // Ưu tiên header Authorization: Bearer xxx
-  const auth = req.headers.get("authorization") || "";
-  const m = auth.match(/^Bearer\s+(.+)$/i);
-  if (m) return m[1];
-
-  // Rơi về cookie
-  const cookie = req.headers.get("cookie") || "";
-  const k = cookie.split(";").map(s => s.trim());
-  for (const c of k) {
-    if (c.startsWith("nini_admin=")) return decodeURIComponent(c.slice(11));
-  }
-  return "";
-}
-
-// Lấy host để set cookie scope hợp lý
-function cookieAttrsFrom(req) {
-  const path = "/admin";
-  const sameSite = "Lax"; // để link nội bộ không bị chặn
-  const secure = "Secure"; // Netlify luôn https
-  // KHÔNG ép Domain để cookie dùng đúng host hiện tại (tránh lệch apex/sub).
-  return `Path=${path}; SameSite=${sameSite}; ${secure}`;
-}
-
-// ---------- handler ----------
-export default async function handler(req) {
-  const url = new URL(req.url);
-  const secret = process.env.admin_secret; // <== tên đúng như bạn đang dùng
-  if (!secret) {
-    return json(500, { ok: false, error: "Missing env admin_secret" });
-  }
-
-  // CORS nhẹ cho GET/POST cùng origin
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        "access-control-allow-origin": url.origin,
-        "access-control-allow-methods": "GET,POST,OPTIONS",
-        "access-control-allow-headers": "content-type,authorization",
-      },
-    });
-  }
-
-  const pathname = url.pathname.replace(/\/+$/, "");
-
-  // ---------- /ping ----------
-  if (pathname.endsWith("/ping") && req.method === "GET") {
-    const token = getAuthTokenFrom(req);
-    if (!token) return json(401, { ok: false, reason: "no-token" });
-    const v = verifyToken(secret, token);
-    if (!v.ok) return json(401, { ok: false, reason: v.reason });
-
-    const now = Math.floor(Date.now() / 1000);
-    const remain = v.payload.exp - now;
-    return json(200, { ok: true, hasSecret: true, remain });
-  }
-
-  // ---------- /login ----------
-  if (pathname.endsWith("/login") && req.method === "POST") {
-    const { pass } = await req.json().catch(() => ({}));
-    if (!pass) return json(400, { ok: false, error: "missing-pass" });
-
-    // so sánh mật khẩu với admin_secret
-    if (pass !== secret) {
-      return json(400, { ok: false, error: "bad-password" });
+    // dynamic import nhưng NẰM TRONG HÀM (không còn top-level await)
+    const mod = await import("node:crypto");
+    if (mod?.webcrypto?.subtle) {
+      _subtle = mod.webcrypto.subtle;
+      return _subtle;
     }
+  } catch (_) {}
+  // Edge/Browser fallback (nếu có)
+  if (globalThis.crypto?.subtle) {
+    _subtle = globalThis.crypto.subtle;
+    return _subtle;
+  }
+  throw new Error("WebCrypto subtle is not available in this runtime.");
+}
 
-    const token = createToken(secret);
-    // set kèm cookie (không bắt buộc, client cũng sẽ dùng localStorage)
-    const cookie = `nini_admin=${encodeURIComponent(token)}; ${cookieAttrsFrom(req)}`;
-    return json(
-      200,
-      { ok: true, token, ttl: TTL_SEC },
-      { "set-cookie": cookie }
-    );
+async function sha256Hex(str) {
+  const subtle = await getSubtle();
+  const enc = new TextEncoder().encode(str);
+  const buf = await subtle.digest("SHA-256", enc);
+  return Buffer.from(buf).toString("hex");
+}
+
+async function makeToken() {
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + TOKEN_TTL;
+  const payload = `${now}.${exp}`;
+  const sig = await sha256Hex(`${payload}.${SECRET}`);
+  return `${payload}.${sig}`;
+}
+
+async function verifyToken(token) {
+  if (!token) return false;
+  const [iat, exp, sig] = token.split(".");
+  if (!iat || !exp || !sig) return false;
+  const want = await sha256Hex(`${iat}.${exp}.${SECRET}`);
+  if (want !== sig) return false;
+  const now = Math.floor(Date.now() / 1000);
+  return now < Number(exp);
+}
+
+function readCookie(req) {
+  const raw = req.headers.get("cookie") || "";
+  const map = new Map(
+    raw.split(/;\s*/).map((p) => {
+      const i = p.indexOf("=");
+      return i > -1 ? [p.slice(0, i), p.slice(i + 1)] : ["", ""];
+    })
+  );
+  return map.get(COOKIE);
+}
+
+// ---------- Handlers ----------
+export async function onRequestPost(context) {
+  const { request } = context;
+  if (!SECRET) return json(500, { ok: false, error: "Missing ADMIN_SECRET" });
+
+  const { password } = await parseBody(request);
+  if (!password) return json(400, { ok: false, error: "Missing password" });
+
+  if (password !== SECRET) return json(400, { ok: false, error: "Wrong password" });
+
+  const token = await makeToken();
+  const headers = new Headers();
+  setCookie(headers, token, TOKEN_TTL);
+
+  // redirect tới /admin/index.html sau khi login
+  headers.set("location", "/admin/index.html");
+  return new Response(null, { status: 302, headers });
+}
+
+export async function onRequestGet(context) {
+  // route nhỏ:
+  //  /.netlify/functions/admin-auth/ping        -> check secret tồn tại
+  //  /.netlify/functions/admin-auth/status      -> {ok, valid}
+  //  /.netlify/functions/admin-auth/logout      -> clear cookie
+  //  /admin/guard                               -> (proxy) bảo vệ trang admin
+  const { request } = context;
+  const url = new URL(request.url);
+
+  if (url.pathname.endsWith("/ping")) {
+    return json(200, { ok: true, hasSecret: Boolean(SECRET) });
   }
 
-  // ---------- /refresh ----------
-  if (pathname.endsWith("/refresh") && req.method === "POST") {
-    const token = getAuthTokenFrom(req);
-    if (!token) return json(401, { ok: false, error: "no-token" });
-
-    const v = verifyToken(secret, token);
-    if (!v.ok) return json(401, { ok: false, error: v.reason });
-
-    const now = Math.floor(Date.now() / 1000);
-    const remain = v.payload.exp - now;
-
-    // Chỉ refresh khi còn ít hơn threshold
-    if (remain > REFRESH_THRESHOLD) {
-      return json(200, { ok: true, token, ttl: remain });
-    }
-
-    const newToken = createToken(secret);
-    const cookie = `nini_admin=${encodeURIComponent(newToken)}; ${cookieAttrsFrom(req)}`;
-    return json(
-      200,
-      { ok: true, token: newToken, ttl: TTL_SEC },
-      { "set-cookie": cookie }
-    );
+  if (url.pathname.endsWith("/status")) {
+    const t = readCookie(request);
+    const valid = await verifyToken(t);
+    return json(200, { ok: true, valid });
   }
 
-  // ---------- /logout ----------
-  if (pathname.endsWith("/logout") && req.method === "POST") {
-    const expired = `nini_admin=; ${cookieAttrsFrom(req)}; Max-Age=0`;
-    return json(200, { ok: true }, { "set-cookie": expired });
+  if (url.pathname.endsWith("/logout")) {
+    const h = new Headers();
+    clearCookie(h);
+    h.set("location", "/admin/login.html");
+    return new Response(null, { status: 302, headers: h });
   }
 
-  // ---------- fallback ----------
-  return json(404, { ok: false, error: "not-found" });
+  // Guard: dùng trong /admin/index.html bằng fetch trước khi render (tuỳ bạn)
+  if (url.pathname.endsWith("/guard")) {
+    const t = readCookie(request);
+    const valid = await verifyToken(t);
+    if (!valid) return json(401, { ok: false, error: "Unauthorized" });
+    return json(200, { ok: true });
+  }
+
+  return json(404, { ok: false, error: "Not found" });
 }

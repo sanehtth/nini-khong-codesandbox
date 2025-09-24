@@ -95,6 +95,9 @@
         <button id="btnDLBook" class="btn">Tải book.json</button>
         <button id="btnDLManifest" class="btn">Tải manifest.json</button>
         <button id="btnDLBoth" class="btn gray">Tải cả hai</button>
+        <button id="btnGitLoad" class="btn gray">Tải từ GitHub</button>
+        <button id="btnGitSave" class="btn">Lưu lên GitHub</button>
+
       </div>
 
       <details style="margin-top:10px">
@@ -313,6 +316,74 @@
     ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
     renderPages(); renderManifestSnippet();
   })();
-  </script>
+ 
+  // ==== Helper lấy SHA của file hiện tại (để update) ====
+  async function ghGet(path, asRaw=false){
+    const url = `/.netlify/functions/sb-github-get?path=${encodeURIComponent(path)}${asRaw?'&raw=1':''}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(await res.text());
+    return asRaw ? await res.text() : await res.json();
+  }
+
+  // ==== LOAD từ GitHub theo IDBook ====
+  document.getElementById('btnGitLoad').onclick = async ()=>{
+    try{
+      if (!book.IDBook) return alert('Nhập IDBook trước!');
+      const path = `public/content/storybook/${book.IDBook}.json`;
+      const got = await ghGet(path, true); // raw text
+      const data = JSON.parse(got);
+
+      // đổ vào form (bảo toàn cấu trúc bạn đang dùng)
+      book = {
+        IDBook: data.IDBook || "",
+        little_vi: data.little_vi || "",
+        little_en: data.little_en || "",
+        auther: data.auther || "",
+        design: data.design || "",
+        L_imageBia: data.L_imageBia || "",
+        pages: Array.isArray(data.pages) ? data.pages : []
+      };
+      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>document.getElementById(id).value = book[id]||"");
+      renderPages(); renderManifestSnippet();
+      alert('Đã nạp sách từ GitHub.');
+    }catch(e){
+      alert('Không tải được từ GitHub: ' + e.message);
+    }
+  };
+
+  // ==== SAVE lên GitHub theo IDBook ====
+  document.getElementById('btnGitSave').onclick = async ()=>{
+    try{
+      if (!book.IDBook) return alert('Nhập IDBook trước!');
+      const path = `public/content/storybook/${book.IDBook}.json`;
+
+      // 1) hỏi GitHub để lấy sha hiện tại (nếu có)
+      let sha = undefined;
+      try{
+        const meta = await ghGet(path, false); // JSON metadata
+        sha = meta?.data?.sha;
+      }catch(_){ /* nếu 404 -> file mới, bỏ qua sha */ }
+
+      // 2) gọi save
+      const res = await fetch('/.netlify/functions/sb-github-save', {
+        method:'POST',
+        headers:{ 'content-type':'application/json' },
+        body: JSON.stringify({
+          path,
+          content: JSON.stringify(book, null, 2),
+          sha,                      // có thì update, không có thì create
+          buildHook: true           // nếu đã set NETLIFY_BUILD_HOOK_URL → redeploy
+        })
+      });
+      const j = await res.json();
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Save fail');
+      alert('Đã lưu lên GitHub và kích hoạt redeploy (nếu cấu hình).');
+    }catch(e){
+      alert('Lỗi lưu GitHub: ' + e.message);
+    }
+  };
+</script>
+
 </body>
 </html>
+

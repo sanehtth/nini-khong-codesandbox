@@ -1,5 +1,10 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = []
 
 [[edge_functions]]
   function = "admin-guard"
@@ -10,3 +15,7 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Chốt version Node để có crypto ổn định
+[build.environment]
+  NODE_VERSION = "18"

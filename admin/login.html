@@ -1,71 +1,93 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Admin Login — NiNi</title>
 
-  <!-- dùng nền và font giống site -->
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp"/>
-  <link rel="stylesheet" href="/styles.css?v=12"/>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=12" />
 
   <style>
-    /* Chỉ thêm lớp layout riêng cho trang login admin */
-    body{min-height:100dvh; display:grid; place-items:center;}
-    .admin-login-box{
-      width:min(480px,92vw);
-      border-radius:16px; padding:18px;
-      background:rgba(255,255,255,.58);
-      border:1px solid rgba(255,255,255,.9);
-      color:#0b4032;
-      backdrop-filter: blur(10px) saturate(120%);
-      box-shadow:0 14px 36px rgba(0,0,0,.10);
-    }
-    .admin-login-box h1{margin:0 0 6px}
-    .row{display:flex; gap:10px; margin:10px 0}
-    .row input{
-      flex:1; padding:12px; border-radius:12px;
-      border:1px solid rgba(0,0,0,.08); background:#fff; color:#0b4032;
-    }
-    .btn{
-      padding:10px 14px; border-radius:12px;
-      border:1px solid rgba(0,0,0,.12); background:transparent; color:#0b4032; cursor:pointer;
-    }
-    .btn.primary{border-color:#9fe7d1; box-shadow:0 0 0 2px #ffffffa6 inset}
-    .muted{color:#1d6a57; font-size:13px}
-    .err{color:#c03131}
+    /* NOTE: Khối kính trắng nhẹ cho form */
+    .auth-wrap { min-height: 100dvh; display:grid; place-items:center; padding:24px }
+    .card { width:min(560px, 92vw); padding:22px 22px 20px; border-radius:16px;
+            background: rgba(255,255,255,.86); border:1px solid rgba(0,0,0,.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,.12); color:#2b3a4a; }
+    .h3 { margin:0 0 8px; font-size:20px; font-weight:800 }
+    .muted { color:#607080; margin:0 0 14px }
+    .label { display:block; font-weight:600; margin:6px 0 6px; color:#415060 }
+    .input { width:100%; padding:12px 12px; border-radius:10px; border:1px solid #d7e0ea; background:#fff; color:#26313d }
+    .row { display:flex; gap:10px; align-items:center; margin-top:14px }
+    .btn { padding:10px 14px; border-radius:999px; border:1px solid #d7e0ea; background:#fff; color:#26313d; cursor:pointer }
+    .btn-primary { background:#1a91ff; color:#fff; border-color:#1a91ff }
+    .btn:hover { filter:brightness(.98) }
+    .err { color:#d22; font-weight:600 }
   </style>
 </head>
 <body>
-  <form class="admin-login-box" id="f">
-    <h1>NiNi — Admin</h1>
-    <div class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</div>
-    <div class="row"><input id="pw" type="password" autocomplete="current-password" placeholder="Mật khẩu admin" required></div>
-    <div class="row">
-      <button class="btn primary" type="submit" id="btnLogin">Đăng nhập</button>
-      <a class="btn" href="/">Về trang chủ</a>
-    </div>
-    <div class="muted" id="msg"></div>
-  </form>
+  <main class="auth-wrap">
 
-  <script src="/public/js/admin-auth.js?v=3" defer></script>
+    <form id="adminForm" class="card">
+      <h1 class="h3">NiNi — Admin</h1>
+      <p class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</p>
+
+      <label class="label">Mật khẩu admin</label>
+      <input id="adminSecret" type="password" class="input" placeholder="••••••••" autocomplete="current-password" />
+
+      <div class="row">
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        <a class="btn" href="/">Về trang chủ</a>
+      </div>
+
+      <p id="adminMsg" class="err" style="margin-top:10px"></p>
+    </form>
+
+  </main>
+
+  <!-- NOTE: Đăng nhập: gọi function, nhận cookie, redirect về /admin/index.html -->
+  <!-- NOTE: BLOCK START – Login JS -->
   <script>
-    // Trang login: gọi login(password), hiển thị lỗi nếu có
-    window.addEventListener('DOMContentLoaded', () => {
-      const f = document.getElementById('f');
-      const msg = document.getElementById('msg');
-      f.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        msg.classList.remove('err'); msg.textContent = 'Đang kiểm tra…';
-        try {
-          const ok = await AdminAuth.login(document.getElementById('pw').value);
-          if (!ok) { msg.classList.add('err'); msg.textContent = 'Sai mật khẩu. Vui lòng thử lại.'; return; }
-          location.replace('/admin/');
-        } catch (err) {
-          msg.classList.add('err'); msg.textContent = err.message || 'Không thể đăng nhập.';
+  (() => {
+    const form  = document.getElementById('adminForm');
+    const input = document.getElementById('adminSecret');
+    const msg   = document.getElementById('adminMsg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const secret = input.value.trim();
+      if (!secret) { msg.textContent = 'Vui lòng nhập mật khẩu.'; return; }
+
+      try {
+        const r = await fetch('/.netlify/functions/admin-auth', {
+          method: 'POST',
+          credentials: 'include', // QUAN TRỌNG: để cookie được set về trình duyệt
+          headers: { 'Content-Type':'application/json', 'Cache-Control':'no-store' },
+          body: JSON.stringify({ secret })
+        });
+
+        let data = {};
+        try { data = await r.json(); } catch {} // phòng khi body rỗng
+
+        if (r.ok && data && data.ok) {
+          // chờ 1 nhịp để cookie ghi xong rồi mới chuyển trang
+          setTimeout(() => location.replace('/admin/index.html'), 50);
+        } else {
+          msg.textContent = (data && data.msg) || 'Sai mật khẩu. Vui lòng thử lại.';
         }
-      });
+      } catch (err) {
+        msg.textContent = 'Không thể kết nối máy chủ. Vui lòng thử lại.';
+      }
     });
+
+    // Nếu bị đá về do hết hạn cookie, hiện thông điệp nhẹ
+    const u = new URL(location.href);
+    if (u.searchParams.get('expired') === '1') {
+      msg.textContent = 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.';
+    }
+  })();
   </script>
+  <!-- NOTE: BLOCK END – Login JS -->
 </body>
 </html>

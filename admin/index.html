@@ -5,123 +5,121 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Admin</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=11" />
+  <link rel="stylesheet" href="/styles.css?v=admin2" />
   <style>
-    .wrap{width:min(1180px,94vw);margin:18px auto 80px}
-    .bar{display:flex;gap:10px;align-items:center;margin:12px 0}
-    .tab{padding:9px 12px;border:1px solid var(--line,#cfd6df);border-radius:999px;background:#fff;cursor:pointer}
-    .tab.is-active{text-decoration:underline;text-underline-offset:6px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:10px;border-bottom:1px solid #e8eef5;color:#2d3748}
-    .right{margin-left:auto}
+    .shell{width:min(1100px,92vw); margin:20px auto 80px}
+    .topbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .spacer{flex:1}
+    .btn{padding:8px 12px; border-radius:999px; border:1px solid rgba(0,0,0,.15); background:#fff; cursor:pointer}
+    .btn:hover{border-color:#000}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+    .tab{padding:9px 14px; border-radius:999px; border:1px solid rgba(0,0,0,.16); background:#fff; cursor:pointer}
+    .tab.is-active{ text-decoration:underline; text-underline-offset:6px; text-decoration-thickness:2px }
+    .panel{display:none; margin-top:12px}
+    .panel.is-current{display:block}
+    table{width:100%; border-collapse:collapse; background:#fff; border:1px solid rgba(0,0,0,.12)}
+    th, td{padding:10px 12px; border-bottom:1px solid rgba(0,0,0,.08); text-align:left}
+    th{background:#f7fafc}
+    .muted{color:#6b7b8c; font-size:13px}
   </style>
 </head>
 <body>
-  <header class="wrap bar" style="justify-content:flex-end">
-    <button id="btnLogout" class="tab">Đăng xuất</button>
-    <a class="tab" href="/">Về trang chủ</a>
+  <header class="shell">
+    <div class="topbar">
+      <h2 style="margin:0">NiNi — Admin</h2>
+      <div class="spacer"></div>
+      <a class="btn" href="/">↘ Về trang chủ</a>
+      <button id="btnLogout" class="btn">Đăng xuất</button>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-t="scores">Bảng điểm</button>
+      <button class="tab" data-t="queue">Hàng đợi</button>
+      <button class="tab" data-t="reports">Báo cáo</button>
+    </nav>
   </header>
 
-  <main class="wrap">
-    <nav class="bar">
-      <button class="tab is-active">Bảng điểm</button>
-      <button class="tab">Hàng đợi</button>
-      <button class="tab">Báo cáo</button>
-    </nav>
-
-    <section class="bar">
-      <label>Ngày <input id="pickDate" type="date"/></label>
-      <button id="btnLoad" class="tab">Tải dữ liệu</button>
-      <button id="btnCsv" class="tab">Tải CSV</button>
-      <span id="stat" class="right"></span>
-    </section>
-
-    <div class="table">
-      <table id="grid">
+  <main class="shell">
+    <!-- Panel: Bảng điểm (ví dụ giữ nguyên bố cục của bạn) -->
+    <section id="p-scores" class="panel is-current">
+      <div class="muted" style="margin-bottom:8px">Chọn ngày ➜ tải dữ liệu (đọc từ Function riêng của bạn, nếu có).</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <input id="pickDate" type="date" />
+        <button id="btnLoad" class="btn">Tải dữ liệu</button>
+        <button id="btnCsv"  class="btn">Tải CSV</button>
+        <span id="stat" class="muted"></span>
+      </div>
+      <table>
         <thead>
           <tr>
-            <th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th>
-            <th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th>
+            <th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th><th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="grid"></tbody>
       </table>
-    </div>
+    </section>
+
+    <section id="p-queue" class="panel">
+      <p class="muted">Khu vực này bạn có thể gắn lại queue.js của bạn.</p>
+    </section>
+
+    <section id="p-reports" class="panel">
+      <p class="muted">Gọi Function daily-rollup của bạn nếu đã triển khai.</p>
+    </section>
   </main>
 
   <script>
-    // ========== START PATCH: Bảo vệ trang + refresh token ==========
-    const $ = s => document.querySelector(s);
+    const API = "/.netlify/functions/admin-auth";
 
-    async function ensureAuth() {
-      const tok = localStorage.getItem('nini_admin_token');
-      if (!tok) { location.replace('/admin/login.html'); return Promise.reject(); }
-      const r = await fetch('/.netlify/functions/admin-auth/ping', {
-        headers: { authorization: 'Bearer ' + tok }
-      });
-      if (!r.ok) { location.replace('/admin/login.html'); return Promise.reject(); }
-      const info = await r.json().catch(()=>({ remain: 0 }));
-      // nếu sắp hết hạn -> thử refresh
-      if (info && typeof info.remain === 'number' && info.remain < 25*60) {
-        await refreshToken().catch(()=>{});
-      }
-      return tok;
-    }
-
-    async function refreshToken() {
-      const tok = localStorage.getItem('nini_admin_token');
-      if (!tok) return;
-      const r = await fetch('/.netlify/functions/admin-auth/refresh', {
-        method: 'POST',
-        headers: { authorization: 'Bearer ' + tok }
-      });
-      if (!r.ok) return;
-      const data = await r.json();
-      if (data && data.token) localStorage.setItem('nini_admin_token', data.token);
-    }
-
-    // Tự refresh mỗi 5' (đảm bảo session mượt)
-    setInterval(() => refreshToken().catch(()=>{}), 5*60*1000);
-
-    // nút logout
-    $('#btnLogout').addEventListener('click', async () => {
-      try { await fetch('/.netlify/functions/admin-auth/logout', { method: 'POST' }); } catch(_) {}
-      localStorage.removeItem('nini_admin_token');
-      location.replace('/admin/login.html');
-    });
-    // ========== END PATCH ==========
-
-
-    // ========== START PATCH: Data table (giữ nguyên API của bạn) ==========
-    const pick = $('#pickDate');
-    const stat = $('#stat');
-    const grid = $('#grid tbody');
-    const today = new Date().toISOString().slice(0,10);
-    pick.value = today;
-
-    $('#btnLoad').addEventListener('click', loadScores);
-    $('#btnCsv').addEventListener('click', downloadCsv);
-
-    let rows = [];
-
-    async function loadScores(){
-      // Bắt buộc xác thực trước rồi mới gọi function dữ liệu
-      await ensureAuth();
-      const d = pick.value || today;
-      stat.textContent = 'Đang tải...';
-      grid.innerHTML = ''; rows = [];
+    // ===== 1) Bắt buộc: kiểm tra phiên khi vào trang =====
+    (async () => {
       try{
-        const r = await fetch(`/.netlify/functions/get-scores?date=${d}`);
+        const r = await fetch(`${API}/check`, { credentials: "include" });
+        const j = await r.json().catch(_=>({}));
+        if (!j || !j.ok) location.href = "/admin/login.html";
+      }catch(_){
+        location.href = "/admin/login.html";
+      }
+    })();
+
+    // ===== 2) Logout =====
+    document.getElementById("btnLogout").onclick = async () => {
+      try{ await fetch(`${API}/logout`, { method:"POST", credentials:"include" }); }catch(_){}
+      location.href = "/admin/login.html";
+    };
+
+    // ===== 3) Tabs mini =====
+    const tabs = document.getElementById("tabs");
+    tabs.addEventListener("click", e=>{
+      const b = e.target.closest(".tab"); if (!b) return;
+      document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("is-active", x===b));
+      const key = b.dataset.t;
+      document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("is-current", p.id === `p-${key}`));
+    });
+
+    // ===== 4) (Tuỳ bạn) Load bảng điểm — ví dụ đọc /functions/get-scores?date=YYYY-MM-DD =====
+    const $ = s => document.querySelector(s);
+    const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
+    const today = new Date().toISOString().slice(0,10); pick.value = today;
+
+    $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
+    let rows = []; load();
+
+    async function load(){
+      stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
+      try{
+        // NOTE: đổi URL này sang function thật của bạn
+        const d = pick.value || today;
+        const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
         const j = await r.json();
-        if(!j.ok) throw new Error(j.error||'Không lấy được dữ liệu');
+        if (!j.ok) throw new Error(j.error || "Lỗi");
         rows = j.events || [];
         stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
         render(rows);
       }catch(e){
-        stat.textContent = 'Lỗi: ' + (e.message||'không xác định');
+        stat.textContent = "Không tải được dữ liệu.";
       }
     }
-
     function render(list){
       grid.innerHTML = list.map(e=>{
         const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
@@ -133,34 +131,29 @@
           <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
           <td>${e.score}</td>
           <td>${e.maxScore}</td>
-          <td>${e.durationSec ?? ''}</td>
+          <td>${e.durationSec ?? ""}</td>
         </tr>`;
       }).join('');
     }
-    function esc(v){ return v==null?'':String(v).replace(/[&<>"']/g,s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
-
+    function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));}
     function toCSV(arr){
-      if(!arr.length) return '';
+      if(!arr.length) return "";
       const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
-      const escCSV = s => { if(s==null) return ''; s=String(s); return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s; };
-      const head = cols.join(',');
-      const lines = arr.map(o => cols.map(c => escCSV(o[c])).join(','));
-      return [head, ...lines].join('\n');
+      const wrap = s => s==null ? "" : /[",\n]/.test(s = String(s)) ? `"${s.replace(/"/g,'""')}"` : s;
+      return [cols.join(","), ...arr.map(o => cols.map(c=>wrap(o[c])).join(","))].join("\n");
     }
     function downloadCsv(){
-      if(!rows.length){ alert('Chưa có dữ liệu để tải.'); return; }
-      const csv = toCSV(rows), d = (pick.value || today).replace(/-/g,'');
-      const blob = new Blob([csv], { type:'text/csv;charset=utf-8' });
-      const a = document.createElement('a');
+      if (!rows.length) return alert("Chưa có dữ liệu.");
+      const csv = toCSV(rows);
+      const d = (pick.value || today).replace(/-/g,"");
+      const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+      const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `nini-scores-${d}.csv`;
       document.body.appendChild(a); a.click();
       setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
-
-    // load lần đầu
-    ensureAuth().then(loadScores).catch(()=>{});
-    // ========== END PATCH ==========
   </script>
 </body>
 </html>
+<!-- --------------- HẾT FILE index.html --------------- -->

@@ -7,9 +7,7 @@
 
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=12" />
-
   <style>
-    /* NOTE: Khối kính trắng nhẹ cho form */
     .auth-wrap { min-height: 100dvh; display:grid; place-items:center; padding:24px }
     .card { width:min(560px, 92vw); padding:22px 22px 20px; border-radius:16px;
             background: rgba(255,255,255,.86); border:1px solid rgba(0,0,0,.08);
@@ -27,7 +25,6 @@
 </head>
 <body>
   <main class="auth-wrap">
-
     <form id="adminForm" class="card">
       <h1 class="h3">NiNi — Admin</h1>
       <p class="muted">Nhập mật khẩu admin để vào bảng điều khiển.</p>
@@ -42,16 +39,24 @@
 
       <p id="adminMsg" class="err" style="margin-top:10px"></p>
     </form>
-
   </main>
 
-  <!-- NOTE: Đăng nhập: gọi function, nhận cookie, redirect về /admin/index.html -->
-  <!-- NOTE: BLOCK START – Login JS -->
+  <!-- NOTE: Login JS – gọi admin-auth, rồi poll admin-whoami 2–3 lần để chắc cookie đã set -->
+  <!-- NOTE: BLOCK START -->
   <script>
   (() => {
     const form  = document.getElementById('adminForm');
     const input = document.getElementById('adminSecret');
     const msg   = document.getElementById('adminMsg');
+
+    // helper: ping whoami
+    async function whoAmI() {
+      try {
+        const r = await fetch('/.netlify/functions/admin-whoami', { credentials:'include', cache:'no-store' });
+        const j = await r.json();
+        return !!(j && j.admin);
+      } catch { return false; }
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -62,32 +67,39 @@
       try {
         const r = await fetch('/.netlify/functions/admin-auth', {
           method: 'POST',
-          credentials: 'include', // QUAN TRỌNG: để cookie được set về trình duyệt
+          credentials: 'include', // QUAN TRỌNG: để nhận cookie
           headers: { 'Content-Type':'application/json', 'Cache-Control':'no-store' },
           body: JSON.stringify({ secret })
         });
-
-        let data = {};
-        try { data = await r.json(); } catch {} // phòng khi body rỗng
-
-        if (r.ok && data && data.ok) {
-          // chờ 1 nhịp để cookie ghi xong rồi mới chuyển trang
-          setTimeout(() => location.replace('/admin/index.html'), 50);
-        } else {
-          msg.textContent = (data && data.msg) || 'Sai mật khẩu. Vui lòng thử lại.';
+        const data = await r.json().catch(()=>({}));
+        if (!(r.ok && data && data.ok)) {
+          msg.textContent = (data && data.msg) || 'Sai mật khẩu. Vui lòng thử lại.'; return;
         }
+
+        // Cookie vừa set có thể cần 1 nhịp -> poll whoami
+        const tryUntil = Date.now() + 1500; // tối đa ~1.5s
+        let ok = false;
+        while (Date.now() < tryUntil) {
+          // nhỏ giọt 150ms
+          /* eslint-disable no-await-in-loop */
+          await new Promise(res=>setTimeout(res, 150));
+          ok = await whoAmI();
+          if (ok) break;
+        }
+        if (ok) location.replace('/admin/index.html');
+        else msg.textContent = 'Đăng nhập chưa hoàn tất. Vui lòng thử lại (cookie chưa được lưu).';
       } catch (err) {
         msg.textContent = 'Không thể kết nối máy chủ. Vui lòng thử lại.';
       }
     });
 
-    // Nếu bị đá về do hết hạn cookie, hiện thông điệp nhẹ
+    // hiện thông báo hết hạn nếu có
     const u = new URL(location.href);
     if (u.searchParams.get('expired') === '1') {
       msg.textContent = 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.';
     }
   })();
   </script>
-  <!-- NOTE: BLOCK END – Login JS -->
+  <!-- NOTE: BLOCK END -->
 </body>
 </html>

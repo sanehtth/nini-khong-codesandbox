@@ -1,16 +1,16 @@
+# netlify.toml — tối giản & đúng mục tiêu
 [build]
-  publish = "ui"               # thư mục public của site bạn (đổi theo dự án)
-  functions = "netlify/functions"
+  publish = "."                     # <-- nếu index.html ở root repo
+  functions = "netlify/functions"   # thư mục Functions của bạn
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = []
 
 [build.environment]
   NODE_VERSION = "18"
 
-# (Tuỳ chọn) Redirect bảo vệ thư mục admin trên client:
-[[redirects]]
-  from = "/admin/*"
-  to = "/admin/index.html"
-  status = 200
+# (tuỳ chọn) redirect cho /admin/* nếu bạn cần SPA:
+# [[redirects]]
+#   from = "/admin/*"
+#   to = "/admin/index.html"
+#   status = 200

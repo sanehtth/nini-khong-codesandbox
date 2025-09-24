@@ -1,4 +1,5 @@
 [build]
+  publish = "ui"               # thư mục public của site bạn (đổi theo dự án)
   functions = "netlify/functions"
 
 [functions]
@@ -7,3 +8,9 @@
 
 [build.environment]
   NODE_VERSION = "18"
+
+# (Tuỳ chọn) Redirect bảo vệ thư mục admin trên client:
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/index.html"
+  status = 200

@@ -1,104 +1,157 @@
-// NOTE: BLOCK START – Netlify Function admin-auth
-// Chức năng: nhận {secret}, đối chiếu biến môi trường ADMIN_SECRET,
-// nếu đúng -> set cookie nini_admin=1 (tồn tại 6 giờ) và trả {ok:true}
+/** =======================================================================
+ * NiNi — Admin Auth (Netlify Function, single-file)
+ * Endpoints:
+ *   POST  /.netlify/functions/admin-auth/login
+ *   GET   /.netlify/functions/admin-auth/check
+ *   POST  /.netlify/functions/admin-auth/refresh
+ *   POST  /.netlify/functions/admin-auth/logout
+ *
+ * Biến môi trường yêu cầu:
+ *   - ADMIN_SECRET   (mật khẩu admin, trùng cái bạn đang dùng)
+ *   - ADMIN_SESSION_TTL_MIN   (tuỳ chọn, mặc định 360 = 6h)
+ *   - ADMIN_REFRESH_TTL_HOUR  (tuỳ chọn, mặc định 72h)
+ *
+ * Cookie set:
+ *   - admin_session   (JWT ngắn hạn, httpOnly, SameSite=Lax)
+ *   - admin_refresh   (JWT dài hạn để gia hạn khi session hết)
+ * -----------------------------------------------------------------------
+ *  NOTE khối: [JWT helpers]
+ * =======================================================================*/
+const crypto = require("crypto");
 
-const baseHeaders = {
-  'Content-Type': 'application/json',
-  'Cache-Control': 'no-store'
-};
+const ENC_KEY = process.env.ADMIN_JWT_KEY || crypto.randomBytes(32).toString("hex");
+const SESSION_TTL_MIN = parseInt(process.env.ADMIN_SESSION_TTL_MIN || "360", 10); // 6h
+const REFRESH_TTL_H  = parseInt(process.env.ADMIN_REFRESH_TTL_HOUR || "72", 10);  // 3 ngày
+const ADMIN_SECRET   = process.env.ADMIN_SECRET || process.env.admin_secret || ""; // ← dùng đúng tên bạn
 
+function base64url(buf){ return Buffer.from(buf).toString("base64url"); }
+function sign(payload, ttlSec){
+  const header = { alg: "HS256", typ: "JWT" };
+  const exp = Math.floor(Date.now()/1000) + ttlSec;
+  const body = { ...payload, exp };
+  const h = base64url(JSON.stringify(header));
+  const b = base64url(JSON.stringify(body));
+  const data = `${h}.${b}`;
+  const sig = crypto.createHmac("sha256", ENC_KEY).update(data).digest("base64url");
+  return `${data}.${sig}`;
+}
+function verify(token){
+  try{
+    const [h,b,s] = token.split(".");
+    const data = `${h}.${b}`;
+    const sig = crypto.createHmac("sha256", ENC_KEY).update(data).digest("base64url");
+    if(sig !== s) return null;
+    const body = JSON.parse(Buffer.from(b,"base64url").toString("utf8"));
+    if(!body.exp || body.exp < Math.floor(Date.now()/1000)) return null;
+    return body;
+  }catch{ return null; }
+}
+
+/** =======================================================================
+ *  NOTE khối: [Cookie helpers]
+ * =======================================================================*/
+function setCookie(name, value, attrs={}){
+  const parts = [`${name}=${value}`];
+  if(attrs.httpOnly) parts.push("HttpOnly");
+  if(attrs.sameSite) parts.push(`SameSite=${attrs.sameSite}`);
+  if(attrs.secure)   parts.push("Secure");
+  if(attrs.path)     parts.push(`Path=${attrs.path}`);
+  if(attrs.maxAge!=null) parts.push(`Max-Age=${attrs.maxAge}`);
+  return parts.join("; ");
+}
+function parseCookies(raw=""){
+  const out = {};
+  raw.split(";").forEach(p=>{
+    const i = p.indexOf("="); if(i<0) return;
+    const k = p.slice(0,i).trim(); const v = p.slice(i+1).trim();
+    out[k] = v;
+  });
+  return out;
+}
+
+/** =======================================================================
+ *  NOTE khối: [HTTP helpers]
+ * =======================================================================*/
+function json(status, body, extraHeaders={}){
+  return {
+    statusCode: status,
+    headers: { "content-type":"application/json; charset=utf-8", ...extraHeaders },
+    body: JSON.stringify(body)
+  };
+}
+function noContent(extraHeaders={}){ return { statusCode: 204, headers: extraHeaders, body: "" }; }
+
+/** =======================================================================
+ *  NOTE khối: [Handler router]
+ * =======================================================================*/
 exports.handler = async (event) => {
-  try {
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        headers: baseHeaders,
-        body: JSON.stringify({ ok: false, msg: 'Method Not Allowed' })
+  const { httpMethod, path } = event;
+  const sub = path.split("/").pop(); // login | check | refresh | logout
+
+  try{
+    if(httpMethod === "POST" && sub === "login"){
+      // ---- [LOGIN] -------------------------------------------------------
+      const { password } = JSON.parse(event.body||"{}");
+      if(!password || password !== ADMIN_SECRET){
+        return json(401, { ok:false, msg:"Sai mật khẩu." });
+      }
+      const session = sign({ role:"admin" }, SESSION_TTL_MIN*60);
+      const refresh = sign({ role:"admin", kind:"refresh" }, REFRESH_TTL_H*3600);
+
+      const headers = {
+        "set-cookie": [
+          setCookie("admin_session", session, {
+            httpOnly:true, sameSite:"Lax", secure:true, path:"/",
+            maxAge: SESSION_TTL_MIN*60
+          }),
+          setCookie("admin_refresh", refresh, {
+            httpOnly:true, sameSite:"Lax", secure:true, path:"/",
+            maxAge: REFRESH_TTL_H*3600
+          })
+        ]
       };
+      return json(200, { ok:true }, headers);
     }
 
-    const { secret } = JSON.parse(event.body || '{}');
-
-    // Chấp nhận cả ADMIN_SECRET và admin_secret cho linh hoạt
-    const ADMIN = process.env.ADMIN_SECRET || process.env.admin_secret || '';
-    const ok = ADMIN && secret && secret === ADMIN;
-
-    if (!ok) {
-      return {
-        statusCode: 401,
-        headers: baseHeaders,
-        body: JSON.stringify({ ok: false, msg: 'Sai mật khẩu' })
-      };
+    if(httpMethod === "GET" && sub === "check"){
+      // ---- [CHECK] -------------------------------------------------------
+      const cookies = parseCookies(event.headers.cookie||"");
+      const token = cookies.admin_session;
+      const ok = token && verify(token);
+      return ok ? json(200,{ok:true}) : json(401,{ok:false});
     }
 
-    // Set cookie 6 giờ – Path=/ để mọi trang đọc được; Secure vì HTTPS; SameSite=Lax là đủ
-    const cookie = [
-      'nini_admin=1',
-      'Max-Age=21600',   // 6h
-      'Path=/',
-      'HttpOnly',
-      'SameSite=Lax',
-      'Secure'
-    ].join('; ');
+    if(httpMethod === "POST" && sub === "refresh"){
+      // ---- [REFRESH] -----------------------------------------------------
+      const cookies = parseCookies(event.headers.cookie||"");
+      const r = cookies.admin_refresh && verify(cookies.admin_refresh);
+      if(!r || r.role!=="admin" || r.kind!=="refresh"){
+        return json(401, { ok:false, msg:"Refresh hết hạn" });
+      }
+      const session = sign({ role:"admin" }, SESSION_TTL_MIN*60);
+      const headers = {
+        "set-cookie": setCookie("admin_session", session, {
+          httpOnly:true, sameSite:"Lax", secure:true, path:"/",
+          maxAge: SESSION_TTL_MIN*60
+        })
+      };
+      return json(200, { ok:true }, headers);
+    }
 
-    return {
-      statusCode: 200,
-      headers: { ...baseHeaders, 'Set-Cookie': cookie },
-      body: JSON.stringify({ ok: true })
-    };
+    if(httpMethod === "POST" && sub === "logout"){
+      // ---- [LOGOUT] ------------------------------------------------------
+      const headers = {
+        "set-cookie": [
+          setCookie("admin_session","",{httpOnly:true,sameSite:"Lax",secure:true,path:"/",maxAge:0}),
+          setCookie("admin_refresh","",{httpOnly:true,sameSite:"Lax",secure:true,path:"/",maxAge:0})
+        ]
+      };
+      return noContent(headers);
+    }
 
-  } catch (e) {
-    return {
-      statusCode: 500,
-      headers: baseHeaders,
-      body: JSON.stringify({ ok: false, msg: 'Server error' })
-    };
+    // ---- [404]
+    return json(404, { ok:false, msg:"Not found" });
+  }catch(e){
+    return json(500, { ok:false, msg:e.message||"Server error" });
   }
 };
-// NOTE: BLOCK END – Netlify Function admin-auth
-// NOTE: Admin auth function – nhận {secret}, so khớp ADMIN_SECRET,
-// nếu đúng -> set cookie nini_admin=1 (6 giờ) với Domain động.
-// --------- START ---------
-const baseHeaders = {
-  'Content-Type': 'application/json',
-  'Cache-Control': 'no-store',
-};
-
-exports.handler = async (event) => {
-  try {
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, headers: baseHeaders, body: JSON.stringify({ ok:false, msg:'Method Not Allowed' }) };
-    }
-
-    const { secret } = JSON.parse(event.body || '{}');
-    const ADMIN = process.env.ADMIN_SECRET || process.env.admin_secret || '';
-    if (!ADMIN || !secret || secret !== ADMIN) {
-      return { statusCode: 401, headers: baseHeaders, body: JSON.stringify({ ok:false, msg:'Sai mật khẩu' }) };
-    }
-
-    // Xác định domain hiện tại (apex), để cookie dùng cho cả www. và non-www.
-    const host = (event.headers['x-forwarded-host'] || event.headers.host || '').split(':')[0] || '';
-    const apex = host.replace(/^www\./, '');               // ví dụ: nini-funny.com
-    const domainAttr = apex ? `Domain=.${apex}; ` : '';    // Domain=.nini-funny.com;
-
-    const cookie = [
-      'nini_admin=1',
-      'Max-Age=21600',          // 6 giờ
-      'Path=/',
-      'HttpOnly',
-      'SameSite=Lax',
-      'Secure',
-      domainAttr.trim()         // thêm Domain nếu có
-    ].filter(Boolean).join('; ');
-
-    return {
-      statusCode: 200,
-      headers: { ...baseHeaders, 'Set-Cookie': cookie },
-      body: JSON.stringify({ ok:true })
-    };
-  } catch (e) {
-    return { statusCode: 500, headers: baseHeaders, body: JSON.stringify({ ok:false, msg:'Server error' }) };
-  }
-};
-// --------- END ----------
-

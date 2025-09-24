@@ -1,165 +1,203 @@
 // netlify/functions/admin-auth.js
-// NiNi — Admin Auth (router 4 endpoint): login / check / refresh / logout
+// === NiNi — Admin Auth (CommonJS for Netlify) ==============================
+// Routes:
+//   POST /.netlify/functions/admin-auth/login   { secret }
+//   POST /.netlify/functions/admin-auth/refresh
+//   POST /.netlify/functions/admin-auth/logout
+//   GET  /.netlify/functions/admin-auth/ping    -> {ok:true} (debug/health)
+// Env vars (Netlify -> Project settings -> Environment variables):
+//   ADMIN_SECRET                (bắt buộc)
+//   ADMIN_SESSION_TTL_HOURS     (tuỳ chọn, mặc định 6)
 
 const crypto = require("crypto");
 
-// --------- Safe base64url helpers (polyfill) ----------
-function b64urlEncode(objOrStr) {
-  const s = typeof objOrStr === "string" ? objOrStr : JSON.stringify(objOrStr);
-  return Buffer.from(s)
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-function b64urlDecodeToJSON(b64) {
-  const pad = b64 + "===".slice((b64.length + 3) % 4);
-  const s = Buffer.from(pad.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
-  try { return JSON.parse(s); } catch { return null; }
-}
-
-// --------- Config / env ---------
-const ENC_KEY = process.env.ADMIN_JWT_KEY || crypto.randomBytes(32).toString("hex");
-const SESSION_TTL_MIN = parseInt(process.env.ADMIN_SESSION_TTL_MIN || "360", 10); // 6h
-const REFRESH_TTL_H  = parseInt(process.env.ADMIN_REFRESH_TTL_HOUR || "72", 10);  // 3 ngày
-const ADMIN_SECRET   = process.env.ADMIN_SECRET || process.env.admin_secret || "";
-
-if (!ADMIN_SECRET) {
-  console.warn("WARNING: ADMIN_SECRET is empty. Set it in Netlify environment variables.");
+// ---- helpers ---------------------------------------------------------------
+function json(statusCode, data, extraHeaders = {}) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      ...extraHeaders,
+    },
+    body: JSON.stringify(data),
+  };
 }
 
-// --------- JWT (HMAC SHA256) ----------
-function sign(payload, ttlSec) {
-  const header = { alg: "HS256", typ: "JWT" };
-  const exp = Math.floor(Date.now() / 1000) + ttlSec;
-  const body = { ...payload, exp };
-  const h = b64urlEncode(header);
-  const b = b64urlEncode(body);
-  const data = `${h}.${b}`;
-  const sig = crypto.createHmac("sha256", ENC_KEY).update(data).digest("base64")
-    .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-  return `${data}.${sig}`;
+function getPathAction(event) {
+  // e.g. "/.netlify/functions/admin-auth/login" -> "login"
+  const p = event.path || "";
+  const seg = p.split("/").filter(Boolean);
+  return seg[seg.length - 1] || "";
 }
 
-function verify(token) {
+function parseBody(event) {
+  if (!event.body) return {};
   try {
-    const [h, b, s] = (token || "").split(".");
-    if (!h || !b || !s) return null;
-    const data = `${h}.${b}`;
-    const sig = crypto.createHmac("sha256", ENC_KEY).update(data).digest("base64")
-      .replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-    if (sig !== s) return null;
-    const body = b64urlDecodeToJSON(b);
-    if (!body || !body.exp || body.exp < Math.floor(Date.now() / 1000)) return null;
-    return body;
-  } catch {
+    return JSON.parse(event.body);
+  } catch (_) {
+    return {};
+  }
+}
+
+function safeEqual(a, b) {
+  const aBuf = Buffer.from(a || "");
+  const bBuf = Buffer.from(b || "");
+  if (aBuf.length !== bBuf.length) return false;
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+function base64url(buf) {
+  return Buffer.from(buf)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function signToken(payload, ttlHours) {
+  const header = { alg: "HS256", typ: "JWT" };
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + Math.max(1, (ttlHours || 6) * 3600);
+  const data = { ...payload, iat: now, exp };
+
+  const encHeader = base64url(JSON.stringify(header));
+  const encPayload = base64url(JSON.stringify(data));
+  const msg = `${encHeader}.${encPayload}`;
+
+  const key = process.env.ADMIN_SECRET || "";
+  const sig = crypto
+    .createHmac("sha256", key)
+    .update(msg)
+    .digest();
+  const encSig = base64url(sig);
+
+  return `${msg}.${encSig}`;
+}
+
+function verifyToken(token) {
+  try {
+    const [h, p, s] = String(token || "").split(".");
+    if (!h || !p || !s) return null;
+    const key = process.env.ADMIN_SECRET || "";
+    const expected = base64url(
+      crypto.createHmac("sha256", key).update(`${h}.${p}`).digest()
+    );
+    if (!safeEqual(expected, s)) return null;
+    const payload = JSON.parse(Buffer.from(p, "base64").toString("utf8"));
+    if (payload.exp && Date.now() / 1000 > payload.exp) return null;
+    return payload;
+  } catch (_) {
     return null;
   }
 }
 
-// --------- Cookie helpers ----------
-function setCookie(name, value, attrs = {}) {
-  const parts = [`${name}=${value}`];
-  if (attrs.httpOnly) parts.push("HttpOnly");
-  if (attrs.sameSite) parts.push(`SameSite=${attrs.sameSite}`);
-  if (attrs.secure)   parts.push("Secure");
-  if (attrs.path)     parts.push(`Path=${attrs.path}`);
-  if (attrs.maxAge != null) parts.push(`Max-Age=${attrs.maxAge}`);
-  return parts.join("; ");
-}
-function parseCookies(raw = "") {
-  const out = {};
-  raw.split(";").forEach(p => {
-    const i = p.indexOf("="); if (i < 0) return;
-    const k = p.slice(0, i).trim(); const v = p.slice(i + 1).trim();
-    out[k] = v;
-  });
-  return out;
+function cookieSet(token, ttlHours) {
+  const maxAge = Math.max(1, (ttlHours || 6) * 3600);
+  // Path=/ ; HttpOnly ; Secure ; SameSite=Lax
+  return `nini_admin=${token}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
 }
 
-// --------- HTTP helpers ----------
-function json(status, body, extraHeaders = {}) {
-  return {
-    statusCode: status,
-    headers: { "content-type": "application/json; charset=utf-8", ...extraHeaders },
-    body: JSON.stringify(body)
-  };
+function cookieClear() {
+  return "nini_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax";
 }
-function noContent(extraHeaders = {}) { return { statusCode: 204, headers: extraHeaders, body: "" }; }
 
-// --------- Handler ----------
-exports.handler = async (event) => {
+// ---- handler ---------------------------------------------------------------
+exports.handler = async function (event) {
+  // Preflight CORS
+  if (event.httpMethod === "OPTIONS") {
+    return json(200, { ok: true });
+  }
+
+  const action = getPathAction(event);
+  const TTL = Number(process.env.ADMIN_SESSION_TTL_HOURS || "6");
+
+  // Quick health-check (debug)
+  if (event.httpMethod === "GET" && action === "ping") {
+    const hasSecret = !!process.env.ADMIN_SECRET;
+    return json(200, { ok: true, hasSecret });
+  }
+
+  // Ensure env var exists
+  if (!process.env.ADMIN_SECRET) {
+    return json(
+      500,
+      {
+        ok: false,
+        error: "Missing ENV ADMIN_SECRET (Netlify Project Settings → Env vars).",
+      }
+    );
+  }
+
   try {
-    const method = event.httpMethod || "GET";
-    // event.path ví dụ: "/.netlify/functions/admin-auth/login"
-    const last = (event.path || "").split("?")[0].split("/").pop(); // login|check|refresh|logout
+    // ---- POST /login --------------------------------------------------------
+    if (event.httpMethod === "POST" && action === "login") {
+      const { secret } = parseBody(event);
+      if (!secret) return json(400, { ok: false, error: "Missing 'secret'." });
 
-    if (method === "POST" && last === "login") {
-      // ---- LOGIN ----
-      let body = {};
-      try { body = JSON.parse(event.body || "{}"); } catch { body = {}; }
-      const password = (body.password || "").trim();
-
-      if (!ADMIN_SECRET) {
-        return json(500, { ok: false, msg: "Server chưa cấu hình ADMIN_SECRET" });
-      }
-      if (!password || password !== ADMIN_SECRET) {
-        return json(401, { ok: false, msg: "Sai mật khẩu." });
+      const ok = safeEqual(secret, process.env.ADMIN_SECRET);
+      if (!ok) {
+        return json(401, { ok: false, error: "Wrong secret." });
       }
 
-      const session = sign({ role: "admin" }, SESSION_TTL_MIN * 60);
-      const refresh = sign({ role: "admin", kind: "refresh" }, REFRESH_TTL_H * 3600);
-
-      return json(200, { ok: true }, {
-        "set-cookie": [
-          setCookie("admin_session", session, {
-            httpOnly: true, sameSite: "Lax", secure: true, path: "/",
-            maxAge: SESSION_TTL_MIN * 60
-          }),
-          setCookie("admin_refresh", refresh, {
-            httpOnly: true, sameSite: "Lax", secure: true, path: "/",
-            maxAge: REFRESH_TTL_H * 3600
-          })
-        ]
-      });
+      const token = signToken({ role: "admin" }, TTL);
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": cookieSet(token, TTL),
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        },
+        body: JSON.stringify({ ok: true }),
+      };
     }
 
-    if (method === "GET" && last === "check") {
-      // ---- CHECK ----
-      const cookies = parseCookies(event.headers.cookie || "");
-      const ok = cookies.admin_session && verify(cookies.admin_session);
-      return ok ? json(200, { ok: true }) : json(401, { ok: false });
-    }
-
-    if (method === "POST" && last === "refresh") {
-      // ---- REFRESH ----
-      const cookies = parseCookies(event.headers.cookie || "");
-      const r = cookies.admin_refresh && verify(cookies.admin_refresh);
-      if (!r || r.role !== "admin" || r.kind !== "refresh") {
-        return json(401, { ok: false, msg: "Refresh hết hạn" });
+    // ---- POST /refresh ------------------------------------------------------
+    if (event.httpMethod === "POST" && action === "refresh") {
+      const cookie = (event.headers.cookie || event.headers.Cookie || "");
+      const m = cookie.match(/(?:^|;\s*)nini_admin=([^;]+)/);
+      const token = m ? m[1] : "";
+      const payload = verifyToken(token);
+      if (!payload) {
+        return json(401, { ok: false, error: "No/invalid session." });
       }
-      const session = sign({ role: "admin" }, SESSION_TTL_MIN * 60);
-      return json(200, { ok: true }, {
-        "set-cookie": setCookie("admin_session", session, {
-          httpOnly: true, sameSite: "Lax", secure: true, path: "/",
-          maxAge: SESSION_TTL_MIN * 60
-        })
-      });
+      const newToken = signToken({ role: "admin" }, TTL);
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": cookieSet(newToken, TTL),
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        },
+        body: JSON.stringify({ ok: true }),
+      };
     }
 
-    if (method === "POST" && last === "logout") {
-      // ---- LOGOUT ----
-      return noContent({
-        "set-cookie": [
-          setCookie("admin_session", "", { httpOnly: true, sameSite: "Lax", secure: true, path: "/", maxAge: 0 }),
-          setCookie("admin_refresh", "", { httpOnly: true, sameSite: "Lax", secure: true, path: "/", maxAge: 0 })
-        ]
-      });
+    // ---- POST /logout -------------------------------------------------------
+    if (event.httpMethod === "POST" && action === "logout") {
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Set-Cookie": cookieClear(),
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        },
+        body: JSON.stringify({ ok: true }),
+      };
     }
 
-    return json(404, { ok: false, msg: "Not found" });
-  } catch (e) {
-    console.error("admin-auth error:", e);
-    return json(502, { ok: false, msg: "Function crashed" });
+    // ---- Not found ----------------------------------------------------------
+    return json(404, { ok: false, error: `Unknown route: ${action}` });
+  } catch (err) {
+    // Trả lỗi rõ ràng (để tránh 502 mù)
+    return json(500, { ok: false, error: err.message || "Server error." });
   }
 };

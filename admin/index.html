@@ -32,11 +32,16 @@
       <button id="btnLogout" class="btn">Đăng xuất</button>
     </div>
 
-    <nav class="tabs" id="tabs">
-      <button class="tab is-active" data-t="scores">Bảng điểm</button>
-      <button class="tab" data-t="queue">Hàng đợi</button>
-      <button class="tab" data-t="reports">Báo cáo</button>
-    </nav>
+    <!-- Trong cụm thanh tab admin hiện có -->
+<nav class="admin-tabs" id="adminTabs">
+  <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
+  <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
+  <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
+  <!-- BEGIN add: tab Storybook -->
+  <a class="admin-tab" href="/admin/storybook.html" style="text-decoration:none">Tạo Storybook</a>
+  <!-- END add: tab Storybook -->
+</nav>
+
   </header>
 
   <main class="shell">
@@ -157,3 +162,4 @@
 </body>
 </html>
 <!-- --------------- HẾT FILE index.html --------------- -->
+

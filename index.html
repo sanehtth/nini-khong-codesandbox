@@ -218,11 +218,25 @@
     btn.dataset.authState = u ? "in" : "out";
   }
 
-  onAuthStateChanged(auth,(user)=>{
-    const was=getLoggedIn(); const now=!!user;
-    setLoggedIn(now); updateAuthBtnText();
-    if(!was && now){ closeAuthModal(); location.href="/profile.html"; }
-  });
+ onAuthStateChanged(auth, (user) => {
+  const was = getLoggedIn();
+  const now = !!user;
+  setLoggedIn(now);
+  updateAuthBtnText();
+
+  // [BẮT ĐẦU SỬA] Không auto redirect nữa
+  if (!was && now) {
+    // vừa đăng nhập thành công → chỉ đóng modal + báo
+    closeAuthModal();
+    try {
+      // nhẹ nhàng báo 1 dòng (nếu bạn có toast của riêng app thì gọi ở đây)
+      console.log("Đăng nhập thành công:", user.email || user.displayName);
+    } catch {}
+    // KHÔNG location.href="/profile.html";
+  }
+  // [HẾT SỬA]
+});
+
   setLoggedIn(getLoggedIn()); updateAuthBtnText();
 
   document.addEventListener("DOMContentLoaded", ()=>{
@@ -313,5 +327,6 @@
 
 </body>
 </html>
+
 
 

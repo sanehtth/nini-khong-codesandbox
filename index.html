@@ -311,15 +311,27 @@
       if (user) logout(); else login();
     });
   }
+ // ===== 7) Toast nhỏ thông báo (kính mờ)
+function toast(msg, ok=true){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = [
+    "position:fixed",
+    "top:12px",
+    "right:12px",
+    "padding:8px 12px",
+    "border-radius:12px",
+    "z-index:9999",
+    "backdrop-filter: blur(6px)",
+    "-webkit-backdrop-filter: blur(6px)",
+    "background: rgba(255,255,255,.22)",        // kính mờ
+    "border: 1px solid rgba(17,24,39,.14)",     // viền nhẹ
+    "color: "+(ok ? "#0f5132" : "#7f1d1d")      // chữ xanh/đỏ dịu
+  ].join(";");
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+}
 
-  // ===== 7) Toast nhỏ thông báo
-  function toast(msg, ok=true){
-    const t = document.createElement('div');
-    t.textContent = msg;
-    t.style.cssText = "position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:10px;color:#fff;z-index:9999;"
-      + (ok ? "background:#16a34a" : "background:#dc2626");
-    document.body.appendChild(t); setTimeout(()=>t.remove(), 2200);
-  }
 
   // ===== 8) Theo dõi trạng thái đăng nhập + gắn nhãn HUD + auto sync
   onAuthStateChanged(auth, async (user) => {
@@ -384,6 +396,7 @@
 
 </body>
 </html>
+
 
 
 

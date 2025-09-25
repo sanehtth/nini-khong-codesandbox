@@ -7,9 +7,11 @@
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=12" />
   <style>
+    /* ====== Layout trang Profile ====== */
     .page-wrap{ width:min(1100px, 94vw); margin:18px auto 32px; display:grid; gap:16px; grid-template-columns: 1.2fr .8fr; }
     .card{ background: var(--glass-2); border:1px solid rgba(17,24,39,.12); border-radius:16px; padding:16px 16px 18px; color:var(--text); box-shadow: inset 0 0 0 1px rgba(17,24,39,.06); }
-    .card h2{ margin:0 0 10px; font-size:20px } .meta{ font-size:13px; color:var(--text-dim); margin:-2px 0 12px }
+    .card h2{ margin:0 0 10px; font-size:20px }
+    .meta{ font-size:13px; color:var(--text-dim); margin:-2px 0 12px }
     .grid-2{ display:grid; grid-template-columns: 140px 1fr; gap:14px; align-items:start }
     .fld{ display:grid; grid-template-columns: 180px 1fr; align-items:center; gap:10px; margin:8px 0 }
     .fld > span{ color:var(--text-dim); font-size:14px }
@@ -20,7 +22,7 @@
     .kpi .tile h3{ margin:0; font-size:13px; color:var(--text-dim) } .kpi .tile .val{ font-size:22px; font-weight:800; margin-top:4px }
     .bar{ height:8px; background:rgba(17,24,39,.12); border-radius:999px; overflow:hidden } .bar>i{ display:block; height:100%; background:linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752) }
     .pill-ghost{ padding:6px 10px; border-radius:999px; border:1px dashed rgba(17,24,39,.25); color:var(--text-dim) }
-    .reward{ display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px; background: rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px }
+    .reward{ display:grid; gap:10px; margin-top:10px; background: rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px }
     .reward .chest-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
     .muted{ color:var(--text-dim); font-size:13px } .note{ font-size:12px; color:var(--text-dim) } .ok{ color:#0f5132 } .bad{ color:#7f1d1d }
     .avatar-wrap{ display:flex; align-items:center; gap:14px }
@@ -31,12 +33,17 @@
   </style>
 </head>
 <body>
+  <!-- HEADER -->
   <header class="site-header">
-    <a class="brand" href="/"><img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" /><div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div></a>
+    <a class="brand" href="/">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </a>
     <nav class="tabs" aria-label="Điều hướng nhanh"><a class="tab" href="/#/">← Về trang chủ</a></nav>
     <a class="auth-btn" id="signoutBtn" href="javascript:void(0)">Đăng xuất</a>
   </header>
 
+  <!-- MAIN -->
   <main class="viewport">
     <div class="page-wrap">
       <!-- =========================================================
@@ -63,11 +70,17 @@
           <div class="fld"><span>Email</span><input type="email" id="pf_email" readonly /></div>
           <div class="fld"><span>Tên hiển thị</span><input type="text" id="pf_displayName" placeholder="Bé NiNi" /></div>
           <div class="fld"><span>Giới tính</span>
-            <select id="pf_gender"><option value="">— Chọn —</option><option value="male">Nam</option><option value="female">Nữ</option><option value="other">Khác</option></select>
+            <select id="pf_gender">
+              <option value="">— Chọn —</option>
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+              <option value="other">Khác</option>
+            </select>
           </div>
           <div class="fld"><span>Ngày sinh</span><input type="date" id="pf_dob" /></div>
           <div class="fld"><span>Phụ huynh</span><input type="text" id="pf_guardian" placeholder="Tên phụ huynh (tuỳ chọn)" /></div>
 
+          <!-- OTP Phone -->
           <div class="fld"><span>Số điện thoại</span>
             <div class="row">
               <input type="tel" id="pf_phone" inputmode="tel" placeholder="09xxxxxxxx" style="flex:1; min-width:220px" />
@@ -90,16 +103,17 @@
         <!-- Đổi mật khẩu -->
         <div class="pw-card">
           <h3>Đổi mật khẩu</h3>
-          <div class="muted">Áp dụng cho tài khoản Email/Password. Tài khoản Google sẽ cần đặt mật khẩu riêng.</div>
+          <div class="muted">Áp dụng cho Email/Password. Nếu đăng nhập Google, bạn có thể <strong>thêm</strong> mật khẩu để đăng nhập bằng email & mật khẩu sau này.</div>
           <div class="row">
-            <input type="password" id="pw_current" placeholder="Mật khẩu hiện tại" />
+            <input type="password" id="pw_current" placeholder="Mật khẩu hiện tại (nếu đã có)" />
             <input type="password" id="pw_new" placeholder="Mật khẩu mới (≥ 8 ký tự)" />
             <input type="password" id="pw_confirm" placeholder="Nhập lại mật khẩu mới" />
-            <button class="btn" id="btnChangePw" type="button">Đổi mật khẩu</button>
+            <button class="btn" id="btnChangePw" type="button">Đổi / Thêm mật khẩu</button>
           </div>
           <div id="pwNote" class="note"></div>
         </div>
 
+        <!-- Recaptcha (ẩn) cho OTP -->
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
       </section>
       <!-- =========================================================
@@ -139,17 +153,20 @@
   </main>
 
   <!-- =========================================================
-       [BẮT ĐẦU] SCRIPT — AUTH + FIRESTORE + OTP + AVATAR + ĐỔI MẬT KHẨU
+       [BẮT ĐẦU] SCRIPT — AUTH + GUARD + OTP + AVATAR + ĐỔI/THÊM PASSWORD
   ========================================================== -->
   <script type="module">
+    /* Firebase */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth, onAuthStateChanged, signOut,
       RecaptchaVerifier, signInWithPhoneNumber,
-      EmailAuthProvider, reauthenticateWithCredential, updatePassword
+      EmailAuthProvider, reauthenticateWithCredential, updatePassword,
+      linkWithCredential, reauthenticateWithPopup, GoogleAuthProvider
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    /* ==== THAY key của bạn ==== */
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
@@ -165,6 +182,7 @@
 
     const LS_ACCOUNTS="NINI_ACCOUNTS_V3", LS_ACTIVE="NINI_ACTIVE_USER_V3";
 
+    /* Helpers */
     function readLocalProfile(){ try{ const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}"); const act=JSON.parse(localStorage.getItem(LS_ACTIVE)||"null"); if(!act||!accs[act]) return null; return {uid:act, profile:accs[act]}; }catch{return null;} }
     function writeLocalProfile(uid, profile){ const accs={}; accs[uid]=profile; localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs)); localStorage.setItem(LS_ACTIVE,JSON.stringify(uid)); }
     function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
@@ -203,12 +221,14 @@
       document.getElementById("pf_grade").value=cloud?.grade||"";
     }
 
+    /* ====== OTP Phone ====== */
     let recaptcha, confirmationResult;
     function ensureRecaptcha(){ if(recaptcha) return recaptcha; // eslint-disable-next-line no-undef
       recaptcha = new RecaptchaVerifier(auth,"recaptcha-container",{size:"invisible"}); return recaptcha; }
-    async function sendOTP(){ const phone=document.getElementById("pf_phone").value.trim(); if(!phone) return toast("Nhập số điện thoại trước.",false); try{ ensureRecaptcha(); confirmationResult=await signInWithPhoneNumber(auth,phone,recaptcha); toast("Đã gửi OTP.",true);}catch(e){ toast("Gửi OTP thất bại",false);} }
+    async function sendOTP(){ const phone=document.getElementById("pf_phone").value.trim(); if(!phone) return toast("Nhập số điện thoại trước.",false); try{ ensureRecaptcha(); confirmationResult=await signInWithPhoneNumber(auth,phone,recaptcha); toast("Đã gửi OTP.",true);}catch{ toast("Gửi OTP thất bại",false);} }
     async function verifyOTP(){ const code=document.getElementById("otp_code").value.trim(); if(!confirmationResult||!code) return toast("Chưa gửi OTP hoặc thiếu mã.",false); try{ await confirmationResult.confirm(code); toast("Xác thực số điện thoại thành công!",true);}catch{ toast("Mã OTP sai/hết hạn.",false);} }
 
+    /* ====== Rương thưởng ====== */
     function randomReward(){ const t=Math.random(); if(t<.5) return{type:"coins",amount:50+Math.floor(Math.random()*151)}; if(t<.85) return{type:"xp",amount:20+Math.floor(Math.random()*81)}; return{type:"both",amount:[30+Math.floor(Math.random()*71),80+Math.floor(Math.random()*121)]}; }
     async function openChestHandler(uid){ const cur=readLocalProfile(); if(!cur||cur.uid!==uid) return; const pf=cur.profile; if(!(pf.chests>0)) return toast("Bạn chưa có rương.",false);
       const rw=randomReward(); pf.chests=(pf.chests|0)-1;
@@ -225,7 +245,7 @@
         await saveCloudProfile(uid,{name:f.name||null,gender:f.gender||null,dob:f.dob||null,guardian:f.guardian||null,phone:f.phone||null,city:f.city||null,grade:f.grade||null,avatarUrl:f.avatarUrl});
         const cur=readLocalProfile(); if(cur&&cur.uid===uid){ cur.profile.name=f.name||cur.profile.name; cur.profile.avatarUrl=f.avatarUrl; writeLocalProfile(uid,cur.profile); }
         note.textContent="Đã lưu hồ sơ."; toast("Lưu hồ sơ thành công",true);
-      }catch(e){ note.textContent="Không lưu được."; toast("Lưu hồ sơ thất bại",false); }
+      }catch{ note.textContent="Không lưu được."; toast("Lưu hồ sơ thất bại",false); }
     }
 
     async function refreshAll(uid){
@@ -238,83 +258,63 @@
       return {cloud,merged};
     }
 
-    <script type="module">
-  import {
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    reauthenticateWithPopup,
-    updatePassword,
-    linkWithCredential,
-    GoogleAuthProvider,
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    /* =========================================================
+       [BẮT ĐẦU] HÀM changePassword()
+       - Nếu user (Google) CHƯA có provider 'password' → LINK mật khẩu mới.
+       - Nếu user ĐÃ có 'password' → yêu cầu mật khẩu hiện tại (nếu có email) rồi UPDATE mật khẩu.
+       - Tự reauth bằng Google popup khi cần.
+    ========================================================== */
+    async function changePassword(){
+      const u = auth.currentUser;
+      const note = document.getElementById("pwNote");
+      note.className = "note"; note.textContent = "";
 
-  async function changePassword(){
-    const u = auth.currentUser;
-    const note = document.getElementById("pwNote");
-    note.className = "note"; note.textContent = "";
+      if (!u) { note.textContent = "Vui lòng đăng nhập trước."; return; }
 
-    if (!u) { note.textContent = "Vui lòng đăng nhập trước."; return; }
+      const hasPasswordProvider = (u.providerData || []).some(p => p.providerId === "password");
 
-    const hasPasswordProvider = (u.providerData || [])
-      .some(p => p.providerId === "password");
+      const cur = document.getElementById("pw_current").value;
+      const pw1 = document.getElementById("pw_new").value;
+      const pw2 = document.getElementById("pw_confirm").value;
 
-    // Lấy input
-    const cur = document.getElementById("pw_current").value;
-    const pw1 = document.getElementById("pw_new").value;
-    const pw2 = document.getElementById("pw_confirm").value;
+      if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
+      if (pw1 !== pw2) { note.textContent = "Mật khẩu mới không khớp."; return; }
 
-    // Kiểm tra mật khẩu mới
-    if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
-    if (pw1 !== pw2)            { note.textContent = "Mật khẩu mới không khớp.";    return; }
-
-    try {
-      if (!hasPasswordProvider) {
-        // === Trường hợp user Google CHƯA có password: LINK password ===
-        // Đảm bảo phiên đăng nhập đủ "recent":
-        try {
-          await reauthenticateWithPopup(u, new GoogleAuthProvider());
-        } catch (_) {
-          // Nếu popup bị chặn, có thể bỏ qua: Google sign-in thường đã recent khi vừa đăng nhập
+      try {
+        if (!hasPasswordProvider) {
+          // --- LINK PASSWORD CHO TÀI KHOẢN GOOGLE ---
+          try { await reauthenticateWithPopup(u, new GoogleAuthProvider()); } catch(_) { /* popup bị chặn -> thường vẫn recent */ }
+          if (!u.email) {
+            note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu.";
+            note.className = "note bad";
+            return;
+          }
+          const cred = EmailAuthProvider.credential(u.email, pw1);
+          await linkWithCredential(u, cred);
+          note.textContent = "Đã thêm mật khẩu cho tài khoản. Từ nay bạn có thể đăng nhập bằng Email & Mật khẩu.";
+          note.className = "note ok";
+        } else {
+          // --- ĐỔI MẬT KHẨU CHUẨN ---
+          if (u.email) {
+            if (!cur) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
+            const cred = EmailAuthProvider.credential(u.email, cur);
+            await reauthenticateWithCredential(u, cred);
+          }
+          await updatePassword(u, pw1);
+          note.textContent = "Đổi mật khẩu thành công.";
+          note.className = "note ok";
         }
 
-        if (!u.email) {
-          note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu.";
-          note.className = "note bad";
-          return;
-        }
-
-        const cred = EmailAuthProvider.credential(u.email, pw1);
-        await linkWithCredential(u, cred);
-
-        note.textContent = "Đã thêm mật khẩu cho tài khoản Google. Từ nay bạn có thể đăng nhập bằng email & mật khẩu.";
-        note.className = "note ok";
-      } else {
-        // === Trường hợp user ĐÃ có password: ĐỔI mật khẩu chuẩn ===
-        if (u.email) {
-          if (!cur) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
-          const cred = EmailAuthProvider.credential(u.email, cur);
-          await reauthenticateWithCredential(u, cred);
-        }
-        await updatePassword(u, pw1);
-        note.textContent = "Đổi mật khẩu thành công.";
-        note.className = "note ok";
+        ["pw_current","pw_new","pw_confirm"].forEach(id => document.getElementById(id).value = "");
+      } catch (e) {
+        const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
+        note.textContent = "Không thể cập nhật: " + msg;
+        note.className = "note bad";
       }
-
-      // Dọn inputs
-      ["pw_current","pw_new","pw_confirm"].forEach(id => document.getElementById(id).value = "");
-    } catch (e) {
-      const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
-      note.textContent = "Không thể cập nhật: " + msg;
-      note.className = "note bad";
     }
-  }
+    /* ============================ [HẾT] HÀM changePassword() ============================ */
 
-  // Gắn lại handler nút
-  document.getElementById("btnChangePw").onclick = changePassword;
-</script>
-
-
-    // Avatar
+    // Avatar events
     document.getElementById("pf_avatar_img").addEventListener("click", ()=>document.getElementById("pf_avatar").focus());
     document.getElementById("btnApplyAvatar").addEventListener("click", ()=>{ const url=document.getElementById("pf_avatar").value.trim()||"/public/assets/avatar/NV1.webp"; document.getElementById("pf_avatar_img").src=url; });
 
@@ -327,7 +327,7 @@
 
     document.getElementById("profileForm").addEventListener("submit", async e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await saveProfile(u.uid); });
 
-    // [BẮT ĐẦU] Đăng xuất: dọn local + phát tín hiệu + replace('/') để Home cập nhật ngay
+    // Đăng xuất: dọn local + phát tín hiệu + quay về trang chủ
     document.getElementById("signoutBtn").addEventListener("click", async ()=>{
       try{ await signOut(auth); }catch(e){ /* ignore */ }
       finally{
@@ -337,14 +337,12 @@
         location.replace("/");
       }
     });
-    // [HẾT] Đăng xuất
 
+    // ===== GUARD TRANG PROFILE: CHƯA LOGIN -> TRẢ VỀ "/" =====
     onAuthStateChanged(auth, async (user)=>{
       const hint=document.getElementById("authHint");
       if(!user){
-        hint.innerHTML='Bạn chưa đăng nhập. <a href="/#/" class="tab">← Về trang chủ</a>';
-        document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el=>el.disabled=true);
-        document.getElementById("btnChangePw").disabled=true;
+        location.replace("/");    // chặn truy cập trực tiếp
         return;
       }
       document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el=>el.disabled=false);
@@ -352,12 +350,11 @@
       const base=local?.profile||{ name:user.displayName||"Player", coins:300, xp:0, chests:0, createdAt:Date.now(), unlocked:{topics:{},categories:{}} };
       const merged={...base,...(cloud||{})};
       writeLocalProfile(user.uid,merged); fillForm(user,merged,cloud); renderKPI(merged);
-      hint.innerHTML=`Đang đăng nhập với <strong>${user.email||user.phoneNumber||"tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
+      hint.innerHTML=`Đăng nhập: <strong>${user.email||user.phoneNumber||"tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
     });
   </script>
   <!-- =========================================================
-       [HẾT] SCRIPT — AUTH + FIRESTORE + OTP + AVATAR + ĐỔI MẬT KHẨU
+       [HẾT] SCRIPT — AUTH + GUARD + OTP + AVATAR + ĐỔI/THÊM PASSWORD
   ========================================================== -->
 </body>
 </html>
-

@@ -252,8 +252,8 @@
       });
 
       // ====== Quên mật khẩu qua SERVER (SMTP PRO) ======
-      // ⚠️ Sửa FORGOT_API về domain server thật của bạn
-      const FORGOT_API = "https://<SERVER_DOMAIN>/api/auth/forgot";
+     // ví dụ nếu bạn deploy server ở Render:
+const FORGOT_API = 'https://nini-funny-server.onrender.com/api/send-reset';
 
       btnForgot?.addEventListener("click", async ()=>{
         const email = (forgotInput.value||"").trim();
@@ -311,3 +311,4 @@
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+

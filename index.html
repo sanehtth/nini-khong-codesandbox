@@ -116,14 +116,15 @@
 
   <!-- =========================================================
        AUTH SCRIPT — 1 NAMESPACE DUY NHẤT (KHÔNG TRÙNG TÊN)
+       - Login/Signup: Firebase Auth
+       - Forgot password: Gọi API server để gửi bằng SMTP pro
   ========================================================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth, onAuthStateChanged, signOut,
       GoogleAuthProvider, signInWithPopup,
-      signInWithEmailAndPassword, createUserWithEmailAndPassword,
-      sendPasswordResetEmail
+      signInWithEmailAndPassword, createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // ==== Firebase config của bạn ====
@@ -224,7 +225,7 @@
         ns.setTab(t.getAttribute("data-auth"));
       });
 
-      // ====== Login / Signup / Forgot ======
+      // ====== Login / Signup ======
       btnEmailLogin?.addEventListener("click", async ()=>{
         setNote(loginNote,"");
         try{
@@ -250,15 +251,27 @@
         }catch(e){ setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false); }
       });
 
-      // Quên mật khẩu (Firebase)
+      // ====== Quên mật khẩu qua SERVER (SMTP PRO) ======
+      // ⚠️ Sửa FORGOT_API về domain server thật của bạn
+      const FORGOT_API = "https://<SERVER_DOMAIN>/api/auth/forgot";
+
       btnForgot?.addEventListener("click", async ()=>{
         const email = (forgotInput.value||"").trim();
         if(!email){ setNote(forgotNote,"Vui lòng nhập email.", false); return; }
         setNote(forgotNote,"Đang gửi…");
         try{
-          await sendPasswordResetEmail(auth, email);
-          setNote(forgotNote,"Nếu email tồn tại, hệ thống đã gửi hướng dẫn đặt lại mật khẩu.");
-        }catch(e){ setNote(forgotNote, e?.code || e?.message || "Không gửi được email", false); }
+          const res = await fetch(FORGOT_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+          });
+          let data = {};
+          try { data = await res.json(); } catch(_){}
+          if (res.ok) setNote(forgotNote, data.message || "Đã gửi hướng dẫn đặt lại mật khẩu.");
+          else setNote(forgotNote, data.message || "Gửi không thành công.", false);
+        }catch(e){
+          setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
+        }
       });
 
       // ====== Auth state & sync ======

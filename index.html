@@ -127,6 +127,7 @@
        - lắng nghe tín hiệu localStorage NINI_SIGNED_OUT_AT
   ========================================================== -->
 <!-- [BẮT ĐẦU] Guard nút đăng nhập: chỉ vào profile khi đã login -->
+<!-- [BẮT ĐẦU] Sửa nút đăng nhập: KHÔNG tự mở Google popup, chỉ mở modal -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import {
@@ -164,35 +165,93 @@
   }
   onAuthStateChanged(auth, updateAuthBtnText);
 
-  // NÚT header: nếu đã login => sang profile; nếu chưa => login Google rồi sang profile
+  // ===== Helpers mở/đóng modal login =====
+  function openAuthModal(){
+    const m = document.getElementById("authModal");
+    if (!m) return;
+    m.setAttribute("aria-hidden","false");
+    // tab mặc định về "Đăng nhập"
+    const tabs = m.querySelectorAll(".tab-line");
+    tabs.forEach(t=>t.classList.remove("is-active"));
+    const logTab = m.querySelector('[data-auth="login"]');
+    if (logTab) logTab.classList.add("is-active");
+    const panes = m.querySelectorAll('.form');
+    panes.forEach(p=>p.classList.remove("is-active"));
+    const loginPane = m.querySelector('[data-pane="login"]');
+    if (loginPane) loginPane.classList.add("is-active");
+  }
+  function closeAuthModal(){
+    const m = document.getElementById("authModal");
+    if (!m) return;
+    m.setAttribute("aria-hidden","true");
+  }
+
+  // Gắn close cho backdrop & nút X (nếu chưa gắn)
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const m = document.getElementById("authModal");
+    if (!m) return;
+    m.querySelectorAll("[data-close],[data-reader-close]").forEach(el=>{
+      el.addEventListener("click", closeAuthModal);
+    });
+    // chuyển tab trong modal
+    const tabWrap = m.querySelector("#authTabs");
+    if (tabWrap && !tabWrap.dataset.bound){
+      tabWrap.dataset.bound="1";
+      tabWrap.addEventListener("click",(e)=>{
+        const b = e.target.closest(".tab-line");
+        if (!b) return;
+        tabWrap.querySelectorAll(".tab-line").forEach(x=>x.classList.remove("is-active"));
+        b.classList.add("is-active");
+        const pane = b.getAttribute("data-auth");
+        m.querySelectorAll(".form").forEach(f=>f.classList.remove("is-active"));
+        const tgt = m.querySelector(`.form[data-pane="${pane}"]`);
+        if (tgt) tgt.classList.add("is-active");
+      });
+    }
+    // Nút "Đăng nhập với Google" (người dùng tự bấm)
+    const gbtn = m.querySelector('[data-pane="login"] .btn.btn-ghost.full');
+    if (gbtn && !gbtn.dataset.bound){
+      gbtn.dataset.bound="1";
+      gbtn.addEventListener("click", async ()=>{
+        try{
+          await signInWithPopup(auth, provider);
+          closeAuthModal();
+          // Sau khi login, chuyển sang profile
+          location.href = "/profile.html";
+        }catch{
+          toast("Bạn đã huỷ đăng nhập hoặc popup bị chặn.", false);
+        }
+      });
+    }
+  });
+
+  // ====== NÚT HEADER: không tự popup Google nữa ======
   const authBtn = document.getElementById("authBtn");
   if (authBtn){
-    authBtn.addEventListener("click", async (e) => {
+    authBtn.addEventListener("click", (e) => {
       e.preventDefault();
       if (auth.currentUser) {
+        // đã đăng nhập → sang profile
         location.href = "/profile.html";
-        return;
-      }
-      try {
-        await signInWithPopup(auth, provider);
-        location.href = "/profile.html";        // vào được vì đã login
-      } catch (err) {
-        toast("Bạn đã huỷ đăng nhập hoặc bị chặn popup.", false);
+      } else {
+        // chưa đăng nhập → mở modal đăng nhập (không popup Google tự động)
+        openAuthModal();
       }
     });
   }
 
-  // Đồng bộ trạng thái khi tab khác đã signout
+  // Đồng bộ signout giữa các tab
   window.addEventListener("storage", (e) => {
     if (e.key === "NINI_SIGNED_OUT_AT") { signOut(auth).catch(()=>{}); updateAuthBtnText(); }
   });
   if (localStorage.getItem("NINI_SIGNED_OUT_AT")) { signOut(auth).catch(()=>{}); updateAuthBtnText(); }
 </script>
-<!-- [HẾT] Guard nút đăng nhập -->
+<!-- [HẾT] Sửa nút đăng nhập -->
 
   <!-- =========================================================
        [HẾT] FIREBASE AUTH + SỬA HEADER NGAY KHI SIGN OUT
   ========================================================== -->
 </body>
 </html>
+
 

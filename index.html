@@ -253,7 +253,8 @@
 
       // ====== Quên mật khẩu qua SERVER (SMTP PRO) ======
      // ví dụ nếu bạn deploy server ở Render:
-const FORGOT_API = 'https://nini-funny-server.onrender.com/api/send-reset';
+        const FORGOT_API = '/api/send-reset';
+
 
       btnForgot?.addEventListener("click", async ()=>{
         const email = (forgotInput.value||"").trim();
@@ -311,4 +312,5 @@ const FORGOT_API = 'https://nini-funny-server.onrender.com/api/send-reset';
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+
 

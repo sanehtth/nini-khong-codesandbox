@@ -47,9 +47,7 @@
   <main class="viewport">
     <div class="page-wrap">
       <!-- =========================================================
-           [BEGIN] KHỐI 1 — THÔNG TIN CÁ NHÂN
-           - Hiển thị avatar, tự-điền email từ tài khoản đang đăng nhập (readonly).
-           - OTP Phone, các trường hồ sơ.
+           [BẮT ĐẦU] KHỐI 1 — THÔNG TIN CÁ NHÂN (Avatar, Giới tính, OTP)
       ========================================================== -->
       <section class="card">
         <h2>Thông tin cá nhân</h2>
@@ -69,10 +67,7 @@
         </div>
 
         <form id="profileForm" autocomplete="on">
-          <div class="fld"><span>Email</span>
-            <!-- NOTE: email luôn do code gán từ currentUser/Cloud, để readonly -->
-            <input type="email" id="pf_email" readonly placeholder="— sẽ tự điền —" />
-          </div>
+          <div class="fld"><span>Email</span><input type="email" id="pf_email" readonly placeholder="— sẽ tự điền —" /></div>
           <div class="fld"><span>Tên hiển thị</span><input type="text" id="pf_displayName" placeholder="Bé NiNi" /></div>
           <div class="fld"><span>Giới tính</span>
             <select id="pf_gender">
@@ -122,12 +117,11 @@
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
       </section>
       <!-- =========================================================
-           [END] KHỐI 1 — THÔNG TIN CÁ NHÂN
+           [HẾT] KHỐI 1 — THÔNG TIN CÁ NHÂN
       ========================================================== -->
 
       <!-- =========================================================
-           [BEGIN] KHỐI 2 — THÀNH TÍCH
-           - Hiển thị XP / Xu / Rương, mở rương thưởng, đồng bộ lại.
+           [BẮT ĐẦU] KHỐI 2 — THÀNH TÍCH
       ========================================================== -->
       <section class="card">
         <h2>Thành tích</h2>
@@ -153,18 +147,13 @@
         </div>
       </section>
       <!-- =========================================================
-           [END] KHỐI 2 — THÀNH TÍCH
+           [HẾT] KHỐI 2 — THÀNH TÍCH
       ========================================================== -->
     </div>
   </main>
 
   <!-- =========================================================
-       [BEGIN] SCRIPT — AUTH + GUARD + OTP + AVATAR + KPI + ĐỔI/THÊM PASSWORD
-       NOTE tổng: 
-       - Bắt buộc đã đăng nhập mới được vào trang profile.
-       - Email field luôn tự-điền từ currentUser/cloud (readonly).
-       - Lưu hồ sơ có xử lý lỗi permission-denied rõ ràng.
-       - Đăng xuất dọn biến theo dõi và điều hướng về trang chủ.
+       [BẮT ĐẦU] SCRIPT — AUTH + GUARD + OTP + AVATAR + ĐỔI/THÊM PASSWORD
   ========================================================== -->
   <script type="module">
     /* Firebase */
@@ -177,7 +166,7 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    /* ==== THAY key nếu bạn đổi project ==== */
+    /* ==== THAY key của bạn nếu cần ==== */
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -191,49 +180,25 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    /* ===== LocalStorage keys cho state game/hồ sơ ===== */
     const LS_ACCOUNTS="NINI_ACCOUNTS_V3", LS_ACTIVE="NINI_ACTIVE_USER_V3";
 
-    /* ===== Helpers ===== */
-    function readLocalProfile(){
-      try{
-        const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}");
-        const act=JSON.parse(localStorage.getItem(LS_ACTIVE)||"null");
-        if(!act||!accs[act]) return null;
-        return {uid:act, profile:accs[act]};
-      }catch{return null;}
-    }
-    function writeLocalProfile(uid, profile){
-      const accs={}; accs[uid]=profile;
-      localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs));
-      localStorage.setItem(LS_ACTIVE,JSON.stringify(uid));
-    }
+    /* Helpers */
+    function readLocalProfile(){ try{ const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}"); const act=JSON.parse(localStorage.getItem(LS_ACTIVE)||"null"); if(!act||!accs[act]) return null; return {uid:act, profile:accs[act]}; }catch{return null;} }
+    function writeLocalProfile(uid, profile){ const accs={}; accs[uid]=profile; localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs)); localStorage.setItem(LS_ACTIVE,JSON.stringify(uid)); }
     function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
     function setBar(id,p){ const el=document.getElementById(id); if(el) el.style.width=Math.max(0,Math.min(100,p))+"%"; }
-    function toast(msg, ok=true){ const t=document.createElement('div'); t.textContent=msg; t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d"); document.body.appendChild(t); setTimeout(()=>t.remove(),2300); }
+    function toast(msg, ok=true){ const t=document.createElement('div'); t.textContent=msg; t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d"); document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
 
-    async function loadCloudProfile(uid){ const s=await getDoc(doc(db,"profiles",uid)); return s.exists()?s.data():null; }
-    async function saveCloudProfile(uid,data){ await setDoc(doc(db,"profiles",uid),{...data,updatedAt:Date.now()},{merge:true}); }
+    /* ====== Đổi collection: PROFILES → USERS ====== */
+    async function loadCloudProfile(uid){ const s=await getDoc(doc(db,"users",uid)); return s.exists()?s.data():null; }
+    async function saveCloudProfile(uid,data){ await setDoc(doc(db,"users",uid),{...data,updatedAt:Date.now()},{merge:true}); }
+    /* ====== HẾT: Đổi collection ====== */
 
-    function renderKPI(pf){
-      setText("valXP",pf.xp|0);
-      setText("valCoins",pf.coins|0);
-      setText("valChests",pf.chests|0);
-      setBar("barXP",Math.min(100,(pf.xp|0)%100));
-      setBar("barCoins",Math.min(100,(pf.coins|0)%1000));
-      const btn = document.getElementById("btnOpenChest");
-      if(btn) btn.disabled = !(pf.chests>0);
-    }
-
-    // [BEGIN] helper lấy email ưu tiên theo CurrentUser → Cloud → Local
-    function getAuthEmail(user, cloud, local){
-      return user?.email || cloud?.email || local?.profile?.email || "";
-    }
-    // [END] helper lấy email
+    function renderKPI(pf){ setText("valXP",pf.xp|0); setText("valCoins",pf.coins|0); setText("valChests",pf.chests|0); setBar("barXP",Math.min(100,(pf.xp|0)%100)); setBar("barCoins",Math.min(100,(pf.coins|0)%1000)); document.getElementById("btnOpenChest").disabled=!(pf.chests>0); }
 
     function readForm(){
       return {
-        email: document.getElementById("pf_email").value.trim(),   // luôn readonly, đã gán từ code
+        email: document.getElementById("pf_email").value.trim(),
         name: document.getElementById("pf_displayName").value.trim(),
         gender: document.getElementById("pf_gender").value,
         dob: document.getElementById("pf_dob").value||null,
@@ -244,21 +209,16 @@
         avatarUrl: document.getElementById("pf_avatar").value.trim() || "/public/assets/avatar/NV1.webp"
       };
     }
-
-    function fillForm(u, pf, cloud){
-      const avatar=cloud?.avatarUrl||pf?.avatarUrl||"/public/assets/avatar/NV1.webp";
+    function fillForm(u,base,cloud){
+      const avatar=cloud?.avatarUrl||base?.avatarUrl||"/public/assets/avatar/NV1.webp";
       document.getElementById("pf_avatar_img").src=avatar;
       document.getElementById("pf_avatar").value=avatar;
-
-      // email tự điền và readonly
-      const email = getAuthEmail(u, cloud, readLocalProfile());
-      document.getElementById("pf_email").value=email;
-
-      document.getElementById("pf_displayName").value=u?.displayName||(pf&&pf.name)||"";
+      document.getElementById("pf_email").value=u.email||u.phoneNumber||"";
+      document.getElementById("pf_displayName").value=u.displayName||(base&&base.name)||"";
       document.getElementById("pf_gender").value=cloud?.gender||"";
       document.getElementById("pf_dob").value=cloud?.dob||"";
       document.getElementById("pf_guardian").value=cloud?.guardian||"";
-      document.getElementById("pf_phone").value=(u?.phoneNumber||cloud?.phone||"");
+      document.getElementById("pf_phone").value=(u.phoneNumber||cloud?.phone||"");
       document.getElementById("pf_city").value=cloud?.city||"";
       document.getElementById("pf_grade").value=cloud?.grade||"";
     }
@@ -272,74 +232,39 @@
 
     /* ====== Rương thưởng ====== */
     function randomReward(){ const t=Math.random(); if(t<.5) return{type:"coins",amount:50+Math.floor(Math.random()*151)}; if(t<.85) return{type:"xp",amount:20+Math.floor(Math.random()*81)}; return{type:"both",amount:[30+Math.floor(Math.random()*71),80+Math.floor(Math.random()*121)]}; }
-    async function openChestHandler(uid){
-      const cur=readLocalProfile(); if(!cur||cur.uid!==uid) return;
-      const pf=cur.profile; if(!(pf.chests>0)) return toast("Bạn chưa có rương.",false);
-
+    async function openChestHandler(uid){ const cur=readLocalProfile(); if(!cur||cur.uid!==uid) return; const pf=cur.profile; if(!(pf.chests>0)) return toast("Bạn chưa có rương.",false);
       const rw=randomReward(); pf.chests=(pf.chests|0)-1;
       if(rw.type==="coins"){ pf.coins=(pf.coins|0)+rw.amount; document.getElementById("lastReward").textContent=`+${rw.amount} xu`; }
       else if(rw.type==="xp"){ pf.xp=(pf.xp|0)+rw.amount; document.getElementById("lastReward").textContent=`+${rw.amount} XP`; }
       else { pf.xp+=rw.amount[0]; pf.coins+=rw.amount[1]; document.getElementById("lastReward").textContent=`+${rw.amount[0]} XP, +${rw.amount[1]} xu`; }
-      writeLocalProfile(uid,pf); renderKPI(pf);
-      try{ await saveCloudProfile(uid,{xp:pf.xp|0,coins:pf.coins|0,chests:pf.chests|0}); }catch{}
+      writeLocalProfile(uid,pf); renderKPI(pf); try{ await saveCloudProfile(uid,{xp:pf.xp|0,coins:pf.coins|0,chests:pf.chests|0}); }catch{}
       toast("Đã mở rương!",true);
     }
 
-    // [BEGIN] Lưu hồ sơ — có xử lý permission-denied rõ ràng
     async function saveProfile(uid){
       const note=document.getElementById("saveNote"); const f=readForm(); note.hidden=false; note.textContent="Đang lưu…";
-
       try{
-        await saveCloudProfile(uid,{
-          email: f.email || getAuthEmail(auth.currentUser, await loadCloudProfile(uid), readLocalProfile()) || null,
-          name: f.name || null, gender: f.gender || null, dob: f.dob || null,
-          guardian: f.guardian || null, phone: f.phone || null,
-          city: f.city || null, grade: f.grade || null, avatarUrl: f.avatarUrl
-        });
-
-        const cur=readLocalProfile();
-        if(cur&&cur.uid===uid){
-          cur.profile = { ...cur.profile, ...f };
-          writeLocalProfile(uid,cur.profile);
-        }
-        note.textContent="Đã lưu hồ sơ."; note.classList.remove("bad"); note.classList.add("ok");
-        toast("Lưu hồ sơ thành công",true);
-
+        await saveCloudProfile(uid,{email:f.email||null,name:f.name||null,gender:f.gender||null,dob:f.dob||null,guardian:f.guardian||null,phone:f.phone||null,city:f.city||null,grade:f.grade||null,avatarUrl:f.avatarUrl});
+        const cur=readLocalProfile(); if(cur&&cur.uid===uid){ cur.profile={...cur.profile, name:f.name||cur.profile.name, avatarUrl:f.avatarUrl}; writeLocalProfile(uid,cur.profile); }
+        note.textContent="Đã lưu hồ sơ."; toast("Lưu hồ sơ thành công",true);
       }catch(e){
-        const code = e?.code || "";
-        const msg = (code.includes("permission-denied"))
-          ? "Không lưu được: bạn chưa có quyền ghi hồ sơ. Kiểm tra Firestore Rules và đăng nhập đúng tài khoản."
-          : (e?.message || "Không lưu được.");
-        note.textContent = msg;
-        note.classList.remove("ok"); note.classList.add("bad");
-        toast(msg,false);
+        note.textContent="Không lưu được.";
+        toast("Lưu hồ sơ thất bại (kiểm tra Firestore Rules cho collection 'users')",false);
       }
     }
-    // [END] Lưu hồ sơ
 
     async function refreshAll(uid){
       const cloud=await loadCloudProfile(uid);
       const local=readLocalProfile();
       const pf=local?.profile||{ name:"Player", coins:300, xp:0, chests:0, unlocked:{topics:{},categories:{}} };
-      const merged={ ...pf, ...(cloud||{}),
-        name:cloud?.name||pf.name,
-        coins:(cloud?.coins??pf.coins)|0,
-        xp:(cloud?.xp??pf.xp)|0,
-        chests:(cloud?.chests??pf.chests)|0,
-        avatarUrl:cloud?.avatarUrl||pf.avatarUrl||"/public/assets/avatar/NV1.webp",
-        unlocked:cloud?.unlocked||pf.unlocked
-      };
+      const merged={ ...pf, ...(cloud||{}), name:cloud?.name||pf.name, coins:(cloud?.coins??pf.coins)|0, xp:(cloud?.xp??pf.xp)|0, chests:(cloud?.chests??pf.chests)|0, avatarUrl:cloud?.avatarUrl||pf.avatarUrl||"/public/assets/avatar/NV1.webp", unlocked:cloud?.unlocked||pf.unlocked };
       writeLocalProfile(uid,merged); renderKPI(merged);
-      document.getElementById("pf_avatar_img").src=merged.avatarUrl;
-      document.getElementById("pf_avatar").value=merged.avatarUrl;
+      document.getElementById("pf_avatar_img").src=merged.avatarUrl; document.getElementById("pf_avatar").value=merged.avatarUrl;
       return {cloud,merged};
     }
 
     /* =========================================================
-       [BEGIN] HÀM changePassword()
-       - Nếu user (Google) CHƯA có provider 'password' → LINK mật khẩu mới.
-       - Nếu user ĐÃ có 'password' → reauth + UPDATE mật khẩu.
-       - Tự reauth bằng Google popup khi cần.
+       [BẮT ĐẦU] HÀM changePassword()
     ========================================================== */
     async function changePassword(){
       const u = auth.currentUser;
@@ -359,35 +284,27 @@
 
       try {
         if (!hasPasswordProvider) {
-          // --- LINK PASSWORD CHO TÀI KHOẢN GOOGLE ---
-          try { await reauthenticateWithPopup(u, new GoogleAuthProvider()); } catch(_) { /* popup bị chặn -> thường vẫn recent */ }
-          if (!u.email) {
-            note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu.";
-            note.className = "note bad"; return;
-          }
+          try { await reauthenticateWithPopup(u, new GoogleAuthProvider()); } catch(_) {}
+          if (!u.email) { note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu."; note.className = "note bad"; return; }
           const cred = EmailAuthProvider.credential(u.email, pw1);
           await linkWithCredential(u, cred);
-          note.textContent = "Đã thêm mật khẩu cho tài khoản. Từ nay có thể đăng nhập bằng Email & Mật khẩu.";
-          note.className = "note ok";
+          note.textContent = "Đã thêm mật khẩu cho tài khoản."; note.className = "note ok";
         } else {
-          // --- ĐỔI MẬT KHẨU CHUẨN ---
           if (u.email) {
             if (!cur) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
             const cred = EmailAuthProvider.credential(u.email, cur);
             await reauthenticateWithCredential(u, cred);
           }
           await updatePassword(u, pw1);
-          note.textContent = "Đổi mật khẩu thành công.";
-          note.className = "note ok";
+          note.textContent = "Đổi mật khẩu thành công."; note.className = "note ok";
         }
         ["pw_current","pw_new","pw_confirm"].forEach(id => document.getElementById(id).value = "");
       } catch (e) {
         const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
-        note.textContent = "Không thể cập nhật: " + msg;
-        note.className = "note bad";
+        note.textContent = "Không thể cập nhật: " + msg; note.className = "note bad";
       }
     }
-    /* ======================= [END] HÀM changePassword() ====================== */
+    /* ============================ [HẾT] HÀM changePassword() ============================ */
 
     // Avatar events
     document.getElementById("pf_avatar_img").addEventListener("click", ()=>document.getElementById("pf_avatar").focus());
@@ -399,12 +316,7 @@
     document.getElementById("btnOpenChest").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await openChestHandler(u.uid); });
     document.getElementById("btnRefresh").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return; await refreshAll(u.uid); toast("Đồng bộ xong.",true); });
     document.getElementById("btnChangePw").addEventListener("click", changePassword);
-
-    document.getElementById("profileForm").addEventListener("submit", async e=>{
-      e.preventDefault();
-      const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false);
-      await saveProfile(u.uid);
-    });
+    document.getElementById("profileForm").addEventListener("submit", async e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await saveProfile(u.uid); });
 
     // Đăng xuất: dọn local + phát tín hiệu + quay về trang chủ
     document.getElementById("signoutBtn").addEventListener("click", async ()=>{
@@ -412,34 +324,31 @@
       finally{
         localStorage.removeItem(LS_ACCOUNTS);
         localStorage.removeItem(LS_ACTIVE);
-        localStorage.setItem("NINI_AUTH_LOGGED_IN","0");                 // flag đăng nhập = false
-        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));  // tín hiệu cho các tab khác
-        location.replace("/"); // về index
+        localStorage.setItem("NINI_AUTH_LOGGED_IN", "0");
+        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));
+        location.replace("/");
       }
     });
 
     // ===== GUARD TRANG PROFILE: CHƯA LOGIN -> TRẢ VỀ "/" =====
     onAuthStateChanged(auth, async (user)=>{
       const hint=document.getElementById("authHint");
-      if(!user){ location.replace("/"); return; }
-
-      const local=readLocalProfile();
-      const cloud=await loadCloudProfile(user.uid);
+      if(!user){
+        location.replace("/");    // chặn truy cập trực tiếp
+        return;
+      }
+      const emailEl=document.getElementById("pf_email");
+      emailEl.value = user.email || user.phoneNumber || "";
+      document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el=>el.disabled=false);
+      const local=readLocalProfile(); const cloud=await loadCloudProfile(user.uid);
       const base=local?.profile||{ name:user.displayName||"Player", coins:300, xp:0, chests:0, createdAt:Date.now(), unlocked:{topics:{},categories:{}} };
       const merged={...base,...(cloud||{})};
-
-      writeLocalProfile(user.uid,merged);
-      fillForm(user,merged,cloud);
-      renderKPI(merged);
-
-      document.querySelectorAll("#profileForm input, #profileForm select, #profileForm button").forEach(el=>el.disabled=false);
-
-      const emailShown = getAuthEmail(user, cloud, local);
-      hint.innerHTML = `Đăng nhập: <strong>${emailShown || user.phoneNumber || "tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
+      writeLocalProfile(user.uid,merged); fillForm(user,merged,cloud); renderKPI(merged);
+      hint.innerHTML=`Đăng nhập: <strong>${user.email||user.phoneNumber||"tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
     });
   </script>
   <!-- =========================================================
-       [END] SCRIPT — AUTH + GUARD + OTP + AVATAR + KPI + ĐỔI/THÊM PASSWORD
+       [HẾT] SCRIPT — AUTH + GUARD + OTP + AVATAR + ĐỔI/THÊM PASSWORD
   ========================================================== -->
 </body>
 </html>

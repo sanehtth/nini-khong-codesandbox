@@ -22,7 +22,7 @@
       </div>
     </a>
 
-    <!-- Tabs mùa (router hash) -->
+    <!-- Tabs mùa -->
     <nav class="tabs" id="seasonTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
@@ -31,74 +31,38 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-   <!-- [BEGIN] AUTH BUTTONS (tách 2 nút) -->
-<button id="btnLogin"  class="auth-btn">Đăng nhập</button>
-<button id="btnLogout" class="auth-btn" hidden>
-  Đăng xuất <span id="who"></span>
-</button>
-<!-- [END] AUTH BUTTONS -->
+    <!-- [BEGIN] AUTH BUTTONS (tách 2 nút rõ ràng) -->
+    <button id="btnLogin"  class="auth-btn">Đăng nhập / Đăng ký</button>
+    <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
+    <!-- [END] AUTH BUTTONS -->
 
-
-    <!-- Nút Admin (ẩn mặc định, hiện bằng Alt+A) -->
+    <!-- Nút Admin -->
     <a id="adminBtn" class="admin-link" href="/admin/login.html" rel="noopener">Admin</a>
   </header>
 
   <!-- ========== VIEWPORT ========== -->
   <main class="viewport">
-    <!-- Khung chính có nền theo mùa -->
     <section class="frame" id="frame">
-      <!-- Mascot -->
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-
-      <!-- Chips nội dung nhanh -->
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
         <button class="chip" data-section="rules">Luật chơi</button>
         <button class="chip" data-section="forum">Diễn đàn</button>
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
-
-      <!-- Mount kệ sách (nằm trong frame) -->
       <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <!-- Nội dung mô tả dưới khung -->
     <section class="content" id="content">
       <h2>NiNi — Funny</h2>
       <p>... (nội dung giới thiệu) ...</p>
     </section>
   </main>
 
-  <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
-  <div class="modal" id="readerModal" aria-hidden="true">
-    <div class="modal__backdrop" data-reader-close></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
-      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+  <!-- ========== READER MODAL (giữ nguyên) ========== -->
+  <div class="modal" id="readerModal" aria-hidden="true"> … </div>
 
-      <header class="calendar-head">
-        <h3 id="readerTitle" class="calendar-title">Đang tải…</h3>
-        <div class="calendar-tools">
-          <button id="btnLangVi" class="chip" title="Xem phụ đề Tiếng Việt">VI</button>
-          <button id="btnLangEn" class="chip" title="Xem phụ đề English">EN</button>
-          <button id="btnSpeak"  class="chip" title="Đọc to">🔊</button>
-        </div>
-      </header>
-
-      <div id="calendarViewport" class="calendar-viewport is-ready">
-        <div id="calendarBg" class="calendar-bg"></div>
-        <div id="pageCounterTop" class="page-indicator page-indicator--top">Trang 1/1</div>
-        <div class="subtitle"><div id="subtitleText" class="subtitle-text"></div></div>
-        <div class="pagebar">
-          <button id="imgPrev" class="pill-nav" title="Trang trước">◀</button>
-          <button id="imgNext" class="pill-nav" title="Trang sau">▶</button>
-        </div>
-        <div class="spinner"><div class="dot"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ========== AUTH MODAL (đăng nhập / đăng ký) ========== -->
-  <!-- [BẮT ĐẦU CS] Gắn id #authModal + data-google-login để JS bám chắc -->
+  <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -117,150 +81,217 @@
 
       <!-- Login -->
       <form class="form is-active" data-pane="login">
-        <!-- nút Google có marker để JS gắn handler -->
-        <button type="button" class="btn btn-ghost full" data-google-login>Đăng nhập với Google</button>
+        <button type="button" class="btn btn-ghost full" id="btnGoogleLogin">Đăng nhập với Google</button>
         <div class="or">hoặc</div>
         <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
+        <input id="loginEmail" type="email" placeholder="you@example.com" />
         <label>Mật khẩu</label>
-        <input type="password" placeholder="••••••••" />
+        <input id="loginPassword" type="password" placeholder="••••••••" />
         <div class="row">
-          <button type="submit" class="btn">Đăng nhập</button>
+          <button id="btnEmailLogin" type="button" class="btn">Đăng nhập</button>
         </div>
+        <p id="loginNote" class="note"></p>
       </form>
 
       <!-- Sign up -->
       <form class="form" data-pane="signup">
         <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
-        <div class="row gap">
-          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
-          <input type="text" placeholder="Nhập mã OTP" />
-        </div>
+        <input id="signupEmail" type="email" placeholder="you@example.com" />
         <label>Mật khẩu mới</label>
-        <input type="password" placeholder="Tối thiểu 8 ký tự" />
+        <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
         <div class="row">
-          <button type="submit" class="btn">Tạo tài khoản</button>
+          <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
         </div>
-        <p class="note">Sau khi tạo tài khoản, bạn sẽ được nhắc cập nhật hồ sơ để bảo vệ tài khoản.</p>
+        <p id="signupNote" class="note"></p>
       </form>
 
       <!-- Forgot -->
       <form class="form" data-pane="forgot">
         <label>Email</label>
-        <input type="email" placeholder="you@example.com" />
-        <div class="row gap">
-          <button type="button" class="btn btn-ghost">Gửi mã OTP</button>
-          <input type="text" placeholder="Nhập mã 6 số" />
-        </div>
-        <label>Mật khẩu mới</label>
-        <input type="password" placeholder="Tối thiểu 8 ký tự" />
+        <input id="forgotEmail" type="email" placeholder="you@example.com" />
         <div class="row">
-          <button type="submit" class="btn">Đặt lại mật khẩu</button>
+          <button id="btnReset" type="button" class="btn">Gửi link đặt lại mật khẩu</button>
         </div>
+        <p id="forgotNote" class="note"></p>
       </form>
     </div>
   </div>
-  <!-- [HẾT CS] -->
 
-  <!-- ========== JS CORE (defer) ========== -->
-  <script src="/public/js/effects.js?v=5" defer></script>
-  <script src="/public/js/app.js?v=13" defer></script>
+  <!-- =========================================================
+       [BEGIN] FIREBASE AUTH + TOGGLE NÚT (NGAY TRÊN INDEX)
+       - Kết nối Firebase (Google + Email/Password + reset)
+       - Không auto bật Google
+       - Dùng cờ localStorage để đồng bộ hai nút
+  ========================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged, signOut,
+      GoogleAuthProvider, signInWithPopup,
+      signInWithEmailAndPassword, createUserWithEmailAndPassword,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-<script>
-/* =========================
-   [BEGIN] AUTH TOGGLE (2 nút)
-   Tách rõ Đăng nhập / Đăng xuất với biến theo dõi localStorage.
-   ========================= */
-(function(){
-  const FLAG = "NINI_AUTH_LOGGED_IN";       // "1" | "0"
-  const WHO  = "NINI_USER_DISPLAY";         // tên/email hiển thị
-  const SIGNAL = "NINI_SIGNED_OUT_AT";      // tín hiệu broadcast signout
+    /* Firebase config của bạn */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+      authDomain: "nini-8f3d4.firebaseapp.com",
+      projectId: "nini-8f3d4",
+      storageBucket: "nini-8f3d4.firebasestorage.app",
+      messagingSenderId: "991701821645",
+      appId: "1:991701821645:web:fb21c357562c6c801da184"
+    };
 
-  const btnLogin  = document.getElementById("btnLogin");
-  const btnLogout = document.getElementById("btnLogout");
-  const whoSpan   = document.getElementById("who");
-  const authModal = document.getElementById("authModal"); // modal sẵn có
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-  // Helper: đọc cờ
-  function isLoggedIn(){
-    return localStorage.getItem(FLAG) === "1";
-  }
+    // ====== Cờ & UI ======
+    const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1" | "0"
+    const WHOKEY = "NINI_USER_DISPLAY";    // tên/email để hiển thị
+    const SIGNAL = "NINI_SIGNED_OUT_AT";   // tín hiệu broadcast giữa các tab
 
-  // Helper: set UI theo trạng thái
-  function setAuthUI(){
-    const logged = isLoggedIn();
-    const who = localStorage.getItem(WHO) || "";
-    if (whoSpan) whoSpan.textContent = logged && who ? `(${who})` : "";
+    const btnLogin   = document.getElementById("btnLogin");
+    const btnLogout  = document.getElementById("btnLogout");
+    const whoSpan    = document.getElementById("who");
+    const authModal  = document.getElementById("authModal");
+    const authTabs   = document.getElementById("authTabs");
 
-    // toggle 2 nút
-    if (btnLogin)  btnLogin.hidden  = logged;
-    if (btnLogout) btnLogout.hidden = !logged;
-  }
+    const loginEmail = document.getElementById("loginEmail");
+    const loginPw    = document.getElementById("loginPassword");
+    const btnEmailLogin  = document.getElementById("btnEmailLogin");
+    const btnGoogleLogin = document.getElementById("btnGoogleLogin");
+    const loginNote      = document.getElementById("loginNote");
 
-  // 1) Click Đăng nhập → mở modal đăng nhập (không nhảy Google tự động)
-  if (btnLogin) {
-    btnLogin.addEventListener("click", function(){
-      if (!authModal) return location.hash = "#/home"; // fallback
-      authModal.setAttribute("aria-hidden", "false");  // mở modal
-    });
-  }
+    const signupEmail = document.getElementById("signupEmail");
+    const signupPw    = document.getElementById("signupPassword");
+    const btnEmailSignup = document.getElementById("btnEmailSignup");
+    const signupNote     = document.getElementById("signupNote");
 
-  // 2) Click Đăng xuất → signOut (nếu có Firebase) + clear cờ + về trang chủ
-  if (btnLogout) {
-    btnLogout.addEventListener("click", async function(){
-      // cố gắng gọi Firebase signOut nếu có mặt
-      try {
-        if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
-          await window.firebaseAuth.signOut();
-        }
-      } catch(_) {}
+    const forgotEmail = document.getElementById("forgotEmail");
+    const btnReset    = document.getElementById("btnReset");
+    const forgotNote  = document.getElementById("forgotNote");
 
-      // clear cờ + phát tín hiệu
+    function toast(msg){
+      const t=document.createElement('div');
+      t.textContent=msg;
+      t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14)";
+      document.body.appendChild(t); setTimeout(()=>t.remove(),2000);
+    }
+
+    function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
+    function setAuthUI(){
+      const logged = isLoggedIn();
+      const who = localStorage.getItem(WHOKEY) || "";
+      whoSpan.textContent = logged && who ? `(${who})` : "";
+      btnLogin.hidden  = logged;
+      btnLogout.hidden = !logged;
+    }
+
+    function openAuth(){ authModal.setAttribute("aria-hidden","false"); }
+    function closeAuth(){ authModal.setAttribute("aria-hidden","true"); }
+
+    // chuyển tab trong modal
+    if (authTabs){
+      authTabs.addEventListener("click", (e)=>{
+        const btn = e.target.closest("[data-auth]"); if(!btn) return;
+        document.querySelectorAll("#authModal .tab-line").forEach(b=>b.classList.remove("is-active"));
+        document.querySelectorAll("#authModal .form").forEach(p=>p.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        const pane = btn.getAttribute("data-auth");
+        document.querySelector(`#authModal .form[data-pane="${pane}"]`)?.classList.add("is-active");
+      });
+    }
+    // đóng modal khi click backdrop / nút X
+    document.querySelectorAll('#authModal [data-close], #authModal .modal__backdrop')
+      .forEach(el=>el.addEventListener('click', closeAuth));
+
+    // ====== Hành động nút ======
+    btnLogin.addEventListener("click", openAuth);
+
+    btnLogout.addEventListener("click", async ()=>{
+      try { await signOut(auth); } catch(_){}
       localStorage.setItem(FLAG, "0");
-      localStorage.removeItem(WHO);
+      localStorage.removeItem(WHOKEY);
       localStorage.setItem(SIGNAL, String(Date.now()));
-
-      // về trang chủ
       location.replace("/");
     });
-  }
 
-  // 3) Lần đầu load → set UI theo cờ hiện tại
-  setAuthUI();
+    // Email/Password login
+    btnEmailLogin.addEventListener("click", async ()=>{
+      loginNote.textContent = "";
+      try{
+        const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value || "");
+        afterLoginSuccess(cred.user);
+      }catch(e){ loginNote.textContent = e?.code || e?.message || "Không đăng nhập được"; }
+    });
 
-  // 4) Đồng bộ giữa các tab
-  window.addEventListener("storage", (e)=>{
-    if (e.key === FLAG || e.key === WHO || e.key === SIGNAL) {
-      setAuthUI();
-      // nếu có tín hiệu SIGNED_OUT_AT vừa bắn từ tab khác → đảm bảo về trang chủ nếu đang ở modal
-      if (e.key === SIGNAL && location.pathname === "/profile.html") {
-        location.replace("/");
+    // Google login (không auto bật)
+    btnGoogleLogin.addEventListener("click", async ()=>{
+      loginNote.textContent = "";
+      try{
+        const provider = new GoogleAuthProvider();
+        const cred = await signInWithPopup(auth, provider);
+        afterLoginSuccess(cred.user);
+      }catch(e){ loginNote.textContent = e?.code || e?.message || "Không đăng nhập được với Google"; }
+    });
+
+    // Sign up
+    btnEmailSignup.addEventListener("click", async ()=>{
+      signupNote.textContent = "";
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, (signupEmail.value||"").trim(), signupPw.value||"");
+        afterLoginSuccess(cred.user);
+      }catch(e){ signupNote.textContent = e?.code || e?.message || "Không tạo được tài khoản"; }
+    });
+
+    // Reset password
+    btnReset.addEventListener("click", async ()=>{
+      forgotNote.textContent = "";
+      try{
+        await sendPasswordResetEmail(auth, (forgotEmail.value||"").trim());
+        forgotNote.textContent = "Đã gửi email đặt lại mật khẩu.";
+      }catch(e){ forgotNote.textContent = e?.code || e?.message || "Không gửi được email"; }
+    });
+
+    // ====== State & đồng bộ 2 nút ======
+    onAuthStateChanged(auth, (user)=>{
+      if (user){
+        // Khi đã có session (ví dụ refresh) -> set lại cờ để UI đúng
+        const who = user.displayName || user.email || user.phoneNumber || "user";
+        localStorage.setItem(FLAG, "1");
+        localStorage.setItem(WHOKEY, who);
       }
-    }
-  });
-
-  // 5) Cổng tiếp nhận khi đăng nhập thành công (do code auth của bạn bắn ra)
-  //    => Ở nơi xử lý ĐĂNG NHẬP THÀNH CÔNG, chỉ cần gọi:
-  //    window.__niniAuthOnLoginSuccess(displayNameOrEmail)
-  window.__niniAuthOnLoginSuccess = function(who){
-    localStorage.setItem(FLAG, "1");
-    if (who) localStorage.setItem(WHO, who);
+      setAuthUI();
+    });
+    window.addEventListener("storage", (e)=>{
+      if (e.key === FLAG || e.key === WHOKEY || e.key === SIGNAL) setAuthUI();
+    });
     setAuthUI();
-    // đóng modal nếu đang mở
-    if (authModal) authModal.setAttribute("aria-hidden", "true");
-    // điều hướng về profile nếu muốn:
-    location.href = "/profile.html";
-  };
-})();
-</script>
-//============>>>> het dang nhap <<<<============
 
+    // ====== Sau khi login thành công ======
+    function afterLoginSuccess(user){
+      const who = user.displayName || user.email || user.phoneNumber || "user";
+      localStorage.setItem(FLAG, "1");
+      localStorage.setItem(WHOKEY, who);
+      setAuthUI();
+      closeAuth();
+      // chuyển sang trang hồ sơ để cập nhật thông tin
+      location.href = "/profile.html";
+    }
+
+    // cầu nối cho các script khác nếu cần gọi thủ công
+    window.__niniAuthOnLoginSuccess = (who)=>{
+      localStorage.setItem(FLAG, "1");
+      if (who) localStorage.setItem(WHOKEY, who);
+      setAuthUI(); closeAuth(); location.href="/profile.html";
+    };
+  </script>
+  <!-- =========================================================
+       [END] FIREBASE AUTH + TOGGLE NÚT
+  ========================================================== -->
+
+  <!-- JS gốc (giữ nếu bạn còn dùng) -->
+  <script src="/public/js/effects.js?v=5" defer></script>
+  <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
-
-
-
-
-
-

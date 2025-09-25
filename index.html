@@ -126,93 +126,73 @@
        - nút header -> chuyển sang /profile.html
        - lắng nghe tín hiệu localStorage NINI_SIGNED_OUT_AT
   ========================================================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth, GoogleAuthProvider, signInWithPopup,
-      onAuthStateChanged, signOut, signInWithEmailAndPassword, sendPasswordResetEmail
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!-- [BẮT ĐẦU] Guard nút đăng nhập: chỉ vào profile khi đã login -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth, GoogleAuthProvider, signInWithPopup,
+    onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  const firebaseConfig = {
+    apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
   projectId: "nini-8f3d4",
   storageBucket: "nini-8f3d4.firebasestorage.app",
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184"
-    };
+  };
 
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db   = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+  const provider = new GoogleAuthProvider();
 
-    function toast(msg, ok=true){
-      const t=document.createElement('div'); t.textContent=msg;
-      t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d");
-      document.body.appendChild(t); setTimeout(()=>t.remove(),2300);
-    }
+  function toast(msg, ok=true){
+    const t=document.createElement('div'); t.textContent=msg;
+    t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d");
+    document.body.appendChild(t); setTimeout(()=>t.remove(),2300);
+  }
 
-    function updateAuthBtnText() {
-      const btn = document.getElementById("authBtn");
-      if (!btn) return;
-      const u = auth.currentUser;
-      btn.textContent = u ? ("Đăng xuất (" + (u.displayName || u.email) + ")") : "Đăng nhập / Đăng ký";
-      btn.dataset.authState = u ? "in" : "out";
-    }
+  function updateAuthBtnText() {
+    const btn = document.getElementById("authBtn");
+    if (!btn) return;
+    const u = auth.currentUser;
+    btn.textContent = u ? ("Đăng xuất (" + (u.displayName || u.email) + ")") : "Đăng nhập / Đăng ký";
+    btn.dataset.authState = u ? "in" : "out";
+  }
+  onAuthStateChanged(auth, updateAuthBtnText);
 
-    // Header -> profile.html (không logout ở trang Home)
-    const authBtn = document.getElementById("authBtn");
-    if (authBtn) authBtn.addEventListener("click", e => { e.preventDefault(); location.href = "/profile.html"; });
-
-    // Bind các nút trong modal (để dành)
-    function bindAuthModal(){
-      const gbtn = document.querySelector('#authModal [data-pane="login"] .btn.btn-ghost.full');
-      if (gbtn && !gbtn.dataset.bound) {
-        gbtn.dataset.bound="1";
-        gbtn.addEventListener("click", async()=>{ try{ await signInWithPopup(auth, provider); toast("Đăng nhập thành công"); }catch{ toast("Đăng nhập thất bại",false);} });
+  // NÚT header: nếu đã login => sang profile; nếu chưa => login Google rồi sang profile
+  const authBtn = document.getElementById("authBtn");
+  if (authBtn){
+    authBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (auth.currentUser) {
+        location.href = "/profile.html";
+        return;
       }
-      const form = document.querySelector('#authModal [data-pane="login"]');
-      if (form && !form.dataset.bound){
-        form.dataset.bound="1";
-        form.addEventListener("submit", async(ev)=>{
-          ev.preventDefault();
-          const email=form.querySelector('input[type="email"]').value.trim();
-          const pass =form.querySelector('input[type="password"]').value;
-          try{ await signInWithEmailAndPassword(auth,email,pass); toast("Đăng nhập thành công"); }catch{ toast("Đăng nhập thất bại",false); }
-        });
-      }
-      const fgt = document.querySelector('#authModal [data-pane="forgot"] .btn.btn-ghost');
-      if (fgt && !fgt.dataset.bound){
-        fgt.dataset.bound="1";
-        fgt.addEventListener("click", async()=>{
-          const email=document.querySelector('#authModal [data-pane="forgot"] input[type="email"]').value.trim();
-          if(!email) return toast("Nhập email.",false);
-          try{ await sendPasswordResetEmail(auth,email); toast("Đã gửi email khôi phục"); }catch{ toast("Không gửi được",false); }
-        });
-      }
-    }
-    document.addEventListener("DOMContentLoaded", bindAuthModal);
-
-    onAuthStateChanged(auth, updateAuthBtnText);
-
-    // [BẮT ĐẦU] Lắng nghe tín hiệu “đã đăng xuất” từ profile.html / tab khác
-    window.addEventListener("storage", (e) => {
-      if (e.key === "NINI_SIGNED_OUT_AT") {
-        signOut(auth).catch(()=>{});
-        updateAuthBtnText();
+      try {
+        await signInWithPopup(auth, provider);
+        location.href = "/profile.html";        // vào được vì đã login
+      } catch (err) {
+        toast("Bạn đã huỷ đăng nhập hoặc bị chặn popup.", false);
       }
     });
-    // Khi vào trang nếu thấy cờ -> đảm bảo label đúng
-    if (localStorage.getItem("NINI_SIGNED_OUT_AT")) {
-      signOut(auth).catch(()=>{});
-      updateAuthBtnText();
-    }
-    // [HẾT] Lắng nghe tín hiệu
-  </script>
+  }
+
+  // Đồng bộ trạng thái khi tab khác đã signout
+  window.addEventListener("storage", (e) => {
+    if (e.key === "NINI_SIGNED_OUT_AT") { signOut(auth).catch(()=>{}); updateAuthBtnText(); }
+  });
+  if (localStorage.getItem("NINI_SIGNED_OUT_AT")) { signOut(auth).catch(()=>{}); updateAuthBtnText(); }
+</script>
+<!-- [HẾT] Guard nút đăng nhập -->
+
   <!-- =========================================================
        [HẾT] FIREBASE AUTH + SỬA HEADER NGAY KHI SIGN OUT
   ========================================================== -->
 </body>
 </html>
+

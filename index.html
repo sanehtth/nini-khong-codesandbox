@@ -31,9 +31,13 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <!-- [BẮT ĐẦU CS] Nút Đăng nhập sẽ mở modal (không tự popup Google) -->
-    <button id="authBtn" class="auth-btn">Đăng nhập</button>
-    <!-- [HẾT CS] -->
+   <!-- [BEGIN] AUTH BUTTONS (tách 2 nút) -->
+<button id="btnLogin"  class="auth-btn">Đăng nhập</button>
+<button id="btnLogout" class="auth-btn" hidden>
+  Đăng xuất <span id="who"></span>
+</button>
+<!-- [END] AUTH BUTTONS -->
+
 
     <!-- Nút Admin (ẩn mặc định, hiện bằng Alt+A) -->
     <a id="adminBtn" class="admin-link" href="/admin/login.html" rel="noopener">Admin</a>
@@ -163,170 +167,98 @@
   <script src="/public/js/effects.js?v=5" defer></script>
   <script src="/public/js/app.js?v=13" defer></script>
 
-  <!-- (tuỳ chọn) game autumn đã mount—nếu bạn đang dùng, giữ lại: -->
-  <!-- <script src="/public/content/game/nini-autumn.js" defer></script> -->
+<script>
+/* =========================
+   [BEGIN] AUTH TOGGLE (2 nút)
+   Tách rõ Đăng nhập / Đăng xuất với biến theo dõi localStorage.
+   ========================= */
+(function(){
+  const FLAG = "NINI_AUTH_LOGGED_IN";       // "1" | "0"
+  const WHO  = "NINI_USER_DISPLAY";         // tên/email hiển thị
+  const SIGNAL = "NINI_SIGNED_OUT_AT";      // tín hiệu broadcast signout
 
-  <!-- ========== AUTH HANDLER: mở modal, login Google trong modal ==========
-       [BẮT ĐẦU CS] KHỐI JS mới: KHÔNG tự popup Google; chỉ mở modal
-  -->
-  <!-- [BẮT ĐẦU CS] AUTH FLOW có biến theo dõi đăng nhập (không tự bật popup Google) -->
-<!-- [BẮT ĐẦU CS] AUTH FLOW + Email/Password login -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut,
-    // 👇 THÊM import này để login bằng email/password
-    signInWithEmailAndPassword
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  const btnLogin  = document.getElementById("btnLogin");
+  const btnLogout = document.getElementById("btnLogout");
+  const whoSpan   = document.getElementById("who");
+  const authModal = document.getElementById("authModal"); // modal sẵn có
 
-  /* 🔑 THAY cấu hình Firebase của bạn */
-  const firebaseConfig = {
-    apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-  authDomain: "nini-8f3d4.firebaseapp.com",
-  projectId: "nini-8f3d4",
-  storageBucket: "nini-8f3d4.firebasestorage.app",
-  messagingSenderId: "991701821645",
-  appId: "1:991701821645:web:fb21c357562c6c801da184"
-  };
-
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  // ===== Cờ theo dõi đăng nhập qua localStorage =====
-  const LS_LOGGED = "NINI_AUTH_LOGGED_IN";        // "1"|"0"
-  const LS_SIGNED_OUT_AT = "NINI_SIGNED_OUT_AT";  // timestamp
-  window.NINI_AUTH = { loggedIn:false };
-  function setLoggedIn(v){ window.NINI_AUTH.loggedIn=!!v; localStorage.setItem(LS_LOGGED, v?"1":"0"); }
-  function getLoggedIn(){ return localStorage.getItem(LS_LOGGED)==="1"; }
-
-  // ===== Modal helpers =====
-  function openAuthModal(){
-    const m=document.getElementById("authModal"); if(!m) return;
-    m.querySelectorAll(".tab-line").forEach(t=>t.classList.remove("is-active"));
-    m.querySelector('[data-auth="login"]')?.classList.add("is-active");
-    m.querySelectorAll(".form").forEach(f=>f.classList.remove("is-active"));
-    m.querySelector('[data-pane="login"]')?.classList.add("is-active");
-    m.setAttribute("aria-hidden","false");
-  }
-  function closeAuthModal(){ document.getElementById("authModal")?.setAttribute("aria-hidden","true"); }
-
-  function updateAuthBtnText(){
-    const btn=document.getElementById("authBtn"); if(!btn) return;
-    const u=auth.currentUser;
-    btn.textContent = u ? ("Đăng xuất ("+(u.displayName||u.email||"Tài khoản")+")") : "Đăng nhập";
-    btn.dataset.authState = u ? "in" : "out";
+  // Helper: đọc cờ
+  function isLoggedIn(){
+    return localStorage.getItem(FLAG) === "1";
   }
 
- onAuthStateChanged(auth, (user) => {
-  const was = getLoggedIn();
-  const now = !!user;
-  setLoggedIn(now);
-  updateAuthBtnText();
+  // Helper: set UI theo trạng thái
+  function setAuthUI(){
+    const logged = isLoggedIn();
+    const who = localStorage.getItem(WHO) || "";
+    if (whoSpan) whoSpan.textContent = logged && who ? `(${who})` : "";
 
-  // [BẮT ĐẦU SỬA] Không auto redirect nữa
-  if (!was && now) {
-    // vừa đăng nhập thành công → chỉ đóng modal + báo
-    closeAuthModal();
-    try {
-      // nhẹ nhàng báo 1 dòng (nếu bạn có toast của riêng app thì gọi ở đây)
-      console.log("Đăng nhập thành công:", user.email || user.displayName);
-    } catch {}
-    // KHÔNG location.href="/profile.html";
+    // toggle 2 nút
+    if (btnLogin)  btnLogin.hidden  = logged;
+    if (btnLogout) btnLogout.hidden = !logged;
   }
-  // [HẾT SỬA]
-});
 
-  setLoggedIn(getLoggedIn()); updateAuthBtnText();
-
-  document.addEventListener("DOMContentLoaded", ()=>{
-    const m=document.getElementById("authModal");
-    // close modal
-    m?.querySelectorAll("[data-close]").forEach(el=>el.addEventListener("click", closeAuthModal));
-    // tabs
-    const tabs=m?.querySelector("#authTabs");
-    if(tabs && !tabs.dataset.bound){
-      tabs.dataset.bound="1";
-      tabs.addEventListener("click",(e)=>{
-        const b=e.target.closest(".tab-line"); if(!b) return;
-        tabs.querySelectorAll(".tab-line").forEach(x=>x.classList.remove("is-active"));
-        b.classList.add("is-active");
-        const pane=b.getAttribute("data-auth");
-        m.querySelectorAll(".form").forEach(f=>f.classList.remove("is-active"));
-        m.querySelector(`.form[data-pane="${pane}"]`)?.classList.add("is-active");
-      });
-    }
-
-    // ===== Nút Google trong modal =====
-    const gbtn=m?.querySelector('[data-google-login]');
-    if(gbtn && !gbtn.dataset.bound){
-      gbtn.dataset.bound="1";
-      gbtn.addEventListener("click", async ()=>{
-        try{ await signInWithPopup(auth, provider); }catch(err){
-          console.warn(err); alert("Không đăng nhập được (bạn huỷ hoặc popup bị chặn).");
-        }
-      });
-    }
-
-    // ====== [MỚI] Handler cho form "Đăng nhập" (email / password) ======
-    const loginForm = m?.querySelector('.form[data-pane="login"]');
-    if (loginForm && !loginForm.dataset.bound){
-      loginForm.dataset.bound="1";
-      const emailInp = loginForm.querySelector('input[type="email"]');
-      const passInp  = loginForm.querySelector('input[type="password"]');
-      const submitBtn= loginForm.querySelector('.row .btn');
-
-      loginForm.addEventListener("submit", async (e)=>{
-        e.preventDefault();
-        const email = (emailInp?.value||"").trim();
-        const pass  = (passInp?.value||"").trim();
-        if(!email || !pass){ alert("Vui lòng nhập email và mật khẩu."); return; }
-
-        // khoá nút trong khi gọi Firebase
-        submitBtn && (submitBtn.disabled = true);
-
-        try{
-          await signInWithEmailAndPassword(auth, email, pass);
-          // onAuthStateChanged sẽ set cờ + điều hướng
-        }catch(err){
-          console.warn(err);
-          // map lỗi phổ biến
-          const code = err?.code || "";
-          let msg = "Đăng nhập thất bại.";
-          if (code.includes("invalid-email")) msg = "Email không hợp lệ.";
-          else if (code.includes("user-not-found")) msg = "Tài khoản không tồn tại.";
-          else if (code.includes("wrong-password")) msg = "Mật khẩu không đúng.";
-          else if (code.includes("too-many-requests")) msg = "Bạn thao tác quá nhanh, vui lòng thử lại sau.";
-          alert(msg);
-        }finally{
-          submitBtn && (submitBtn.disabled = false);
-        }
-      });
-    }
-    // ====== [HẾT MỚI] ======
-  });
-
-  // Nút ở header
-  const authBtn=document.getElementById("authBtn");
-  if(authBtn){
-    authBtn.addEventListener("click",(e)=>{
-      e.preventDefault();
-      if(window.NINI_AUTH.loggedIn){ location.href="/profile.html"; }
-      else{ openAuthModal(); }
+  // 1) Click Đăng nhập → mở modal đăng nhập (không nhảy Google tự động)
+  if (btnLogin) {
+    btnLogin.addEventListener("click", function(){
+      if (!authModal) return location.hash = "#/home"; // fallback
+      authModal.setAttribute("aria-hidden", "false");  // mở modal
     });
   }
 
-  // đồng bộ giữa các tab
-  window.addEventListener("storage",(e)=>{
-    if(e.key===LS_SIGNED_OUT_AT){ setLoggedIn(false); updateAuthBtnText(); closeAuthModal(); }
-    if(e.key===LS_LOGGED){ window.NINI_AUTH.loggedIn = (e.newValue==="1"); updateAuthBtnText(); }
+  // 2) Click Đăng xuất → signOut (nếu có Firebase) + clear cờ + về trang chủ
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async function(){
+      // cố gắng gọi Firebase signOut nếu có mặt
+      try {
+        if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
+          await window.firebaseAuth.signOut();
+        }
+      } catch(_) {}
+
+      // clear cờ + phát tín hiệu
+      localStorage.setItem(FLAG, "0");
+      localStorage.removeItem(WHO);
+      localStorage.setItem(SIGNAL, String(Date.now()));
+
+      // về trang chủ
+      location.replace("/");
+    });
+  }
+
+  // 3) Lần đầu load → set UI theo cờ hiện tại
+  setAuthUI();
+
+  // 4) Đồng bộ giữa các tab
+  window.addEventListener("storage", (e)=>{
+    if (e.key === FLAG || e.key === WHO || e.key === SIGNAL) {
+      setAuthUI();
+      // nếu có tín hiệu SIGNED_OUT_AT vừa bắn từ tab khác → đảm bảo về trang chủ nếu đang ở modal
+      if (e.key === SIGNAL && location.pathname === "/profile.html") {
+        location.replace("/");
+      }
+    }
   });
-  if(localStorage.getItem(LS_SIGNED_OUT_AT)){ setLoggedIn(false); updateAuthBtnText(); }
+
+  // 5) Cổng tiếp nhận khi đăng nhập thành công (do code auth của bạn bắn ra)
+  //    => Ở nơi xử lý ĐĂNG NHẬP THÀNH CÔNG, chỉ cần gọi:
+  //    window.__niniAuthOnLoginSuccess(displayNameOrEmail)
+  window.__niniAuthOnLoginSuccess = function(who){
+    localStorage.setItem(FLAG, "1");
+    if (who) localStorage.setItem(WHO, who);
+    setAuthUI();
+    // đóng modal nếu đang mở
+    if (authModal) authModal.setAttribute("aria-hidden", "true");
+    // điều hướng về profile nếu muốn:
+    location.href = "/profile.html";
+  };
+})();
 </script>
-<!-- [HẾT CS] -->
+//============>>>> het dang nhap <<<<============
 
 </body>
 </html>
+
 
 
 

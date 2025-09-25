@@ -1,0 +1,4 @@
+﻿# keep secrets out of git
+.env
+serviceAccountKey.json
+node_modules/

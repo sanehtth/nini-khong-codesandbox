@@ -70,6 +70,24 @@
       </ul>
       <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
     </section>
+
+    <!-- =========================================================
+         [BẮT ĐẦU] PANEL GAME "AUTUMN" — Chỉ hiển thị ở tab Autumn
+         Thêm 2 thẻ mount và để hidden mặc định.
+         JS nhỏ bên dưới sẽ tự show khi hash là #/autumn.
+    ========================================================== -->
+    <section id="autumnGamePanel" class="content" hidden>
+      <h2>Autumn — English Mini Games</h2>
+
+      <!-- HUD hiển thị tài khoản, XP, Coins -->
+      <div id="nini-hud"></div>
+
+      <!-- Ứng dụng: Topics (Farm/School/...), Categories, và khu vực chơi -->
+      <div id="nini-app" style="margin-top:12px"></div>
+    </section>
+    <!-- =========================================================
+         [HẾT] PANEL GAME "AUTUMN"
+    ========================================================== -->
   </main>
 
   <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
@@ -181,8 +199,29 @@
   <!-- JS (defer để tải sau khi DOM sẵn sàng) -->
   <script src="/public/js/effects.js?v=5" defer></script>
   <script src="/public/js/app.js?v=13" defer></script>
+
+  <!-- =========================================================
+       [BẮT ĐẦU] NHÚNG GAME AUTUMN
+       1) Upload file JS vào:  /public/content/game/nini-autumn.js
+       2) Script dưới đây sẽ render HUD (#nini-hud) và App (#nini-app)
+       3) Đoạn helper nhỏ show/hide panel theo hash '#/autumn'
+  ========================================================== -->
+  <script src="/public/content/game/nini-autumn.js" defer></script>
+  <script>
+    // Helper rất nhỏ để chỉ hiển thị panel game khi đang ở tab Autumn
+    (function () {
+      var panel = document.getElementById('autumnGamePanel');
+      function syncAutumn() {
+        var h = (location.hash || '').toLowerCase();
+        panel.hidden = !(h.indexOf('/autumn') >= 0);
+      }
+      window.addEventListener('hashchange', syncAutumn);
+      document.addEventListener('DOMContentLoaded', syncAutumn);
+      // Nếu app.js có điều khiển tabs riêng, đoạn này vẫn an toàn (chỉ ẩn/hiện theo hash).
+    })();
+  </script>
+  <!-- =========================================================
+       [HẾT] NHÚNG GAME AUTUMN
+  ========================================================== -->
 </body>
 </html>
-
-
-

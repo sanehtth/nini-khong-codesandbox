@@ -255,8 +255,14 @@
      // ví dụ nếu bạn deploy server ở Render:
        // DÙNG 1 TRONG 2 CÁCH
 
-// (A) Ghi thẳng:
-const FORGOT_API = "https://nini-funny-server.onrender.com/api/send-reset";
+const FORGOT_API = '/api/send-reset';
+
+await fetch(FORGOT_API, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email })
+});
+
 
       btnForgot?.addEventListener("click", async ()=>{
         const email = (forgotInput.value||"").trim();
@@ -314,6 +320,7 @@ const FORGOT_API = "https://nini-funny-server.onrender.com/api/send-reset";
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+
 
 
 

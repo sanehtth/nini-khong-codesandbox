@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hồ sơ & Thành tích — NiNi</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=11" />
+  <link rel="stylesheet" href="/styles.css?v=12" />
   <style>
     /* ====== Trang Profile — bố cục nhẹ nhàng ====== */
     .page-wrap{ width:min(1100px, 94vw); margin:18px auto 32px; display:grid; gap:16px; grid-template-columns: 1.2fr .8fr; }
@@ -16,13 +16,14 @@
     }
     .card h2{ margin:0 0 10px; font-size:20px }
     .meta{ font-size:13px; color:var(--text-dim); margin:-2px 0 12px }
+    .grid-2{ display:grid; grid-template-columns: 140px 1fr; gap:14px; align-items:start }
     .fld{ display:grid; grid-template-columns: 180px 1fr; align-items:center; gap:10px; margin:8px 0 }
     .fld > span{ color:var(--text-dim); font-size:14px }
     .fld input, .fld select{
       width:100%; padding:10px 12px; color:var(--text);
       background:transparent; border:none; border-bottom:1px solid rgba(17,24,39,.28); outline:none
     }
-    .row{ display:flex; gap:10px; margin-top:12px; align-items:center }
+    .row{ display:flex; gap:10px; margin-top:12px; align-items:center; flex-wrap:wrap }
     .kpi{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin:8px 0 10px }
     .kpi .tile{
       background: rgba(255,255,255,.18); border:1px solid rgba(17,24,39,.12);
@@ -37,13 +38,20 @@
       display:grid; grid-template-columns: 1fr; gap:10px; margin-top:10px;
       background: rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px
     }
-    .reward .chest-row{ display:flex; align-items:center; justify-content:space-between; gap:12px }
+    .reward .chest-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
     .reward .chest-btn{ display:inline-flex; align-items:center; gap:8px }
     .muted{ color:var(--text-dim); font-size:13px }
     .note{ font-size:12px; color:var(--text-dim) }
     .ok{ color:#0f5132 } .bad{ color:#7f1d1d }
-
-    @media (max-width: 920px){ .page-wrap{ grid-template-columns: 1fr; } }
+    .avatar-wrap{ display:flex; align-items:center; gap:14px }
+    .avatar{
+      width:96px; height:96px; border-radius:50%; border:1px solid rgba(17,24,39,.15);
+      object-fit:cover; box-shadow:0 2px 10px rgba(17,24,39,.08); background:#fff
+    }
+    .avatar-wrap .muted{max-width:360px}
+    .pw-card{ margin-top:14px; background:rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px }
+    .pw-card h3{ margin:0 0 8px; font-size:16px }
+    @media (max-width: 920px){ .page-wrap{ grid-template-columns: 1fr; } .grid-2{ grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -63,21 +71,43 @@
   <main class="viewport">
     <div class="page-wrap">
       <!-- =========================================================
-           [BẮT ĐẦU] KHỐI 1 — THÔNG TIN CÁ NHÂN + XÁC THỰC SĐT (OTP)
+           [BẮT ĐẦU] KHỐI 1 — THÔNG TIN CÁ NHÂN + AVATAR + OTP + GIỚI TÍNH
       ========================================================== -->
       <section class="card">
         <h2>Thông tin cá nhân</h2>
         <div class="meta" id="authHint">Đang kiểm tra đăng nhập…</div>
 
+        <!-- Avatar + hướng dẫn -->
+        <div class="grid-2">
+          <div class="avatar-wrap">
+            <img id="pf_avatar_img" class="avatar" src="/public/assets/avatar/NV1.webp" alt="Avatar" />
+            <div>
+              <div class="muted">Ảnh đại diện (click vào ảnh để nhập đường dẫn mới).<br/>Mặc định: <code>/public/assets/avatar/NV1.webp</code></div>
+              <div class="row">
+                <input id="pf_avatar" type="text" placeholder="/path/to/avatar.webp" style="min-width:280px" />
+                <button type="button" class="btn" id="btnApplyAvatar">Áp dụng</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <form id="profileForm" autocomplete="on">
-          <div class="fld"><span>Email</span><input type="email" id="pf_email" placeholder="you@example.com" autocomplete="email" /></div>
+          <div class="fld"><span>Email</span><input type="email" id="pf_email" placeholder="you@example.com" autocomplete="email" readonly /></div>
           <div class="fld"><span>Tên hiển thị</span><input type="text" id="pf_displayName" placeholder="Bé NiNi" /></div>
+          <div class="fld"><span>Giới tính</span>
+            <select id="pf_gender">
+              <option value="">— Chọn —</option>
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+              <option value="other">Khác</option>
+            </select>
+          </div>
           <div class="fld"><span>Ngày sinh</span><input type="date" id="pf_dob" /></div>
           <div class="fld"><span>Phụ huynh (tuỳ chọn)</span><input type="text" id="pf_guardian" placeholder="Tên phụ huynh" /></div>
 
           <!-- OTP Phone -->
           <div class="fld"><span>Số điện thoại</span>
-            <div class="row" style="flex-wrap:wrap">
+            <div class="row">
               <input type="tel" id="pf_phone" inputmode="tel" placeholder="09xxxxxxxx" style="flex:1; min-width:220px" />
               <button class="btn btn-ghost" type="button" id="btnSendOtp">Gửi OTP</button>
               <input type="text" id="otp_code" inputmode="numeric" placeholder="Nhập mã 6 số" style="width:140px" />
@@ -95,11 +125,24 @@
           </div>
         </form>
 
+        <!-- Đổi mật khẩu -->
+        <div class="pw-card">
+          <h3>Đổi mật khẩu</h3>
+          <div class="muted">Chỉ áp dụng cho tài khoản đăng nhập bằng Email/Password.</div>
+          <div class="row">
+            <input type="password" id="pw_current" placeholder="Mật khẩu hiện tại" />
+            <input type="password" id="pw_new" placeholder="Mật khẩu mới (≥ 8 ký tự)" />
+            <input type="password" id="pw_confirm" placeholder="Nhập lại mật khẩu mới" />
+            <button class="btn" id="btnChangePw" type="button">Đổi mật khẩu</button>
+          </div>
+          <div id="pwNote" class="note"></div>
+        </div>
+
         <!-- reCAPTCHA container (ẩn) cho Phone OTP -->
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
       </section>
       <!-- =========================================================
-           [HẾT] KHỐI 1 — THÔNG TIN CÁ NHÂN + XÁC THỰC SĐT (OTP)
+           [HẾT] KHỐI 1 — THÔNG TIN CÁ NHÂN + AVATAR + OTP + GIỚI TÍNH
       ========================================================== -->
 
       <!-- =========================================================
@@ -149,16 +192,15 @@
   </main>
 
   <!-- =========================================================
-       [BẮT ĐẦU] SCRIPT — AUTH + FIRESTORE + OTP + THÀNH TÍCH
-       - Trang này là nơi duy nhất có nút Đăng xuất.
-       - Khi người dùng đăng nhập lần đầu, có thể cập nhật hồ sơ tại đây.
+       [BẮT ĐẦU] SCRIPT — AUTH + FIRESTORE + OTP + AVATAR + ĐỔI MẬT KHẨU
   ========================================================== -->
   <script type="module">
     /* Firebase (CDN) */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getAuth, onAuthStateChanged, signOut,
-      RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber
+      RecaptchaVerifier, signInWithPhoneNumber,
+      EmailAuthProvider, reauthenticateWithCredential, updatePassword
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -181,7 +223,7 @@
     const LS_ACCOUNTS = "NINI_ACCOUNTS_V3";
     const LS_ACTIVE   = "NINI_ACTIVE_USER_V3";
 
-    /* ===== Helpers: local <-> UI ===== */
+    /* ===== Helpers ===== */
     function readLocalProfile() {
       try {
         const accs = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || "{}");
@@ -191,12 +233,10 @@
       } catch { return null; }
     }
     function writeLocalProfile(uid, profile) {
-      const accs = {};
-      accs[uid] = profile;
+      const accs = {}; accs[uid] = profile;
       localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accs));
       localStorage.setItem(LS_ACTIVE, JSON.stringify(uid));
     }
-
     function setText(id, v){ const el=document.getElementById(id); if(el) el.textContent = v; }
     function setBar(id, pct){ const el=document.getElementById(id); if(el) el.style.width = Math.max(0,Math.min(100,pct)) + "%"; }
     function toast(msg, ok=true){
@@ -205,42 +245,42 @@
       document.body.appendChild(t); setTimeout(()=>t.remove(),2300);
     }
 
-    /* 4) Tải/ghi Firestore profile */
-    async function loadCloudProfile(uid){
-      const ref = doc(db,"profiles",uid);
-      const snap = await getDoc(ref);
-      return snap.exists() ? snap.data() : null;
-    }
-    async function saveCloudProfile(uid, data){
-      const ref = doc(db,"profiles",uid);
-      await setDoc(ref, { ...data, updatedAt: Date.now() }, { merge:true });
-    }
+    /* 4) Cloud profile CRUD */
+    async function loadCloudProfile(uid){ const snap = await getDoc(doc(db,"profiles",uid)); return snap.exists()?snap.data():null; }
+    async function saveCloudProfile(uid, data){ await setDoc(doc(db,"profiles",uid), { ...data, updatedAt: Date.now() }, { merge:true }); }
 
     /* 5) Render thành tích */
     function renderKPI(pf){
       setText("valXP",    pf.xp|0);
       setText("valCoins", pf.coins|0);
       setText("valChests", pf.chests|0);
-      setBar("barXP",    Math.min(100, (pf.xp|0)%100));   // ví dụ: hiển thị % mốc 100 XP
+      setBar("barXP",    Math.min(100, (pf.xp|0)%100));
       setBar("barCoins", Math.min(100, (pf.coins|0)%1000));
       document.getElementById("btnOpenChest").disabled = !(pf.chests>0);
     }
 
-    /* 6) Lấy & cập nhật form */
+    /* 6) Form helpers */
     function readForm(){
       return {
         email: document.getElementById("pf_email").value.trim(),
         name:  document.getElementById("pf_displayName").value.trim(),
+        gender:document.getElementById("pf_gender").value,
         dob:   document.getElementById("pf_dob").value || null,
         guardian: document.getElementById("pf_guardian").value.trim() || null,
         phone: document.getElementById("pf_phone").value.trim() || null,
         city:  document.getElementById("pf_city").value.trim() || null,
         grade: document.getElementById("pf_grade").value.trim() || null,
+        avatarUrl: document.getElementById("pf_avatar").value.trim() || "/public/assets/avatar/NV1.webp"
       };
     }
     function fillForm(u, pf, cloud){
+      const avatar = cloud?.avatarUrl || pf?.avatarUrl || "/public/assets/avatar/NV1.webp";
+      document.getElementById("pf_avatar_img").src = avatar;
+      document.getElementById("pf_avatar").value   = avatar;
+
       document.getElementById("pf_email").value = u.email || "";
       document.getElementById("pf_displayName").value = u.displayName || (pf && pf.name) || "";
+      document.getElementById("pf_gender").value = cloud?.gender || "";
       document.getElementById("pf_dob").value = cloud?.dob || "";
       document.getElementById("pf_guardian").value = cloud?.guardian || "";
       document.getElementById("pf_phone").value = (u.phoneNumber || cloud?.phone || "");
@@ -248,11 +288,10 @@
       document.getElementById("pf_grade").value = cloud?.grade || "";
     }
 
-    /* 7) OTP Phone — Recaptcha + gửi + xác thực */
+    /* 7) OTP Phone */
     let recaptcha, confirmationResult;
     function ensureRecaptcha(){
       if (recaptcha) return recaptcha;
-      // v2 invisible captcha
       // eslint-disable-next-line no-undef
       recaptcha = new RecaptchaVerifier(auth, "recaptcha-container", { size:"invisible" });
       return recaptcha;
@@ -260,44 +299,32 @@
     async function sendOTP(){
       const phone = document.getElementById("pf_phone").value.trim();
       if (!phone) return toast("Nhập số điện thoại trước khi gửi OTP.", false);
-      try{
-        ensureRecaptcha();
-        // Nếu user đã đăng nhập, link phone vào tài khoản; nếu chưa, có thể signInWithPhoneNumber (không khuyến nghị ở trang này).
-        confirmationResult = await signInWithPhoneNumber(auth, phone, recaptcha);
-        toast("Đã gửi OTP. Vui lòng kiểm tra điện thoại.", true);
-      }catch(e){ toast("Gửi OTP thất bại: " + (e.code||e.message), false); }
+      try{ ensureRecaptcha(); confirmationResult = await signInWithPhoneNumber(auth, phone, recaptcha); toast("Đã gửi OTP.", true); }
+      catch(e){ toast("Gửi OTP thất bại: " + (e.code||e.message), false); }
     }
     async function verifyOTP(){
       const code = document.getElementById("otp_code").value.trim();
       if (!confirmationResult || !code) return toast("Chưa gửi OTP hoặc thiếu mã.", false);
-      try{
-        await confirmationResult.confirm(code);
-        toast("Xác thực số điện thoại thành công!", true);
-      }catch(e){ toast("Mã OTP không đúng hoặc hết hạn.", false); }
+      try{ await confirmationResult.confirm(code); toast("Xác thực số điện thoại thành công!", true); }
+      catch(e){ toast("Mã OTP không đúng hoặc hết hạn.", false); }
     }
 
-    /* 8) Mở rương: random thưởng XP/Xu, trừ 1 rương */
+    /* 8) Phần thưởng — mở rương */
     function randomReward(){
       const t = Math.random();
-      if (t < .5) return { type:"coins", amount: 50 + Math.floor(Math.random()*151) }; // 50—200
-      if (t < .85) return { type:"xp", amount: 20 + Math.floor(Math.random()*81) };     // 20—100
-      return { type:"both", amount: [30+Math.floor(Math.random()*71), 80+Math.floor(Math.random()*121)] }; // xp, coins
+      if (t < .5) return { type:"coins", amount: 50 + Math.floor(Math.random()*151) };
+      if (t < .85) return { type:"xp", amount: 20 + Math.floor(Math.random()*81) };
+      return { type:"both", amount: [30+Math.floor(Math.random()*71), 80+Math.floor(Math.random()*121)] };
     }
-
     async function openChestHandler(uid){
-      const cur = readLocalProfile();
-      if (!cur || cur.uid !== uid) return;
-      const pf = cur.profile;
-      if (!(pf.chests>0)) return toast("Bạn chưa có rương để mở.", false);
+      const cur = readLocalProfile(); if (!cur || cur.uid !== uid) return;
+      const pf = cur.profile; if (!(pf.chests>0)) return toast("Bạn chưa có rương để mở.", false);
 
-      const rw = randomReward();
-      pf.chests = (pf.chests|0) - 1;
+      const rw = randomReward(); pf.chests = (pf.chests|0) - 1;
       if (rw.type === "coins"){ pf.coins = (pf.coins|0) + rw.amount; document.getElementById("lastReward").textContent = `+${rw.amount} xu`; }
       else if (rw.type === "xp"){ pf.xp = (pf.xp|0) + rw.amount; document.getElementById("lastReward").textContent = `+${rw.amount} XP`; }
       else { pf.xp += rw.amount[0]; pf.coins += rw.amount[1]; document.getElementById("lastReward").textContent = `+${rw.amount[0]} XP, +${rw.amount[1]} xu`; }
-
-      writeLocalProfile(uid, pf);
-      renderKPI(pf);
+      writeLocalProfile(uid, pf); renderKPI(pf);
       try{ await saveCloudProfile(uid, { xp:pf.xp|0, coins:pf.coins|0, chests:pf.chests|0 }); }catch{}
       toast("Đã mở rương!", true);
     }
@@ -307,18 +334,16 @@
       const saveNote = document.getElementById("saveNote");
       const f = readForm();
       saveNote.hidden = false; saveNote.textContent = "Đang lưu…";
-
-      // cập nhật cloud profile (thông tin cá nhân)
       try{
         await saveCloudProfile(uid, {
-          name: f.name || null, dob:f.dob||null, guardian:f.guardian||null, phone:f.phone||null, city:f.city||null, grade:f.grade||null
+          name: f.name || null, gender:f.gender||null, dob:f.dob||null, guardian:f.guardian||null,
+          phone:f.phone||null, city:f.city||null, grade:f.grade||null, avatarUrl:f.avatarUrl
         });
-        saveNote.textContent = "Đã lưu hồ sơ.";
-        toast("Lưu hồ sơ thành công", true);
-      }catch(e){
-        saveNote.textContent = "Không lưu được: " + (e.code||e.message);
-        toast("Lưu hồ sơ thất bại", false);
-      }
+        // cập nhật local profile name + avatar
+        const cur = readLocalProfile();
+        if (cur && cur.uid === uid) { cur.profile.name = f.name || cur.profile.name; cur.profile.avatarUrl = f.avatarUrl; writeLocalProfile(uid, cur.profile); }
+        saveNote.textContent = "Đã lưu hồ sơ."; toast("Lưu hồ sơ thành công", true);
+      }catch(e){ saveNote.textContent = "Không lưu được: " + (e.code||e.message); toast("Lưu hồ sơ thất bại", false); }
     }
 
     /* 10) Đồng bộ lại (refresh) */
@@ -327,40 +352,68 @@
       const local = readLocalProfile();
       const pf = local?.profile || { name:"Player", coins:300, xp:0, chests:0, unlocked:{topics:{},categories:{}} };
 
-      // Ưu tiên cloud nếu có
       const merged = {
-        ...pf,
-        ...(cloud || {}),
+        ...pf, ...(cloud || {}),
         name: cloud?.name || pf.name,
         coins: (cloud?.coins ?? pf.coins) | 0,
         xp:    (cloud?.xp    ?? pf.xp)    | 0,
         chests:(cloud?.chests?? pf.chests)| 0,
+        avatarUrl: cloud?.avatarUrl || pf.avatarUrl || "/public/assets/avatar/NV1.webp",
         unlocked: cloud?.unlocked || pf.unlocked
       };
 
-      writeLocalProfile(uid, merged);
-      renderKPI(merged);
+      writeLocalProfile(uid, merged); renderKPI(merged);
+      // avatar preview
+      document.getElementById("pf_avatar_img").src = merged.avatarUrl;
+      document.getElementById("pf_avatar").value   = merged.avatarUrl;
       return { cloud, merged };
     }
 
-    /* 11) Luồng trang Profile */
-    const elEmail = document.getElementById("pf_email");
-    const elName  = document.getElementById("pf_displayName");
-    const btnSendOtp = document.getElementById("btnSendOtp");
-    const btnVerifyOtp = document.getElementById("btnVerifyOtp");
+    /* 11) Đổi mật khẩu */
+    async function changePassword(){
+      const u = auth.currentUser; if (!u) return toast("Vui lòng đăng nhập trước.", false);
+      const current = document.getElementById("pw_current").value;
+      const pw1 = document.getElementById("pw_new").value;
+      const pw2 = document.getElementById("pw_confirm").value;
+      const note = document.getElementById("pwNote");
+      note.textContent = "";
 
-    btnSendOtp.addEventListener("click", sendOTP);
-    btnVerifyOtp.addEventListener("click", verifyOTP);
+      if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
+      if (pw1 !== pw2) { note.textContent = "Mật khẩu mới không khớp."; return; }
 
-    document.getElementById("profileForm").addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      const u = auth.currentUser;
-      if (!u) return toast("Vui lòng đăng nhập trước.", false);
-      await saveProfile(u.uid);
-      // nếu user đổi tên, lưu sang local profile name
-      const cur = readLocalProfile(); if (cur && cur.uid === u.uid) { cur.profile.name = (elName.value.trim() || cur.profile.name); writeLocalProfile(u.uid, cur.profile); }
+      try{
+        // Nếu là email/password, cần re-auth bằng email hiện tại
+        if (u.email) {
+          if (!current) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
+          const cred = EmailAuthProvider.credential(u.email, current);
+          await reauthenticateWithCredential(u, cred);
+        }
+        await updatePassword(u, pw1);
+        note.textContent = "Đổi mật khẩu thành công."; note.className = "note ok";
+        toast("Đổi mật khẩu thành công", true);
+        document.getElementById("pw_current").value = "";
+        document.getElementById("pw_new").value = "";
+        document.getElementById("pw_confirm").value = "";
+      }catch(e){
+        const msg = (e && e.code) ? e.code.replace('auth/','').replace(/-/g,' ') : e.message;
+        note.textContent = "Không thể đổi mật khẩu: " + msg;
+        note.className = "note bad";
+        toast("Đổi mật khẩu thất bại", false);
+      }
+    }
+
+    /* 12) Avatar events */
+    document.getElementById("pf_avatar_img").addEventListener("click", ()=>{
+      document.getElementById("pf_avatar").focus();
+    });
+    document.getElementById("btnApplyAvatar").addEventListener("click", ()=>{
+      const url = document.getElementById("pf_avatar").value.trim() || "/public/assets/avatar/NV1.webp";
+      document.getElementById("pf_avatar_img").src = url;
     });
 
+    /* 13) Wire UI */
+    document.getElementById("btnSendOtp").addEventListener("click", sendOTP);
+    document.getElementById("btnVerifyOtp").addEventListener("click", verifyOTP);
     document.getElementById("btnOpenChest").addEventListener("click", async ()=>{
       const u = auth.currentUser; if (!u) return toast("Vui lòng đăng nhập trước.", false);
       await openChestHandler(u.uid);
@@ -369,38 +422,45 @@
       const u = auth.currentUser; if (!u) return;
       await refreshAll(u.uid); toast("Đồng bộ xong.", true);
     });
+    document.getElementById("btnChangePw").addEventListener("click", changePassword);
+
+    document.getElementById("profileForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const u = auth.currentUser; if (!u) return toast("Vui lòng đăng nhập trước.", false);
+      await saveProfile(u.uid);
+    });
 
     document.getElementById("signoutBtn").addEventListener("click", async ()=>{
       try{ await signOut(auth); toast("Đã đăng xuất", true); location.href = "/"; }
       catch(e){ toast("Đăng xuất lỗi: " + (e.code||e.message), false); }
     });
 
+    /* 14) Auth state */
     onAuthStateChanged(auth, async (user)=>{
       const hint = document.getElementById("authHint");
       if (!user) {
         hint.innerHTML = 'Bạn chưa đăng nhập. <a href="/#/" class="tab">← Về trang chủ</a>';
-        // Khoá form
-        document.getElementById("profileForm").querySelectorAll("input,button").forEach(el => el.disabled = true);
+        document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el => el.disabled = true);
+        document.getElementById("btnChangePw").disabled = true;
         return;
       }
-      // Cho phép chỉnh
-      document.getElementById("profileForm").querySelectorAll("input,button").forEach(el => el.disabled = false);
-
+      document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el => el.disabled = false);
       const local = readLocalProfile();
       const cloud = await loadCloudProfile(user.uid);
-      // nếu local trống -> tạo mặc định
       const base = local?.profile || { name: user.displayName || "Player", coins: 300, xp:0, chests: 0, createdAt: Date.now(), unlocked:{topics:{},categories:{}} };
-      // overlay cloud
       const merged = { ...base, ...(cloud||{}) };
 
       writeLocalProfile(user.uid, merged);
       fillForm(user, merged, cloud);
       renderKPI(merged);
       hint.innerHTML = `Đang đăng nhập với <strong>${user.email || user.phoneNumber || "tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
+
+      // Nếu đăng nhập bằng Google (không có password), phần "Đổi mật khẩu" vẫn hiển thị
+      // nhưng sẽ yêu cầu mật khẩu hiện tại — trường hợp này sẽ báo lỗi "requires-recent-login".
     });
   </script>
   <!-- =========================================================
-       [HẾT] SCRIPT — AUTH + FIRESTORE + OTP + THÀNH TÍCH
+       [HẾT] SCRIPT — AUTH + FIRESTORE + OTP + AVATAR + ĐỔI MẬT KHẨU
   ========================================================== -->
 </body>
 </html>

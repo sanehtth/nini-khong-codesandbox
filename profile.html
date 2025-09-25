@@ -151,12 +151,12 @@
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "XXXX",
-      appId: "XXXX"
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184"
     };
 
     const app  = initializeApp(firebaseConfig);
@@ -238,18 +238,81 @@
       return {cloud,merged};
     }
 
-    async function changePassword(){
-      const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false);
-      const cur=document.getElementById("pw_current").value, pw1=document.getElementById("pw_new").value, pw2=document.getElementById("pw_confirm").value; const note=document.getElementById("pwNote"); note.textContent="";
-      if(!pw1||pw1.length<8){ note.textContent="Mật khẩu mới cần ≥ 8 ký tự."; return; }
-      if(pw1!==pw2){ note.textContent="Mật khẩu mới không khớp."; return; }
-      try{
-        if(u.email){ if(!cur){ note.textContent="Nhập mật khẩu hiện tại."; return; } const cred=EmailAuthProvider.credential(u.email,cur); await reauthenticateWithCredential(u,cred); }
-        await updatePassword(u,pw1);
-        note.textContent="Đổi mật khẩu thành công."; note.className="note ok"; toast("Đổi mật khẩu thành công",true);
-        ["pw_current","pw_new","pw_confirm"].forEach(id=>document.getElementById(id).value="");
-      }catch(e){ note.textContent="Không thể đổi mật khẩu."; note.className="note bad"; toast("Đổi mật khẩu thất bại",false); }
+    <script type="module">
+  import {
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    reauthenticateWithPopup,
+    updatePassword,
+    linkWithCredential,
+    GoogleAuthProvider,
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  async function changePassword(){
+    const u = auth.currentUser;
+    const note = document.getElementById("pwNote");
+    note.className = "note"; note.textContent = "";
+
+    if (!u) { note.textContent = "Vui lòng đăng nhập trước."; return; }
+
+    const hasPasswordProvider = (u.providerData || [])
+      .some(p => p.providerId === "password");
+
+    // Lấy input
+    const cur = document.getElementById("pw_current").value;
+    const pw1 = document.getElementById("pw_new").value;
+    const pw2 = document.getElementById("pw_confirm").value;
+
+    // Kiểm tra mật khẩu mới
+    if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
+    if (pw1 !== pw2)            { note.textContent = "Mật khẩu mới không khớp.";    return; }
+
+    try {
+      if (!hasPasswordProvider) {
+        // === Trường hợp user Google CHƯA có password: LINK password ===
+        // Đảm bảo phiên đăng nhập đủ "recent":
+        try {
+          await reauthenticateWithPopup(u, new GoogleAuthProvider());
+        } catch (_) {
+          // Nếu popup bị chặn, có thể bỏ qua: Google sign-in thường đã recent khi vừa đăng nhập
+        }
+
+        if (!u.email) {
+          note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu.";
+          note.className = "note bad";
+          return;
+        }
+
+        const cred = EmailAuthProvider.credential(u.email, pw1);
+        await linkWithCredential(u, cred);
+
+        note.textContent = "Đã thêm mật khẩu cho tài khoản Google. Từ nay bạn có thể đăng nhập bằng email & mật khẩu.";
+        note.className = "note ok";
+      } else {
+        // === Trường hợp user ĐÃ có password: ĐỔI mật khẩu chuẩn ===
+        if (u.email) {
+          if (!cur) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
+          const cred = EmailAuthProvider.credential(u.email, cur);
+          await reauthenticateWithCredential(u, cred);
+        }
+        await updatePassword(u, pw1);
+        note.textContent = "Đổi mật khẩu thành công.";
+        note.className = "note ok";
+      }
+
+      // Dọn inputs
+      ["pw_current","pw_new","pw_confirm"].forEach(id => document.getElementById(id).value = "");
+    } catch (e) {
+      const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
+      note.textContent = "Không thể cập nhật: " + msg;
+      note.className = "note bad";
     }
+  }
+
+  // Gắn lại handler nút
+  document.getElementById("btnChangePw").onclick = changePassword;
+</script>
+
 
     // Avatar
     document.getElementById("pf_avatar_img").addEventListener("click", ()=>document.getElementById("pf_avatar").focus());
@@ -297,3 +360,4 @@
   ========================================================== -->
 </body>
 </html>
+

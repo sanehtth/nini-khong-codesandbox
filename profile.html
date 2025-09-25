@@ -333,8 +333,10 @@
       finally{
         localStorage.removeItem(LS_ACCOUNTS);
         localStorage.removeItem(LS_ACTIVE);
-        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));
-        location.replace("/");
+       // trong click handler Đăng xuất ở profile.html
+      localStorage.setItem("NINI_AUTH_LOGGED_IN", "0");   // biến theo dõi = false
+      localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now())); // bắn tín hiệu cho các tab
+      location.replace("/"); // về index
       }
     });
 
@@ -358,3 +360,4 @@
   ========================================================== -->
 </body>
 </html>
+

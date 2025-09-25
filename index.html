@@ -193,15 +193,23 @@
       var chips = document.querySelector('.chips');
 
       function syncSeason() {
-        var h = (location.hash || '').toLowerCase();
-        var isAutumn = h.indexOf('/autumn') >= 0;
-        mount.hidden = !isAutumn;
-        if (shelf) shelf.hidden = isAutumn; // khi chơi game thì ẩn kệ sách
-        // có thể ẩn bớt chips cho sạch, tùy sở thích:
-        if (chips) chips.style.opacity = isAutumn ? '0.0' : ''; // để 0.0 nếu muốn biến mất hẳn
-        // bạn cũng có thể thêm class để thu gọn layout:
-        document.getElementById('frame').classList.toggle('is-game', isAutumn);
-      }
+  var h = (location.hash || '').toLowerCase();
+  var isAutumn = h.indexOf('/autumn') >= 0;
+
+  mount.hidden = !isAutumn;
+  if (shelf) shelf.hidden = isAutumn;
+  if (chips) chips.style.opacity = isAutumn ? '0.0' : '';
+
+  // ⚡ FIX: Khi vào Autumn, gọi render lại
+  if (isAutumn && window.NiniApp) {
+    if (!(NiniApp.list() || []).length) {
+      NiniApp.debugCreate('Player'); // tạo profile mặc định
+    }
+    // chạm state để ép HUD/App update
+    setTimeout(() => NiniApp.addXP(0), 0);
+  }
+}
+
 
       window.addEventListener('hashchange', syncSeason);
       document.addEventListener('DOMContentLoaded', syncSeason);
@@ -212,3 +220,4 @@
   ========================================================== -->
 </body>
 </html>
+

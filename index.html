@@ -9,7 +9,7 @@
   <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- CSS (bản styles.css mới đã vá pointer-events / loading / reader center) -->
+  <!-- CSS -->
   <link rel="stylesheet" href="/styles.css?v=10" />
 </head>
 <body>
@@ -55,7 +55,6 @@
 
       <!-- =========================================================
            [BẮT ĐẦU] MOUNT GAME AUTUMN TRONG FRAME (giống Storybook)
-           Hiển thị như một "card" mờ trên nền rừng, ngay trong khung.
       ========================================================== -->
       <div id="autumnMount" class="shelf-card" hidden>
         <h3 class="shelf-title">Autumn — English Mini Games</h3>
@@ -180,12 +179,11 @@
 
   <!-- =========================================================
        [BẮT ĐẦU] NHÚNG GAME AUTUMN (MOUNT TRONG FRAME)
-       1) Upload file JS vào:  /public/content/game/nini-autumn.js
-       2) Script game sẽ render HUD (#nini-hud) & App (#nini-app) trong #autumnMount
-       3) Helper dưới đây sẽ ẩn/hiện #autumnMount theo hash '#/autumn'
-          và tự ẩn #shelfMount để không đè lên nhau.
+       1) Upload JS vào:  /public/content/game/nini-autumn.js
+       2) Script game render HUD (#nini-hud) & App (#nini-app) trong #autumnMount
+       3) Helper ẩn/hiện #autumnMount theo hash '#/autumn' và ẩn #shelfMount
   ========================================================== -->
-  <script src="/public/content/game/nini-autumn.js" defer></script>
+  <script src="/public/content/game/nini-autumn.js?v=3" defer></script>
   <script>
     (function () {
       var mount = document.getElementById('autumnMount');
@@ -193,23 +191,19 @@
       var chips = document.querySelector('.chips');
 
       function syncSeason() {
-  var h = (location.hash || '').toLowerCase();
-  var isAutumn = h.indexOf('/autumn') >= 0;
+        var h = (location.hash || '').toLowerCase();
+        var isAutumn = h.indexOf('/autumn') >= 0;
 
-  mount.hidden = !isAutumn;
-  if (shelf) shelf.hidden = isAutumn;
-  if (chips) chips.style.opacity = isAutumn ? '0.0' : '';
+        mount.hidden = !isAutumn;
+        if (shelf) shelf.hidden = isAutumn;     // vào Autumn thì ẩn kệ sách
+        if (chips) chips.style.opacity = isAutumn ? '0.0' : '';
 
-  // ⚡ FIX: Khi vào Autumn, gọi render lại
-  if (isAutumn && window.NiniApp) {
-    if (!(NiniApp.list() || []).length) {
-      NiniApp.debugCreate('Player'); // tạo profile mặc định
-    }
-    // chạm state để ép HUD/App update
-    setTimeout(() => NiniApp.addXP(0), 0);
-  }
-}
-
+        // ⚡ cú hích: khi vừa vào Autumn, ép NiniApp cập nhật UI
+        if (isAutumn && window.NiniApp) {
+          if (!(NiniApp.list() || []).length) NiniApp.debugCreate('Player');
+          setTimeout(function(){ NiniApp.addXP(0); }, 0);
+        }
+      }
 
       window.addEventListener('hashchange', syncSeason);
       document.addEventListener('DOMContentLoaded', syncSeason);
@@ -218,185 +212,194 @@
   <!-- =========================================================
        [HẾT] NHÚNG GAME AUTUMN
   ========================================================== -->
-<!-- =========================================================
-     [BẮT ĐẦU] KHỐI ĐĂNG NHẬP + ĐỒNG BỘ TIẾN TRÌNH (Firebase)
-     - Chức năng:
-       1) Đăng nhập Google (popup), đăng xuất.
-       2) Hiện trạng thái đăng nhập rõ ràng (nút + toast + HUD tag).
-       3) Đồng bộ XP/Coins/Unlocked lên Firestore (profiles/{uid}) mỗi 5s.
-       4) Xuất hàm checkLogin() để kiểm tra nhanh trên Console.
-     - Yêu cầu: đã có thẻ #authBtn, #nini-hud, #nini-app trên trang.
-     - Vị trí: Đặt sau script game (nini-autumn.js) và trước </body>.
-========================================================= -->
-<script type="module">
-  // ===== 0) Import Firebase (CDN)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // ===== 1) Config Firebase (THAY BẰNG CỦA BẠN)
-  const firebaseConfig = {
-     apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-    authDomain: "nini-8f3d4.firebaseapp.com",
-    projectId: "nini-8f3d4",
-    storageBucket: "nini-8f3d4.firebasestorage.app",
-    messagingSenderId: "991701821645",
-    appId: "1:991701821645:web:fb21c357562c6c801da184"
-  };
+  <!-- =========================================================
+       [BẮT ĐẦU] KHỐI ĐĂNG NHẬP + ĐỒNG BỘ TIẾN TRÌNH (Firebase)
+       - Đăng nhập Google qua nút trong modal; nút header không bật popup.
+       - Đồng bộ XP/Coins/Unlocked vào Firestore (profiles/{uid}) mỗi 5s.
+       - Cập nhật chữ nút header bằng updateAuthBtnText().
+       - Toast kính mờ; expose checkLogin() để kiểm tra nhanh.
+  ========================================================== -->
+  <script type="module">
+    // 0) Firebase CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // ===== 2) Khởi tạo
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-
-  // Xuất ra Console để kiểm tra nhanh
-  window.__auth = auth;
-  window.__db   = db;
-  window.checkLogin = () => (auth.currentUser ? {
-    uid: auth.currentUser.uid,
-    name: auth.currentUser.displayName || auth.currentUser.email
-  } : null);
-
-  // ===== 3) Các key localStorage (đồng bộ với file game compat v3)
-  const LS_ACCOUNTS = "NINI_ACCOUNTS_V3";
-  const LS_ACTIVE   = "NINI_ACTIVE_USER_V3";
-
-  // ===== 4) Helpers cài hồ sơ cục bộ / đọc hồ sơ cục bộ
-  function installLocalProfile(uid, profile) {
-    const accounts = {};
-    accounts[uid] = {
-      name: profile.name || "Player",
-      xp: profile.xp|0, coins: profile.coins|0,
-      createdAt: profile.createdAt || Date.now(),
-      lastSave: Date.now(),
-      unlocked: profile.unlocked || { topics:{}, categories:{} }
+    // 1) THAY bằng config của bạn
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184"
     };
-    localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accounts));
-    localStorage.setItem(LS_ACTIVE, JSON.stringify(uid));
-    // “chạm” state để HUD & App refresh nếu game đã nạp
-    if (window.NiniApp && typeof NiniApp.addXP === "function") NiniApp.addXP(0);
-  }
 
-  function readLocalProfile() {
-    try {
-      const accounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || "{}");
-      const active   = JSON.parse(localStorage.getItem(LS_ACTIVE)   || "null");
-      if (!active || !accounts[active]) return null;
-      return { uid: active, profile: accounts[active] };
-    } catch { return null; }
-  }
+    // 2) Init
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-  // ===== 5) Đồng bộ lên Firestore
-  async function pushToCloud(uid) {
-    const cur = readLocalProfile();
-    if (!cur) return;
-    await setDoc(doc(db, "profiles", uid), {
-      name: cur.profile.name,
-      xp: cur.profile.xp|0,
-      coins: cur.profile.coins|0,
-      unlocked: cur.profile.unlocked || { topics:{}, categories:{} },
-      updatedAt: Date.now()
-    }, { merge: true });
-  }
+    // Expose để debug
+    window.__auth = auth;
+    window.__db   = db;
+    window.checkLogin = () => (auth.currentUser ? { uid: auth.currentUser.uid, name: auth.currentUser.displayName || auth.currentUser.email } : null);
 
-  // ===== 6) Login / Logout
-  const authBtn = document.getElementById("authBtn");
-  async function login()  { try { await signInWithPopup(auth, provider); } catch(e){ alert("Đăng nhập thất bại: " + e.message); } }
-  async function logout() { await signOut(auth); }
-
-  if (authBtn) {
-    authBtn.addEventListener("click", () => {
-      const user = auth.currentUser;
-      if (user) logout(); else login();
+    // == Force-update nút header
+    function updateAuthBtnText() {
+      const btn = document.getElementById("authBtn");
+      if (!btn) return;
+      const u = auth.currentUser;
+      btn.textContent = u ? ("Đăng xuất (" + (u.displayName || u.email) + ")") : "Đăng nhập / Đăng ký";
+      btn.dataset.authState = u ? "in" : "out";
+    }
+    window.addEventListener("hashchange", updateAuthBtnText);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) updateAuthBtnText(); });
+    window.addEventListener("load", () => {
+      updateAuthBtnText();
+      setTimeout(updateAuthBtnText, 300);
+      setTimeout(updateAuthBtnText, 1200);
     });
-  }
- // ===== 7) Toast nhỏ thông báo (kính mờ)
-function toast(msg, ok=true){
-  const t = document.createElement('div');
-  t.textContent = msg;
-  t.style.cssText = [
-    "position:fixed",
-    "top:12px",
-    "right:12px",
-    "padding:8px 12px",
-    "border-radius:12px",
-    "z-index:9999",
-    "backdrop-filter: blur(6px)",
-    "-webkit-backdrop-filter: blur(6px)",
-    "background: rgba(255,255,255,.22)",        // kính mờ
-    "border: 1px solid rgba(17,24,39,.14)",     // viền nhẹ
-    "color: "+(ok ? "#0f5132" : "#7f1d1d")      // chữ xanh/đỏ dịu
-  ].join(";");
-  document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 2200);
-}
 
+    // 3) localStorage keys (khớp bản game compat v3)
+    const LS_ACCOUNTS = "NINI_ACCOUNTS_V3";
+    const LS_ACTIVE   = "NINI_ACTIVE_USER_V3";
 
-  // ===== 8) Theo dõi trạng thái đăng nhập + gắn nhãn HUD + auto sync
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      // Đổi chữ nút
-      if (authBtn) authBtn.textContent = "Đăng xuất (" + (user.displayName || user.email) + ")";
-      toast("Đăng nhập: " + (user.displayName || user.email), true);
-
-      // Tải profile cloud; nếu chưa có thì tạo từ local và đẩy lên
-      const ref  = doc(db, "profiles", user.uid);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        installLocalProfile(user.uid, snap.data());
-      } else {
-        if (window.NiniApp && !(NiniApp.list()||[]).length) NiniApp.debugCreate(user.displayName || "Player");
-        const cur = readLocalProfile();
-        if (cur) await pushToCloud(user.uid);
+    // 4) Helpers
+    function installLocalProfile(uid, profile) {
+      const accounts = {};
+      accounts[uid] = {
+        name: profile.name || "Player",
+        xp: profile.xp|0, coins: profile.coins|0,
+        createdAt: profile.createdAt || Date.now(),
+        lastSave: Date.now(),
+        unlocked: profile.unlocked || { topics:{}, categories:{} }
+      };
+      localStorage.setItem(LS_ACCOUNTS, JSON.stringify(accounts));
+      localStorage.setItem(LS_ACTIVE, JSON.stringify(uid));
+      if (window.NiniApp && typeof NiniApp.addXP === "function") NiniApp.addXP(0);
+    }
+    function readLocalProfile() {
+      try {
         const accounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || "{}");
-        if (!accounts[user.uid]) {
-          installLocalProfile(user.uid, (cur && cur.profile) || { name:user.displayName||"Player", coins:300, xp:0 });
+        const active   = JSON.parse(localStorage.getItem(LS_ACTIVE)   || "null");
+        if (!active || !accounts[active]) return null;
+        return { uid: active, profile: accounts[active] };
+      } catch { return null; }
+    }
+    async function pushToCloud(uid) {
+      const cur = readLocalProfile(); if (!cur) return;
+      await setDoc(doc(db, "profiles", uid), {
+        name: cur.profile.name,
+        xp: cur.profile.xp|0,
+        coins: cur.profile.coins|0,
+        unlocked: cur.profile.unlocked || { topics:{}, categories:{} },
+        updatedAt: Date.now()
+      }, { merge: true });
+    }
+
+    // 5) Toast kính mờ
+    function toast(msg, ok=true){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.cssText = [
+        "position:fixed","top:12px","right:12px","padding:8px 12px","border-radius:12px","z-index:9999",
+        "backdrop-filter:blur(6px)","-webkit-backdrop-filter:blur(6px)",
+        "background:rgba(255,255,255,.22)","border:1px solid rgba(17,24,39,.14)",
+        "color:" + (ok ? "#0f5132" : "#7f1d1d")
+      ].join(";");
+      document.body.appendChild(t); setTimeout(()=>t.remove(), 2200);
+    }
+
+    // 6) Login/Logout & binding nút
+    const authBtn   = document.getElementById("authBtn");
+    const authModal = document.getElementById("authModal");
+    function openAuthModal(){ if (authModal) authModal.setAttribute("aria-hidden","false"); }
+    function closeAuthModal(){ if (authModal) authModal.setAttribute("aria-hidden","true"); }
+
+    async function login(){ return signInWithPopup(auth, provider); }
+    async function logout(){ await signOut(auth); }
+
+    if (authBtn) {
+      authBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const u = auth.currentUser;
+        if (u) { logout(); }
+        else { openAuthModal(); }    // KHÔNG tự bật Google ở đây
+      });
+    }
+
+    // Gắn click cho nút “Đăng nhập với Google” trong modal
+    function bindGoogleButton(){
+      const btn = document.querySelector('#authModal [data-pane="login"] .btn.btn-ghost.full');
+      if (btn && !btn.dataset.bound) {
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", async () => {
+          try { await login(); closeAuthModal(); }
+          catch(e){ alert("Đăng nhập thất bại: " + e.message); }
+        });
+      }
+    }
+    document.addEventListener("DOMContentLoaded", bindGoogleButton);
+
+    // 7) Theo dõi trạng thái đăng nhập + HUD tag + autosave
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        updateAuthBtnText();
+        toast("Đăng nhập: " + (user.displayName || user.email), true);
+
+        const ref  = doc(db, "profiles", user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          installLocalProfile(user.uid, snap.data());
         } else {
-          localStorage.setItem(LS_ACTIVE, JSON.stringify(user.uid));
-          if (window.NiniApp) NiniApp.addXP(0);
+          if (window.NiniApp && !(NiniApp.list()||[]).length) NiniApp.debugCreate(user.displayName || "Player");
+          const cur = readLocalProfile();
+          if (cur) await pushToCloud(user.uid);
+          const accounts = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || "{}");
+          if (!accounts[user.uid]) {
+            installLocalProfile(user.uid, (cur && cur.profile) || { name:user.displayName||"Player", coins:300, xp:0 });
+          } else {
+            localStorage.setItem(LS_ACTIVE, JSON.stringify(user.uid));
+            if (window.NiniApp) NiniApp.addXP(0);
+          }
         }
-      }
 
-      // Gắn nhãn user lên HUD (pill)
-      const hud = document.getElementById('nini-hud');
-      if (hud) {
-        const exists = hud.querySelector('[data-hud-user]');
-        if (!exists) {
-          const tag = document.createElement('span');
-          tag.className = 'pill';
-          tag.setAttribute('data-hud-user', '1');
-          tag.textContent = '👤 ' + (user.displayName || user.email);
-          const row = hud.querySelector('.hud');
-          (row ? row : hud).appendChild(tag);
+        // Thêm pill user lên HUD
+        const hud = document.getElementById('nini-hud');
+        if (hud) {
+          const exists = hud.querySelector('[data-hud-user]');
+          if (!exists) {
+            const tag = document.createElement('span');
+            tag.className = 'pill';
+            tag.setAttribute('data-hud-user','1');
+            tag.textContent = '👤 ' + (user.displayName || user.email);
+            const row = hud.querySelector('.hud');
+            (row ? row : hud).appendChild(tag);
+          }
         }
+
+        window.__niniSaveTimer && clearInterval(window.__niniSaveTimer);
+        window.__niniSaveTimer = setInterval(()=>pushToCloud(user.uid), 5000);
+
+      } else {
+        updateAuthBtnText();
+        toast("Đã đăng xuất", false);
+        window.__niniSaveTimer && clearInterval(window.__niniSaveTimer);
       }
+    });
 
-      // Auto-save mỗi 5s
-      window.__niniSaveTimer && clearInterval(window.__niniSaveTimer);
-      window.__niniSaveTimer = setInterval(()=>pushToCloud(user.uid), 5000);
-
-    } else {
-      if (authBtn) authBtn.textContent = "Đăng nhập / Đăng ký";
-      toast("Đã đăng xuất", false);
-      window.__niniSaveTimer && clearInterval(window.__niniSaveTimer);
-    }
-  });
-
-  // ===== 9) Nếu vào #/autumn mà chưa có profile local → tạo tạm
-  document.addEventListener("DOMContentLoaded", function () {
-    if (location.hash.toLowerCase().indexOf('/autumn') >= 0) {
-      if (window.NiniApp && !(NiniApp.list() || []).length) NiniApp.debugCreate("Player");
-    }
-  });
-</script>
-<!-- =========================================================
-     [HẾT] KHỐI ĐĂNG NHẬP + ĐỒNG BỘ TIẾN TRÌNH (Firebase)
-========================================================= -->
-
+    // 8) Nếu vào #/autumn mà chưa có profile local → tạo tạm
+    document.addEventListener("DOMContentLoaded", function () {
+      if ((location.hash || '').toLowerCase().indexOf('/autumn') >= 0) {
+        if (window.NiniApp && !(NiniApp.list() || []).length) NiniApp.debugCreate("Player");
+      }
+    });
+  </script>
+  <!-- =========================================================
+       [HẾT] KHỐI ĐĂNG NHẬP + ĐỒNG BỘ TIẾN TRÌNH (Firebase)
+  ========================================================== -->
 </body>
 </html>
-
-
-
-

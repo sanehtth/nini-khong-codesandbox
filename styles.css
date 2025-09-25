@@ -530,6 +530,20 @@ body::after{
 /* Giảm độ mờ mặc định của .tab cũ để chữ luôn rõ */
 .tab{ opacity: 1; }
 
+/* === Override: Auth button trắng, không viền, không nền === */
+.site-header .auth-btn{
+  color:#fff !important;
+  border:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,.35);
+  padding:8px 0;             /* gọn lại như link */
+}
+.site-header .auth-btn:hover{
+  text-decoration: underline;
+  border:none;
+}
+
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
    ============================================================ */
@@ -545,6 +559,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

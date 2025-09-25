@@ -214,7 +214,7 @@
   function updateAuthBtnText(){
     const btn=document.getElementById("authBtn"); if(!btn) return;
     const u=auth.currentUser;
-    btn.textContent = u ? ("Đăng xuất ("+(u.displayName||u.email||"Tài khoản")+")") : "Đăng nhập / Đăng ký";
+    btn.textContent = u ? ("Đăng xuất ("+(u.displayName||u.email||"Tài khoản")+")") : "Đăng nhập";
     btn.dataset.authState = u ? "in" : "out";
   }
 
@@ -327,6 +327,7 @@
 
 </body>
 </html>
+
 
 
 

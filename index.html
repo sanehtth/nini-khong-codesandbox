@@ -32,11 +32,7 @@
     </nav>
 
     <button id="authBtn" class="auth-btn">Đăng nhập / Đăng ký</button>
-    
-    <!-- Nút Admin (ẩn mặc định, hiện bằng Alt+A) -->
-      <a id="adminBtn" class="admin-link" href="/admin/login.html" rel="noopener">Admin</a>
-    <!-- HẾT: Nút Admin -->
-
+    <a id="adminBtn" class="admin-link" href="/admin/login.html" rel="noopener">Admin</a>
   </header>
 
   <!-- ========== VIEWPORT ========== -->
@@ -56,6 +52,21 @@
 
       <!-- Mount kệ sách (nằm trong frame) -->
       <div id="shelfMount" class="shelf-card" hidden></div>
+
+      <!-- =========================================================
+           [BẮT ĐẦU] MOUNT GAME AUTUMN TRONG FRAME (giống Storybook)
+           Hiển thị như một "card" mờ trên nền rừng, ngay trong khung.
+      ========================================================== -->
+      <div id="autumnMount" class="shelf-card" hidden>
+        <h3 class="shelf-title">Autumn — English Mini Games</h3>
+        <!-- HUD hiển thị tài khoản, XP, Coins -->
+        <div id="nini-hud"></div>
+        <!-- Ứng dụng: Topics/Categories/Khu vực chơi -->
+        <div id="nini-app" style="margin-top:12px"></div>
+      </div>
+      <!-- =========================================================
+           [HẾT] MOUNT GAME AUTUMN TRONG FRAME
+      ========================================================== -->
     </section>
 
     <!-- Nội dung mô tả dưới khung -->
@@ -70,24 +81,6 @@
       </ul>
       <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
     </section>
-
-    <!-- =========================================================
-         [BẮT ĐẦU] PANEL GAME "AUTUMN" — Chỉ hiển thị ở tab Autumn
-         Thêm 2 thẻ mount và để hidden mặc định.
-         JS nhỏ bên dưới sẽ tự show khi hash là #/autumn.
-    ========================================================== -->
-    <section id="autumnGamePanel" class="content" hidden>
-      <h2>Autumn — English Mini Games</h2>
-
-      <!-- HUD hiển thị tài khoản, XP, Coins -->
-      <div id="nini-hud"></div>
-
-      <!-- Ứng dụng: Topics (Farm/School/...), Categories, và khu vực chơi -->
-      <div id="nini-app" style="margin-top:12px"></div>
-    </section>
-    <!-- =========================================================
-         [HẾT] PANEL GAME "AUTUMN"
-    ========================================================== -->
   </main>
 
   <!-- ========== READER MODAL (kiểu “lịch để bàn”) ========== -->
@@ -96,8 +89,6 @@
     <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-      <!-- Thanh tiêu đề + điều khiển ngôn ngữ/đọc -->
-      <!-- [SỬA/THÊM] Header có nút VI/EN và loa ► TTS -->
       <header class="calendar-head">
         <h3 id="readerTitle" class="calendar-title">Đang tải…</h3>
         <div class="calendar-tools">
@@ -106,28 +97,15 @@
           <button id="btnSpeak"  class="chip" title="Đọc to">🔊</button>
         </div>
       </header>
-      <!-- HẾT ĐOẠN SỬA -->
 
-      <!-- Viewport: ảnh nền phủ toàn khung + phụ đề + điều hướng -->
       <div id="calendarViewport" class="calendar-viewport is-ready">
-        <!-- Ảnh trang được vẽ dưới dạng background -->
         <div id="calendarBg" class="calendar-bg"></div>
-
-        <!-- [THÊM] Đếm trang ở góc trên-phải -->
         <div id="pageCounterTop" class="page-indicator page-indicator--top">Trang 1/1</div>
-        <!-- HẾT ĐOẠN SỬA -->
-
-        <!-- Phụ đề (1 ngôn ngữ, đổi bằng nút VI/EN) -->
         <div class="subtitle"><div id="subtitleText" class="subtitle-text"></div></div>
-
-        <!-- Điều hướng ảnh dưới cùng -->
         <div class="pagebar">
           <button id="imgPrev" class="pill-nav" title="Trang trước">◀</button>
-          <!-- <div id="pageCounter" class="muted">Trang 1/1</div>  (đã ẩn bằng CSS) -->
           <button id="imgNext" class="pill-nav" title="Trang sau">▶</button>
         </div>
-
-        <!-- Spinner loading an toàn (không nuốt click khi ẩn) -->
         <div class="spinner"><div class="dot"></div></div>
       </div>
     </div>
@@ -201,23 +179,32 @@
   <script src="/public/js/app.js?v=13" defer></script>
 
   <!-- =========================================================
-       [BẮT ĐẦU] NHÚNG GAME AUTUMN
+       [BẮT ĐẦU] NHÚNG GAME AUTUMN (MOUNT TRONG FRAME)
        1) Upload file JS vào:  /public/content/game/nini-autumn.js
-       2) Script dưới đây sẽ render HUD (#nini-hud) và App (#nini-app)
-       3) Đoạn helper nhỏ show/hide panel theo hash '#/autumn'
+       2) Script game sẽ render HUD (#nini-hud) & App (#nini-app) trong #autumnMount
+       3) Helper dưới đây sẽ ẩn/hiện #autumnMount theo hash '#/autumn'
+          và tự ẩn #shelfMount để không đè lên nhau.
   ========================================================== -->
   <script src="/public/content/game/nini-autumn.js" defer></script>
   <script>
-    // Helper rất nhỏ để chỉ hiển thị panel game khi đang ở tab Autumn
     (function () {
-      var panel = document.getElementById('autumnGamePanel');
-      function syncAutumn() {
+      var mount = document.getElementById('autumnMount');
+      var shelf = document.getElementById('shelfMount');
+      var chips = document.querySelector('.chips');
+
+      function syncSeason() {
         var h = (location.hash || '').toLowerCase();
-        panel.hidden = !(h.indexOf('/autumn') >= 0);
+        var isAutumn = h.indexOf('/autumn') >= 0;
+        mount.hidden = !isAutumn;
+        if (shelf) shelf.hidden = isAutumn; // khi chơi game thì ẩn kệ sách
+        // có thể ẩn bớt chips cho sạch, tùy sở thích:
+        if (chips) chips.style.opacity = isAutumn ? '0.0' : ''; // để 0.0 nếu muốn biến mất hẳn
+        // bạn cũng có thể thêm class để thu gọn layout:
+        document.getElementById('frame').classList.toggle('is-game', isAutumn);
       }
-      window.addEventListener('hashchange', syncAutumn);
-      document.addEventListener('DOMContentLoaded', syncAutumn);
-      // Nếu app.js có điều khiển tabs riêng, đoạn này vẫn an toàn (chỉ ẩn/hiện theo hash).
+
+      window.addEventListener('hashchange', syncSeason);
+      document.addEventListener('DOMContentLoaded', syncSeason);
     })();
   </script>
   <!-- =========================================================

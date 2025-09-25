@@ -105,15 +105,16 @@
         <p id="signupNote" class="note"></p>
       </form>
 
-      <!-- Forgot -->
-      <form class="form" data-pane="forgot">
+      <!-- ============= BEGIN: TAB QUÊN MẬT KHẨU ============= -->
+      <div id="forgotForm" class="form">
         <label>Email</label>
-        <input id="forgotEmail" type="email" placeholder="you@example.com" />
+        <input id="forgot_email" type="email" placeholder="you@example.com" />
         <div class="row">
-          <button id="btnReset" type="button" class="btn">Gửi link đặt lại mật khẩu</button>
+          <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
+          <span id="forgotNote" class="note"></span>
         </div>
-        <p id="forgotNote" class="note"></p>
-      </form>
+      </div>
+      <!-- ============== END: TAB QUÊN MẬT KHẨU ============== -->
     </div>
   </div>
 
@@ -285,6 +286,71 @@
       if (who) localStorage.setItem(WHOKEY, who);
       setAuthUI(); closeAuth(); location.href="/profile.html";
     };
+     // ========= mở/đóng modal =========
+    function openAuth(){ document.getElementById('authModal').setAttribute('aria-hidden','false'); }
+    function closeAuth(){ document.getElementById('authModal').setAttribute('aria-hidden','true'); }
+    document.getElementById('authBtn').addEventListener('click', openAuth);
+
+    // ========= chuyển tab =========
+    const tabLoginBtn  = document.getElementById('tabLoginBtn');
+    const tabSignupBtn = document.getElementById('tabSignupBtn');
+    const tabForgotBtn = document.getElementById('tabForgotBtn');
+
+    const loginForm  = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const forgotForm = document.getElementById('forgotForm');
+
+    function setTab(which){
+      [tabLoginBtn,tabSignupBtn,tabForgotBtn].forEach(b=>b.classList.remove('is-active'));
+      [loginForm,signupForm,forgotForm].forEach(f=>f.classList.remove('is-active'));
+      if(which==='login'){tabLoginBtn.classList.add('is-active'); loginForm.classList.add('is-active');}
+      if(which==='signup'){tabSignupBtn.classList.add('is-active'); signupForm.classList.add('is-active');}
+      if(which==='forgot'){tabForgotBtn.classList.add('is-active'); forgotForm.classList.add('is-active');}
+    }
+    tabLoginBtn .onclick = ()=>setTab('login');
+    tabSignupBtn.onclick = ()=>setTab('signup');
+    tabForgotBtn.onclick = ()=>setTab('forgot');
+
+    // ===== helper nhỏ =====
+    function setNote(id, msg, ok=true){
+      const el = document.getElementById(id);
+      el.textContent = msg || '';
+      el.style.color = ok ? '#0f5132' : '#7f1d1d';
+    }
+
+    // =========================================================
+    // BEGIN: GỬI EMAIL RESET (FORGOT PASSWORD)
+    // - ĐIỂM NỐI VỚI "nini-funny-server" của bạn
+    // =========================================================
+    const FORGOT_API = 'https://<SERVER_DOMAIN>/api/auth/forgot'; // TODO: sửa endpoint thực tế
+
+    async function handleForgotClick(){
+      const email = document.getElementById('forgot_email').value.trim();
+      if(!email){ setNote('forgotNote','Vui lòng nhập email.',false); return; }
+
+      setNote('forgotNote','Đang gửi…');
+      try{
+        const res = await fetch(FORGOT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        let data = {};
+        try { data = await res.json(); } catch(e){}
+
+        if(res.ok){
+          setNote('forgotNote', data.message || 'Nếu email tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.');
+        }else{
+          setNote('forgotNote', data.message || 'Gửi không thành công. Vui lòng thử lại!', false);
+        }
+      }catch(e){
+        setNote('forgotNote','Không kết nối được máy chủ. Kiểm tra lại URL API.', false);
+      }
+    }
+    document.getElementById('btnForgotSend').addEventListener('click', handleForgotClick);
+    // =========================================================
+    // END: GỬI EMAIL RESET (FORGOT PASSWORD)
+    // =========================================================
   </script>
   <!-- =========================================================
        [END] FIREBASE AUTH + TOGGLE NÚT
@@ -295,3 +361,4 @@
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+

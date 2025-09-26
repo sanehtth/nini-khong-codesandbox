@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     // Chọn SMTP theo biến môi trường đã set THEO .evn (mail pro)
     // Gmail: host smtp.gmail.com, port 465, secure true
     // Yahoo: host smtp.mail.yahoo.com, port 465, secure true
-    const host = process.env.SMTP_HOST || 'nini-funny.com';
+    const host = process.env.SMTP_HOST || 'mail9066.maychuemail.com';
     const port = Number(process.env.SMTP_PORT || 465);
     const secure = String(process.env.SMTP_SECURE || 'true') === 'true';
 
@@ -46,12 +46,12 @@ exports.handler = async (event) => {
       port,
       secure,
       auth: {
-        user: process.env.SMTP_USER, // ví dụ: sane.htth@gmail.com
-        pass: process.env.SMTP_PASS, // App Password
+        user: process.env.SMTP_USER, // no-reply@nini-funny.com
+        pass: process.env.SMTP_PASS, // Sane@2512
       },
     });
 
-    const from = process.env.FROM_EMAIL || process.env.SMTP_USER; // tên/địa chỉ gửi
+    const from = process.env.FROM_EMAIL || process.env.SMTP_USER; // no-reply@nini-funny.com
     const subject = process.env.RESET_SUBJECT || 'Đặt lại mật khẩu NiNi';
     const html = `
       <p>Xin chào,</p>
@@ -81,5 +81,6 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 

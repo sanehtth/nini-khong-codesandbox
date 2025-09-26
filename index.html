@@ -155,6 +155,8 @@
     const forgotInput = $("forgot_email");
     const btnForgot   = $("btnForgotSend");
     const forgotNote  = $("forgotNote");
+// DÙNG CÙNG DOMAIN:
+const FORGOT_API = "/api/send-reset";
 
     function setNote(el, msg, ok = true){
       if (!el) return;
@@ -268,4 +270,5 @@
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+
 

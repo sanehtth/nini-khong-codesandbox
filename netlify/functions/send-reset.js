@@ -34,10 +34,10 @@ exports.handler = async (event) => {
       };
     }
 
-    // Chọn SMTP theo biến môi trường đã set (Gmail hoặc Yahoo)
+    // Chọn SMTP theo biến môi trường đã set THEO .evn (mail pro)
     // Gmail: host smtp.gmail.com, port 465, secure true
     // Yahoo: host smtp.mail.yahoo.com, port 465, secure true
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const host = process.env.SMTP_HOST || 'nini-funny.com';
     const port = Number(process.env.SMTP_PORT || 465);
     const secure = String(process.env.SMTP_SECURE || 'true') === 'true';
 
@@ -81,4 +81,5 @@ exports.handler = async (event) => {
     };
   }
 };
+
 

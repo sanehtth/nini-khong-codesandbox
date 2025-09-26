@@ -57,6 +57,7 @@ exports.handler = async (event) => {
       <p>Xin chào,</p>
       <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản NiNi.</p>
       <p>Nhấn vào liên kết sau để đặt lại mật khẩu:</p>
+      //<p><a href = process.env.
       <p><a href="${link}" target="_blank" rel="noopener">${link}</a></p>
       <p>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.</p>
     `;
@@ -81,6 +82,7 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
 

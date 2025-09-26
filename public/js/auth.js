@@ -128,26 +128,55 @@ window.addEventListener("storage", (e)=>{
 });
 setAuthUI();
 
-// ========= QUÊN MẬT KHẨU (gửi qua server SMTP của bạn) =========
-const FORGOT_API = "https://nini-funny-server.onrender.com/api/send-reset";  // ĐỔI nếu bạn dùng domain khác
+// ======== QUÊN MẬT KHẨU (gửi qua Netlify Functions) =========
+const FORGOT_API = "/api/send-reset"; // GỌI CÙNG DOMAIN → KHỎI CORS
 
-btnForgot?.addEventListener("click", async ()=>{
-  const email = (forgotInput.value||"").trim();
-  if(!email){ setNote(forgotNote,"Vui lòng nhập email.", false); return; }
-  setNote(forgotNote,"Đang gửi…");
-  try{
+btnForgot?.addEventListener("click", async (e) => {
+  e?.preventDefault?.(); // tránh submit form reload
+
+  const email = (forgotInput?.value || "").trim();
+  if (!email) {
+    setNote(forgotNote, "Vui lòng nhập email.", false);
+    return;
+  }
+
+  setNote(forgotNote, "Đang gửi...", true);
+
+  try {
     const res = await fetch(FORGOT_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        // đường dẫn quay lại (tùy ý)
+        link: "https://nini-funny.com/#/home",
+      }),
     });
-    const data = await res.json().catch(()=>({}));
-    if(res.ok){
-      setNote(forgotNote, data.message || "Nếu email tồn tại, hệ thống đã gửi hướng dẫn đặt lại mật khẩu.");
-    }else{
-      setNote(forgotNote, data.message || "Gửi không thành công. Vui lòng thử lại!", false);
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      // server trả ok:true khi gửi mail thành công
+      setNote(
+        forgotNote,
+        data.message || "Gửi không thành công. Vui lòng thử lại!",
+        !!data.ok
+      );
+    } else {
+      // lỗi 4xx/5xx: hiển thị message server
+      setNote(
+        forgotNote,
+        data.message || "Không gửi được mail. Vui lòng thử lại!",
+        false
+      );
     }
-  }catch(e){
-    setNote(forgotNote,"Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
+  } catch (err) {
+    setNote(
+      forgotNote,
+      "Không kết nối được máy chủ. Kiểm tra lại URL API.",
+      false
+    );
   }
 });
+
+

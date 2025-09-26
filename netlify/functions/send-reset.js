@@ -1,7 +1,7 @@
 // netlify/functions/send-reset.js
 const nodemailer = require('nodemailer');
 
-const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com'; // đổi nếu cần
+const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com/reset-password.html'; // đổi nếu cần
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': ALLOW_ORIGIN,
@@ -81,3 +81,4 @@ exports.handler = async (event) => {
     };
   }
 };
+

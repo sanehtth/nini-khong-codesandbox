@@ -239,45 +239,7 @@ const FORGOT_API = "/api/send-reset";
     });
     setAuthUI();
 
-    // ========= QUÊN MẬT KHẨU (gửi qua server SMTP của bạn) =========
-    // ========= QUÊN MẬT KHẨU (gửi qua Netlify Functions) =========
-const FORGOT_API = "/api/send-reset"; // gọi nội bộ site, không dính CORS
-
-btnForgot?.addEventListener("click", async () => {
-  const email = (forgotInput?.value || "").trim();
-  if (!email) { setNote(forgotNote, "Vui lòng nhập email.", false); return; }
-
-  setNote(forgotNote, "Đang gửi...", true);
-
-  try {
-    // Link sẽ được nhúng vào email để người dùng bấm (tuỳ bạn muốn dẫn tới đâu)
-    const link = `${location.origin}/#/home`;
-
-    const res = await fetch(FORGOT_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, link })
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (res.ok) {
-      setNote(
-        forgotNote,
-        data.message || "Nếu email tồn tại, hệ thống đã gửi hướng dẫn đặt lại mật khẩu.",
-        true
-      );
-    } else {
-      setNote(
-        forgotNote,
-        data.error || data.message || "Gửi không thành công. Vui lòng thử lại.",
-        false
-      );
-    }
-  } catch (e) {
-    setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
-  }
-});
+   
 
   </script>
 <!-- Auth logic (module) -->
@@ -287,6 +249,7 @@ btnForgot?.addEventListener("click", async () => {
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
+
 
 
 

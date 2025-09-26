@@ -1,11 +1,3 @@
-﻿[build]
-  functions = "netlify/functions"
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-  force = true
 // netlify/functions/send-reset.js
 const nodemailer = require("nodemailer");
 
@@ -31,7 +23,6 @@ exports.handler = async (event) => {
       return { statusCode: 400, headers: CORS, body: "Missing email" };
     }
 
-    // SMTP config từ biến môi trường Netlify
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),

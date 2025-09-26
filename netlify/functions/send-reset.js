@@ -46,12 +46,12 @@ exports.handler = async (event) => {
       port,
       secure,
       auth: {
-        user: process.env.SMTP_USER, // no-reply@nini-funny.com
+        user: process.env.SMTP_EMAIL, // NiNi Funny
         pass: process.env.SMTP_PASS, // Sane@2512
       },
     });
 
-    const from = process.env.FROM_EMAIL || process.env.SMTP_USER; // no-reply@nini-funny.com
+    const from = process.env.FROM_USER || process.env.SMTP_EMAIL; // Nini funny no-reply@nini-funny.com
     const subject = process.env.RESET_SUBJECT || 'Đặt lại mật khẩu NiNi';
     const html = `
       <p>Xin chào,</p>
@@ -82,6 +82,7 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
 

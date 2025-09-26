@@ -1,17 +1,8 @@
-# netlify.toml — tối giản & đúng mục tiêu
 [build]
-  publish = "."                     # <-- nếu index.html ở root repo
-  functions = "netlify/functions"   # thư mục Functions của bạn
-
-[functions]
-  node_bundler = "esbuild"
-
-[build.environment]
-  NODE_VERSION = "18"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/api/*"
-  to   = "https://nini-funny-server.onrender.com/api/:splat"
+  to = "/.netlify/functions/:splat"
   status = 200
   force = true
-

@@ -29,6 +29,19 @@ const corsMiddleware = (req, res, next) => {
 const app = express();
 app.use(express.json());
 app.use(corsMiddleware);
+//moi them
+app.use(express.json());
+
+// --- CORS "chắc chắn" cho giai đoạn test ---
+app.use((req, res, next) => {
+  // CHỈ test: mở full. Khi xong sẽ siết lại domain.
+  res.setHeader('Access-Control-Allow-Origin', '*');      // ← test
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Nếu cần cookie thì thêm: res.setHeader('Access-Control-Allow-Credentials','true')
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 /* ========== Firebase Admin ========== */
 // Dùng biến môi trường thay cho file JSON
@@ -112,3 +125,4 @@ app.post("/api/send-reset", async (req, res) => {
 app.listen(PORT, () => {
   console.log("Server listening on port", PORT);
 });
+

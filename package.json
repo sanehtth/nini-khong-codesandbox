@@ -1,0 +1,15 @@
+﻿{
+  "name": "nini-funny",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "echo \"Static site – no build step\" && exit 0"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.13"
+  }
+}

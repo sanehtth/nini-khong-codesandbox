@@ -6,11 +6,8 @@
   <base href="/" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="/styles.css?v=12" />
+  <link rel="stylesheet" href="/styles.css?v=14" />
 </head>
 <body>
   <!-- ========== HEADER ========== -->
@@ -20,7 +17,6 @@
       <div class="brand__slogan"><span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span></div>
     </a>
 
-    <!-- Tabs mùa -->
     <nav class="tabs" id="seasonTabs">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
@@ -33,7 +29,6 @@
     <button id="btnLogin"  class="auth-btn">Đăng nhập / Đăng ký</button>
     <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
 
-    <!-- Nút Admin -->
     <a id="adminBtn" class="admin-link" href="/admin/login.html" rel="noopener">Admin</a>
   </header>
 
@@ -55,9 +50,6 @@
       <p>... (nội dung giới thiệu) ...</p>
     </section>
   </main>
-
-  <!-- ========== READER MODAL (nếu có) ========== -->
-  <div class="modal" id="readerModal" aria-hidden="true"></div>
 
   <!-- ========== AUTH MODAL ========== -->
   <div class="modal" id="authModal" aria-hidden="true">
@@ -114,11 +106,7 @@
     </div>
   </div>
 
-  <!-- =========================================================
-       AUTH SCRIPT — 1 NAMESPACE DUY NHẤT (KHÔNG TRÙNG TÊN)
-       - Login/Signup: Firebase Auth
-       - Forgot password: Gọi API server để gửi bằng SMTP pro
-  ========================================================== -->
+  <!-- ================== AUTH LOGIC ================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
@@ -127,7 +115,7 @@
       signInWithEmailAndPassword, createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // ==== Firebase config của bạn ====
+    // ---- Firebase config ----
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -137,190 +125,145 @@
       appId: "1:991701821645:web:fb21c357562c6c801da184"
     };
 
-    // Khởi tạo
+    // ---- Init ----
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // ======= Namespace chống trùng =======
-    window.NiNiAuth = window.NiNiAuth || {};
-    (function(ns){
-      if (ns._booted) return;
-      ns._booted = true;
+    // ---- Keys in localStorage to toggle 2 buttons ----
+    const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
+    const WHOKEY = "NINI_USER_DISPLAY";
+    const SIGNAL = "NINI_SIGNED_OUT_AT";
 
-      // ====== Khóa localStorage để sync 2 nút ======
-      const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
-      const WHOKEY = "NINI_USER_DISPLAY";    // tên/email hiển thị
-      const SIGNAL = "NINI_SIGNED_OUT_AT";   // broadcast giữa tab
+    const $ = (id) => document.getElementById(id);
+    const btnLogin   = $("btnLogin");
+    const btnLogout  = $("btnLogout");
+    const whoSpan    = $("who");
+    const modal      = $("authModal");
+    const authTabs   = $("authTabs");
 
-      // ====== DOM ======
-      const $ = (id) => document.getElementById(id);
-      const btnLogin   = $("btnLogin");
-      const btnLogout  = $("btnLogout");
-      const whoSpan    = $("who");
-      const modal      = $("authModal");
-      const authTabs   = $("authTabs");
+    const loginEmail = $("loginEmail");
+    const loginPw    = $("loginPassword");
+    const btnEmailLogin  = $("btnEmailLogin");
+    const btnGoogleLogin = $("btnGoogleLogin");
+    const loginNote      = $("loginNote");
 
-      const loginEmail = $("loginEmail");
-      const loginPw    = $("loginPassword");
-      const btnEmailLogin  = $("btnEmailLogin");
-      const btnGoogleLogin = $("btnGoogleLogin");
-      const loginNote      = $("loginNote");
+    const signupEmail = $("signupEmail");
+    const signupPw    = $("signupPassword");
+    const btnEmailSignup = $("btnEmailSignup");
+    const signupNote     = $("signupNote");
 
-      const signupEmail = $("signupEmail");
-      const signupPw    = $("signupPassword");
-      const btnEmailSignup = $("btnEmailSignup");
-      const signupNote     = $("signupNote");
+    const forgotInput = $("forgot_email");
+    const btnForgot   = $("btnForgotSend");
+    const forgotNote  = $("forgotNote");
 
-      const forgotInput = $("forgot_email");
-      const btnForgot   = $("btnForgotSend");
-      const forgotNote  = $("forgotNote");
+    function setNote(el, msg, ok = true){
+      if (!el) return;
+      el.textContent = msg || "";
+      el.style.color = ok ? "#0f5132" : "#7f1d1d";
+    }
+    function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
+    function setAuthUI(){
+      const logged = isLoggedIn();
+      const who    = localStorage.getItem(WHOKEY) || "";
+      whoSpan.textContent = logged && who ? `(${who})` : "";
+      btnLogin.hidden  = logged;
+      btnLogout.hidden = !logged;
+    }
+    function openAuth(){ modal?.setAttribute("aria-hidden","false"); }
+    function closeAuth(){ modal?.setAttribute("aria-hidden","true"); }
 
-      // ====== Helpers ======
-      function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
-      function setAuthUI(){
-        const logged = isLoggedIn();
-        const who    = localStorage.getItem(WHOKEY) || "";
-        whoSpan.textContent = logged && who ? `(${who})` : "";
-        btnLogin.hidden  = logged;
-        btnLogout.hidden = !logged;
-      }
-      function setNote(el, msg, ok=true){
-        if (!el) return;
-        el.textContent = msg || "";
-        el.style.color = ok ? "#0f5132" : "#7f1d1d";
-      }
+    // Tabs
+    authTabs?.addEventListener("click", (e)=>{
+      const t = e.target.closest("[data-auth]"); if(!t) return;
+      document.querySelectorAll("#authModal .tab-line").forEach(b=>b.classList.remove("is-active"));
+      document.querySelectorAll("#authModal .form").forEach(p=>p.classList.remove("is-active"));
+      t.classList.add("is-active");
+      const pane = t.getAttribute("data-auth");
+      const panel = document.querySelector(`#authModal [data-pane="${pane}"]`) || (pane==="forgot" && $("forgotForm"));
+      panel?.classList.add("is-active");
+    });
+    modal?.querySelectorAll("[data-close], .modal__backdrop").forEach(el=>el.addEventListener("click", closeAuth));
 
-      // ====== Modal control ======
-      ns.open  = () => modal?.setAttribute("aria-hidden","false");
-      ns.close = () => modal?.setAttribute("aria-hidden","true");
+    // Buttons
+    btnLogin?.addEventListener("click", openAuth);
+    btnLogout?.addEventListener("click", async ()=>{
+      try { await signOut(auth); } catch(_){}
+      localStorage.setItem(FLAG,"0");
+      localStorage.removeItem(WHOKEY);
+      localStorage.setItem(SIGNAL, String(Date.now()));
+      location.replace("/");
+    });
 
-      // Tab switching
-      ns.setTab = (which) => {
-        document.querySelectorAll("#authModal .tab-line").forEach(b=>b.classList.remove("is-active"));
-        document.querySelectorAll("#authModal .form").forEach(p=>p.classList.remove("is-active"));
-        const btn = document.querySelector(`#authTabs [data-auth="${which}"]`);
-        const pane= document.querySelector(`#authModal [data-pane="${which}"]`) || (which==="forgot" && document.getElementById("forgotForm"));
-        btn?.classList.add("is-active"); pane?.classList.add("is-active");
-      };
+    // Login / Signup
+    btnEmailLogin?.addEventListener("click", async ()=>{
+      setNote(loginNote,"");
+      try{
+        const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value||"");
+        afterLogin(cred.user);
+      }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false); }
+    });
+    btnGoogleLogin?.addEventListener("click", async ()=>{
+      setNote(loginNote,"");
+      try{
+        const provider = new GoogleAuthProvider();
+        const cred = await signInWithPopup(auth, provider);
+        afterLogin(cred.user);
+      }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false); }
+    });
+    btnEmailSignup?.addEventListener("click", async ()=>{
+      setNote(signupNote,"");
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, (signupEmail.value||"").trim(), signupPw.value||"");
+        afterLogin(cred.user);
+      }catch(e){ setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false); }
+    });
 
-      // ====== Wire UI ======
-      btnLogin?.addEventListener("click", ns.open);
-      btnLogout?.addEventListener("click", async ()=>{
-        try { await signOut(auth); } catch(_){}
-        localStorage.setItem(FLAG,"0");
-        localStorage.removeItem(WHOKEY);
-        localStorage.setItem(SIGNAL, String(Date.now()));
-        location.replace("/");
-      });
-
-      // Đóng modal
-      modal?.querySelectorAll("[data-close], .modal__backdrop").forEach(el=>{
-        el.addEventListener("click", ns.close);
-      });
-
-      // Đổi tab trong modal
-      authTabs?.addEventListener("click", (e)=>{
-        const t = e.target.closest("[data-auth]");
-        if (!t) return;
-        ns.setTab(t.getAttribute("data-auth"));
-      });
-
-      // ====== Login / Signup ======
-      btnEmailLogin?.addEventListener("click", async ()=>{
-        setNote(loginNote,"");
-        try{
-          const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value||"");
-          afterLoginSuccess(cred.user);
-        }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false); }
-      });
-
-      btnGoogleLogin?.addEventListener("click", async ()=>{
-        setNote(loginNote,"");
-        try{
-          const provider = new GoogleAuthProvider();
-          const cred = await signInWithPopup(auth, provider);
-          afterLoginSuccess(cred.user);
-        }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false); }
-      });
-
-      btnEmailSignup?.addEventListener("click", async ()=>{
-        setNote(signupNote,"");
-        try{
-          const cred = await createUserWithEmailAndPassword(auth, (signupEmail.value||"").trim(), signupPw.value||"");
-          afterLoginSuccess(cred.user);
-        }catch(e){ setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false); }
-      });
-
-      // ====== Quên mật khẩu qua SERVER (SMTP PRO) ======
-     // ví dụ nếu bạn deploy server ở Render:
-       // DÙNG 1 TRONG 2 CÁCH
-
-const FORGOT_API = '/api/send-reset';
-
-await fetch(FORGOT_API, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email })
-});
-
-
-      btnForgot?.addEventListener("click", async ()=>{
-        const email = (forgotInput.value||"").trim();
-        if(!email){ setNote(forgotNote,"Vui lòng nhập email.", false); return; }
-        setNote(forgotNote,"Đang gửi…");
-        try{
-          const res = await fetch(FORGOT_API, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
-          });
-          let data = {};
-          try { data = await res.json(); } catch(_){}
-          if (res.ok) setNote(forgotNote, data.message || "Đã gửi hướng dẫn đặt lại mật khẩu.");
-          else setNote(forgotNote, data.message || "Gửi không thành công.", false);
-        }catch(e){
-          setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
-        }
-      });
-
-      // ====== Auth state & sync ======
-      function afterLoginSuccess(user){
+    function afterLogin(user){
+      const who = user.displayName || user.email || user.phoneNumber || "user";
+      localStorage.setItem(FLAG,"1");
+      localStorage.setItem(WHOKEY, who);
+      setAuthUI(); closeAuth();
+      location.href = "/profile.html";
+    }
+    onAuthStateChanged(auth, (user)=>{
+      if (user){
         const who = user.displayName || user.email || user.phoneNumber || "user";
-        localStorage.setItem(FLAG,"1");
-        localStorage.setItem(WHOKEY, who);
-        setAuthUI(); ns.close();
-        // chuyển sang trang cập nhật hồ sơ
-        location.href = "/profile.html";
+        localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY, who);
       }
-
-      onAuthStateChanged(auth, (user)=>{
-        if (user){
-          const who = user.displayName || user.email || user.phoneNumber || "user";
-          localStorage.setItem(FLAG,"1");
-          localStorage.setItem(WHOKEY, who);
-        }
-        setAuthUI();
-      });
-      window.addEventListener("storage", (e)=>{
-        if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
-      });
       setAuthUI();
+    });
+    window.addEventListener("storage", (e)=>{
+      if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
+    });
+    setAuthUI();
 
-      // Cầu nối nếu file khác muốn trigger
-      ns.onLoginSuccess = (who)=>{
-        localStorage.setItem(FLAG,"1");
-        if (who) localStorage.setItem(WHOKEY,who);
-        setAuthUI(); ns.close(); location.href="/profile.html";
-      };
-    })(window.NiNiAuth);
+    // ========= QUÊN MẬT KHẨU (gửi qua server SMTP của bạn) =========
+    const FORGOT_API = "https://nini-funny-server.onrender.com/api/send-reset";  // <- ĐỔI nếu bạn dùng domain khác
+
+    btnForgot?.addEventListener("click", async ()=>{
+      const email = (forgotInput.value||"").trim();
+      if(!email){ setNote(forgotNote,"Vui lòng nhập email.", false); return; }
+      setNote(forgotNote,"Đang gửi…");
+      try{
+        const res = await fetch(FORGOT_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json().catch(()=>({}));
+        if(res.ok){
+          setNote(forgotNote, data.message || "Nếu email tồn tại, hệ thống đã gửi hướng dẫn đặt lại mật khẩu.");
+        }else{
+          setNote(forgotNote, data.message || "Gửi không thành công. Vui lòng thử lại!", false);
+        }
+      }catch(e){
+        setNote(forgotNote,"Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
+      }
+    });
   </script>
 
-  <!-- App JS khác (nếu dùng) -->
+  <!-- App JS khác của bạn -->
   <script src="/public/js/effects.js?v=5" defer></script>
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
-
-
-
-

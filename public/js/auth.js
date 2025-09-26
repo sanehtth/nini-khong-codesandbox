@@ -149,7 +149,7 @@ btnForgot?.addEventListener("click", async (e) => {
       body: JSON.stringify({
         email,
         // đường dẫn quay lại (tùy ý)
-        link: "https://nini-funny.com/#/home",
+        link: "https://nini-funny.com/reset-password.html",
       }),
     });
 
@@ -178,5 +178,6 @@ btnForgot?.addEventListener("click", async (e) => {
     );
   }
 });
+
 
 

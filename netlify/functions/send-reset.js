@@ -51,7 +51,7 @@ exports.handler = async (event) => {
       },
     });
 
-    const from = process.env.FROM_USER || process.env.SMTP_EMAIL; // Nini funny no-reply@nini-funny.com
+    const from = process.env.SMTP_USER || process.env.FROM_EMAIL; // Nini funny <no-reply@nini-funny.com>
     const subject = process.env.RESET_SUBJECT || 'Đặt lại mật khẩu NiNi';
     const html = `
       <p>Xin chào,</p>
@@ -82,6 +82,7 @@ exports.handler = async (event) => {
     };
   }
 };
+
 
 
 

@@ -2,10 +2,8 @@
   "name": "nini-funny",
   "private": true,
   "version": "1.0.0",
-  "scripts": {
-    "build": "echo 'static site' && exit 0"
-  },
+  "license": "MIT",
   "dependencies": {
-    "nodemailer": "^6.9.9"
+    "nodemailer": "^6.9.8"
   }
 }

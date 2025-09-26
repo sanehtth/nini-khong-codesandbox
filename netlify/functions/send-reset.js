@@ -1,64 +1,103 @@
 // netlify/functions/send-reset.js
 const nodemailer = require("nodemailer");
 
-const CORS = {
-  "Access-Control-Allow-Origin": "https://nini-funny.com",
-  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization"
-};
+const ALLOWED_ORIGIN = process.env.APP_PUBLIC_URL || "https://nini-funny.com";
+
+const ok = (body = "") => ({
+  statusCode: 200,
+  headers: {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Content-Type": "application/json; charset=utf-8",
+  },
+  body: typeof body === "string" ? body : JSON.stringify(body),
+});
+
+const noContent = () => ({
+  statusCode: 204,
+  headers: {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  },
+  body: "",
+});
+
+const bad = (code, message) => ({
+  statusCode: code,
+  headers: {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Content-Type": "application/json; charset=utf-8",
+  },
+  body: JSON.stringify({ error: message }),
+});
 
 exports.handler = async (event) => {
-  // Preflight
+  // 1) Preflight
   if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: CORS };
+    return noContent();
   }
 
+  // 2) Chỉ nhận POST
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, headers: CORS, body: "Method Not Allowed" };
+    return bad(405, "Method Not Allowed");
   }
+
+  // 3) Parse body
+  let email, link;
+  try {
+    const payload = JSON.parse(event.body || "{}");
+    email = (payload.email || "").trim();
+    link = (payload.link || "").trim();
+  } catch {
+    return bad(400, "Invalid JSON");
+  }
+  if (!email) return bad(400, "Missing email");
+  if (!link) link = `${ALLOWED_ORIGIN}/#/home`;
+
+  // 4) SMTP config từ biến môi trường
+  const {
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_SECURE, // "true"/"false"
+    SMTP_USER,
+    SMTP_PASS,
+    FROM_EMAIL,
+    FROM_NAME,
+  } = process.env;
+
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !FROM_EMAIL) {
+    return bad(500, "SMTP is not configured");
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: String(SMTP_SECURE).toLowerCase() === "true",
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+
+  const mail = {
+    from: `${FROM_NAME || "NiNi — Funny"} <${FROM_EMAIL}>`,
+    to: email,
+    subject: "NiNi — Link đặt lại mật khẩu",
+    html: `
+      <p>Xin chào,</p>
+      <p>Bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu trên NiNi.</p>
+      <p>Nhấn vào liên kết dưới đây để tiếp tục:</p>
+      <p><a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a></p>
+      <hr>
+      <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+    `,
+  };
 
   try {
-    const { email, link } = JSON.parse(event.body || "{}");
-    if (!email) {
-      return { statusCode: 400, headers: CORS, body: "Missing email" };
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: String(process.env.SMTP_SECURE).toLowerCase() === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-
-    const from =
-      `${process.env.FROM_NAME || "NiNi — Funny"} <${process.env.FROM_EMAIL}>`;
-
-    await transporter.sendMail({
-      from,
-      to: email,
-      subject: "Đặt lại mật khẩu NiNi — Funny",
-      html: `
-        <p>Xin chào,</p>
-        <p>Nhấn vào liên kết để đặt lại mật khẩu:</p>
-        <p><a href="${link || "https://nini-funny.com/#/home"}" target="_blank">
-          ${link || "Mở liên kết"}</a></p>
-        <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
-      `
-    });
-
-    return {
-      statusCode: 200,
-      headers: CORS,
-      body: JSON.stringify({ ok: true })
-    };
+    await transporter.sendMail(mail);
+    return ok({ ok: true });
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: CORS,
-      body: JSON.stringify({ ok: false, error: err.message })
-    };
+    return bad(500, `Send failed: ${err.message}`);
   }
 };

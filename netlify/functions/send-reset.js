@@ -1,125 +1,83 @@
 // netlify/functions/send-reset.js
-// Gửi email quên mật khẩu qua SMTP (Gmail/Yahoo, v.v.)
-// CORS + preflight đầy đủ
+const nodemailer = require('nodemailer');
 
-const nodemailer = require("nodemailer");
+const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com'; // đổi nếu cần
 
-// Để dễ đổi mà không phải sửa code, tất cả lấy từ ENV
-const {
-  // CORS
-  CORS_ORIGIN = "https://nini-funny.com",
-
-  // Link dẫn người dùng sau khi bấm trong mail (tuỳ bạn)
-  APP_PUBLIC_URL = "https://nini-funny.com/#/home",
-
-  // SMTP
-  SMTP_HOST = "smtp.gmail.com",
-  SMTP_PORT = "465",
-  SMTP_SECURE = "true", // "true" cho 465, "false" cho 587
-  SMTP_USER,
-  SMTP_PASS,
-
-  // From
-  FROM_EMAIL,
-  FROM_NAME = "NiNi — Funny",
-} = process.env;
-
-// CORS headers
 const corsHeaders = {
-  "Access-Control-Allow-Origin": CORS_ORIGIN,
-  "Access-Control-Allow-Methods": "POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  "Access-Control-Max-Age": "86400",
+  'Access-Control-Allow-Origin': ALLOW_ORIGIN,
+  'Access-Control-Allow-Methods': 'POST,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
 };
 
 exports.handler = async (event) => {
   // Preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders, body: "" };
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: corsHeaders };
   }
 
-  // Chỉ cho POST
-  if (event.httpMethod !== "POST") {
+  // Sai method
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Method Not Allowed" }),
+      headers: corsHeaders,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
     };
   }
 
   try {
-    // Lấy email từ body
-    let payload = {};
-    try {
-      payload = JSON.parse(event.body || "{}");
-    } catch (_) {}
-
-    const email = (payload.email || "").trim().toLowerCase();
-
-    // Validate email đơn giản
-    const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!okEmail) {
+    const { email, link } = JSON.parse(event.body || '{}');
+    if (!email || !link) {
       return {
         statusCode: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ ok: false, error: "Email không hợp lệ" }),
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Missing email or link' }),
       };
     }
 
-    // Kiểm tra biến môi trường bắt buộc
-    if (!SMTP_USER || !SMTP_PASS || !FROM_EMAIL) {
-      console.error("Missing SMTP envs", { SMTP_USER: !!SMTP_USER, SMTP_PASS: !!SMTP_PASS, FROM_EMAIL: !!FROM_EMAIL });
-      return {
-        statusCode: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({ ok: false, error: "SMTP is not configured" }),
-      };
-    }
+    // Chọn SMTP theo biến môi trường đã set (Gmail hoặc Yahoo)
+    // Gmail: host smtp.gmail.com, port 465, secure true
+    // Yahoo: host smtp.mail.yahoo.com, port 465, secure true
+    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const port = Number(process.env.SMTP_PORT || 465);
+    const secure = String(process.env.SMTP_SECURE || 'true') === 'true';
 
-    // Tạo transporter
     const transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: Number(SMTP_PORT),
-      secure: String(SMTP_SECURE).toLowerCase() === "true",
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      host,
+      port,
+      secure,
+      auth: {
+        user: process.env.SMTP_USER, // ví dụ: sane.htth@gmail.com
+        pass: process.env.SMTP_PASS, // App Password
+      },
     });
 
-    // Nội dung email (tuỳ bạn customize)
-    const resetLink = APP_PUBLIC_URL; // có thể kèm token nếu bạn tự sinh
+    const from = process.env.FROM_EMAIL || process.env.SMTP_USER; // tên/địa chỉ gửi
+    const subject = process.env.RESET_SUBJECT || 'Đặt lại mật khẩu NiNi';
     const html = `
-      <div style="font-family:system-ui,Arial;line-height:1.6">
-        <h2>Yêu cầu đặt lại mật khẩu</h2>
-        <p>Email nhận: <b>${email}</b></p>
-        <p>Nhấn nút bên dưới để tiếp tục đặt lại mật khẩu:</p>
-        <p>
-          <a href="${resetLink}" style="display:inline-block;background:#16a34a;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;">
-            Mở NiNi — Funny
-          </a>
-        </p>
-        <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</p>
-        <hr/>
-        <small>NiNi — Funny</small>
-      </div>
+      <p>Xin chào,</p>
+      <p>Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản NiNi.</p>
+      <p>Nhấn vào liên kết sau để đặt lại mật khẩu:</p>
+      <p><a href="${link}" target="_blank" rel="noopener">${link}</a></p>
+      <p>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.</p>
     `;
 
     await transporter.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from,
       to: email,
-      subject: "Đặt lại mật khẩu — NiNi",
+      subject,
       html,
     });
 
     return {
       statusCode: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ ok: true, message: "Đã gửi email đặt lại mật khẩu" }),
+      headers: corsHeaders,
+      body: JSON.stringify({ ok: true }),
     };
   } catch (err) {
-    console.error("send-reset error:", err);
     return {
       statusCode: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      body: JSON.stringify({ ok: false, error: "Server error" }),
+      headers: corsHeaders,
+      body: JSON.stringify({ error: err.message || 'Internal Error' }),
     };
   }
 };

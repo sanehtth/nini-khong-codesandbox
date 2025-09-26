@@ -1,68 +1,55 @@
 // netlify/functions/send-reset.js
 const nodemailer = require("nodemailer");
 
-const ALLOWED_ORIGIN = process.env.APP_PUBLIC_URL || "https://nini-funny.com";
+// --- CORS helper ---
+const corsHeaders = {
+  "Access-Control-Allow-Origin":
+    process.env.CORS_ORIGIN || "https://nini-funny.com",
+  "Access-Control-Allow-Methods": "POST,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+  "Content-Type": "application/json; charset=utf-8",
+};
 
-const ok = (body = "") => ({
-  statusCode: 200,
-  headers: {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Content-Type": "application/json; charset=utf-8",
-  },
-  body: typeof body === "string" ? body : JSON.stringify(body),
-});
-
-const noContent = () => ({
-  statusCode: 204,
-  headers: {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-  },
-  body: "",
-});
-
-const bad = (code, message) => ({
-  statusCode: code,
-  headers: {
-    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Content-Type": "application/json; charset=utf-8",
-  },
-  body: JSON.stringify({ error: message }),
+const ok = (statusCode, data) => ({
+  statusCode,
+  headers: corsHeaders,
+  body: JSON.stringify(data),
 });
 
 exports.handler = async (event) => {
-  // 1) Preflight
+  // 1) Preflight CORS
   if (event.httpMethod === "OPTIONS") {
-    return noContent();
+    return { statusCode: 204, headers: corsHeaders };
   }
 
-  // 2) Chỉ nhận POST
+  // 2) Only POST
   if (event.httpMethod !== "POST") {
-    return bad(405, "Method Not Allowed");
+    return ok(405, { error: "Method Not Allowed" });
   }
 
   // 3) Parse body
-  let email, link;
+  let payload;
   try {
-    const payload = JSON.parse(event.body || "{}");
-    email = (payload.email || "").trim();
-    link = (payload.link || "").trim();
+    payload = JSON.parse(event.body || "{}");
   } catch {
-    return bad(400, "Invalid JSON");
+    return ok(400, { error: "Invalid JSON body" });
   }
-  if (!email) return bad(400, "Missing email");
-  if (!link) link = `${ALLOWED_ORIGIN}/#/home`;
+  const email = (payload.email || "").trim();
+  const link =
+    payload.link ||
+    "https://nini-funny.com/#/home"; // link fallback nếu FE không truyền
 
-  // 4) SMTP config từ biến môi trường
+  // 4) Validate email
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) {
+    return ok(400, { error: "Invalid email" });
+  }
+
+  // 5) Kiểm tra biến môi trường SMTP
   const {
     SMTP_HOST,
     SMTP_PORT,
-    SMTP_SECURE, // "true"/"false"
     SMTP_USER,
     SMTP_PASS,
     FROM_EMAIL,
@@ -70,34 +57,61 @@ exports.handler = async (event) => {
   } = process.env;
 
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !FROM_EMAIL) {
-    return bad(500, "SMTP is not configured");
+    return ok(500, { error: "SMTP is not configured" });
   }
 
-  const transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT),
-    secure: String(SMTP_SECURE).toLowerCase() === "true",
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-  });
+  // 6) Tạo transporter
+  let transporter;
+  try {
+    transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT),
+      secure: String(SMTP_PORT) === "465", // 465 -> SSL, 587 -> STARTTLS
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    });
+    // Tùy chọn (đỡ fail do self-signed trong vài hạ tầng)
+    // await transporter.verify();
+  } catch (e) {
+    return ok(500, { error: "SMTP transporter error", detail: e.message });
+  }
 
+  // 7) Nội dung email
+  const fromName = FROM_NAME || "NiNi Funny";
   const mail = {
-    from: `${FROM_NAME || "NiNi — Funny"} <${FROM_EMAIL}>`,
+    from: `${fromName} <${FROM_EMAIL}>`,
     to: email,
-    subject: "NiNi — Link đặt lại mật khẩu",
+    subject: "Khôi phục mật khẩu • NiNi Funny",
+    text: `Xin chào,
+Bạn vừa yêu cầu khôi phục mật khẩu cho tài khoản tại NiNi Funny.
+
+Bấm vào liên kết sau để đặt lại mật khẩu:
+${link}
+
+Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.
+
+— ${fromName}`,
     html: `
-      <p>Xin chào,</p>
-      <p>Bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu trên NiNi.</p>
-      <p>Nhấn vào liên kết dưới đây để tiếp tục:</p>
-      <p><a href="${link}" target="_blank" rel="noopener noreferrer">${link}</a></p>
-      <hr>
-      <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+      <div style="font-family:system-ui,Segoe UI,Arial,sans-serif;line-height:1.6">
+        <p>Xin chào,</p>
+        <p>Bạn vừa yêu cầu khôi phục mật khẩu cho tài khoản tại <b>NiNi Funny</b>.</p>
+        <p>
+          <a href="${link}" style="display:inline-block;background:#10b981;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px">
+            Đặt lại mật khẩu
+          </a>
+        </p>
+        <p>Hoặc mở liên kết: <br/><a href="${link}">${link}</a></p>
+        <hr/>
+        <p style="color:#6b7280">Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.</p>
+        <p>— ${fromName}</p>
+      </div>
     `,
   };
 
+  // 8) Gửi
   try {
     await transporter.sendMail(mail);
-    return ok({ ok: true });
-  } catch (err) {
-    return bad(500, `Send failed: ${err.message}`);
+    return ok(200, { ok: true });
+  } catch (e) {
+    return ok(502, { error: "Send mail failed", detail: e.message });
   }
 };

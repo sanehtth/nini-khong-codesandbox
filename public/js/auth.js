@@ -1,5 +1,6 @@
 ﻿// /public/js/auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { /* ... */, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getAuth, onAuthStateChanged, signOut,
   GoogleAuthProvider, signInWithPopup,
@@ -128,6 +129,36 @@ window.addEventListener("storage", (e)=>{
 });
 setAuthUI();
 
+
+
+//====>>>>> Đăng ký bằng email + password <<<<=========
+
+btnEmailSignup?.addEventListener("click", async ()=>{
+  setNote(signupNote,"");
+  try{
+    const email = (signupEmail.value||"").trim();
+    const pass  = signupPw.value||"";
+
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+
+    // => Gửi email xác thực
+    await sendEmailVerification(cred.user, {
+      // Khi người dùng bấm xác thực xong, Firebase sẽ đưa về trang này
+      url: "https://nini-funny.com/#home",
+      handleCodeInApp: true
+    });
+
+    setNote(
+      signupNote,
+      "Tạo tài khoản thành công. Vui lòng mở email để xác thực trước khi đăng nhập!",
+      true
+    );
+
+  }catch(e){
+    setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false);
+  }
+});
+
 // ======== QUÊN MẬT KHẨU (gửi qua Netlify Functions) =========
 const FORGOT_API = "/api/send-reset"; // GỌI CÙNG DOMAIN → KHỎI CORS
 
@@ -177,6 +208,7 @@ if (res.ok) {
     );
   }
 });
+
 
 
 

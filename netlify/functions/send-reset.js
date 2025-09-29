@@ -51,7 +51,7 @@ exports.handler = async (event) => {
       }
     });
 
-    const from = process.env.FROM_USER || "NiNi Funny <no-reply@nini-funny.com>";
+    const from = process.env.FROM_EMAIL || "NiNi Funny <no-reply@nini-funny.com>";
     const subject = process.env.RESET_SUBJECT || "Đặt lại mật khẩu NiNi";
     const resetTarget = process.env.RESET_TARGET_URL || "https://nini-funny.com/reset-password.html";
 
@@ -86,3 +86,4 @@ exports.handler = async (event) => {
     };
   }
 };
+

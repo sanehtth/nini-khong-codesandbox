@@ -43,7 +43,7 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = (process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
-const MAIL_FROM = process.env.MAIL_FROM || 'no-reply@nini-funny.com';
+const SMTP_EMAIL = process.env.SMTP_EMAIL || 'no-reply@nini-funny.com';
 
 let transporter = null;
 if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
@@ -75,7 +75,7 @@ app.post('/api/send-reset', async (req, res) => {
     }
 
     await transporter.sendMail({
-      from: MAIL_FROM,
+      from: SMTP_EMAIL,
       to: email,
       subject: 'Reset your password for NiNi — funny',
       html,
@@ -97,3 +97,4 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+

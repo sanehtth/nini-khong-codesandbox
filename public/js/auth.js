@@ -1,10 +1,10 @@
 ﻿// /public/js/auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { /* ... */, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getAuth, onAuthStateChanged, signOut,
   GoogleAuthProvider, signInWithPopup,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword
+  signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // ---- Firebase config ----
@@ -135,29 +135,35 @@ setAuthUI();
 
 btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
+
   try{
     const email = (signupEmail.value||"").trim();
     const pass  = signupPw.value||"";
 
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
-    // => Gửi email xác thực
+    // Gửi email xác thực
     await sendEmailVerification(cred.user, {
-      // Khi người dùng bấm xác thực xong, Firebase sẽ đưa về trang này
       url: "https://nini-funny.com/#home",
       handleCodeInApp: true
     });
 
     setNote(
       signupNote,
-      "Tạo tài khoản thành công. Vui lòng mở email để xác thực trước khi đăng nhập!",
+      "Tạo tài khoản thành công. Vui lòng kiểm tra email để xác thực trước khi đăng nhập!",
       true
     );
 
   }catch(e){
-    setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false);
+    const nice = {
+      "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng chức năng 'Quên mật khẩu'.",
+      "auth/invalid-email":       "Email không hợp lệ.",
+      "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
+    };
+    setNote(signupNote, nice[e?.code] || (e?.code || e?.message || "Không tạo được tài khoản"), false);
   }
 });
+
 
 // ======== QUÊN MẬT KHẨU (gửi qua Netlify Functions) =========
 const FORGOT_API = "/api/send-reset"; // GỌI CÙNG DOMAIN → KHỎI CORS
@@ -208,6 +214,7 @@ if (res.ok) {
     );
   }
 });
+
 
 
 

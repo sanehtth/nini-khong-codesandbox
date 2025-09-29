@@ -155,22 +155,21 @@ btnForgot?.addEventListener("click", async (e) => {
 
     const data = await res.json().catch(() => ({}));
 
-    if (res.ok) {
-      // server trả ok:true khi gửi mail thành công
-      setNote(
-        forgotNote,
-        data.message || "Gửi không thành công. Vui lòng thử lại!",
-        !!data.ok
-      );
-    } else {
-      // lỗi 4xx/5xx: hiển thị message server
-      setNote(
-        forgotNote,
-        data.message || "Không gửi được mail. Vui lòng thử lại!",
-        false
-      );
-    }
-  } catch (err) {
+if (res.ok) {
+  setNote(
+    forgotNote,
+    // <- đổi thông điệp mặc định sang câu thành công
+    data.message || "Đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra email!",
+    true
+  );
+} else {
+  setNote(
+    forgotNote,
+    data.message || "Không gửi được mail. Vui lòng thử lại!",
+    false
+  );
+}
+} catch (err) {
     setNote(
       forgotNote,
       "Không kết nối được máy chủ. Kiểm tra lại URL API.",
@@ -178,5 +177,6 @@ btnForgot?.addEventListener("click", async (e) => {
     );
   }
 });
+
 
 

@@ -4,69 +4,35 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Xác minh email — NiNi</title>
-
-  <!-- favicon + CSS site -->
   <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
-  <link rel="stylesheet" href="/styles.css?v=16" />
-  <link rel="stylesheet" href="/public/css/fix.css?v=3" />
-
-  <!-- BEGIN: verify page local styles (nhẹ, không đụng styles cũ) -->
-  <style>
-    :root{
-      --green:#2f6e3f; --green-2:#21512d; --text:#1c2024;
-      --card-bg:rgba(255,255,255,.9); --shadow:0 10px 30px rgba(0,0,0,.15);
-      --radius:16px;
-    }
-    body{
-      margin:0; color:var(--text);
-      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
-      background:#e6f1e9 url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
-    }
-    .site-head{
-      position:fixed; inset:16px auto auto 16px; z-index:20;
-      display:flex; align-items:center; gap:10px;
-    }
-    .brand{ text-decoration:none; line-height:0 }
-    .brand__img{height:34px; width:auto; display:block}
-    .slogan{font-weight:600; font-size:14px; color:#F1E6B6; text-shadow:0 1px 2px rgba(0,0,0,.25)}
-    .wrap{min-height:100vh; display:grid; place-items:center; padding:80px 16px}
-    .card{ width:min(560px,92vw); background:var(--card-bg); box-shadow:var(--shadow);
-           border-radius:var(--radius); padding:26px 22px }
-    .title{margin:0 0 8px; font-weight:800; color:var(--green-2)}
-    .note{margin-top:10px}
-    .ok{color:#0f5132} .err{color:#7f1d1d}
-    .btn{height:42px; padding:0 14px; border-radius:10px; border:0;
-         background:var(--green); color:#fff; font-weight:700; cursor:pointer}
-    .links{margin-top:12px; display:flex; gap:12px; justify-content:flex-end}
-  </style>
-  <!-- END: verify page local styles -->
+  <link rel="stylesheet" href="/public/styles.css?v=100" />
 </head>
 <body>
-  <!-- header nho gọn -->
-  <header class="site-head">
+  <!-- Header giống index -->
+  <header class="site-header">
     <a href="/#home" class="brand" aria-label="NiNi — Funny">
-      <img src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" class="brand__img" />
+      <img src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" class="brand__logo" />
+      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
     </a>
-    <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
   </header>
 
-  <!-- nội dung -->
-  <main class="wrap">
-    <section class="card" aria-live="polite">
-      <h1 class="title">Xác minh email</h1>
+  <main class="viewport" style="display:grid; place-items:center; min-height:calc(100vh - 80px);">
+    <section class="modal__panel" style="position:static; inset:auto; max-width:560px;">
+      <h3 class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+        Xác minh email
+      </h3>
       <p id="msg" class="note">Đang xác minh, vui lòng đợi…</p>
-      <div class="links">
+      <div style="margin-top:12px; display:flex; justify-content:flex-end;">
         <a class="btn" href="/#home">Về trang chủ</a>
       </div>
     </section>
   </main>
 
-  <!-- BEGIN: Firebase verify logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // Firebase config của bạn
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -80,25 +46,22 @@
     const auth = getAuth(app);
 
     const msg = document.getElementById("msg");
-    const setNote = (t, ok=true)=>{ msg.textContent=t||""; msg.className = "note " + (ok?"ok":"err"); };
+    const setNote = (t, ok=true)=>{ msg.textContent=t||""; msg.style.color = ok ? "#0f5132" : "#7f1d1d"; };
 
-    const sp   = new URLSearchParams(location.search);
+    const sp = new URLSearchParams(location.search);
     const mode = sp.get("mode");
     const code = sp.get("oobCode");
 
-    async function run(){
+    (async ()=>{
       try{
-        if (mode !== "verifyEmail" || !code) throw new Error("Liên kết không hợp lệ hoặc đã hết hạn.");
+        if(mode!=="verifyEmail" || !code) throw new Error("Liên kết không hợp lệ hoặc đã hết hạn.");
         await applyActionCode(auth, code);
         setNote("Xác minh thành công! Bạn có thể đăng nhập.", true);
-        // về home sau 1.2s
         setTimeout(()=>location.href="/#home", 1200);
       }catch(e){
         setNote(e?.code || e?.message || "auth/invalid-action-code", false);
       }
-    }
-    run();
+    })();
   </script>
-  <!-- END: Firebase verify logic -->
 </body>
 </html>

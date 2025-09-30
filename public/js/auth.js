@@ -1,4 +1,12 @@
-// /public/js/auth.js  — NiNi Auth (full, đã sửa setNote -> ok/err + aria-live)
+<!-- file: /public/js/auth.js -->
+<script type="module">
+/* =========================================================
+   NiNi — Auth (Firebase v10)
+   - ĐÃ SỬA: cơ chế TAB (login / signup / forgot) chỉ hiển thị 1 pane
+   - ĐÃ SỬA: setNote() kiểu toast nằm trong khung modal
+   - Giữ nguyên logic đăng nhập/đăng ký/Google/Quên mật khẩu
+   ========================================================= */
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut,
@@ -7,7 +15,7 @@ import {
   sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-/* ================= Firebase config ================= */
+/* === BEGIN: Firebase config (giữ nguyên project của bạn) === */
 const firebaseConfig = {
   apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
@@ -16,16 +24,18 @@ const firebaseConfig = {
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184"
 };
+/* === END: Firebase config === */
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-/* ================= LocalStorage flags (đổi UI login/logout) ================= */
-const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1" | "0"
+/* === BEGIN: localStorage flags để bật/tắt 2 nút header === */
+const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
 const WHOKEY = "NINI_USER_DISPLAY";
 const SIGNAL = "NINI_SIGNED_OUT_AT";
+/* === END: localStorage flags === */
 
-/* ================= Helpers ================= */
+/* === BEGIN: DOM refs === */
 const $ = (id) => document.getElementById(id);
 
 const btnLogin   = $("btnLogin");
@@ -35,59 +45,77 @@ const whoSpan    = $("who");
 const modal      = $("authModal");
 const authTabs   = $("authTabs");
 
-/* Login form */
+/* Login pane */
 const loginEmail = $("loginEmail");
 const loginPw    = $("loginPassword");
 const btnEmailLogin  = $("btnEmailLogin");
 const btnGoogleLogin = $("btnGoogleLogin");
 const loginNote      = $("loginNote");
 
-/* Signup form */
+/* Signup pane */
 const signupEmail = $("signupEmail");
 const signupPw    = $("signupPassword");
 const btnEmailSignup = $("btnEmailSignup");
 const signupNote     = $("signupNote");
 
-/* Forgot form */
+/* Forgot pane */
 const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
+/* === END: DOM refs === */
 
-/* ========== setNote (đã chỉnh: glass + ok/err, aria-live) ========== */
-function setNote(el, msg, ok = true) {
+/* === BEGIN: setNote() dạng toast trong modal === */
+function setNote(el, msg, ok = true){
   if (!el) return;
   el.textContent = msg || "";
-  el.setAttribute("aria-live", "polite");     // để screen reader đọc ngay
-  el.classList.remove("ok", "err");
-  if (!msg) return;                           // rỗng -> CSS :empty sẽ ẩn
-  el.classList.add(ok ? "ok" : "err");
+  el.style.color = ok ? "#0f5132" : "#7f1d1d";
 }
+/* === END: setNote() === */
 
+/* === BEGIN: Toggle header auth buttons === */
 function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
 function setAuthUI(){
   const logged = isLoggedIn();
   const who    = localStorage.getItem(WHOKEY) || "";
-  whoSpan.textContent = logged && who ? `(${who})` : "";
-  if (btnLogin)  btnLogin.hidden  = logged;
-  if (btnLogout) btnLogout.hidden = !logged;
+  whoSpan && (whoSpan.textContent = logged && who ? `(${who})` : "");
+  btnLogin && (btnLogin.hidden  = logged);
+  btnLogout && (btnLogout.hidden = !logged);
 }
-function openAuth(){ modal?.setAttribute("aria-hidden","false"); }
+setAuthUI();
+/* === END: Toggle header auth buttons === */
+
+/* === BEGIN: Tabs trong modal (đã sửa: luôn chỉ 1 pane hiển thị) === */
+function switchAuth(which) {
+  // Bỏ active tất cả tab + pane
+  document.querySelectorAll("#authModal .tab-line").forEach(b => {
+    b.classList.toggle("is-active", b.dataset.auth === which);
+  });
+  document.querySelectorAll("#authModal .form").forEach(p => {
+    p.classList.toggle("is-active", p.getAttribute("data-pane") === which);
+  });
+}
+
+function openAuth(which = "login"){
+  if (!modal) return;
+  modal.setAttribute("aria-hidden","false");
+  switchAuth(which);
+}
 function closeAuth(){ modal?.setAttribute("aria-hidden","true"); }
 
-/* ================= Tabs trong modal ================= */
+/* gắn event cho tabs */
 authTabs?.addEventListener("click", (e)=>{
-  const t = e.target.closest("[data-auth]"); if(!t) return;
-  document.querySelectorAll("#authModal .tab-line").forEach(b=>b.classList.remove("is-active"));
-  document.querySelectorAll("#authModal .form").forEach(p=>p.classList.remove("is-active"));
-  t.classList.add("is-active");
-  const pane = t.getAttribute("data-auth");
-  const panel = document.querySelector(`#authModal [data-pane="${pane}"]`) || (pane==="forgot" && $("forgotForm"));
-  panel?.classList.add("is-active");
+  const btn = e.target.closest(".tab-line");
+  if (!btn) return;
+  switchAuth(btn.dataset.auth || "login");
 });
-modal?.querySelectorAll("[data-close], .modal__backdrop").forEach(el=>el.addEventListener("click", closeAuth));
 
-/* ================= Buttons mở/đóng ================= */
-btnLogin?.addEventListener("click", openAuth);
+/* gắn close */
+modal?.querySelectorAll("[data-close], .modal__backdrop")
+  .forEach(el => el.addEventListener("click", closeAuth));
+/* === END: Tabs trong modal === */
+
+/* === BEGIN: Header buttons === */
+btnLogin?.addEventListener("click", () => openAuth("login"));
 btnLogout?.addEventListener("click", async ()=>{
   try { await signOut(auth); } catch(_){}
   localStorage.setItem(FLAG,"0");
@@ -95,18 +123,20 @@ btnLogout?.addEventListener("click", async ()=>{
   localStorage.setItem(SIGNAL, String(Date.now()));
   location.replace("/");
 });
+/* === END: Header buttons === */
 
-/* ================= Login ================= */
+/* === BEGIN: Login / Google / Signup / Forgot === */
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   try{
-    const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value||"");
+    const cred = await signInWithEmailAndPassword(
+      auth, (loginEmail.value||"").trim(), loginPw.value||""
+    );
     afterLogin(cred.user);
   }catch(e){
-    setNote(loginNote, niceAuthError(e) || "Không đăng nhập được", false);
+    setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false);
   }
 });
-
 btnGoogleLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   try{
@@ -114,57 +144,49 @@ btnGoogleLogin?.addEventListener("click", async ()=>{
     const cred = await signInWithPopup(auth, provider);
     afterLogin(cred.user);
   }catch(e){
-    setNote(loginNote, niceAuthError(e) || "Không đăng nhập được với Google", false);
+    setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false);
   }
 });
-
-/* ================= Signup + gửi email xác thực ================= */
 btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
   try{
     const email = (signupEmail.value||"").trim();
     const pass  = signupPw.value||"";
+    const cred  = await createUserWithEmailAndPassword(auth, email, pass);
 
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-
+    // gửi mail xác minh (Firebase)
     await sendEmailVerification(cred.user, {
       url: "https://nini-funny.com/#home",
       handleCodeInApp: true
     });
-
     setNote(
       signupNote,
       "Tạo tài khoản thành công. Vui lòng kiểm tra email để xác thực trước khi đăng nhập!",
       true
     );
   }catch(e){
-    const nice = niceAuthError(e) ||
-      (e?.code || e?.message || "Không tạo được tài khoản");
-    setNote(signupNote, nice, false);
+    const nice = {
+      "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng 'Quên mật khẩu'.",
+      "auth/invalid-email":       "Email không hợp lệ.",
+      "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
+    };
+    setNote(signupNote, nice[e?.code] || (e?.code || e?.message || "Không tạo được tài khoản"), false);
   }
 });
-
-/* ================= Forgot password (qua server pro mail) ================= */
-const FORGOT_API = "/api/send-reset";  // gọi cùng domain (proxy) để khỏi CORS
-
+/* gửi link reset qua Netlify Function của bạn */
+const FORGOT_API = "/api/send-reset";
 btnForgot?.addEventListener("click", async (e)=>{
   e?.preventDefault?.();
   const email = (forgotInput?.value || "").trim();
   if (!email) { setNote(forgotNote, "Vui lòng nhập email.", false); return; }
-
-  setNote(forgotNote, "Đang gửi...", true);
+  setNote(forgotNote, "Đang gửi...");
   try{
-    const res = await fetch(FORGOT_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        link: "https://nini-funny.com/reset-password.html",
-      }),
+    const res  = await fetch(FORGOT_API, {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, link: "https://nini-funny.com/reset-password.html" })
     });
-
-    const data = await res.json().catch(()=> ({}));
-    if (res.ok) {
+    const data = await res.json().catch(()=>({}));
+    if (res.ok){
       setNote(forgotNote, data.message || "Đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra email!", true);
     } else {
       setNote(forgotNote, data.message || "Không gửi được mail. Vui lòng thử lại!", false);
@@ -173,8 +195,9 @@ btnForgot?.addEventListener("click", async (e)=>{
     setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
   }
 });
+/* === END: Login / Google / Signup / Forgot === */
 
-/* ================= Shared ================= */
+/* === BEGIN: afterLogin + onAuthStateChanged === */
 function afterLogin(user){
   const who = user.displayName || user.email || user.phoneNumber || "user";
   localStorage.setItem(FLAG,"1");
@@ -182,7 +205,6 @@ function afterLogin(user){
   setAuthUI(); closeAuth();
   location.href = "/profile.html";
 }
-
 onAuthStateChanged(auth, (user)=>{
   if (user){
     const who = user.displayName || user.email || user.phoneNumber || "user";
@@ -191,23 +213,9 @@ onAuthStateChanged(auth, (user)=>{
   }
   setAuthUI();
 });
-
 window.addEventListener("storage", (e)=>{
   if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
 });
-setAuthUI();
+/* === END: afterLogin + onAuthStateChanged === */
 
-/* ================= Friendly error text ================= */
-function niceAuthError(e){
-  const map = {
-    "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng chức năng 'Quên mật khẩu'.",
-    "auth/invalid-email":       "Email không hợp lệ.",
-    "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
-    "auth/invalid-credential":  "Email hoặc mật khẩu không đúng.",
-    "auth/user-disabled":       "Tài khoản đã bị vô hiệu hóa.",
-    "auth/user-not-found":      "Không tìm thấy tài khoản.",
-    "auth/wrong-password":      "Mật khẩu không đúng.",
-    "auth/popup-closed-by-user":"Cửa sổ đăng nhập đã bị đóng.",
-  };
-  return map[e?.code] || null;
-}
+</script>

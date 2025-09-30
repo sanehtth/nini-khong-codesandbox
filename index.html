@@ -60,60 +60,72 @@
     </section>
   </main>
 
-  <!-- ========== AUTH MODAL ========== -->
-  <div class="modal" id="authModal" aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
-    <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <button class="modal__close" data-close aria-label="Đóng">×</button>
+  <!-- =========================================
+BEGIN PATCH index.html — Auth modal (đồng bộ tab)
+Việc đã làm:
+- Mỗi tab có data-auth="login|signup|forgot"
+- Mỗi pane có data-pane="login|signup|forgot"
+- Mặc định chỉ pane "login" có .is-active
+========================================= -->
+<div class="modal" id="authModal" aria-hidden="true">
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="modal__close" data-close aria-label="Đóng">×</button>
 
-      <h3 id="authTitle" class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-        Đăng nhập / Đăng ký
-      </h3>
+    <h3 id="authTitle" class="modal__title">
+      <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+      Đăng nhập / Đăng ký
+    </h3>
 
-      <div class="tabs-line" id="authTabs">
-        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-        <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
+    <div class="tabs-line" id="authTabs">
+      <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+      <button class="tab-line" data-auth="signup">Đăng ký mới</button>
+      <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
+    </div>
+
+    <!-- Login -->
+    <form class="form is-active" data-pane="login" onsubmit="return false;">
+      <button type="button" class="btn btn-ghost full" id="btnGoogleLogin">Đăng nhập với Google</button>
+      <div class="or">hoặc</div>
+      <label>Email</label>
+      <input id="loginEmail" type="email" placeholder="you@example.com" />
+      <label>Mật khẩu</label>
+      <input id="loginPassword" type="password" placeholder="••••••••" />
+      <div class="row">
+        <button id="btnEmailLogin" type="button" class="btn">Đăng nhập</button>
       </div>
+      <p id="loginNote" class="note"></p>
+    </form>
 
-      <!-- Login -->
-      <form class="form is-active" data-pane="login" onsubmit="return false;">
-        <button type="button" class="btn btn-ghost full" id="btnGoogleLogin">Đăng nhập với Google</button>
-        <div class="or">hoặc</div>
-        <label for="loginEmail">Email</label>
-        <input id="loginEmail" type="email" placeholder="you@example.com" />
-        <label for="loginPassword">Mật khẩu</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" />
-        <div class="row">
-          <button id="btnEmailLogin" type="button" class="btn">Đăng nhập</button>
-        </div>
-        <p id="loginNote" class="note" aria-live="polite"></p>
-      </form>
+    <!-- Sign up -->
+    <form class="form" data-pane="signup" onsubmit="return false;">
+      <label>Email</label>
+      <input id="signupEmail" type="email" placeholder="you@example.com" />
+      <label>Mật khẩu mới</label>
+      <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
+      <div class="row">
+        <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
+      </div>
+      <p id="signupNote" class="note"></p>
+    </form>
 
-      <!-- Sign up -->
-      <form class="form" data-pane="signup" onsubmit="return false;">
-        <label for="signupEmail">Email</label>
-        <input id="signupEmail" type="email" placeholder="you@example.com" />
-        <label for="signupPassword">Mật khẩu mới</label>
-        <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
-        <div class="row">
-          <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
-        </div>
-        <p id="signupNote" class="note" aria-live="polite"></p>
-      </form>
-
-      <!-- Forgot password -->
-      <div id="forgotForm" class="form" data-pane="forgot">
-        <label for="forgot_email">Email</label>
-        <input id="forgot_email" type="email" placeholder="you@example.com" />
-        <div class="row">
-          <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
-          <span id="forgotNote" class="note" aria-live="polite"></span>
-        </div>
+    <!-- Forgot password -->
+    <div id="forgotForm" class="form" data-pane="forgot">
+      <label>Email</label>
+      <input id="forgot_email" type="email" placeholder="you@example.com" />
+      <div class="row">
+        <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
+        <span id="forgotNote" class="note"></span>
       </div>
     </div>
   </div>
+</div>
+
+<!-- Gọi logic -->
+<script type="module" src="/public/js/auth.js?v=2"></script>
+<!-- =========================================
+END PATCH index.html — Auth modal
+========================================= -->
 
   <!-- ========== READER MODAL (storybook) ========== -->
   <div class="modal" id="readerModal" aria-hidden="true">
@@ -156,3 +168,4 @@
   <script type="module" src="/public/js/auth.js?v=2"></script>
 </body>
 </html>
+

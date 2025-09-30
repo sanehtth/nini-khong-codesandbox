@@ -55,3 +55,57 @@
   background: #fff; border-radius: 16px;
   z-index: 12000;
 }
+/* ===== FIX GỌN: giữ layout chuẩn + header click được ===== */
+
+/* 1) Header nổi lên để bấm được, nhưng KHÔNG ép các phần khác */
+.site-header { position: relative; z-index: 4000; }
+
+/* 2) Modal: khi ẩn thì không chặn click (tránh backdrop che header) */
+.modal[aria-hidden="true"]         { pointer-events: none; }
+.modal[aria-hidden="true"] .modal__backdrop,
+.modal[aria-hidden="true"] .modal__panel { display: none; }
+
+/* 3) Chỉ tắt bắt-chuột cho lớp trang trí có thể che header */
+.frame::before, .frame::after,
+.viewport::before, .viewport::after,
+.shelf-card::before, .shelf-card::after { pointer-events: none; }
+
+/* 4) Khung trình bày: canh giữa, không tràn */
+.frame {
+  max-width: 1120px;          /* tuỳ ý: 960–1200px */
+  margin: 16px auto 0;        /* đẩy nhẹ xuống khỏi header */
+  border-radius: 16px;
+  overflow: hidden;           /* bo góc ảnh nền */
+}
+
+/* 5) Ảnh trong frame không “phình” bừa */
+.frame img { display: block; max-width: 100%; height: auto; }
+
+/* 6) Nhóm chip nút (Giới thiệu/Luật chơi/...) canh giữa, không xô lệch */
+.chips {
+  display: flex; gap: 12px; justify-content: center;
+  flex-wrap: wrap;
+  margin: 10px auto 0;
+}
+
+/* 7) Kệ sách: hiển thị dạng lưới gọn, không tràn trái */
+.shelf-card {
+  max-width: 1120px;
+  margin: 16px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.shelf-card img { width: 100%; height: auto; border-radius: 10px; display: block; }
+
+/* 8) Vùng nội dung dưới cùng canh giữa và không bể layout */
+.content {
+  max-width: 1120px;
+  margin: 12px auto 24px;
+}
+
+/* 9) Backdrop & panel khi mở (không ảnh hưởng layout) */
+.modal__backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 4500; }
+.modal__panel    { position: fixed; inset: 0; margin: auto; max-width: 640px; background: #fff;
+                   border-radius: 16px; z-index: 4600; height: fit-content; }
+

@@ -1,3 +1,4 @@
+<!-- ========== BEGIN PATCH (index.html) ========== -->
 <!doctype html>
 <html lang="vi">
 <head>
@@ -25,7 +26,6 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <!-- 2 nút Auth rõ ràng -->
     <button id="btnLogin"  class="auth-btn">Đăng nhập / Đăng ký</button>
     <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
 
@@ -82,14 +82,28 @@
         <p id="loginNote" class="note"></p>
       </form>
 
-      <!-- Sign up -->
+      <!-- Sign up (OTP flow) -->
       <form class="form" data-pane="signup" onsubmit="return false;">
         <label>Email</label>
         <input id="signupEmail" type="email" placeholder="you@example.com" />
+
         <label>Mật khẩu mới</label>
         <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
+
+        <label>Xác nhận mật khẩu</label>
+        <input id="signupPassword2" type="password" placeholder="Nhập lại mật khẩu" />
+
         <div class="row">
-          <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
+          <button id="btnSendOtp" type="button" class="btn btn-ghost">Gửi OTP</button>
+        </div>
+
+        <div class="otp-row">
+          <label>Mã OTP</label>
+          <input id="signupOtp" type="text" placeholder="Nhập mã 6 số" disabled />
+        </div>
+
+        <div class="row">
+          <button id="btnCreateAccount" type="button" class="btn" disabled>Tạo tài khoản</button>
         </div>
         <p id="signupNote" class="note"></p>
       </form>
@@ -107,149 +121,11 @@
   </div>
 
   <!-- ================== AUTH LOGIC ================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signOut,
-      GoogleAuthProvider, signInWithPopup,
-      signInWithEmailAndPassword, createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <script type="module" src="/public/js/auth.js?v=2"></script>
 
-    // ---- Firebase config ----
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
-    };
-
-    // ---- Init ----
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    // ---- Keys in localStorage to toggle 2 buttons ----
-    const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
-    const WHOKEY = "NINI_USER_DISPLAY";
-    const SIGNAL = "NINI_SIGNED_OUT_AT";
-
-    const $ = (id) => document.getElementById(id);
-    const btnLogin   = $("btnLogin");
-    const btnLogout  = $("btnLogout");
-    const whoSpan    = $("who");
-    const modal      = $("authModal");
-    const authTabs   = $("authTabs");
-
-    const loginEmail = $("loginEmail");
-    const loginPw    = $("loginPassword");
-    const btnEmailLogin  = $("btnEmailLogin");
-    const btnGoogleLogin = $("btnGoogleLogin");
-    const loginNote      = $("loginNote");
-
-    const signupEmail = $("signupEmail");
-    const signupPw    = $("signupPassword");
-    const btnEmailSignup = $("btnEmailSignup");
-    const signupNote     = $("signupNote");
-
-    const forgotInput = $("forgot_email");
-    const btnForgot   = $("btnForgotSend");
-    const forgotNote  = $("forgotNote");
-// DÙNG CÙNG DOMAIN:
-const FORGOT_API = "/api/send-reset";
-
-    function setNote(el, msg, ok = true){
-      if (!el) return;
-      el.textContent = msg || "";
-      el.style.color = ok ? "#0f5132" : "#7f1d1d";
-    }
-    function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
-    function setAuthUI(){
-      const logged = isLoggedIn();
-      const who    = localStorage.getItem(WHOKEY) || "";
-      whoSpan.textContent = logged && who ? `(${who})` : "";
-      btnLogin.hidden  = logged;
-      btnLogout.hidden = !logged;
-    }
-    function openAuth(){ modal?.setAttribute("aria-hidden","false"); }
-    function closeAuth(){ modal?.setAttribute("aria-hidden","true"); }
-
-    // Tabs
-    authTabs?.addEventListener("click", (e)=>{
-      const t = e.target.closest("[data-auth]"); if(!t) return;
-      document.querySelectorAll("#authModal .tab-line").forEach(b=>b.classList.remove("is-active"));
-      document.querySelectorAll("#authModal .form").forEach(p=>p.classList.remove("is-active"));
-      t.classList.add("is-active");
-      const pane = t.getAttribute("data-auth");
-      const panel = document.querySelector(`#authModal [data-pane="${pane}"]`) || (pane==="forgot" && $("forgotForm"));
-      panel?.classList.add("is-active");
-    });
-    modal?.querySelectorAll("[data-close], .modal__backdrop").forEach(el=>el.addEventListener("click", closeAuth));
-
-    // Buttons
-    btnLogin?.addEventListener("click", openAuth);
-    btnLogout?.addEventListener("click", async ()=>{
-      try { await signOut(auth); } catch(_){}
-      localStorage.setItem(FLAG,"0");
-      localStorage.removeItem(WHOKEY);
-      localStorage.setItem(SIGNAL, String(Date.now()));
-      location.replace("/");
-    });
-
-    // Login / Signup
-    btnEmailLogin?.addEventListener("click", async ()=>{
-      setNote(loginNote,"");
-      try{
-        const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value||"");
-        afterLogin(cred.user);
-      }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false); }
-    });
-    btnGoogleLogin?.addEventListener("click", async ()=>{
-      setNote(loginNote,"");
-      try{
-        const provider = new GoogleAuthProvider();
-        const cred = await signInWithPopup(auth, provider);
-        afterLogin(cred.user);
-      }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false); }
-    });
-    btnEmailSignup?.addEventListener("click", async ()=>{
-      setNote(signupNote,"");
-      try{
-        const cred = await createUserWithEmailAndPassword(auth, (signupEmail.value||"").trim(), signupPw.value||"");
-        afterLogin(cred.user);
-      }catch(e){ setNote(signupNote, e?.code || e?.message || "Không tạo được tài khoản", false); }
-    });
-
-    function afterLogin(user){
-      const who = user.displayName || user.email || user.phoneNumber || "user";
-      localStorage.setItem(FLAG,"1");
-      localStorage.setItem(WHOKEY, who);
-      setAuthUI(); closeAuth();
-      location.href = "/profile.html";
-    }
-    onAuthStateChanged(auth, (user)=>{
-      if (user){
-        const who = user.displayName || user.email || user.phoneNumber || "user";
-        localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY, who);
-      }
-      setAuthUI();
-    });
-    window.addEventListener("storage", (e)=>{
-      if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
-    });
-    setAuthUI();
-
-   
-
-  </script>
-<!-- Auth logic (module) -->
-<script type="module" src="/public/js/auth.js?v=1"></script>
-  <!-- App JS khác của bạn -->
+  <!-- App JS khác -->
   <script src="/public/js/effects.js?v=5" defer></script>
   <script src="/public/js/app.js?v=13" defer></script>
 </body>
 </html>
-
-
-
-
+<!-- ========== END PATCH (index.html) ========== -->

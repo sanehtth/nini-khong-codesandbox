@@ -1,99 +1,48 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Xác minh email — NiNi</title>
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
-  <meta name="robots" content="noindex, follow" />
 
+  <!-- favicon + CSS site -->
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />
+  <link rel="stylesheet" href="/styles.css?v=16" />
+  <link rel="stylesheet" href="/public/css/fix.css?v=3" />
+
+  <!-- BEGIN: verify page local styles (nhẹ, không đụng styles cũ) -->
   <style>
     :root{
-      --card-bg: rgba(255,255,255,.85);
-      --card-shadow: 0 10px 30px rgba(0,0,0,.15);
-      --radius: 16px;
-      --green: #2f6e3f;
-      --green-2: #21512d;
-      --text: #1c2024;
-      --note-ok: #0f5132;
-      --note-err:#7f1d1d;
+      --green:#2f6e3f; --green-2:#21512d; --text:#1c2024;
+      --card-bg:rgba(255,255,255,.9); --shadow:0 10px 30px rgba(0,0,0,.15);
+      --radius:16px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0;
-      color:var(--text);
-      font: 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;
-      background: #e6f1e9 url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
+      margin:0; color:var(--text);
+      font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
+      background:#e6f1e9 url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
     }
-
-    /* Header giống index: logo không nền/viền, slogan màu đồng bộ */
     .site-head{
-      position: fixed; inset: 16px auto auto 16px;
+      position:fixed; inset:16px auto auto 16px; z-index:20;
       display:flex; align-items:center; gap:10px;
-      z-index:20; pointer-events:none;
     }
-    .site-head .brand{pointer-events:auto; text-decoration:none; line-height:0}
-    .brand__img{height:34px; width:auto; display:block; background:transparent; border:0}
-    .slogan{
-      font-weight:600; font-size:14px; letter-spacing:.2px;
-      color:#F1E6B6; text-shadow:0 1px 2px rgba(0,0,0,.25); user-select:none;
-    }
-
-    /* Khối form ở giữa màn hình */
-    .wrap{
-      min-height:100%;
-      display:grid;
-      place-items:center;
-      padding: 80px 16px;
-      backdrop-filter: blur(0px);
-    }
-    .card{
-      width: min(560px, 92vw);
-      background: var(--card-bg);
-      box-shadow: var(--card-shadow);
-      border-radius: var(--radius);
-      padding: 28px 24px 22px;
-      transition: box-shadow .2s ease;
-    }
-    .title{
-      margin:0 0 6px;
-      font-weight:800; font-size: clamp(18px, 2.5vw, 22px);
-      color:var(--green-2);
-    }
-    .desc{margin:0 0 18px; color:#50615a; font-size:14px}
-    .row{display:flex; gap:10px; align-items:center}
-    .input{
-      flex:1 1 auto;
-      height:42px; padding:0 12px;
-      border-radius: 10px; border:1px solid #ced7d2;
-      outline:none; background:#fff;
-    }
-    .input:focus{border-color:#9fc5b0; box-shadow:0 0 0 3px rgba(47,110,63,.12)}
-    .btn{
-      height:42px; padding:0 14px; border-radius: 10px;
-      border:0; cursor:pointer; font-weight:700;
-      background: var(--green); color:#fff;
-    }
-    .btn:disabled{opacity:.6; cursor:not-allowed}
-    .links{
-      margin-top:10px; display:flex; gap:16px; align-items:center; justify-content:flex-end
-    }
-    .a{color:var(--green-2); text-decoration:none; font-weight:600}
-    .note{margin-top:12px; font-size:14px}
-    .note.ok{color:var(--note-ok)}
-    .note.err{color:var(--note-err)}
-
-    @media (max-width:480px){
-      .brand__img{height:30px}
-      .slogan{font-size:13px}
-      .card{padding:22px 18px}
-    }
+    .brand{ text-decoration:none; line-height:0 }
+    .brand__img{height:34px; width:auto; display:block}
+    .slogan{font-weight:600; font-size:14px; color:#F1E6B6; text-shadow:0 1px 2px rgba(0,0,0,.25)}
+    .wrap{min-height:100vh; display:grid; place-items:center; padding:80px 16px}
+    .card{ width:min(560px,92vw); background:var(--card-bg); box-shadow:var(--shadow);
+           border-radius:var(--radius); padding:26px 22px }
+    .title{margin:0 0 8px; font-weight:800; color:var(--green-2)}
+    .note{margin-top:10px}
+    .ok{color:#0f5132} .err{color:#7f1d1d}
+    .btn{height:42px; padding:0 14px; border-radius:10px; border:0;
+         background:var(--green); color:#fff; font-weight:700; cursor:pointer}
+    .links{margin-top:12px; display:flex; gap:12px; justify-content:flex-end}
   </style>
+  <!-- END: verify page local styles -->
 </head>
 <body>
-
-  <!-- Header -->
+  <!-- header nho gọn -->
   <header class="site-head">
     <a href="/#home" class="brand" aria-label="NiNi — Funny">
       <img src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" class="brand__img" />
@@ -101,30 +50,23 @@
     <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
   </header>
 
-  <!-- Form -->
+  <!-- nội dung -->
   <main class="wrap">
     <section class="card" aria-live="polite">
       <h1 class="title">Xác minh email</h1>
-      <p class="desc">Nhấn vào liên kết trong email xác minh để hoàn tất quá trình đăng ký.</p>
-
-      <div class="row">
-        <button id="btn" class="btn">Đang xác minh...</button>
-      </div>
-
+      <p id="msg" class="note">Đang xác minh, vui lòng đợi…</p>
       <div class="links">
-        <a class="a" href="/#home">Về trang chủ</a>
+        <a class="btn" href="/#home">Về trang chủ</a>
       </div>
-
-      <p id="msg" class="note"></p>
     </section>
   </main>
 
-  <!-- Firebase + logic -->
+  <!-- BEGIN: Firebase verify logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // === Firebase config (đúng project của bạn) ===
+    // Firebase config của bạn
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -137,30 +79,26 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const note = (t)=>{ document.getElementById("msg").textContent = t; };
-    const btn  = document.getElementById("btn");
+    const msg = document.getElementById("msg");
+    const setNote = (t, ok=true)=>{ msg.textContent=t||""; msg.className = "note " + (ok?"ok":"err"); };
 
-    async function finish(email){
+    const sp   = new URLSearchParams(location.search);
+    const mode = sp.get("mode");
+    const code = sp.get("oobCode");
+
+    async function run(){
       try{
-        // Lấy oobCode từ URL (Firebase gửi trong link email)
-        const sp = new URLSearchParams(location.search);
-        const oobCode = sp.get("oobCode");
-
-        if (!oobCode) {
-          note("Thiếu mã xác thực (oobCode). Vui lòng mở lại đường dẫn từ email.", false);
-          btn.disabled = true;
-        }
-
-        await applyActionCode(auth, oobCode);  // xác minh email
-        note("Xác minh thành công! Bạn có thể đăng nhập ngay.", true);
-        setTimeout(()=> location.href = "/#home", 1200);
+        if (mode !== "verifyEmail" || !code) throw new Error("Liên kết không hợp lệ hoặc đã hết hạn.");
+        await applyActionCode(auth, code);
+        setNote("Xác minh thành công! Bạn có thể đăng nhập.", true);
+        // về home sau 1.2s
+        setTimeout(()=>location.href="/#home", 1200);
       }catch(e){
-        note(e?.code || e?.message || "Liên kết không hợp lệ hoặc đã hết hạn.", false);
-        btn.disabled = false;
+        setNote(e?.code || e?.message || "auth/invalid-action-code", false);
       }
     }
-
-    finish();
+    run();
   </script>
+  <!-- END: Firebase verify logic -->
 </body>
 </html>

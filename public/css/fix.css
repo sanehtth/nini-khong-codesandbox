@@ -1,0 +1,29 @@
+﻿/* /public/css/fix.css  — vá nhẹ, giữ layout gốc, đảm bảo click & modal */
+
+/* 1) Header luôn bấm được */
+.site-header{ position: relative; z-index: 4000; }
+
+/* 2) Modal: khi ẩn thì không chặn click */
+.modal[aria-hidden="true"]{ pointer-events: none; }
+.modal[aria-hidden="true"] .modal__backdrop,
+.modal[aria-hidden="true"] .modal__panel{ display: none; }
+
+/* 3) Chỉ tắt bắt-chuột cho lớp TRANG TRÍ (không ảnh hưởng storybook/click) */
+.frame::before,.frame::after,
+.viewport::before,.viewport::after,
+.shelf-card::before,.shelf-card::after,
+.frame .decor,
+.frame [data-decor]{ pointer-events:none !important; }
+
+/* Nội dung bên trong frame vẫn tương tác bình thường */
+.frame, .frame *{ pointer-events:auto; }
+
+/* 4) Hình trong frame không tràn bừa */
+.frame img{ display:block; max-width:100%; height:auto; }
+
+/* 5) Canh khối chính gọn gàng (không phá style cũ) */
+.frame, .shelf-card, .content{ max-width:1120px; margin:16px auto; }
+
+/* 6) Backdrop/panel khi mở (không ảnh hưởng bố cục) */
+.modal__backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:4500; }
+.modal__panel{ position:fixed; inset:0; margin:auto; max-width:640px; background:#fff; border-radius:16px; z-index:4600; height:fit-content; }

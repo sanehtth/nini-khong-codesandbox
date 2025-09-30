@@ -189,3 +189,44 @@ body{
 .book-card__body{padding:10px}
 .book-card__title{margin:0 0 4px; font-size:16px}
 .book-card__meta{font-size:13px; color:#4d5a54}
+
+/* ====== AUTH NOTES (glass) ====== */
+.modal .form .note {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #1c2024;
+  box-shadow: 0 6px 18px rgba(31, 97, 64, 0.15);
+  border-left: 4px solid transparent;
+  line-height: 1.45;
+  font-size: 14px;
+  transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease;
+  transform: translateY(2px);
+  opacity: .98;
+}
+.modal .form .note.ok {
+  border-left-color: #2f6e3f; /* xanh lá nhạt */
+  box-shadow: 0 8px 22px rgba(47,110,63,.18);
+}
+.modal .form .note.err {
+  border-left-color: #b42318; /* đỏ */
+  box-shadow: 0 8px 22px rgba(180,35,24,.18);
+  color: #7f1d1d;
+}
+
+/* Nhỏ gọn khi text rỗng */
+.modal .form .note:empty { display: none; }
+
+/* Bảo đảm note nằm trên nền blur đúng z-index */
+.modal[aria-hidden="false"] .modal__panel { z-index: 20; }
+
+/* (phòng hờ) Nút đang active trong tab/season: viền xanh nổi bật */
+.tab.is-active,
+.tab-line.is-active {
+  box-shadow: 0 0 0 2px rgba(47,110,63,.35) inset, 0 6px 16px rgba(47,110,63,.15);
+}
+

@@ -582,6 +582,59 @@ body::after{
 .modal[aria-hidden="true"] .modal__panel { display: none; }
 
 /* ===== END PATCH ===== */
+/* ===== BEGIN PATCH: fix header overlapped by frame ===== */
+
+/* Header luôn nằm trên cùng và click được */
+.site-header{
+  position: relative;
+  z-index: 3000;
+  pointer-events: auto;
+}
+
+/* Đẩy khối frame xuống khỏi header một chút */
+.frame{
+  position: relative;
+  z-index: 1;
+  margin-top: 16px;          /* <- quan trọng: tránh dính vào header */
+}
+
+/* Bất kỳ lớp trang trí nào của frame/viewport không được chặn click */
+.frame::before,
+.frame::after,
+.viewport::before,
+.viewport::after{
+  pointer-events: none !important;
+}
+
+/* Khung nội dung nói chung không đè lên header */
+.viewport,
+.content{
+  position: relative;
+  z-index: 1;
+}
+
+/* Modal: khi ẩn thì không bắt sự kiện chuột */
+.modal[aria-hidden="true"]{ pointer-events: none; }
+.modal[aria-hidden="true"] .modal__backdrop,
+.modal[aria-hidden="true"] .modal__panel{ display: none; }
+
+/* Backdrop & panel khi hiện */
+.modal__backdrop{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 3500;
+}
+.modal__panel{
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-width: 640px;
+  height: fit-content;
+  background: #fff;
+  border-radius: 16px;
+  z-index: 3600;
+}
+/* ===== END PATCH ===== */
 
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
@@ -598,6 +651,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

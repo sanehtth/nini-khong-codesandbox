@@ -1,11 +1,10 @@
 /* ========== BEGIN PATCH (/public/js/auth.js) ========== */
-// /public/js/auth.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut,
   GoogleAuthProvider, signInWithPopup,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  fetchSignInMethodsForEmail, sendEmailVerification
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // ---- Firebase config ----
@@ -22,22 +21,18 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ---- Endpoints (Netlify Functions) ----
-const SEND_OTP_URL   = "/.netlify/functions/auth-email-send-otp";
-const VERIFY_OTP_URL = "/.netlify/functions/auth-email-verify-otp";
-
-// ---- Keys in localStorage to toggle 2 buttons ----
-const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
-const WHOKEY = "NINI_USER_DISPLAY";
-const SIGNAL = "NINI_SIGNED_OUT_AT";
-
-// ---- Helpers ----
+// ---- UI helpers ----
 const $ = (id) => document.getElementById(id);
 const setNote = (el, msg, ok=true) => {
   if (!el) return;
   el.textContent = msg || "";
   el.style.color = ok ? "#0f5132" : "#7f1d1d";
 };
+
+// ---- Keys in localStorage to toggle 2 buttons ----
+const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
+const WHOKEY = "NINI_USER_DISPLAY";
+const SIGNAL = "NINI_SIGNED_OUT_AT";
 
 function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
 function setAuthUI(){
@@ -56,22 +51,20 @@ function closeAuth(){ $("authModal")?.setAttribute("aria-hidden","true"); }
 // ---- Elements ----
 const authTabs   = $("authTabs");
 
+// Login
 const loginEmail = $("loginEmail");
 const loginPw    = $("loginPassword");
 const btnEmailLogin  = $("btnEmailLogin");
 const btnGoogleLogin = $("btnGoogleLogin");
 const loginNote      = $("loginNote");
 
-// Đăng ký (OTP)
-const signupEmail   = $("signupEmail");
-const signupPw      = $("signupPassword");
-const signupPw2     = $("signupPassword2");
-const btnSendOtp    = $("btnSendOtp");
-const signupOtp     = $("signupOtp");
-const btnCreate     = $("btnCreateAccount");
-const signupNote    = $("signupNote");
+// Signup
+const signupEmail = $("signupEmail");
+const signupPw    = $("signupPassword");
+const btnEmailSignup = $("btnEmailSignup");
+const signupNote     = $("signupNote");
 
-// Quên mật khẩu (giữ nguyên flow cũ của bạn, gọi server riêng)
+// Forgot (giữ nguyên flow nếu bạn đang dùng server riêng)
 const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
@@ -99,16 +92,35 @@ $("btnLogout")?.addEventListener("click", async ()=>{
 $("authModal")?.querySelectorAll("[data-close], .modal__backdrop")
   .forEach(el=>el.addEventListener("click", closeAuth));
 
-// ---- Login ----
+// ---- Login with Email/Password ----
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
+  const email = (loginEmail.value||"").trim();
+  const pw    = loginPw.value||"";
+  if (!email || !pw) return setNote(loginNote, "Vui lòng nhập email và mật khẩu.", false);
+
   try{
-    const cred = await signInWithEmailAndPassword(auth, (loginEmail.value||"").trim(), loginPw.value||"");
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    await cred.user.reload();
+    if (!cred.user.emailVerified) {
+      // Gửi lại email xác minh, rồi đăng xuất
+      try{
+        await sendEmailVerification(cred.user, { url: "https://nini-funny.com/#home" });
+      }catch(_){}
+      await signOut(auth);
+      return setNote(
+        loginNote,
+        "Tài khoản chưa xác minh email. Mình vừa gửi lại email xác minh — hãy kiểm tra hộp thư rồi đăng nhập lại.",
+        false
+      );
+    }
     afterLogin(cred.user);
   }catch(e){
-    setNote(loginNote, niceAuthError(e), false);
+    setNote(loginNote, niceAuthError(e) || "Không đăng nhập được", false);
   }
 });
+
+// ---- Login with Google (không yêu cầu verify email) ----
 btnGoogleLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   try{
@@ -120,123 +132,59 @@ btnGoogleLogin?.addEventListener("click", async ()=>{
   }
 });
 
-// ---- SIGNUP WITH OTP FLOW ----
-let __tx = null;
-
-// 1) Gửi OTP
-btnSendOtp?.addEventListener("click", async ()=>{
+// ---- Sign up: tạo user → gửi email xác minh → signOut ----
+btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
 
   const email = (signupEmail.value||"").trim();
-  const pw1   = signupPw.value || "";
-  const pw2   = signupPw2.value || "";
+  const pw    = signupPw.value||"";
+  if (!email || !pw) return setNote(signupNote, "Vui lòng nhập email và mật khẩu.", false);
+  if (pw.length < 8)  return setNote(signupNote, "Mật khẩu tối thiểu 8 ký tự.", false);
 
-  if (!email)      return setNote(signupNote, "Vui lòng nhập email.", false);
-  if (pw1.length < 8) return setNote(signupNote, "Mật khẩu tối thiểu 8 ký tự.", false);
-  if (pw1 !== pw2) return setNote(signupNote, "Mật khẩu xác nhận chưa khớp.", false);
-
-  // Check email đã tồn tại trên Firebase chưa
-  try{
-    const methods = await fetchSignInMethodsForEmail(auth, email);
-    if (Array.isArray(methods) && methods.length > 0){
-      return setNote(signupNote, "Email đã có tài khoản. Hãy đăng nhập hoặc chọn 'Quên mật khẩu'.", false);
-    }
-  }catch(_){ /* an toàn nếu Firebase chặn tạm thời */ }
-
-  // Gửi OTP
-  try{
-    const res = await fetch(SEND_OTP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok){
-      return setNote(signupNote, data.msg || "Không gửi được OTP.", false);
-    }
-    __tx = data.tx;
-    signupOtp.disabled = false;
-    btnCreate.disabled = false;
-    setNote(signupNote, "OTP đã gửi tới email. Vui lòng kiểm tra và nhập mã.", true);
-  }catch(e){
-    setNote(signupNote, "Lỗi mạng khi gửi OTP.", false);
-  }
-});
-
-// 2) Xác nhận OTP & tạo tài khoản
-btnCreate?.addEventListener("click", async ()=>{
-  setNote(signupNote,"");
-  const email = (signupEmail.value||"").trim();
-  const pw    = signupPw.value || "";
-  const code  = (signupOtp.value||"").trim();
-
-  if (!__tx)  return setNote(signupNote, "Hãy bấm 'Gửi OTP' trước.", false);
-  if (!code)  return setNote(signupNote, "Vui lòng nhập mã OTP.", false);
-
-  // Verify OTP server-side
-  try{
-    const res = await fetch(VERIFY_OTP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, code, tx: __tx })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok){
-      return setNote(signupNote, data.msg || "OTP không hợp lệ.", false);
-    }
-  }catch(e){
-    return setNote(signupNote, "Không xác minh được OTP.", false);
-  }
-
-  // Tạo tài khoản trên Firebase (sau khi OTP OK)
   try{
     const cred = await createUserWithEmailAndPassword(auth, email, pw);
-    // (tuỳ chọn) gửi email verify của Firebase
     try{
-      await sendEmailVerification(cred.user, {
-        url: "https://nini-funny.com/#home",
-        handleCodeInApp: true,
-      });
+      await sendEmailVerification(cred.user, { url: "https://nini-funny.com/#home" });
     }catch(_){}
-
-    setNote(signupNote, "Tạo tài khoản thành công! Hãy đăng nhập.", true);
-    // Chuyển về Home/đăng nhập
-    setTimeout(()=>{ 
-      closeAuth();
-      location.href = "/#home";
-    }, 1200);
-
+    // đăng xuất để buộc user xác minh xong mới đăng nhập lại
+    await signOut(auth);
+    setNote(
+      signupNote,
+      "Đã tạo tài khoản. Vui lòng kiểm tra email để xác minh trước khi đăng nhập!",
+      true
+    );
   }catch(e){
-    // Trường hợp hiếm: trong lúc chờ OTP, tài khoản đã được tạo
-    if (e?.code === "auth/email-already-in-use"){
-      return setNote(signupNote, "Email đã có tài khoản. Hãy dùng 'Quên mật khẩu' để đặt lại.", false);
-    }
-    setNote(signupNote, niceAuthError(e) || "Không tạo được tài khoản.", false);
+    const nice = {
+      "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng 'Quên mật khẩu'.",
+      "auth/invalid-email":       "Email không hợp lệ.",
+      "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
+    };
+    setNote(signupNote, nice[e?.code] || (e?.code || e?.message || "Không tạo được tài khoản"), false);
   }
 });
 
-// ---- Forgot password (server riêng của bạn) ----
+// ---- Forgot password (nếu bạn đang dùng API riêng) ----
 const FORGOT_API = "/api/send-reset";
-btnForgot?.addEventListener("click", async (e)=>{
+btnForgot?.addEventListener("click", async (e) => {
   e?.preventDefault?.();
   const email = (forgotInput?.value || "").trim();
   if (!email) return setNote(forgotNote, "Vui lòng nhập email.", false);
 
   setNote(forgotNote, "Đang gửi...", true);
-  try{
+  try {
     const res = await fetch(FORGOT_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, resetLink: "https://nini-funny.com/reset-password.html" })
+      body: JSON.stringify({ email, link: "https://nini-funny.com/reset-password.html" }),
     });
-    const data = await res.json().catch(()=>({}));
-    if (res.ok){
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
       setNote(forgotNote, data.message || "Đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra email!", true);
-    }else{
+    } else {
       setNote(forgotNote, data.message || "Không gửi được mail. Vui lòng thử lại!", false);
     }
-  }catch(_){
-    setNote(forgotNote, "Không kết nối được máy chủ.", false);
+  } catch {
+    setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
   }
 });
 
@@ -266,7 +214,8 @@ function niceAuthError(e){
     "auth/email-already-in-use": "Email này đã được đăng ký.",
     "auth/invalid-email": "Email không hợp lệ.",
     "auth/weak-password": "Mật khẩu quá yếu (ít nhất 8 ký tự).",
-    "auth/invalid-credential": "Thông tin đăng nhập không đúng."
+    "auth/invalid-credential": "Thông tin đăng nhập không đúng.",
+    "auth/too-many-requests": "Bạn thao tác quá nhanh. Vui lòng thử lại sau."
   };
   return map[e?.code] || e?.code || e?.message;
 }

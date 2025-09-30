@@ -1,4 +1,4 @@
-// /public/js/auth.js  — Email/Password + Email Verification flow
+// /public/js/auth.js — Email/Password + Email Verification flow
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut,
@@ -59,7 +59,7 @@ const signupPw      = $("signupPassword");
 const signupPw2     = $("signupPassword2");
 const btnSendVerify = $("btnSendVerify");   // “Gửi xác thực email”
 const signupNote    = $("signupNote");
-// Forgot (nếu bạn dùng API riêng)
+// Forgot
 const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
@@ -87,7 +87,7 @@ $("btnLogout")?.addEventListener("click", async ()=>{
 $("authModal")?.querySelectorAll("[data-close], .modal__backdrop")
   .forEach(el=>el.addEventListener("click", closeAuth));
 
-/* ================= Login ================= */
+/* ================= Login (Email/Password) ================= */
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   const email = (loginEmail.value||"").trim();
@@ -97,9 +97,15 @@ btnEmailLogin?.addEventListener("click", async ()=>{
   try{
     const cred = await signInWithEmailAndPassword(auth, email, pw);
     await cred.user.reload();
+
     if (!cred.user.emailVerified) {
-      // Gửi lại email xác minh rồi signOut (bắt buộc xác minh trước khi dùng)
-      try { await sendEmailVerification(cred.user, { url: "https://nini-funny.com/#home" }); } catch(_){}
+      // GỬI LẠI email xác minh → verify-email.html (đúng trang)
+      try {
+        await sendEmailVerification(cred.user, {
+          url: "https://nini-funny.com/verify-email.html",
+          handleCodeInApp: true,
+        });
+      } catch(_){}
       await signOut(auth);
       return setNote(
         loginNote,
@@ -107,6 +113,7 @@ btnEmailLogin?.addEventListener("click", async ()=>{
         false
       );
     }
+
     afterLogin(cred.user);
   }catch(e){
     setNote(loginNote, niceAuthError(e) || "Không đăng nhập được", false);
@@ -147,7 +154,16 @@ btnSendVerify?.addEventListener("click", async ()=>{
     }
 
     const cred = await createUserWithEmailAndPassword(auth, email, pw1);
-    try { await sendEmailVerification(cred.user, { url: "https://nini-funny.com/#home" }); } catch(_){}
+
+    // GỬI email xác minh → verify-email.html
+    try {
+      await sendEmailVerification(cred.user, {
+        url: "https://nini-funny.com/verify-email.html",
+        handleCodeInApp: true,
+      });
+    } catch(_) {}
+
+    // Đăng xuất để buộc xác minh xong mới dùng
     await signOut(auth);
 
     // đếm lùi để rõ nút đã gửi
@@ -171,7 +187,7 @@ btnSendVerify?.addEventListener("click", async ()=>{
   }
 });
 
-/* ================= Forgot password (nếu dùng API riêng) ================= */
+/* ================= Forgot password (qua API riêng) ================= */
 const FORGOT_API = "/api/send-reset";
 btnForgot?.addEventListener("click", async (e)=>{
   e?.preventDefault?.();

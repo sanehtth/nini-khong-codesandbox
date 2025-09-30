@@ -543,6 +543,45 @@ body::after{
   text-decoration: underline;
   border:none;
 }
+/* ===== BEGIN PATCH: header + modal visibility ===== */
+
+/* Header nổi lên trên mọi thứ để click được */
+.site-header {
+  position: relative;
+  z-index: 3000;
+  pointer-events: auto;
+}
+
+/* Khung nội dung không che header */
+.frame, .viewport, .content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Modal backdrop/panel: chỉ hiện khi không aria-hidden */
+.modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 3500;
+}
+.modal__panel {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-width: 640px;
+  height: fit-content;
+  background: #fff;
+  border-radius: 16px;
+  z-index: 3600;
+}
+
+/* Khi aria-hidden="true" thì modal KHÔNG chặn click */
+.modal[aria-hidden="true"] { pointer-events: none; }
+.modal[aria-hidden="true"] .modal__backdrop { display: none; }
+.modal[aria-hidden="true"] .modal__panel { display: none; }
+
+/* ===== END PATCH ===== */
 
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
@@ -559,6 +598,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

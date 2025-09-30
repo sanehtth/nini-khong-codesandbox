@@ -82,31 +82,26 @@
         <p id="loginNote" class="note"></p>
       </form>
 
-      <!-- Sign up (OTP flow) -->
-      <form class="form" data-pane="signup" onsubmit="return false;">
-        <label>Email</label>
-        <input id="signupEmail" type="email" placeholder="you@example.com" />
+     <!-- ========== BEGIN PATCH (SIGNUP FORM in index.html) ========== -->
+<!-- Sign up (Email verification flow) -->
+<form class="form" data-pane="signup" onsubmit="return false;">
+  <label>Email</label>
+  <input id="signupEmail" type="email" placeholder="you@example.com" />
 
-        <label>Mật khẩu mới</label>
-        <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
+  <label>Mật khẩu mới</label>
+  <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
 
-        <label>Xác nhận mật khẩu</label>
-        <input id="signupPassword2" type="password" placeholder="Nhập lại mật khẩu" />
+  <label>Xác nhận mật khẩu</label>
+  <input id="signupPassword2" type="password" placeholder="Nhập lại mật khẩu" />
 
-        <div class="row">
-          <button id="btnSendOtp" type="button" class="btn btn-ghost">Gửi OTP</button>
-        </div>
+  <div class="row">
+    <!-- Đổi nút -->
+    <button id="btnSendVerify" type="button" class="btn">Gửi xác thực email</button>
+  </div>
+  <p id="signupNote" class="note"></p>
+</form>
+<!-- ========== END PATCH (SIGNUP FORM in index.html) ========== -->
 
-        <div class="otp-row">
-          <label>Mã OTP</label>
-          <input id="signupOtp" type="text" placeholder="Nhập mã 6 số" disabled />
-        </div>
-
-        <div class="row">
-          <button id="btnCreateAccount" type="button" class="btn" disabled>Tạo tài khoản</button>
-        </div>
-        <p id="signupNote" class="note"></p>
-      </form>
 
       <!-- Forgot password -->
       <div id="forgotForm" class="form">
@@ -129,3 +124,4 @@
 </body>
 </html>
 <!-- ========== END PATCH (index.html) ========== -->
+

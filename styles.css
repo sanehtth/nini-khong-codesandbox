@@ -1,178 +1,191 @@
-/* ==========================
-   NiNi — Global Theme (ONE STYLE)
-   ========================== */
+/* =======================
+   NiNi — ONE STYLE (FULL)
+   ======================= */
 
 :root{
-  /* palette */
-  --green-600:#2f6e3f;
-  --green-700:#21512d;
-  --green-100:#b7d3c2;
-  --ink:#1c2024;
-  --muted:#6b7a73;
-
-  /* glass + shadows */
-  --glass-bg: rgba(255,255,255,.15);
-  --glass-card: rgba(255,255,255,.9);
-  --shadow-green: 0 10px 30px rgba(47,110,63,.15);
-
-  /* layout */
+  --glass: rgba(255,255,255,.15);
+  --glass-strong: rgba(255,255,255,.25);
+  --border: rgba(255,255,255,.6);
+  --text: #1c2024;
+  --green: #2f6e3f;       /* xanh lá chủ đạo */
+  --green-2: #3b8a5a;     /* xanh lá đậm (active) */
+  --green-soft: rgba(47,110,63,.40);  /* bóng đổ */
+  --note-ok:#0f5132;
+  --note-err:#7f1d1d;
   --radius: 16px;
-
-  /* outside background: app.js sẽ set --bg-url */
-  --bg-url: url("/public/assets/bg/nini_home.webp");
 }
 
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
-  margin:0; color:var(--ink);
-  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
+  margin:0;
+  color:var(--text);
+  font: 16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial;
+  background: #e6f1e9 var(--bg-url) center/cover fixed no-repeat;
 }
 
-/* Outside forest background (không che header & nội dung) */
-body::before{
-  content:"";
-  position:fixed; inset:0;
-  background: var(--bg-url) center/cover no-repeat fixed;
-  z-index:-1;
-}
-
-/* ====== Header ====== */
+/* ---------- Header ---------- */
 .site-header{
-  position:relative; z-index:4000;
   display:flex; align-items:center; gap:16px;
-  padding:12px 16px;
-}
-.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; line-height:0 }
-.brand__logo{ height:34px; width:auto; display:block }
-.brand__slogan{
-  font-weight:600; font-size:14px; letter-spacing:.2px;
-  color:#F1E6B6; text-shadow:0 1px 2px rgba(0,0,0,.25); user-select:none;
-}
-
-/* Tabs (seasons) */
-.tabs{ display:flex; gap:10px; margin-left:auto; margin-right:8px; }
-.tab{
-  appearance:none; border:1px solid rgba(255,255,255,.6);
-  background:var(--glass-bg); color:#fff; font-weight:700;
-  height:36px; padding:0 12px; border-radius:999px; cursor:pointer;
-  box-shadow:var(--shadow-green);
-}
-.tab.is-active{ border-color:#fff; outline:2px solid rgba(255,255,255,.35) }
-
-/* Auth buttons on header */
-.auth-btn{
-  appearance:none; border:1px solid rgba(255,255,255,.85); color:#fff;
-  background:var(--glass-bg); font-weight:700; height:36px; padding:0 12px;
-  border-radius:999px; cursor:pointer; box-shadow:var(--shadow-green);
-}
-
-/* Admin link (thường ẩn, app.js toggle) */
-.admin-link.is-hidden{ display:none }
-
-/* ====== Frame (inside glass) ====== */
-.viewport{ padding: 6px 16px 24px; }
-.frame{
-  position:relative; max-width:1120px; margin:16px auto;
-  border-radius:var(--radius); overflow:hidden;
-  aspect-ratio:16/9;
-  background-size:cover; background-position:center;
-  box-shadow:var(--shadow-green);
-}
-/* bảo đảm lớp trang trí không chặn click */
-.frame::before,.frame::after,
-.viewport::before,.viewport::after,
-.shelf-card::before,.shelf-card::after,
-.frame .decor,[data-decor]{ pointer-events:none !important; }
-.frame, .frame *{ pointer-events:auto; }
-
-/* mascot và chips */
-.nini{ position:absolute; bottom:90px; left:50%; transform:translateX(-50%); height:min(35%,190px) }
-.chips{ position:absolute; left:50%; transform:translateX(-50%); bottom:16px; display:flex; gap:10px; }
-.chip{
-  appearance:none; border:1px solid rgba(255,255,255,.8);
-  background:var(--glass-bg); color:#fff; font-weight:700;
-  height:32px; padding:0 10px; border-radius:999px; cursor:pointer;
-  box-shadow:var(--shadow-green);
-}
-.chip.is-active{ border-color:#fff }
-
-/* content dưới frame */
-.content{
-  max-width:1120px; margin:16px auto 0; padding:16px 14px;
-  border-radius:var(--radius);
-  background: rgba(255,255,255,.65);
-  box-shadow:var(--shadow-green);
-}
-
-/* ====== Shelf in frame (Spring) ====== */
-.shelf-card{
-  position:absolute; left:0; right:0; bottom:70px;
-  width:calc(100% - 24px); margin:0 auto; padding:12px;
-  border-radius:14px; background:rgba(255,255,255,.18); backdrop-filter: blur(6px) saturate(120%);
-  box-shadow:var(--shadow-green);
-}
-.shelf{ display:flex; flex-direction:column; gap:10px }
-.shelf__title{ margin:0 0 6px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25) }
-.shelf__grid{ display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
-.book-card{ border-radius:12px; overflow:hidden; background:rgba(255,255,255,.2); box-shadow:var(--shadow-green); cursor:pointer }
-.book-card__cover{ width:100%; height:150px; object-fit:cover; display:block }
-.book-card__body{ padding:8px; color:#173a26 }
-.book-card__title{ margin:0 0 2px; font-weight:800; font-size:15px }
-.book-card__meta{ font-size:13px; color:#2a5740 }
-
-/* ====== Forms (ONE STYLE) ====== */
-.form{ display:block }
-.form label{ display:block; font-weight:600; margin:12px 0 6px; color:#173a26 }
-.form input{
-  width:100%; height:42px; padding:0 10px; background:transparent;
-  border:0; border-bottom:2px solid rgba(255,255,255,.8); color:#1c2024;
-  outline:none;
-}
-.form input::placeholder{ color:#7aa18d }
-.form input:focus{ border-color:#9fd1b5; box-shadow:0 10px 18px -12px rgba(47,110,63,.25) inset; }
-
-/* Buttons (white border + glass fill + green shadow) */
-.btn{
-  appearance:none; border:1px solid rgba(255,255,255,.95);
-  background:var(--glass-bg); color:#173a26; font-weight:800;
-  height:42px; padding:0 14px; border-radius:12px; cursor:pointer;
-  box-shadow:var(--shadow-green);
-}
-.btn-ghost{ background:transparent }
-.btn.full{ width:100% }
-.btn:disabled{ opacity:.6; cursor:not-allowed }
-
-/* ====== Modal ====== */
-.modal[aria-hidden="true"]{ pointer-events:none }
-.modal[aria-hidden="true"] .modal__backdrop,
-.modal[aria-hidden="true"] .modal__panel{ display:none }
-.modal__backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:4500 }
-.modal__panel{
-  position:fixed; inset:0; margin:auto; max-width:640px; width:92vw;
-  background: rgba(255,255,255,.9);    /* card glass light */
+  padding:10px 14px;
+  position:sticky; top:0; z-index:10;
   backdrop-filter: blur(8px);
-  border-radius:var(--radius); box-shadow:var(--shadow-green);
-  z-index:4600; padding:22px 18px 18px; height:fit-content;
 }
-.modal__title{ margin:0 0 8px; display:flex; align-items:center; gap:8px; color:#173a26 }
-.modal__logo{ height:26px; width:auto }
-.tabs-line{ display:flex; gap:8px; margin:10px 0 8px }
-.tab-line{
-  appearance:none; border:1px solid rgba(255,255,255,.9);
-  background:var(--glass-bg); color:#173a26; height:34px; padding:0 10px;
-  border-radius:10px; cursor:pointer; font-weight:700;
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand__logo{height:34px; width:auto; display:block}
+.brand__slogan{
+  font-weight:700; letter-spacing:.2px; user-select:none;
+  /* text gradient animate: vàng → xanh → nâu */
+  background: linear-gradient(90deg,#f3d56b 0%, #2f6e3f 50%, #7a5b3a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sloganHue 6s linear infinite;
 }
-.tab-line.is-active{ border-color:#fff; outline:2px solid rgba(255,255,255,.35) }
-.modal__close{ position:absolute; right:10px; top:8px; border:0; background:transparent; font-size:22px; cursor:pointer }
+@keyframes sloganHue{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
 
-/* small notes */
-.note{ margin-top:8px; font-size:14px; color:var(--muted) }
-
-/* ====== Reader modal basic (nếu có) ====== */
-.reader-card{
-  background: rgba(255,255,255,.9); border-radius:16px; box-shadow:var(--shadow-green);
-  backdrop-filter: blur(6px);
+/* ---------- Tabs (seasons) ---------- */
+.tabs{margin-left:auto; display:flex; gap:8px; flex-wrap:wrap}
+.tab{
+  appearance:none; border:1px solid var(--border);
+  background: var(--glass);
+  color:#fff; font-weight:700; padding:6px 12px; border-radius:999px;
+  cursor:pointer; backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+  transition: box-shadow .2s ease, border-color .2s, background .2s;
 }
-#subtitleText{ color:#173a26; font-weight:600 }
-#pageCounterTop{ position:absolute; top:10px; right:12px; color:#173a26; font-weight:800; background:rgba(255,255,255,.6); border-radius:8px; padding:2px 8px }
+.tab:hover{background:var(--glass-strong)}
+.tab.is-active{
+  border-color: var(--green-2);
+  box-shadow: 0 10px 24px var(--green-soft), 0 0 0 1px var(--green-2) inset;
+  background: rgba(255,255,255,.30);
+}
+
+/* ---------- Auth buttons ---------- */
+.auth-btn{
+  margin-left:10px;
+  border:1px solid var(--border); background:var(--glass);
+  color:#fff; font-weight:700; border-radius:999px; padding:6px 12px;
+  cursor:pointer; backdrop-filter: blur(6px);
+}
+.auth-btn:hover{background:var(--glass-strong)}
+
+/* ---------- Admin link (ẩn/hiện bằng hotkey) ---------- */
+.admin-link{
+  margin-left:10px; text-decoration:none; color:#fff;
+  border:1px solid var(--border); background:var(--glass);
+  padding:6px 12px; border-radius:999px; backdrop-filter: blur(6px);
+}
+.admin-link.is-hidden{display:none}
+
+/* ---------- Viewport + Frame ---------- */
+.viewport{padding:8px 14px 40px}
+.frame{
+  position:relative;
+  width:min(100%, 1100px);
+  margin-inline:auto;
+  aspect-ratio: 16/9;
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  overflow:hidden;
+  box-shadow: 0 16px 40px rgba(0,0,0,.18);
+  background-image: var(--bg-url);
+  background-size: cover; background-position: center;
+}
+.nini{position:absolute; inset:auto auto 18% 50%; transform:translateX(-50%); height:140px; z-index:3}
+.chips{
+  position:absolute; inset:auto auto 12% 50%; transform:translateX(-50%);
+  display:flex; gap:10px; z-index:3;
+}
+.chip{
+  border:1px solid var(--border); background:var(--glass); color:#fff;
+  padding:6px 12px; border-radius:999px; font-weight:700; cursor:pointer;
+  backdrop-filter: blur(6px); transition: .2s;
+}
+.chip:hover{background:var(--glass-strong)}
+.chip.is-active{
+  border-color: var(--green-2);
+  box-shadow: 0 10px 24px var(--green-soft), 0 0 0 1px var(--green-2) inset;
+  background: rgba(255,255,255,.30);
+}
+
+/* FX canvas layer */
+.fx-layer{position:absolute; inset:0; pointer-events:none; z-index:2}
+
+/* ---------- Content card dưới frame ---------- */
+.content{
+  width:min(100%, 1100px); margin:18px auto 0;
+  background:var(--glass); backdrop-filter: blur(10px);
+  border-radius: var(--radius); padding:16px 18px; color:#fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+}
+
+/* ---------- Modal (glass panel) ---------- */
+.modal{position:fixed; inset:0; z-index:20; display:block}
+.modal[aria-hidden="true"]{display:none}
+.modal__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.35); backdrop-filter: blur(2px)}
+.modal__panel{
+  position:absolute; inset:50% auto auto 50%;
+  transform:translate(-50%,-50%);
+  width:min(560px, 92vw);
+  background: rgba(255,255,255,.85);
+  border-radius: 16px;
+  padding: 24px 20px 18px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+}
+.modal__close{
+  position:absolute; right:10px; top:10px; border:0; background:transparent; font-size:20px; cursor:pointer
+}
+.modal__title{
+  display:flex; align-items:center; gap:10px; margin:0 0 10px;
+  color:var(--green);
+}
+.modal__logo{height:26px}
+
+/* ---------- Form (underline inputs) ---------- */
+.form{display:block}
+.form label{display:block; font-weight:700; margin:10px 0 6px; color:#2a3b33}
+.form .input, .form input[type="text"], .form input[type="email"], .form input[type="password"]{
+  width:100%; background:transparent; border:0; outline:none;
+  border-bottom:2px solid rgba(255,255,255,.65); color:#1c2024; padding:8px 4px;
+}
+.form .input::placeholder, .form input::placeholder{color:#8aa69a}
+.form .input:focus, .form input:focus{
+  border-bottom-color: var(--green-2);
+  box-shadow: 0 6px 0 -4px var(--green-2);
+}
+.row{display:flex; gap:10px; align-items:center}
+
+/* ---------- Buttons (glass) ---------- */
+.btn{
+  border:1px solid var(--border); background:var(--glass); color:#fff;
+  padding:8px 14px; font-weight:800; border-radius:12px; cursor:pointer;
+  backdrop-filter: blur(6px); transition:.2s;
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+.btn:hover{background:var(--glass-strong)}
+.btn.full{width:100%}
+.btn.is-active{
+  border-color: var(--green-2);
+  background: rgba(255,255,255,.30);
+  box-shadow: 0 12px 28px var(--green-soft), 0 0 0 1px var(--green-2) inset;
+}
+
+/* ---------- Notes ---------- */
+.note{margin-top:8px; font-size:14px; color:#2f3e39}
+.note.ok{color:var(--note-ok)} .note.err{color:var(--note-err)}
+
+/* ---------- Shelf (books) ---------- */
+.shelf{padding:14px}
+.shelf__title{margin:0 0 8px; color:#fff}
+.shelf__grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px}
+.book-card{background:rgba(255,255,255,.85); border-radius:12px; overflow:hidden; cursor:pointer; box-shadow:0 10px 24px rgba(0,0,0,.15)}
+.book-card__cover{width:100%; height:150px; object-fit:cover; display:block}
+.book-card__body{padding:10px}
+.book-card__title{margin:0 0 4px; font-size:16px}
+.book-card__meta{font-size:13px; color:#4d5a54}

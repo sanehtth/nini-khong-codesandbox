@@ -1,126 +1,97 @@
 /**
- * netlify/functions/send-verify.js
+ * netlify/functions/send-verification-email.js
  *
- * Nhận { email } từ client → tạo link VERIFY (mode=verifyEmail) bằng Firebase Admin
- * → gửi mail xác minh qua SMTP (mail pro của bạn).
- *
- * YÊU CẦU ENV (đặt trong Netlify > Site settings > Environment variables):
- *  - FIREBASE_PROJECT_ID
- *  - FIREBASE_CLIENT_EMAIL
- *  - FIREBASE_PRIVATE_KEY        (copy từ service account, nhớ escape newline thành \n)
- *  - VERIFY_EMAIL_TARGET_URL     (vd: https://nini-funny.com/verify-email.html)
- *
- *  - SMTP_HOST
- *  - SMTP_PORT                   (ví dụ 587)
- *  - SMTP_SECURE                 ("true" | "false")
- *  - SMTP_USER                   (username, hoặc dùng SMTP_EMAIL)
- *  - SMTP_PASS
- *  - SMTP_EMAIL                  (địa chỉ from mặc định nếu FROM_EMAIL không có)
- *
- *  - FROM_EMAIL                  (ví dụ: "NiNi Funny <no-reply@nini-funny.com>")
- *  - CORS_ORIGIN                 (vd: https://nini-funny.com)
+ * Gửi email xác minh tài khoản cho user bằng Firebase Admin + SMTP
+ * Yêu cầu biến môi trường trong Netlify:
+ *   - FIREBASE_PROJECT_ID
+ *   - FIREBASE_CLIENT_EMAIL
+ *   - FIREBASE_PRIVATE_KEY
+ *   - VERIFY_EMAIL_TARGET_URL (vd: https://nini-funny.com/verify-email.html)
+ *   - SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE
+ *   - FROM_EMAIL (vd: "NiNi Funny <no-reply@nini-funny.com>")
  */
 
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
-const ALLOW_ORIGIN = process.env.CORS_ORIGIN || "https://nini-funny.com";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOW_ORIGIN,
-  "Access-Control-Allow-Methods": "POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type,Authorization",
-};
-
-// Init Firebase Admin một lần
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId:   process.env.FIREBASE_PROJECT_ID,
+      projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
 }
 
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+/**
+ * Lambda function handler
+ */
 exports.handler = async (event) => {
-  // Preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: corsHeaders };
-  }
-  // Chỉ cho POST
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: "Method Not Allowed" }),
-    };
+    return { statusCode: 405, body: "Method Not Allowed" };
   }
 
   try {
-    const { email, subject, htmlIntro } = JSON.parse(event.body || "{}");
+    const { email } = JSON.parse(event.body || "{}");
     if (!email) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders,
-        body: JSON.stringify({ error: "Missing email" }),
-      };
+      return { statusCode: 400, body: "Missing email" };
     }
 
-    // 1) Tạo link VERIFY (đúng flow xác minh email)
-    const verifyUrl =
-      process.env.VERIFY_EMAIL_TARGET_URL || "https://nini-funny.com/verify-email.html";
-    const actionCodeSettings = {
-      url: verifyUrl,
-      handleCodeInApp: true,
-    };
+    // Tạo link xác minh qua Firebase Admin
     const link = await admin
       .auth()
-      .generateEmailVerificationLink(email, actionCodeSettings);
+      .generateEmailVerificationLink(email, {
+        url: process.env.VERIFY_EMAIL_TARGET_URL,
+        handleCodeInApp: true,
+      });
 
-    // 2) Cấu hình SMTP transporter
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: (process.env.SMTP_SECURE || "false").toLowerCase() === "true",
-      auth: {
-        user: process.env.SMTP_USER || process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    // 3) Tạo nội dung email
-    const from = process.env.FROM_EMAIL || `"NiNi Funny" <${process.env.SMTP_EMAIL}>`;
-    const mailSubject = subject || "Xác minh email NiNi — Funny";
-
-    const htmlBody =
-      htmlIntro ||
-      `
-      <p>Xin chào,</p>
-      <p>Vui lòng bấm vào liên kết dưới đây để xác minh email cho tài khoản NiNi — Funny:</p>
-      <p><a href="${link}" target="_blank" rel="noopener">${link}</a></p>
-      <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
-      `;
-
-    // 4) Gửi mail
-    await transporter.sendMail({
-      from,
+    // Soạn nội dung email
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || "NiNi Funny <no-reply@nini-funny.com>",
       to: email,
-      subject: mailSubject,
-      html: htmlBody,
-    });
+      subject: "Xác minh email - NiNi Funny",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height:1.6;">
+          <h2>Chào bạn!</h2>
+          <p>Bạn vừa đăng ký tài khoản tại <b>NiNi Funny</b>.</p>
+          <p>Vui lòng bấm vào nút dưới đây để xác minh email của bạn:</p>
+          <p>
+            <a href="${link}" 
+               style="background:#4CAF50;color:#fff;padding:10px 20px;
+                      text-decoration:none;border-radius:5px;display:inline-block;">
+              Xác minh email
+            </a>
+          </p>
+          <p>Nếu bạn không tạo tài khoản này, hãy bỏ qua email.</p>
+          <hr/>
+          <small>NiNi Funny</small>
+        </div>
+      `,
+    };
+
+    // Gửi mail
+    await transporter.sendMail(mailOptions);
 
     return {
       statusCode: 200,
-      headers: corsHeaders,
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ success: true, message: "Verification email sent!" }),
     };
-  } catch (e) {
-    console.error("[send-verify] error:", e);
+  } catch (err) {
+    console.error("Error sending verification email:", err);
     return {
       statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: e.message || "send-verify failed" }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };

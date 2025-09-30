@@ -109,3 +109,17 @@
 .modal__panel    { position: fixed; inset: 0; margin: auto; max-width: 640px; background: #fff;
                    border-radius: 16px; z-index: 4600; height: fit-content; }
 
+/* ==== Hero/frame giữ tỉ lệ 16:9, full bề ngang, ảnh fill-cover ==== */
+.frame {
+  max-width: 1120px;      /* giữ khung gọn như trước */
+  margin: 16px auto;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.frame .hero {
+  width: 100%;
+  aspect-ratio: 16 / 9;    /* chuẩn 16:9 */
+  object-fit: cover;       /* ảnh/phim lấp đầy */
+  display: block;
+}
+

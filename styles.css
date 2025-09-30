@@ -1,125 +1,178 @@
-/* ===== FIX: header bị che bởi frame/overlay ===== */
+/* ==========================
+   NiNi — Global Theme (ONE STYLE)
+   ========================== */
 
-/* 1) Header luôn ở lớp trên cùng và nhận click */
-.site-header,
-.site-header * {
-  position: relative;
-  z-index: 10000 !important;
-  pointer-events: auto !important;
+:root{
+  /* palette */
+  --green-600:#2f6e3f;
+  --green-700:#21512d;
+  --green-100:#b7d3c2;
+  --ink:#1c2024;
+  --muted:#6b7a73;
+
+  /* glass + shadows */
+  --glass-bg: rgba(255,255,255,.15);
+  --glass-card: rgba(255,255,255,.9);
+  --shadow-green: 0 10px 30px rgba(47,110,63,.15);
+
+  /* layout */
+  --radius: 16px;
+
+  /* outside background: app.js sẽ set --bg-url */
+  --bg-url: url("/public/assets/bg/nini_home.webp");
 }
 
-/* 2) Mọi phần bên dưới header phải nằm dưới */
-.viewport,
-.content,
-.frame,
-.shelf-card {
-  position: relative;
-  z-index: 1 !important;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink);
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
 }
 
-/* 3) Đẩy frame tách khỏi header để không “đè viền” lên nhau */
-.frame {
-  margin-top: 20px !important; /* tăng/giảm tùy ý (12–32px) */
+/* Outside forest background (không che header & nội dung) */
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background: var(--bg-url) center/cover no-repeat fixed;
+  z-index:-1;
 }
 
-/* 4) TẮT bắt chuột cho các lớp TRANG TRÍ (before/after, blur, bóng…) */
-.frame::before,
-.frame::after,
-.viewport::before,
-.viewport::after,
-.shelf-card::before,
-.shelf-card::after {
-  pointer-events: none !important;
+/* ====== Header ====== */
+.site-header{
+  position:relative; z-index:4000;
+  display:flex; align-items:center; gap:16px;
+  padding:12px 16px;
+}
+.brand{ display:flex; align-items:center; gap:10px; text-decoration:none; line-height:0 }
+.brand__logo{ height:34px; width:auto; display:block }
+.brand__slogan{
+  font-weight:600; font-size:14px; letter-spacing:.2px;
+  color:#F1E6B6; text-shadow:0 1px 2px rgba(0,0,0,.25); user-select:none;
 }
 
-/* 5) Nếu background của frame là 1 <img> phủ rộng, đừng chặn header */
-.frame > img.bg,
-.frame > img.cover {
-  pointer-events: none !important;
+/* Tabs (seasons) */
+.tabs{ display:flex; gap:10px; margin-left:auto; margin-right:8px; }
+.tab{
+  appearance:none; border:1px solid rgba(255,255,255,.6);
+  background:var(--glass-bg); color:#fff; font-weight:700;
+  height:36px; padding:0 12px; border-radius:999px; cursor:pointer;
+  box-shadow:var(--shadow-green);
+}
+.tab.is-active{ border-color:#fff; outline:2px solid rgba(255,255,255,.35) }
+
+/* Auth buttons on header */
+.auth-btn{
+  appearance:none; border:1px solid rgba(255,255,255,.85); color:#fff;
+  background:var(--glass-bg); font-weight:700; height:36px; padding:0 12px;
+  border-radius:999px; cursor:pointer; box-shadow:var(--shadow-green);
 }
 
-/* 6) Modal – khi đóng thì không chặn click; khi mở thì có backdrop/panel đúng lớp */
-.modal[aria-hidden="true"] { pointer-events: none !important; }
+/* Admin link (thường ẩn, app.js toggle) */
+.admin-link.is-hidden{ display:none }
+
+/* ====== Frame (inside glass) ====== */
+.viewport{ padding: 6px 16px 24px; }
+.frame{
+  position:relative; max-width:1120px; margin:16px auto;
+  border-radius:var(--radius); overflow:hidden;
+  aspect-ratio:16/9;
+  background-size:cover; background-position:center;
+  box-shadow:var(--shadow-green);
+}
+/* bảo đảm lớp trang trí không chặn click */
+.frame::before,.frame::after,
+.viewport::before,.viewport::after,
+.shelf-card::before,.shelf-card::after,
+.frame .decor,[data-decor]{ pointer-events:none !important; }
+.frame, .frame *{ pointer-events:auto; }
+
+/* mascot và chips */
+.nini{ position:absolute; bottom:90px; left:50%; transform:translateX(-50%); height:min(35%,190px) }
+.chips{ position:absolute; left:50%; transform:translateX(-50%); bottom:16px; display:flex; gap:10px; }
+.chip{
+  appearance:none; border:1px solid rgba(255,255,255,.8);
+  background:var(--glass-bg); color:#fff; font-weight:700;
+  height:32px; padding:0 10px; border-radius:999px; cursor:pointer;
+  box-shadow:var(--shadow-green);
+}
+.chip.is-active{ border-color:#fff }
+
+/* content dưới frame */
+.content{
+  max-width:1120px; margin:16px auto 0; padding:16px 14px;
+  border-radius:var(--radius);
+  background: rgba(255,255,255,.65);
+  box-shadow:var(--shadow-green);
+}
+
+/* ====== Shelf in frame (Spring) ====== */
+.shelf-card{
+  position:absolute; left:0; right:0; bottom:70px;
+  width:calc(100% - 24px); margin:0 auto; padding:12px;
+  border-radius:14px; background:rgba(255,255,255,.18); backdrop-filter: blur(6px) saturate(120%);
+  box-shadow:var(--shadow-green);
+}
+.shelf{ display:flex; flex-direction:column; gap:10px }
+.shelf__title{ margin:0 0 6px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25) }
+.shelf__grid{ display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+.book-card{ border-radius:12px; overflow:hidden; background:rgba(255,255,255,.2); box-shadow:var(--shadow-green); cursor:pointer }
+.book-card__cover{ width:100%; height:150px; object-fit:cover; display:block }
+.book-card__body{ padding:8px; color:#173a26 }
+.book-card__title{ margin:0 0 2px; font-weight:800; font-size:15px }
+.book-card__meta{ font-size:13px; color:#2a5740 }
+
+/* ====== Forms (ONE STYLE) ====== */
+.form{ display:block }
+.form label{ display:block; font-weight:600; margin:12px 0 6px; color:#173a26 }
+.form input{
+  width:100%; height:42px; padding:0 10px; background:transparent;
+  border:0; border-bottom:2px solid rgba(255,255,255,.8); color:#1c2024;
+  outline:none;
+}
+.form input::placeholder{ color:#7aa18d }
+.form input:focus{ border-color:#9fd1b5; box-shadow:0 10px 18px -12px rgba(47,110,63,.25) inset; }
+
+/* Buttons (white border + glass fill + green shadow) */
+.btn{
+  appearance:none; border:1px solid rgba(255,255,255,.95);
+  background:var(--glass-bg); color:#173a26; font-weight:800;
+  height:42px; padding:0 14px; border-radius:12px; cursor:pointer;
+  box-shadow:var(--shadow-green);
+}
+.btn-ghost{ background:transparent }
+.btn.full{ width:100% }
+.btn:disabled{ opacity:.6; cursor:not-allowed }
+
+/* ====== Modal ====== */
+.modal[aria-hidden="true"]{ pointer-events:none }
 .modal[aria-hidden="true"] .modal__backdrop,
-.modal[aria-hidden="true"] .modal__panel { display: none !important; }
-
-.modal__backdrop {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.35);
-  z-index: 11000; /* trên frame, dưới panel */
+.modal[aria-hidden="true"] .modal__panel{ display:none }
+.modal__backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:4500 }
+.modal__panel{
+  position:fixed; inset:0; margin:auto; max-width:640px; width:92vw;
+  background: rgba(255,255,255,.9);    /* card glass light */
+  backdrop-filter: blur(8px);
+  border-radius:var(--radius); box-shadow:var(--shadow-green);
+  z-index:4600; padding:22px 18px 18px; height:fit-content;
 }
-.modal__panel {
-  position: fixed; inset: 0;
-  margin: auto; max-width: 640px;
-  height: fit-content;
-  background: #fff; border-radius: 16px;
-  z-index: 12000;
+.modal__title{ margin:0 0 8px; display:flex; align-items:center; gap:8px; color:#173a26 }
+.modal__logo{ height:26px; width:auto }
+.tabs-line{ display:flex; gap:8px; margin:10px 0 8px }
+.tab-line{
+  appearance:none; border:1px solid rgba(255,255,255,.9);
+  background:var(--glass-bg); color:#173a26; height:34px; padding:0 10px;
+  border-radius:10px; cursor:pointer; font-weight:700;
 }
-/* ===== FIX GỌN: giữ layout chuẩn + header click được ===== */
+.tab-line.is-active{ border-color:#fff; outline:2px solid rgba(255,255,255,.35) }
+.modal__close{ position:absolute; right:10px; top:8px; border:0; background:transparent; font-size:22px; cursor:pointer }
 
-/* 1) Header nổi lên để bấm được, nhưng KHÔNG ép các phần khác */
-.site-header { position: relative; z-index: 4000; }
+/* small notes */
+.note{ margin-top:8px; font-size:14px; color:var(--muted) }
 
-/* 2) Modal: khi ẩn thì không chặn click (tránh backdrop che header) */
-.modal[aria-hidden="true"]         { pointer-events: none; }
-.modal[aria-hidden="true"] .modal__backdrop,
-.modal[aria-hidden="true"] .modal__panel { display: none; }
-
-/* 3) Chỉ tắt bắt-chuột cho lớp trang trí có thể che header */
-.frame::before, .frame::after,
-.viewport::before, .viewport::after,
-.shelf-card::before, .shelf-card::after { pointer-events: none; }
-
-/* 4) Khung trình bày: canh giữa, không tràn */
-.frame {
-  max-width: 1120px;          /* tuỳ ý: 960–1200px */
-  margin: 16px auto 0;        /* đẩy nhẹ xuống khỏi header */
-  border-radius: 16px;
-  overflow: hidden;           /* bo góc ảnh nền */
+/* ====== Reader modal basic (nếu có) ====== */
+.reader-card{
+  background: rgba(255,255,255,.9); border-radius:16px; box-shadow:var(--shadow-green);
+  backdrop-filter: blur(6px);
 }
-
-/* 5) Ảnh trong frame không “phình” bừa */
-.frame img { display: block; max-width: 100%; height: auto; }
-
-/* 6) Nhóm chip nút (Giới thiệu/Luật chơi/...) canh giữa, không xô lệch */
-.chips {
-  display: flex; gap: 12px; justify-content: center;
-  flex-wrap: wrap;
-  margin: 10px auto 0;
-}
-
-/* 7) Kệ sách: hiển thị dạng lưới gọn, không tràn trái */
-.shelf-card {
-  max-width: 1120px;
-  margin: 16px auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-}
-.shelf-card img { width: 100%; height: auto; border-radius: 10px; display: block; }
-
-/* 8) Vùng nội dung dưới cùng canh giữa và không bể layout */
-.content {
-  max-width: 1120px;
-  margin: 12px auto 24px;
-}
-
-/* 9) Backdrop & panel khi mở (không ảnh hưởng layout) */
-.modal__backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 4500; }
-.modal__panel    { position: fixed; inset: 0; margin: auto; max-width: 640px; background: #fff;
-                   border-radius: 16px; z-index: 4600; height: fit-content; }
-
-/* ==== Hero/frame giữ tỉ lệ 16:9, full bề ngang, ảnh fill-cover ==== */
-.frame {
-  max-width: 1120px;      /* giữ khung gọn như trước */
-  margin: 16px auto;
-  border-radius: 16px;
-  overflow: hidden;
-}
-.frame .hero {
-  width: 100%;
-  aspect-ratio: 16 / 9;    /* chuẩn 16:9 */
-  object-fit: cover;       /* ảnh/phim lấp đầy */
-  display: block;
-}
-
+#subtitleText{ color:#173a26; font-weight:600 }
+#pageCounterTop{ position:absolute; top:10px; right:12px; color:#173a26; font-weight:800; background:rgba(255,255,255,.6); border-radius:8px; padding:2px 8px }

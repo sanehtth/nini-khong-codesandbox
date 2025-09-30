@@ -635,6 +635,9 @@ body::after{
   z-index: 3600;
 }
 /* ===== END PATCH ===== */
+.shelf-card,
+.shelf-card::before,
+.shelf-card::after{ pointer-events: none !important; }
 
 /* ============================================================
    [FIX circle-artifact] loại bỏ vòng tròn mờ do backdrop blur
@@ -651,6 +654,7 @@ body::after{
 /* ============================================================
    HẾT FILE
    ============================================================ */
+
 
 
 

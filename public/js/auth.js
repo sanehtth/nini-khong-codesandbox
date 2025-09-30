@@ -81,3 +81,14 @@ btnSendVerify?.addEventListener("click", async () => {
   }
 });
 /* ========== END PATCH (SIGNUP HANDLER in /public/js/auth.js) ========== */
+// ===== BEGIN PATCH: open modal click =====
+const btnLoginEl = document.getElementById('btnLogin');
+if (btnLoginEl) {
+  btnLoginEl.addEventListener('click', (e) => {
+    e.preventDefault();   // tránh bất kỳ default nào (nếu ở trong <form> hoặc bị wrap)
+    const modal = document.getElementById('authModal');
+    modal?.setAttribute('aria-hidden','false');
+  });
+}
+// ===== END PATCH =====
+

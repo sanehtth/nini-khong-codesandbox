@@ -229,4 +229,21 @@ body{
 .tab-line.is-active {
   box-shadow: 0 0 0 2px rgba(47,110,63,.35) inset, 0 6px 16px rgba(47,110,63,.15);
 }
+/* Tabs đường kẻ trong modal */
+#authModal .tabs-line {
+  display:flex; gap:8px; margin-bottom:10px;
+}
+#authModal .tab-line {
+  padding:8px 12px; border-radius:999px;
+  background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
+  cursor:pointer; backdrop-filter: blur(8px);
+}
+#authModal .tab-line.is-active {
+  box-shadow: 0 0 0 2px rgba(61,143,92,.55);   /* viền xanh nhạt nổi */
+}
+
+/* Ẩn/hiện từng pane theo tab */
+#authModal .form { display:none; }
+#authModal .form.is-active { display:block; }
+
 

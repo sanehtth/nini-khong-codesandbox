@@ -6,20 +6,23 @@
   <base href="/" />
   <title>NiNi — Funny</title>
 
-  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
-  <!-- ONE STYLE -->
-  <link rel="stylesheet" href="/styles.css?v=100" />
-
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <!-- CSS chính của bạn -->
+  <link rel="stylesheet" href="/styles.css?v=15" />
+  <!-- giữ 1 dòng nhỏ để chắc chắn layer hiệu ứng bám đúng khung -->
+  <style>
+    .frame{position:relative}
+  </style>
 </head>
 <body>
   <!-- ========== HEADER ========== -->
   <header class="site-header">
-    <a class="brand" href="#/home" aria-label="NiNi — Funny">
+    <a class="brand" href="#/home" id="brandLink" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan"><span>Chơi</span> <span>mê ly</span>, <span>bứt phá</span> <span>tư duy</span></div>
+      <div class="brand__slogan"><span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span></div>
     </a>
 
-    <nav class="tabs" id="seasonTabs" aria-label="Seasons">
+    <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
       <button class="tab is-active" data-season="home">Home</button>
       <button class="tab" data-season="spring">Spring</button>
       <button class="tab" data-season="summer">Summer</button>
@@ -27,30 +30,31 @@
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <!-- Auth -->
-    <button id="btnLogin"  class="auth-btn">Đăng nhập / Đăng ký</button>
+    <button id="authBtn"  class="auth-btn">Đăng nhập / Đăng ký</button>
     <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
 
+    <!-- Ẩn/hiện bằng Alt+A -->
     <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
   </header>
 
   <!-- ========== VIEWPORT ========== -->
   <main class="viewport">
-    <section class="frame" id="frame" aria-label="Showcase">
+    <!-- Khung 16:9, nền trong khung thay đổi theo mùa, hiệu ứng rơi gắn vào đây -->
+    <section class="frame" id="frame" aria-label="Khung hiển thị">
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-      <div class="chips" role="tablist" aria-label="Sections">
+      <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
         <button class="chip" data-section="rules">Luật chơi</button>
         <button class="chip" data-section="forum">Diễn đàn</button>
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
-      <!-- Kệ sách mount trong frame (mùa Spring) -->
-      <div id="shelfMount" class="" hidden></div>
-      <!-- Bộ đếm trang cho reader (nếu mở) -->
-      <div id="pageCounterTop" aria-live="polite"></div>
+
+      <!-- Kệ sách xuất hiện khi ở Spring -->
+      <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <section class="content" id="content">
+    <!-- Khu nội dung văn bản phía dưới khung -->
+    <section class="content" id="content" aria-live="polite">
       <h2>NiNi — Funny</h2>
       <p>... (nội dung giới thiệu) ...</p>
     </section>
@@ -76,80 +80,79 @@
       <!-- Login -->
       <form class="form is-active" data-pane="login" onsubmit="return false;">
         <button type="button" class="btn btn-ghost full" id="btnGoogleLogin">Đăng nhập với Google</button>
-        <div class="note">hoặc</div>
-
+        <div class="or">hoặc</div>
         <label for="loginEmail">Email</label>
-        <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="username" />
-
+        <input id="loginEmail" type="email" placeholder="you@example.com" />
         <label for="loginPassword">Mật khẩu</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-
-        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+        <input id="loginPassword" type="password" placeholder="••••••••" />
+        <div class="row">
           <button id="btnEmailLogin" type="button" class="btn">Đăng nhập</button>
         </div>
-        <p id="loginNote" class="note"></p>
+        <p id="loginNote" class="note" aria-live="polite"></p>
       </form>
 
       <!-- Sign up -->
       <form class="form" data-pane="signup" onsubmit="return false;">
         <label for="signupEmail">Email</label>
-        <input id="signupEmail" type="email" placeholder="you@example.com" autocomplete="email" />
-
+        <input id="signupEmail" type="email" placeholder="you@example.com" />
         <label for="signupPassword">Mật khẩu mới</label>
-        <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" />
-
-        <label for="signupPassword2">Xác nhận mật khẩu</label>
-        <input id="signupPassword2" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
-
-        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
-          <!-- Chuyển qua GỬI XÁC MINH EMAIL (SMTP) -->
-          <button id="btnSendVerify" type="button" class="btn">Gửi xác thực email</button>
+        <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
+        <div class="row">
+          <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
         </div>
-        <p id="signupNote" class="note"></p>
+        <p id="signupNote" class="note" aria-live="polite"></p>
       </form>
 
       <!-- Forgot password -->
-      <form id="forgotForm" class="form" data-pane="forgot" onsubmit="return false;">
+      <div id="forgotForm" class="form" data-pane="forgot">
         <label for="forgot_email">Email</label>
-        <input id="forgot_email" type="email" placeholder="you@example.com" autocomplete="email" />
-        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+        <input id="forgot_email" type="email" placeholder="you@example.com" />
+        <div class="row">
           <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
+          <span id="forgotNote" class="note" aria-live="polite"></span>
         </div>
-        <p id="forgotNote" class="note"></p>
-      </form>
+      </div>
     </div>
   </div>
 
-  <!-- (Optional) Reader modal skeleton nếu bạn dùng storybook reader ở các trang khác -->
+  <!-- ========== READER MODAL (storybook) ========== -->
   <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
-    <div class="modal__panel reader-card" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+    <div class="reader__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
-      <h3 id="readerTitle" class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-        Storybook
-      </h3>
-      <div id="calendarViewport" class="calendar is-ready" style="position:relative; aspect-ratio:16/9; border-radius:12px; overflow:hidden;">
-        <div id="calendarBg" style="position:absolute; inset:0; background:center/cover no-repeat;"></div>
+
+      <header class="reader__head">
+        <h3 id="readerTitle" class="reader__title">NiNi Book</h3>
+        <div id="pageCounterTop" class="reader__counter">Trang 1/1</div>
+      </header>
+
+      <div id="calendarViewport" class="calendar is-ready">
+        <div id="calendarBg" class="calendar__bg"></div>
+        <div class="calendar__spinner" aria-hidden="true"></div>
       </div>
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px;">
-        <div style="display:flex; gap:10px;">
-          <button id="imgPrev" class="btn">◀</button>
-          <button id="imgNext" class="btn">▶</button>
+
+      <div class="reader__toolbar">
+        <div class="reader__nav">
+          <button id="imgPrev" class="btn small" aria-label="Trang trước">‹ Trước</button>
+          <button id="imgNext" class="btn small" aria-label="Trang sau">Sau ›</button>
         </div>
-        <div style="display:flex; gap:10px;">
-          <button id="btnLangVi" class="btn">VI</button>
-          <button id="btnLangEn" class="btn">EN</button>
+        <div class="reader__lang">
+          <button id="btnLangVi" class="btn small is-active" aria-pressed="true">VI</button>
+          <button id="btnLangEn" class="btn small" aria-pressed="false">EN</button>
+          <button id="btnSpeak"  class="btn small" aria-label="Đọc to">🔊</button>
         </div>
       </div>
-      <div id="subtitleText" class="note" style="margin-top:8px;"></div>
+
+      <div id="subtitleText" class="reader__subtitle" aria-live="polite"></div>
     </div>
   </div>
 
-  <!-- ================== JS ================== -->
-  <script type="module" src="/public/js/auth.js?v=100"></script>
-  <script src="/public/js/app.js?v=100" defer></script>
+  <!-- ========== SCRIPTS ========== -->
+  <!-- Hiệu ứng rơi (load trước app.js để app gọi setSeason) -->
+  <script src="/public/js/effects.js?v=2" defer></script>
+  <!-- App logic -->
+  <script src="/public/js/app.js?v=13" defer></script>
+  <!-- Auth logic (Firebase + gửi mail reset/xác minh qua Netlify Functions của bạn) -->
+  <script type="module" src="/public/js/auth.js?v=2"></script>
 </body>
 </html>
-
-

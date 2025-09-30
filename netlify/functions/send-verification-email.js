@@ -1,90 +1,126 @@
-﻿// netlify/functions/send-verification-email.js
-const nodemailer = require('nodemailer');
-const admin = require('firebase-admin');
+/**
+ * netlify/functions/send-verify.js
+ *
+ * Nhận { email } từ client → tạo link VERIFY (mode=verifyEmail) bằng Firebase Admin
+ * → gửi mail xác minh qua SMTP (mail pro của bạn).
+ *
+ * YÊU CẦU ENV (đặt trong Netlify > Site settings > Environment variables):
+ *  - FIREBASE_PROJECT_ID
+ *  - FIREBASE_CLIENT_EMAIL
+ *  - FIREBASE_PRIVATE_KEY        (copy từ service account, nhớ escape newline thành \n)
+ *  - VERIFY_EMAIL_TARGET_URL     (vd: https://nini-funny.com/verify-email.html)
+ *
+ *  - SMTP_HOST
+ *  - SMTP_PORT                   (ví dụ 587)
+ *  - SMTP_SECURE                 ("true" | "false")
+ *  - SMTP_USER                   (username, hoặc dùng SMTP_EMAIL)
+ *  - SMTP_PASS
+ *  - SMTP_EMAIL                  (địa chỉ from mặc định nếu FROM_EMAIL không có)
+ *
+ *  - FROM_EMAIL                  (ví dụ: "NiNi Funny <no-reply@nini-funny.com>")
+ *  - CORS_ORIGIN                 (vd: https://nini-funny.com)
+ */
 
-const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com';
+const admin = require("firebase-admin");
+const nodemailer = require("nodemailer");
+
+const ALLOW_ORIGIN = process.env.CORS_ORIGIN || "https://nini-funny.com";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOW_ORIGIN,
-  'Access-Control-Allow-Methods': 'POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+  "Access-Control-Allow-Origin": ALLOW_ORIGIN,
+  "Access-Control-Allow-Methods": "POST,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
 };
 
-// Init Firebase Admin (dùng service account từ ENV)
+// Init Firebase Admin một lần
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
+      projectId:   process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n"),
     }),
   });
 }
 
 exports.handler = async (event) => {
   // Preflight
-  if (event.httpMethod === 'OPTIONS') {
+  if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders };
   }
-  if (event.httpMethod !== 'POST') {
+  // Chỉ cho POST
+  if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
       headers: corsHeaders,
-      body: JSON.stringify({ error: 'Method Not Allowed' })
+      body: JSON.stringify({ error: "Method Not Allowed" }),
     };
   }
 
   try {
-    const { email } = JSON.parse(event.body || '{}');
+    const { email, subject, htmlIntro } = JSON.parse(event.body || "{}");
     if (!email) {
       return {
         statusCode: 400,
         headers: corsHeaders,
-        body: JSON.stringify({ error: 'Missing email' })
+        body: JSON.stringify({ error: "Missing email" }),
       };
     }
 
-    // Tạo link xác minh email (firebase)
+    // 1) Tạo link VERIFY (đúng flow xác minh email)
+    const verifyUrl =
+      process.env.VERIFY_EMAIL_TARGET_URL || "https://nini-funny.com/verify-email.html";
     const actionCodeSettings = {
-      url: process.env.VERIFY_EMAIL_TARGET_URL, // ví dụ: https://nini-funny.com/verify-email.html
+      url: verifyUrl,
       handleCodeInApp: true,
     };
-    const link = await admin.auth().generateEmailVerificationLink(email, actionCodeSettings);
+    const link = await admin
+      .auth()
+      .generateEmailVerificationLink(email, actionCodeSettings);
 
-    // SMTP (Gmail/Yahoo/Custom)
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = Number(process.env.SMTP_PORT || 465);
-    const secure = (process.env.SMTP_SECURE || 'true') === 'true';
-
+    // 2) Cấu hình SMTP transporter
     const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: (process.env.SMTP_SECURE || "false").toLowerCase() === "true",
       auth: {
         user: process.env.SMTP_USER || process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASS,
       },
     });
 
+    // 3) Tạo nội dung email
     const from = process.env.FROM_EMAIL || `"NiNi Funny" <${process.env.SMTP_EMAIL}>`;
-    const subject = process.env.VERIFY_SUBJECT || 'Xác minh email NiNi';
+    const mailSubject = subject || "Xác minh email NiNi — Funny";
 
-    const html = `
+    const htmlBody =
+      htmlIntro ||
+      `
       <p>Xin chào,</p>
-      <p>Bạn vừa đăng ký tài khoản tại NiNi.</p>
-      <p>Nhấn vào liên kết sau để xác minh tài khoản của bạn:</p>
+      <p>Vui lòng bấm vào liên kết dưới đây để xác minh email cho tài khoản NiNi — Funny:</p>
       <p><a href="${link}" target="_blank" rel="noopener">${link}</a></p>
-      <p>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.</p>
-    `;
+      <p>Nếu bạn không yêu cầu, vui lòng bỏ qua email này.</p>
+      `;
 
-    await transporter.sendMail({ from, to: email, subject, html });
+    // 4) Gửi mail
+    await transporter.sendMail({
+      from,
+      to: email,
+      subject: mailSubject,
+      html: htmlBody,
+    });
 
-    return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true }) };
+    return {
+      statusCode: 200,
+      headers: corsHeaders,
+      body: JSON.stringify({ ok: true }),
+    };
   } catch (e) {
+    console.error("[send-verify] error:", e);
     return {
       statusCode: 500,
       headers: corsHeaders,
-      body: JSON.stringify({ error: e.message })
+      body: JSON.stringify({ error: e.message || "send-verify failed" }),
     };
   }
 };

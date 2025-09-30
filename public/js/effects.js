@@ -1,7 +1,6 @@
-<script>
 /* NiNi — falling effects (flowers / drops / leaves / snow)
-   - Exposes window.fx.setSeason('home'|'spring'|'summer'|'autumn'|'winter')
-   - Auto-boot from hash, pause on hidden tab, DPR aware
+   - window.fx.setSeason('home'|'spring'|'summer'|'autumn'|'winter')
+   - Auto-boot from hash; pause when tab hidden; DPR aware
 */
 (() => {
   const ICONS = {
@@ -12,7 +11,6 @@
     winter: "/public/assets/icons/snow.webp",
   };
 
-  // public API namespace
   const fx = (window.fx = window.fx || {});
 
   let frame, canvas, ctx;
@@ -29,14 +27,12 @@
 
     if (!canvas) {
       canvas = document.createElement("canvas");
-      canvas.className = "fx-layer";
       ctx = canvas.getContext("2d");
-      // vị trí/lớp: trên nền frame, dưới nhân vật & chip
       Object.assign(canvas.style, {
         position: "absolute",
         inset: "0",
         pointerEvents: "none",
-        zIndex: "2"
+        zIndex: "2" // dưới nhân vật & chip, trên nền frame
       });
       frame.appendChild(canvas);
       window.addEventListener("resize", resize, { passive: true });
@@ -67,7 +63,7 @@
   }
 
   function makeParticles() {
-    const N = 28; // hơi nhiều để “đã mắt” nhưng vẫn mượt
+    const N = 28;
     particles = Array.from({ length: N }, () => ({
       x: Math.random() * W,
       y: Math.random() * -H,
@@ -87,19 +83,14 @@
   function setSeason(season) {
     if (!ensureCanvas()) return;
     current = season || "home";
-    const icon = ICONS[current] || "";
-    if (!icon) {
-      imgReady = false;
-      clearParticles();
-      return;
-    }
-    loadIcon(icon);
+    const url = ICONS[current] || "";
+    if (!url) { imgReady = false; clearParticles(); return; }
+    loadIcon(url);
     makeParticles();
   }
 
-  fx.setSeason = setSeason; // expose
+  fx.setSeason = setSeason;
 
-  // draw loop
   function tick() {
     if (!ctx) { rafId = requestAnimationFrame(tick); return; }
     ctx.clearRect(0,0,W,H);
@@ -125,7 +116,6 @@
     }
   });
 
-  // boot
   function bootFromHash() {
     const s = (location.hash || "").replace(/^#\/?/, "") || "home";
     setSeason(s);
@@ -138,14 +128,11 @@
     if (!rafId) rafId = requestAnimationFrame(tick);
   }
 
-  // public boot (optional)
   fx.boot = boot;
 
-  // auto boot khi DOM sẵn sàng
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot, { once:true });
   } else {
     boot();
   }
 })();
-</script>

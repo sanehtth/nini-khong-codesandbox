@@ -98,4 +98,55 @@
         <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password" />
 
         <label for="signupPassword2">Xác nhận mật khẩu</label>
-        <input id="signupPassword2" type="password" placehold
+        <input id="signupPassword2" type="password" placeholder="Nhập lại mật khẩu" autocomplete="new-password" />
+
+        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+          <!-- Chuyển qua GỬI XÁC MINH EMAIL (SMTP) -->
+          <button id="btnSendVerify" type="button" class="btn">Gửi xác thực email</button>
+        </div>
+        <p id="signupNote" class="note"></p>
+      </form>
+
+      <!-- Forgot password -->
+      <form id="forgotForm" class="form" data-pane="forgot" onsubmit="return false;">
+        <label for="forgot_email">Email</label>
+        <input id="forgot_email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+          <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
+        </div>
+        <p id="forgotNote" class="note"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- (Optional) Reader modal skeleton nếu bạn dùng storybook reader ở các trang khác -->
+  <div class="modal" id="readerModal" aria-hidden="true">
+    <div class="modal__backdrop" data-reader-close></div>
+    <div class="modal__panel reader-card" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
+      <h3 id="readerTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
+        Storybook
+      </h3>
+      <div id="calendarViewport" class="calendar is-ready" style="position:relative; aspect-ratio:16/9; border-radius:12px; overflow:hidden;">
+        <div id="calendarBg" style="position:absolute; inset:0; background:center/cover no-repeat;"></div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px;">
+        <div style="display:flex; gap:10px;">
+          <button id="imgPrev" class="btn">◀</button>
+          <button id="imgNext" class="btn">▶</button>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button id="btnLangVi" class="btn">VI</button>
+          <button id="btnLangEn" class="btn">EN</button>
+        </div>
+      </div>
+      <div id="subtitleText" class="note" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ================== JS ================== -->
+  <script type="module" src="/public/js/auth.js?v=100"></script>
+  <script src="/public/js/app.js?v=100" defer></script>
+</body>
+</html>

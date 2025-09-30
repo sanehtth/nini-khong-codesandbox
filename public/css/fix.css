@@ -1,34 +1,35 @@
-/* /public/css/fix.css — vá nhẹ, giữ layout gốc */
+/* /public/css/fix.css — vá nhẹ, giữ nguyên layout gốc */
 
-/* Header luôn bấm được nhưng không đụng layout khác */
-.site-header{ position: relative; z-index: 4000; }
+/* Header luôn bấm được */
+.site-header{ position:relative; z-index:4000; }
 
 /* Modal: khi ẩn thì không chặn click */
-.modal[aria-hidden="true"]{ pointer-events: none; }
+.modal[aria-hidden="true"]{ pointer-events:none; }
 .modal[aria-hidden="true"] .modal__backdrop,
-.modal[aria-hidden="true"] .modal__panel{ display: none; }
+.modal[aria-hidden="true"] .modal__panel{ display:none; }
 
-/* Chỉ tắt bắt-chuột cho lớp TRANG TRÍ (overlay), không tắt nội dung */
+/* Chỉ tắt bắt-chuột cho lớp TRANG TRÍ, KHÔNG tắt nội dung */
 .frame::before,.frame::after,
 .viewport::before,.viewport::after,
 .shelf-card::before,.shelf-card::after,
-.frame .decor,[data-decor]{ pointer-events: none; }
+.frame .decor,[data-decor]{ pointer-events:none !important; }
+/* Nội dung bên trong frame vẫn tương tác */
+.frame, .frame *{ pointer-events:auto; }
 
-/* Giữ tương tác cho nội dung bên trong frame */
-.frame, .frame *{ pointer-events: auto; }
-
-/* Canh khối chính gọn gàng, không làm bể style cũ */
+/* Canh khối chính gọn gàng (không phá style cũ) */
 .frame, .shelf-card, .content{
-  max-width: 1120px;
-  margin-left: auto; margin-right: auto;
+  max-width:1120px;
+  margin-left:auto; margin-right:auto;
 }
-.frame{ margin-top: 16px; border-radius: 16px; overflow: hidden; }
+.frame{ margin-top:16px; border-radius:16px; overflow:hidden; }
 .frame img{ display:block; max-width:100%; height:auto; }
 
-/* Nút chips ngay ngắn (không bắt buộc, nhưng giúp đẹp lại) */
+/* Chips ngay ngắn */
 .chips{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:10px auto 0; }
 
-/* Backdrop/panel khi mở (không ảnh hưởng bố cục) */
+/* Kệ sách thành lưới gọn, không dạt trái (chỉ áp dụng khi #shelfMount có dữ liệu) */
+#shelfMount{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+
+/* Backdrop & panel khi mở */
 .modal__backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:4500; }
-.modal__panel{ position:fixed; inset:0; margin:auto; max-width:640px; background:#fff;
-  border-radius:16px; z-index:4600; height:fit-content; }
+.modal__panel{ position:fixed; inset:0; margin:auto; max-width:640px; background:#fff; border-radius:16px; z-index:4600; height:fit-content; }

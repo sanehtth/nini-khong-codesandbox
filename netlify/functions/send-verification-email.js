@@ -54,6 +54,40 @@ exports.handler = async (event) => {
     }
 
     initFirebase();
+// Sau khi đã: parse email, initFirebase()
+
+async function ensureUser(email, createIfMissing = true) {
+  try {
+    // 1) Đã tồn tại -> trả về user
+    return await admin.auth().getUserByEmail(email);
+  } catch (e) {
+    if (e?.code !== 'auth/user-not-found') throw e;
+    if (!createIfMissing) throw Object.assign(new Error('USER_NOT_FOUND'), { code: 'USER_NOT_FOUND' });
+
+    // 2) Chưa có -> tạo user (mật khẩu ngẫu nhiên)
+    const crypto = require('crypto');
+    const randomPass = crypto.randomBytes(9).toString('base64');
+
+    try {
+      return await admin.auth().createUser({
+        email,
+        password: randomPass,
+        emailVerified: false,
+        disabled: false,
+      });
+    } catch (ce) {
+      // 3) Chống race condition: nếu vừa có ai tạo trước -> coi như tồn tại
+      if (ce?.code === 'auth/email-already-exists') {
+        return await admin.auth().getUserByEmail(email);
+      }
+      throw ce;
+    }
+  }
+}
+
+// --- dùng ở function handler ---
+const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
+// ==> từ đây chắc chắn có userRecord; tiếp tục generateEmailVerificationLink + gửi mail
 
     // 1) Lấy (hoặc tạo) user
     let userRecord;
@@ -129,3 +163,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: msg }) };
   }
 };
+

@@ -1,0 +1,125 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Email action</title>
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
+  <link rel="stylesheet" href="/public/styles.css?v=100" />
+  <meta name="robots" content="noindex, follow" />
+</head>
+<body>
+  <header class="site-header">
+    <a href="/#home" class="brand"><img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt=""> 
+      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span></a>
+  </header>
+
+  <main class="viewport" style="display:grid;place-items:center;min-height:calc(100vh - 80px);">
+    <section class="modal__panel" style="position:static;max-width:560px;">
+      <h3 class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" class="modal__logo" alt=""> Email action
+      </h3>
+
+      <div id="verifyBox" class="form">
+        <p id="verifyMsg" class="note">Đang xử lý xác minh…</p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+          <a class="btn" href="/#home">Về trang chủ</a>
+        </div>
+      </div>
+
+      <form id="resetBox" class="form" onsubmit="return false;" style="display:none">
+        <label>Mật khẩu mới</label>
+        <input id="pwd" type="password" class="input" placeholder="≥ 8 ký tự" autocomplete="new-password" />
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+          <button id="btnReset" class="btn">Đổi mật khẩu</button>
+          <a class="btn" href="/#home">Về trang chủ</a>
+        </div>
+        <p id="resetMsg" class="note"></p>
+      </form>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth, applyActionCode,
+      verifyPasswordResetCode, confirmPasswordReset
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+      authDomain: "nini-8f3d4.firebaseapp.com",
+      projectId: "nini-8f3d4",
+      storageBucket: "nini-8f3d4.firebasestorage.app",
+      messagingSenderId: "991701821645",
+      appId: "1:991701821645:web:fb21c357562c6c801da184"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const sp   = new URLSearchParams(location.search);
+    const mode = sp.get("mode");
+    const code = sp.get("oobCode");
+    const cont = sp.get("continueUrl") || "/#home";
+
+    const verifyBox = document.getElementById("verifyBox");
+    const verifyMsg = document.getElementById("verifyMsg");
+    const resetBox  = document.getElementById("resetBox");
+    const resetMsg  = document.getElementById("resetMsg");
+    const pwdInput  = document.getElementById("pwd");
+    const btnReset  = document.getElementById("btnReset");
+
+    const setMsg = (el, t, ok=true)=>{ el.textContent = t||""; el.style.color = ok ? "#0f5132" : "#7f1d1d"; };
+
+    async function run(){
+      if (!mode || !code){
+        setMsg(verifyMsg, "Thiếu tham số. Vui lòng mở link trực tiếp từ email.", false);
+        return;
+      }
+
+      if (mode === "verifyEmail"){
+        verifyBox.style.display = "block";
+        resetBox.style.display  = "none";
+        try{
+          await applyActionCode(auth, code);
+          setMsg(verifyMsg, "Xác minh email thành công! Bạn có thể đăng nhập.", true);
+          setTimeout(()=> location.href = cont, 1200);
+        }catch(e){
+          setMsg(verifyMsg, e?.code || e?.message || "Mã xác minh không hợp lệ hoặc đã hết hạn.", false);
+        }
+      }
+      else if (mode === "resetPassword"){
+        verifyBox.style.display = "none";
+        resetBox.style.display  = "block";
+
+        try{
+          // kiểm tra mã reset trước khi cho nhập
+          await verifyPasswordResetCode(auth, code);
+        }catch(e){
+          setMsg(resetMsg, e?.code || e?.message || "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.", false);
+          btnReset.disabled = true;
+          return;
+        }
+
+        btnReset.addEventListener("click", async ()=>{
+          const p = (pwdInput.value||"").trim();
+          if (p.length < 8){ setMsg(resetMsg, "Mật khẩu phải ≥ 8 ký tự.", false); return; }
+          btnReset.disabled = true; setMsg(resetMsg, "Đang đổi mật khẩu…", true);
+          try{
+            await confirmPasswordReset(auth, code, p);
+            setMsg(resetMsg, "Đổi mật khẩu thành công. Bạn có thể đăng nhập.", true);
+            setTimeout(()=> location.href = "/#home", 1200);
+          }catch(e){
+            setMsg(resetMsg, e?.code || e?.message || "Không đổi được mật khẩu.", false);
+            btnReset.disabled = false;
+          }
+        });
+      }
+      else{
+        setMsg(verifyMsg, "Không hỗ trợ hành động này.", false);
+      }
+    }
+    run();
+  </script>
+</body>
+</html>

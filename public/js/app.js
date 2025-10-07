@@ -26,14 +26,12 @@
   function setSeason(season) {
     const img = IMAGES[season] || IMAGES.home;
 
-    // nền ngoài
     document.documentElement.style.setProperty("--bg-url", `url("${img}")`);
-    // nền trong khung
     if (frame) frame.style.backgroundImage = `url("${img}")`;
 
     tabs.forEach(b => b.classList.toggle("is-active", b.dataset.season === season));
 
-    // sync hiệu ứng rơi
+    // sync hiệu ứng rơi theo mùa
     if (window.fx && typeof window.fx.setSeason === "function") {
       window.fx.setSeason(season);
     }
@@ -62,8 +60,7 @@
 
   const chips = $$(".chip");
   const SECTIONS = {
-    intro: `<h2>NiNi — Funny</h2>
-      <p>...</p>`,
+    intro: `<h2>NiNi — Funny</h2><p>...</p>`,
     rules: `<h2>Luật chơi</h2><p>...</p>`,
     forum: `<h2>Diễn đàn</h2><p>...</p>`,
     feedback: `<h2>Góp ý</h2>
@@ -75,7 +72,7 @@
     if (content) content.innerHTML = SECTIONS[ch.dataset.section] || SECTIONS.intro;
   }));
 
-  // ===== Auth modal =====
+  // ===== Auth modal (GIỮ – không xung đột với auth.js) =====
   const authBtn   = $("#authBtn");
   const authModal = $("#authModal");
   const closeEls  = authModal ? $$("[data-close]", authModal) : [];
@@ -99,7 +96,7 @@
   });
   tabLines.forEach(t => t.addEventListener("click", () => switchAuth(t.dataset.auth)));
 
-  // ===== Shelf =====
+  // ===== Kệ sách =====
   let libraryManifest = null;
 
   async function fetchJSON(url) {
@@ -173,9 +170,9 @@
   const calBg        = $("#calendarBg");
   const btnPrevImg   = $("#imgPrev");
   const btnNextImg   = $("#imgNext");
-  const btnLangVi = $("#btnLangVi");
-  const btnLangEn = $("#btnLangEn");
-  const btnSpeak  = $("#btnSpeak");
+  const btnLangVi    = $("#btnLangVi");
+  const btnLangEn    = $("#btnLangEn");
+  const btnSpeak     = $("#btnSpeak");
   const btnReaderClose = readerModal && $('[data-reader-close]', readerModal);
 
   let currentBook = null;
@@ -273,7 +270,7 @@
   readerModal?.addEventListener("click", e=>{ if (e.target===readerModal || e.target.classList.contains("modal__backdrop")) closeReader(); });
   setLang(speakLang);
 
-  // ===== Admin hotkey (Alt+A) =====
+  // ===== Admin hotkey =====
   (() => {
     const ADMIN_KEY = "nini_admin_btn";
     const adminBtn = document.getElementById("adminBtn");
@@ -289,7 +286,7 @@
     });
   })();
 
-  // ===== STARTUP =====
+  // ===== Startup =====
   bootSeasonFromHash();
   window.addEventListener("hashchange", bootSeasonFromHash);
   Object.values(IMAGES).forEach(src => { const i=new Image(); i.src=src; });

@@ -44,43 +44,129 @@
   </main>
 
   <script type="module">
-import { getAuth, applyActionCode, isSignInWithEmailLink, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  applyActionCode,
+  sendPasswordResetEmail,
+  confirmPasswordReset
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const app = initializeApp({ /* your firebase config */ });
+// TODO: thay config của bạn
+const app = initializeApp({
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+});
 const auth = getAuth(app);
 
-const url = new URL(location.href);
-const mode = url.searchParams.get('mode');
-const oobCode = url.searchParams.get('oobCode');
-const email = url.searchParams.get('email');
-const next = url.searchParams.get('next'); // "reset"
-
-async function handle() {
-  if (mode === 'verifyEmail' && oobCode) {
+// Helpers
+function qs(name, urlObj = new URL(location.href)) {
+  return urlObj.searchParams.get(name);
+}
+function parseContinue() {
+  // next & email có thể nằm trong continueUrl (bị encode)
+  let next = qs('next');               // nếu có ở cấp ngoài
+  let email = qs('email');             // nếu có ở cấp ngoài
+  const cont = qs('continueUrl');
+  if (cont) {
     try {
-      await applyActionCode(auth, oobCode); // xác minh email thành công
-      // Tùy chọn: thông báo "Đã xác minh!"
-      if (next === 'reset' && email) {
-        await sendPasswordResetEmail(auth, email);
-        // chuyển thẳng tới trang đặt mật khẩu
-        location.href = `/reset-password.html?email=${encodeURIComponent(email)}`;
-        return;
-      }
-      // Nếu không muốn chuyển trang:
-      // render UI của bạn ở đây
-    } catch (e) {
-      console.error('verify error', e);
-      // hiện thông báo lỗi
+      const inner = new URL(cont);
+      next = next || inner.searchParams.get('next');
+      email = email || inner.searchParams.get('email');
+    } catch (_) {}
+  }
+  return { next, email };
+}
+
+async function handleVerify(oobCode) {
+  const { next, email } = parseContinue();
+
+  try {
+    await applyActionCode(auth, oobCode);       // ✅ xác minh thành công
+    // Hiển thị thông báo nhỏ nếu muốn
+    document.getElementById('status')?.replaceChildren(document.createTextNode('Đã xác minh email.'));
+
+    if (next === 'reset' && email) {
+      // Gửi email đặt mật khẩu ngay sau khi verify
+      await sendPasswordResetEmail(auth, email);
+
+      // Có 2 lựa chọn:
+      // A) Chỉ báo "đã gửi mail đặt mật khẩu", để user vào hộp thư bấm link
+      document.getElementById('status')?.append(' Đã gửi email đặt mật khẩu – vui lòng kiểm tra hộp thư.');
+
+      // B) (tuỳ chọn nâng cao) Nếu không muốn gửi thêm email reset,
+      //    bạn có thể tự render form và dùng confirmPasswordReset với oobCode của link reset.
+      //    Cách A an toàn & đơn giản hơn.
+    } else {
+      // Không có request reset → cho về trang chủ hoặc login
     }
-  } else if (mode === 'resetPassword') {
-    // trang này nếu bạn dùng link reset trực tiếp
-    // ...
+  } catch (e) {
+    console.error('verify error', e);
+    document.getElementById('status')?.replaceChildren(
+      document.createTextNode('Xác minh thất bại: ' + (e.message || 'UNKNOWN'))
+    );
   }
 }
-handle();
-</script>
 
+async function handleReset(oobCode) {
+  // Trang này được mở từ link reset trong email (sau bước verify)
+  const form = document.getElementById('resetForm');
+  form.style.display = 'block';
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const pw = (document.getElementById('newPw').value || '').trim();
+    if (pw.length < 6) {
+      alert('Mật khẩu tối thiểu 6 ký tự');
+      return;
+    }
+    try {
+      await confirmPasswordReset(auth, oobCode, pw);
+      form.replaceChildren(document.createTextNode('Đặt mật khẩu thành công!'));
+    } catch (e) {
+      alert('Đặt mật khẩu thất bại: ' + (e.message || 'UNKNOWN'));
+      console.error('confirmPasswordReset error', e);
+    }
+  });
+}
+
+(async function main() {
+  const mode = qs('mode');
+  const oobCode = qs('oobCode');
+
+  // Khung hiển thị đơn giản
+  const root = document.getElementById('authActionRoot');
+  if (!root) {
+    const box = document.createElement('div');
+    box.id = 'authActionRoot';
+    box.style.cssText = 'max-width:620px;margin:64px auto;padding:24px;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.08);font-family:system-ui,Roboto,Arial';
+    box.innerHTML = `
+      <h3>Xác minh / Đặt lại mật khẩu</h3>
+      <p id="status"></p>
+      <form id="resetForm" style="display:none">
+        <label>Mật khẩu mới</label><br/>
+        <input id="newPw" type="password" style="padding:8px;margin:8px 0;width:100%" />
+        <button type="submit" style="padding:8px 12px">Đổi mật khẩu</button>
+      </form>
+      <div style="margin-top:16px">
+        <a href="/">Về trang chủ</a> · <a href="/#home">Đăng nhập</a>
+      </div>
+    `;
+    document.body.appendChild(box);
+  }
+
+  if (mode === 'verifyEmail' && oobCode) {
+    await handleVerify(oobCode);
+  } else if (mode === 'resetPassword' && oobCode) {
+    await handleReset(oobCode);
+  } else {
+    document.getElementById('status')?.replaceChildren(
+      document.createTextNode('Liên kết không hợp lệ hoặc đã hết hạn.')
+    );
+  }
+})();
+</script>
 </body>
 </html>
+
 

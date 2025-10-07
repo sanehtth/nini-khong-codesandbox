@@ -77,9 +77,10 @@ exports.handler = async (event) => {
       <p>Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.</p>
     `;
 
-    await transporter.sendMail({ from, to: email, subject, html });
+    // (giữ nguyên logic của bạn, chỉ thêm message khi OK/ERR)
 
-    return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true }) };
+await transporter.sendMail({ from, to: email, subject, html });
+return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true, message: "Đã gửi link đặt lại mật khẩu" }) };
   } catch (e) {
     return {
       statusCode: 500,
@@ -88,3 +89,4 @@ exports.handler = async (event) => {
     };
   }
 };
+

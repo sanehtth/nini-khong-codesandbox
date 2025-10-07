@@ -44,81 +44,43 @@
   </main>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, applyActionCode, isSignInWithEmailLink, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    // --- Firebase ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+const app = initializeApp({ /* your firebase config */ });
+const auth = getAuth(app);
 
-    // --- Helpers UI ---
-    const $ = (id)=>document.getElementById(id);
-    const boxMsg = $("box-msg");
-    const resetForm = $("form-reset");
-    const resetNote = $("reset-note");
-    const btnReset = $("btn-reset");
-    const pwd = $("pwd");
-    const boxActions = $("box-actions");
+const url = new URL(location.href);
+const mode = url.searchParams.get('mode');
+const oobCode = url.searchParams.get('oobCode');
+const email = url.searchParams.get('email');
+const next = url.searchParams.get('next'); // "reset"
 
-    const note = (el,msg,ok=true)=>{ if(!el) return; el.textContent = msg||""; el.classList.toggle("ok",ok); el.classList.toggle("err",!ok); };
-    const params = new URLSearchParams(location.search);
-    const mode = params.get("mode");
-    const oob = params.get("oobCode");
-
-    // --- Router theo mode ---
-    (async () => {
-      if (!oob || !mode) {
-        note(boxMsg, "Liên kết không hợp lệ (thiếu tham số).", false);
-        boxActions.style.display = "flex";
+async function handle() {
+  if (mode === 'verifyEmail' && oobCode) {
+    try {
+      await applyActionCode(auth, oobCode); // xác minh email thành công
+      // Tùy chọn: thông báo "Đã xác minh!"
+      if (next === 'reset' && email) {
+        await sendPasswordResetEmail(auth, email);
+        // chuyển thẳng tới trang đặt mật khẩu
+        location.href = `/reset-password.html?email=${encodeURIComponent(email)}`;
         return;
       }
+      // Nếu không muốn chuyển trang:
+      // render UI của bạn ở đây
+    } catch (e) {
+      console.error('verify error', e);
+      // hiện thông báo lỗi
+    }
+  } else if (mode === 'resetPassword') {
+    // trang này nếu bạn dùng link reset trực tiếp
+    // ...
+  }
+}
+handle();
+</script>
 
-      try {
-        if (mode === "verifyEmail") {
-          note(boxMsg, "Đang xác minh email…");
-          await applyActionCode(auth, oob);
-          note(boxMsg, "Xác minh email thành công. Bạn có thể đăng nhập!", true);
-          boxActions.style.display = "flex";
-        }
-        else if (mode === "resetPassword") {
-          // Kiểm tra mã trước khi hiển thị form
-          await verifyPasswordResetCode(auth, oob);
-          note(boxMsg, "Vui lòng đặt mật khẩu mới cho tài khoản.", true);
-          resetForm.style.display = "block";
-
-          btnReset.onclick = async () => {
-            const p = (pwd.value||"").trim();
-            if (p.length < 8) { note(resetNote, "Mật khẩu phải ≥ 8 ký tự.", false); return; }
-            btnReset.disabled = true; note(resetNote, "Đang đổi mật khẩu…", true);
-            try {
-              await confirmPasswordReset(auth, oob, p);
-              note(resetNote, "Đổi mật khẩu thành công. Bạn có thể đăng nhập lại!", true);
-              boxActions.style.display = "flex";
-            } catch (e) {
-              note(resetNote, e?.code || e?.message || "Không đổi được mật khẩu.", false);
-              btnReset.disabled = false;
-            }
-          };
-        }
-        else {
-          note(boxMsg, "Chưa hỗ trợ hành động này.", false);
-          boxActions.style.display = "flex";
-        }
-      } catch (e) {
-        note(boxMsg, e?.code || e?.message || "Liên kết không hợp lệ hoặc đã hết hạn.", false);
-        boxActions.style.display = "flex";
-      }
-    })();
-  </script>
 </body>
 </html>
+

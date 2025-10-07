@@ -321,6 +321,49 @@ body{
 /* Đảm bảo hiệu ứng rơi KHÔNG che modal */
 #frame canvas { pointer-events: none; z-index: 0 !important; }
 
+/* ===== FIX modal stacking & pointer events ===== */
+
+/* modal tổng phải đứng trên tất cả */
+#authModal,
+#readerModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999; /* cao hơn hiệu ứng rơi, blur, ... */
+}
+
+/* backdrop ở dưới phần thân modal */
+#authModal .modal__backdrop,
+#readerModal .modal__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: auto; /* backdrop vẫn nhận click để đóng */
+}
+
+/* khung nội dung modal phải cao hơn backdrop */
+#authModal .modal__panel,
+#authModal .modal__content,
+#readerModal .modal__panel,
+#readerModal .modal__content {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+/* khi ẩn modal thì bỏ hẳn khỏi flow để tránh che phủ */
+#authModal[aria-hidden="true"],
+#readerModal[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* với nút trong form – tránh submit mặc định */
+#authModal button,
+#readerModal button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+
 
 
 

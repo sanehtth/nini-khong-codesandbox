@@ -11,7 +11,11 @@ BEGIN: /index.html  (FULL PATCH)
 
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=16" />
-  <style>.frame{position:relative}</style>
+  <style>
+    .frame{position:relative}
+    .auth-area{display:flex;gap:10px;align-items:center}
+    .avatar-btn img{width:32px;height:32px;border-radius:50%}
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -29,10 +33,35 @@ BEGIN: /index.html  (FULL PATCH)
       <button class="tab" data-season="winter">Winter</button>
     </nav>
 
-    <button id="authBtn"  class="auth-btn">Đăng nhập / Đăng ký</button>
-    <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
+    <!-- Auth controls -->
+    <div class="auth-area">
+      <!-- Nút mở modal đăng nhập/đăng ký (chỉ hiện khi CHƯA login) -->
+      <button id="authBtn"
+              class="auth-btn"
+              data-role="btn-login"
+              data-show="out">Đăng nhập / Đăng ký</button>
 
-    <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+      <!-- Avatar dẫn tới trang hồ sơ (chỉ hiện khi ĐÃ login) -->
+      <a id="btnAvatar"
+         class="avatar-btn"
+         data-show="in"
+         href="/profile.html"
+         style="display:none"
+         title="Hồ sơ">
+        <img src="/public/assets/icons/user-avatar.svg" alt="Tài khoản">
+      </a>
+
+      <!-- Nút Đăng xuất (chỉ hiện khi ĐÃ login) -->
+      <button id="btnLogout"
+              class="auth-btn"
+              data-role="btn-logout"
+              data-show="in"
+              style="display:none">
+        Đăng xuất <span class="who"></span>
+      </button>
+
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+    </div>
   </header>
 
   <!-- Viewport -->
@@ -56,113 +85,87 @@ BEGIN: /index.html  (FULL PATCH)
     </section>
   </main>
 
- <!-- ========== AUTH MODAL (Glass) ========== -->
-<div id="authModal" class="modal" aria-hidden="true">
-  <div class="modal__backdrop" data-close></div>
-  <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <header class="modal__head">
-      <h3 id="authTitle" class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
-        Đăng nhập / Đăng ký
-      </h3>
-      <button class="modal__close" data-close aria-label="Đóng">✕</button>
-    </header>
-
-    <nav id="authTabs" class="tabs-line">
-      <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-      <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-      <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
-    </nav>
-
-    <!-- Login -->
-    <form class="form is-active" data-pane="login" onsubmit="return false;">
-      <div class="row">
-        <label>Email</label>
-        <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row">
-        <label>Mật khẩu</label>
-        <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <div class="row">
-        <button id="btnEmailLogin" class="btn solid" type="button">Đăng nhập</button>
-        <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập với Google</button>
-        <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
-      </div>
-      <p id="loginNote" class="note"></p>
-    </form>
-
-    <!-- Signup: chỉ nhập email → gửi mail xác minh -->
-    <form class="form" data-pane="signup" onsubmit="return false;">
-      <div class="row">
-        <label>Email</label>
-        <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row">
-        <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
-      </div>
-      <p id="signupNote" class="note"></p>
-    </form>
-
-    <!-- Reset password -->
-    <form class="form" data-pane="reset" onsubmit="return false;">
-      <div class="row">
-        <label>Email</label>
-        <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row">
-        <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
-      </div>
-      <p id="forgotNote" class="note"></p>
-    </form>
-  </section>
-</div>
-
-<!-- bump version để chắc chắn trình duyệt lấy file mới -->
-<script src="/public/js/effects.js?v=3" defer></script>
-<script src="/public/js/app.js?v=14" defer></script>
-<script type="module" src="/public/js/auth.js?v=3"></script>
-
-
-  <!-- ========== READER MODAL (storybook) ========== -->
-  <div class="modal" id="readerModal" aria-hidden="true">
-    <div class="modal__backdrop" data-reader-close></div>
-    <div class="reader__panel modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
-      <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
-
-      <header class="reader__head" style="display:flex;align-items:center;justify-content:space-between;">
-        <h3 id="readerTitle" class="reader__title">NiNi Book</h3>
-        <div id="pageCounterTop" class="reader__counter">Trang 1/1</div>
+  <!-- ========== AUTH MODAL (Glass) ========== -->
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <header class="modal__head">
+        <h3 id="authTitle" class="modal__title">
+          <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
+          Đăng nhập / Đăng ký
+        </h3>
+        <button class="modal__close" data-close aria-label="Đóng">✕</button>
       </header>
 
-      <div id="calendarViewport" class="calendar is-ready">
-        <div id="calendarBg" class="calendar__bg"></div>
-        <div class="calendar__spinner" aria-hidden="true"></div>
-      </div>
+      <nav id="authTabs" class="tabs-line">
+        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
+        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
+      </nav>
 
-      <div class="reader__toolbar">
-        <div class="reader__nav">
-          <button id="imgPrev" class="btn small" aria-label="Trang trước">‹ Trước</button>
-          <button id="imgNext" class="btn small" aria-label="Trang sau">Sau ›</button>
+      <!-- Login -->
+      <form class="form is-active" data-pane="login" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
         </div>
-        <div class="reader__lang">
-          <button id="btnLangVi" class="btn small is-active" aria-pressed="true">VI</button>
-          <button id="btnLangEn" class="btn small" aria-pressed="false">EN</button>
-          <button id="btnSpeak"  class="btn small" aria-label="Đọc to">🔊</button>
+        <div class="row">
+          <label>Mật khẩu</label>
+          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
         </div>
-      </div>
+        <div class="row">
+          <button id="btnEmailLogin"  class="btn solid"  type="button">Đăng nhập</button>
+          <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập với Google</button>
+          <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
+        </div>
+        <p id="loginNote" class="note"></p>
+      </form>
 
-      <div id="subtitleText" class="reader__subtitle" aria-live="polite"></div>
-    </div>
+      <!-- Signup: chỉ nhập email → gửi mail xác minh -->
+      <form class="form" data-pane="signup" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
+        </div>
+        <p id="signupNote" class="note"></p>
+      </form>
+
+      <!-- Reset password -->
+      <form class="form" data-pane="reset" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="row">
+          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
+        </div>
+        <p id="forgotNote" class="note"></p>
+      </form>
+    </section>
   </div>
 
-  <!-- Scripts -->
-  <script src="/public/js/effects.js?v=2" defer></script>
-  <script src="/public/js/app.js?v=13" defer></script>
+  <!-- ===== Inline boot: ẩn/hiện nhanh theo flag trước khi auth.js chạy ===== -->
+  <script>
+    (function bootHeaderAuthUI(){
+      function applyAuthUI(){
+        var logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
+        document.querySelectorAll('[data-show="in"]').forEach(function(el){ el.style.display = logged ? '' : 'none'; });
+        document.querySelectorAll('[data-show="out"]').forEach(function(el){ el.style.display = logged ? 'none' : ''; });
+      }
+      applyAuthUI();
+      window.addEventListener('nini:authchange', applyAuthUI);
+    })();
+  </script>
+
+  <!-- Scripts (single set, no duplicates) -->
+  <script src="/public/js/effects.js?v=3" defer></script>
+  <script src="/public/js/app.js?v=14" defer></script>
   <script type="module" src="/public/js/auth.js?v=3"></script>
 </body>
 </html>
 <!-- =========================
 END: /index.html
 ========================= -->
-

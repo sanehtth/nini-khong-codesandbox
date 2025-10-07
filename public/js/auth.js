@@ -8,15 +8,6 @@ const loginPw    = $('loginPw');      // <input id="loginPw">
 const btnLogin   = $('btnLogin');     // <button id="btnLogin">Đăng nhập</button>
 const btnSendVerify = $('btnSendVerify'); // <button id="btnSendVerify">Gửi email xác minh</button>
 
-// Làm sạch email để tránh INVALID_EMAIL
-function cleanEmail(s) {
-  return String(s || '')
-    .normalize('NFKC')
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
-    .replace(/\s/g, '')
-    .toLowerCase();
-}
-
 // ===== GẮN HANDLER AN TOÀN =====
 on(btnSendVerify, 'click', async () => {
   try {
@@ -215,6 +206,7 @@ function afterLogin(user){ const who=user.displayName||user.email||user.phoneNum
 onAuthStateChanged(auth, (user)=>{ if(user){ const who=user.displayName||user.email||user.phoneNumber||"user"; localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY,who);} setAuthUI(); });
 window.addEventListener("storage",(e)=>{ if(e.key===FLAG||e.key===WHOKEY||e.key===SIGNAL) setAuthUI(); });
 setAuthUI();
+
 
 
 

@@ -129,4 +129,25 @@
       try {
         // Thêm email+password nếu chưa có, nếu đã có thì cập nhật
         const emailCred = EmailAuthProvider.credential(email, pw);
-        await linkWithCredential(u, emailCred).catch(asy
+        await linkWithCredential(u, emailCred).catch(async (e) => {
+          if (e?.code === 'auth/provider-already-linked' || e?.code === 'auth/credential-already-in-use') {
+            await updateEmail(u, email);
+            await updatePassword(u, pw);
+            return;
+          }
+          throw e;
+        });
+
+        setNote(note2, 'Đã cập nhật email & mật khẩu. Bạn có thể đăng nhập bằng email mới.', true);
+        setTimeout(()=> location.replace('/index.html'), 1200);
+      } catch (e) {
+        const code = e?.code || '';
+        setNote(note2,
+          code === 'auth/invalid-email' ? 'Email không hợp lệ.' :
+          code === 'auth/email-already-in-use' ? 'Email này đã được dùng ở tài khoản khác.' :
+          'Không cập nhật được. Hãy thử lại.', false);
+      }
+    });
+  </script>
+</body>
+</html>

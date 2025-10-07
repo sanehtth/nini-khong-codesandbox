@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hồ sơ & Thành tích — NiNi</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=12" />
+  <link rel="stylesheet" href="/styles.css?v=21" />
   <style>
+    body{min-height:100vh;background:url('/public/assets/bg/nini_home.webp') center/cover fixed no-repeat;margin:0}
+    .site-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .brand__logo{height:30px}
+    .brand__slogan{font-size:12px;opacity:.9;color:#111}
+    .viewport{min-height:calc(100vh - 64px)}
     /* ====== Layout trang Profile ====== */
     .page-wrap{ width:min(1100px, 94vw); margin:18px auto 32px; display:grid; gap:16px; grid-template-columns: 1.2fr .8fr; }
-    .card{ background: var(--glass-2); border:1px solid rgba(17,24,39,.12); border-radius:16px; padding:16px 16px 18px; color:var(--text); box-shadow: inset 0 0 0 1px rgba(17,24,39,.06); }
+    .card{ background: rgba(255,255,255,.18); border:1px solid rgba(17,24,39,.12); border-radius:16px; padding:16px 16px 18px; color:var(--text); box-shadow: inset 0 0 0 1px rgba(17,24,39,.06); backdrop-filter: blur(8px);}
     .card h2{ margin:0 0 10px; font-size:20px }
     .meta{ font-size:13px; color:var(--text-dim); margin:-2px 0 12px }
     .grid-2{ display:grid; grid-template-columns: 140px 1fr; gap:14px; align-items:start }
@@ -46,9 +52,7 @@
   <!-- MAIN -->
   <main class="viewport">
     <div class="page-wrap">
-      <!-- =========================================================
-           [BẮT ĐẦU] KHỐI 1 — THÔNG TIN CÁ NHÂN (Avatar, Giới tính, OTP)
-      ========================================================== -->
+      <!-- THÔNG TIN CÁ NHÂN -->
       <section class="card">
         <h2>Thông tin cá nhân</h2>
         <div class="meta" id="authHint">Đang kiểm tra đăng nhập…</div>
@@ -80,7 +84,7 @@
           <div class="fld"><span>Ngày sinh</span><input type="date" id="pf_dob" /></div>
           <div class="fld"><span>Phụ huynh</span><input type="text" id="pf_guardian" placeholder="Tên phụ huynh (tuỳ chọn)" /></div>
 
-          <!-- OTP Phone -->
+          <!-- OTP Phone (link) -->
           <div class="fld"><span>Số điện thoại</span>
             <div class="row">
               <input type="tel" id="pf_phone" inputmode="tel" placeholder="09xxxxxxxx" style="flex:1; min-width:220px" />
@@ -114,16 +118,10 @@
           <div id="pwNote" class="note"></div>
         </div>
 
-        <!-- Recaptcha (ẩn) cho OTP -->
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
       </section>
-      <!-- =========================================================
-           [HẾT] KHỐI 1 — THÔNG TIN CÁ NHÂN
-      ========================================================== -->
 
-      <!-- =========================================================
-           [BẮT ĐẦU] KHỐI 2 — THÀNH TÍCH
-      ========================================================== -->
+      <!-- THÀNH TÍCH -->
       <section class="card">
         <h2>Thành tích</h2>
         <div class="meta">Theo dõi tiến trình học & phần thưởng</div>
@@ -147,9 +145,6 @@
           <span class="note">Đồng bộ với tài khoản trò chơi (local & cloud).</span>
         </div>
       </section>
-      <!-- =========================================================
-           [HẾT] KHỐI 2 — THÀNH TÍCH
-      ========================================================== -->
     </div>
   </main>
 
@@ -435,3 +430,4 @@
   ========================================================== -->
 </body>
 </html>
+

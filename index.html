@@ -56,67 +56,73 @@ BEGIN: /index.html  (FULL PATCH)
     </section>
   </main>
 
-  <!-- ========== AUTH MODAL (IDs đã chuẩn hoá để khớp JS) ========== -->
-  <div id="authModal" class="modal" aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
-    <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <header class="modal__head">
-        <h3 id="authTitle" class="modal__title">
-          <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
-          Đăng nhập / Đăng ký
-        </h3>
-        <button class="modal__close" data-close aria-label="Đóng">✕</button>
-      </header>
+ <!-- ========== AUTH MODAL (Glass) ========== -->
+<div id="authModal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop" data-close></div>
+  <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <header class="modal__head">
+      <h3 id="authTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
+        Đăng nhập / Đăng ký
+      </h3>
+      <button class="modal__close" data-close aria-label="Đóng">✕</button>
+    </header>
 
-      <nav id="authTabs" class="tabs-line">
-        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
-      </nav>
+    <nav id="authTabs" class="tabs-line">
+      <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+      <button class="tab-line" data-auth="signup">Đăng ký mới</button>
+      <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
+    </nav>
 
-      <!-- Login -->
-      <form class="form is-active" data-pane="login" onsubmit="return false;">
-        <div class="row"><label>Email</label>
-          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row"><label>Mật khẩu</label>
-          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div class="row">
-          <button id="btnEmailLogin" class="btn solid" type="button">Đăng nhập</button>
-          <button id="btnGoogleLogin" class="btn solid" type="button">Đăng nhập Google</button>
-          <button id="btnResendVerify" type="button" class="btn ghost" style="display:none">Gửi lại email xác minh</button>
-        </div>
-        <p id="loginNote" class="note"></p>
-      </form>
+    <!-- Login -->
+    <form class="form is-active" data-pane="login" onsubmit="return false;">
+      <div class="row">
+        <label>Email</label>
+        <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="row">
+        <label>Mật khẩu</label>
+        <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="row">
+        <button id="btnEmailLogin" class="btn solid" type="button">Đăng nhập</button>
+        <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập với Google</button>
+        <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
+      </div>
+      <p id="loginNote" class="note"></p>
+    </form>
 
-      <!-- Signup -->
-      <form class="form" data-pane="signup" onsubmit="return false;">
-        <div class="row"><label>Email</label>
-          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row"><label>Mật khẩu mới</label>
-          <input id="signupPassword" class="input underline" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password">
-        </div>
-        <div class="row">
-          <button id="btnEmailSignup" class="btn solid" type="button">Tạo tài khoản</button>
-        </div>
-        <p id="signupNote" class="note"></p>
-      </form>
+    <!-- Signup: chỉ nhập email → gửi mail xác minh -->
+    <form class="form" data-pane="signup" onsubmit="return false;">
+      <div class="row">
+        <label>Email</label>
+        <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="row">
+        <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
+      </div>
+      <p id="signupNote" class="note"></p>
+    </form>
 
-      <!-- Reset -->
-      <form class="form" data-pane="reset" onsubmit="return false;">
-        <div class="row"><label>Email</label>
-          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row">
-          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
-        </div>
-        <p id="forgotNote" class="note"></p>
-      </form>
-    </section>
-  </div>
-  <!-- ========== /AUTH MODAL ========== -->
+    <!-- Reset password -->
+    <form class="form" data-pane="reset" onsubmit="return false;">
+      <div class="row">
+        <label>Email</label>
+        <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="row">
+        <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
+      </div>
+      <p id="forgotNote" class="note"></p>
+    </form>
+  </section>
+</div>
+
+<!-- bump version để chắc chắn trình duyệt lấy file mới -->
+<script src="/public/js/effects.js?v=3" defer></script>
+<script src="/public/js/app.js?v=14" defer></script>
+<script type="module" src="/public/js/auth.js?v=3"></script>
+
 
   <!-- ========== READER MODAL (storybook) ========== -->
   <div class="modal" id="readerModal" aria-hidden="true">
@@ -159,3 +165,4 @@ BEGIN: /index.html  (FULL PATCH)
 <!-- =========================
 END: /index.html
 ========================= -->
+

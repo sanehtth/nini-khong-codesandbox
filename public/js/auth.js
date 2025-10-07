@@ -1,3 +1,12 @@
+// Xử lý mọi kiểu khoảng trắng & ký tự ẩn trong email
+function cleanEmail(s) {
+  return String(s || '')
+    .normalize('NFKC')                     // chuẩn hoá unicode (fullwidth -> ascii)
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // bỏ zero-width
+    .replace(/\s/g, '')                    // bỏ mọi khoảng trắng (kể cả giữa chuỗi)
+    .toLowerCase();
+}
+
 // NiNi — AUTH (email-only signup + SMTP verify + reset) + toast
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -145,4 +154,5 @@ function afterLogin(user){ const who=user.displayName||user.email||user.phoneNum
 onAuthStateChanged(auth, (user)=>{ if(user){ const who=user.displayName||user.email||user.phoneNumber||"user"; localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY,who);} setAuthUI(); });
 window.addEventListener("storage",(e)=>{ if(e.key===FLAG||e.key===WHOKEY||e.key===SIGNAL) setAuthUI(); });
 setAuthUI();
+
 

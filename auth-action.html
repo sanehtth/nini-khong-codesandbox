@@ -3,27 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Xử lý liên kết — NiNi</title>
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
-  <link rel="stylesheet" href="/public/styles.css?v=100" />
-  <meta name="robots" content="noindex, follow" />
+  <title>NiNi — Xử lý liên kết</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=20" />
   <style>
-    .panel{max-width:640px;margin:64px auto;padding:24px;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.08);font-family:system-ui,Roboto,Arial}
-    .ok{color:#0f5132}.err{color:#7f1d1d}
+    :root{--glass-bg:rgba(255,255,255,.18)}
+    body{min-height:100vh;background:url('/public/assets/bg/nini_home.webp') center/cover fixed no-repeat;margin:0}
+    .site-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .brand__logo{height:30px}
+    .brand__slogan{font-size:12px;opacity:.9;color:#111}
+    .viewport{min-height:calc(100vh - 64px);display:grid;place-items:center}
+    .panel{max-width:560px;width:min(92vw,560px);background:var(--glass-bg);backdrop-filter:blur(8px);
+      border:1px solid rgba(17,24,39,.12);border-radius:16px;padding:18px}
+    .title{margin:0 0 8px}
+    .btn{padding:10px 14px;border-radius:10px;border:1px solid rgba(17,24,39,.18);background:#fff;cursor:pointer}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .note{font-size:13px;color:#333}
+    .ok{color:#0f5132}.bad{color:#7f1d1d}
   </style>
 </head>
 <body>
-  <main class="panel">
-    <h3>NiNi — Xác minh / Đặt mật khẩu</h3>
-    <p id="status">Đang xử lý liên kết...</p>
-    <p id="actions" style="display:none">
-      <a href="/#home">Về trang chủ</a> · <a href="/#home">Đăng nhập</a>
-    </p>
+  <header class="site-header">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </a>
+  </header>
+
+  <main class="viewport">
+    <section class="panel">
+      <h3 class="title">Đang xử lý liên kết…</h3>
+      <p id="msg" class="note"></p>
+      <div class="row" id="actions" style="display:none">
+        <button id="btnSendReset" class="btn">Gửi email đặt mật khẩu</button>
+        <a class="btn" href="/index.html">Về trang chủ</a>
+      </div>
+    </section>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, applyActionCode, checkActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
@@ -31,81 +52,73 @@
       projectId: "nini-8f3d4",
       storageBucket: "nini-8f3d4.firebasestorage.app",
       messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
+      appId: "1:991701821645:web:fb21c357562c6c801da184",
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const status = document.getElementById('status');
-    const actions = document.getElementById('actions');
+    const $ = (id)=>document.getElementById(id);
+    const msg = $("msg");
+    const actions = $("actions");
+    const btnSendReset = $("btnSendReset");
 
-    const url = new URL(location.href);
-    const mode = url.searchParams.get('mode');
-    const oobCode = url.searchParams.get('oobCode');
+    const sp = new URLSearchParams(location.search);
+    const mode    = sp.get("mode");
+    const oobCode = sp.get("oobCode");
 
-    function getEmailFromContinueUrl() {
-      let email = url.searchParams.get('email');
-      const cont = url.searchParams.get('continueUrl');
-      if (cont) {
-        try { email ||= new URL(cont).searchParams.get('email'); } catch {}
-      }
-      return email;
-    }
-
-    async function goResetNow(email) {
-      // Gọi function tạo link reset → trích oobCode → chuyển sang reset-password.html
-      const r = await fetch('/.netlify/functions/make-reset-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    async function sendReset(email){
+      const res = await fetch("/.netlify/functions/send-reset", {
+        method:"POST", headers:{ "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const j = await r.json().catch(()=> ({}));
-      if (!r.ok) throw new Error(j.error || 'MAKE_RESET_LINK_FAILED');
-      const oc = new URL(j.link).searchParams.get('oobCode');
-      if (!oc) throw new Error('NO_OOBCODE');
-      // cũ:
-// location.href = `/reset-password.html?oobCode=${encodeURIComponent(oc)}`;
-
-// mới:
-location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oc)}`);
-
+      if (!res.ok) throw new Error(await res.text());
     }
 
     (async () => {
-      try {
-        if (mode === 'verifyEmail' && oobCode) {
-          await applyActionCode(auth, oobCode); // ✅ xác minh thành công
-          status.textContent = 'Đã xác minh email. Đang chuyển sang trang đặt mật khẩu...';
-          status.className = 'ok';
-          const email = getEmailFromContinueUrl();
-          if (email) {
-            await goResetNow(email); // ➜ vào trang đặt mật khẩu ngay
-            return;
-          }
-          // fallback hiếm hoi
-          actions.style.display = 'block';
-          status.textContent = 'Đã xác minh email. Vui lòng đăng nhập.';
-          return;
-        }
-
-        if (mode === 'resetPassword' && oobCode) {
-          // trường hợp đi từ luồng "Quên mật khẩu"
-          location.href = `/reset-password.html?oobCode=${encodeURIComponent(oobCode)}`;
-          return;
-        }
-
-        status.textContent = 'Liên kết không hợp lệ hoặc đã hết hạn.';
-        status.className = 'err';
-        actions.style.display = 'block';
-      } catch (e) {
-        console.error('auth-action error:', e);
-        status.textContent = 'Có lỗi khi xử lý liên kết: ' + (e.message || 'UNKNOWN');
-        status.className = 'err';
-        actions.style.display = 'block';
+      if (!mode || !oobCode) {
+        msg.textContent = "Thiếu tham số liên kết."; msg.className = "note bad"; return;
       }
+
+      // Nếu là đặt lại mật khẩu → chuyển luôn qua trang reset
+      if (mode === "resetPassword") {
+        location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oobCode)}`);
+        return;
+      }
+
+      if (mode === "verifyEmail") {
+        try {
+          // Lấy email từ oobCode (để gửi reset nếu người dùng muốn)
+          let emailFromCode = null;
+          try {
+            const info = await checkActionCode(auth, oobCode);
+            emailFromCode = info?.data?.email || null;
+          } catch {}
+
+          await applyActionCode(auth, oobCode);
+          msg.textContent = "✅ Email đã được xác minh. Bạn có thể đặt mật khẩu để đăng nhập bằng email & mật khẩu.";
+          msg.className = "note ok";
+          actions.style.display = "";
+
+          btnSendReset.onclick = async () => {
+            try{
+              if (!emailFromCode) { msg.textContent = "Không tìm thấy email. Hãy mở trang Đăng nhập và dùng Quên mật khẩu."; msg.className="note bad"; return; }
+              btnSendReset.disabled = true;
+              msg.textContent = "Đang gửi email đặt mật khẩu…"; msg.className = "note";
+              await sendReset(emailFromCode);
+              msg.textContent = "Đã gửi email đặt mật khẩu. Vui lòng kiểm tra hộp thư."; msg.className = "note ok";
+            }catch(e){
+              msg.textContent = "Không gửi được email đặt mật khẩu."; msg.className = "note bad";
+            }finally{ btnSendReset.disabled = false; }
+          };
+        } catch (e) {
+          msg.textContent = "Liên kết xác minh không hợp lệ hoặc đã hết hạn."; msg.className = "note bad";
+        }
+        return;
+      }
+
+      msg.textContent = "Liên kết không được hỗ trợ."; msg.className = "note bad";
     })();
   </script>
 </body>
 </html>
-

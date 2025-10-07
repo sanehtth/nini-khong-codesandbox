@@ -1,3 +1,6 @@
+<!-- =========================
+BEGIN: /index.html  (FULL PATCH)
+========================= -->
 <!doctype html>
 <html lang="vi">
 <head>
@@ -7,15 +10,11 @@
   <title>NiNi — Funny</title>
 
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <!-- CSS chính của bạn -->
-  <link rel="stylesheet" href="/styles.css?v=15" />
-  <!-- giữ 1 dòng nhỏ để chắc chắn layer hiệu ứng bám đúng khung -->
-  <style>
-    .frame{position:relative}
-  </style>
+  <link rel="stylesheet" href="/styles.css?v=16" />
+  <style>.frame{position:relative}</style>
 </head>
 <body>
-  <!-- ========== HEADER ========== -->
+  <!-- Header -->
   <header class="site-header">
     <a class="brand" href="#/home" id="brandLink" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
@@ -33,13 +32,11 @@
     <button id="authBtn"  class="auth-btn">Đăng nhập / Đăng ký</button>
     <button id="btnLogout" class="auth-btn" hidden>Đăng xuất <span id="who"></span></button>
 
-    <!-- Ẩn/hiện bằng Alt+A -->
     <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
   </header>
 
-  <!-- ========== VIEWPORT ========== -->
+  <!-- Viewport -->
   <main class="viewport">
-    <!-- Khung 16:9, nền trong khung thay đổi theo mùa, hiệu ứng rơi gắn vào đây -->
     <section class="frame" id="frame" aria-label="Khung hiển thị">
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
       <div class="chips">
@@ -49,105 +46,85 @@
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
 
-      <!-- Kệ sách xuất hiện khi ở Spring -->
+      <!-- Kệ sách (Spring) -->
       <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
-    <!-- Khu nội dung văn bản phía dưới khung -->
     <section class="content" id="content" aria-live="polite">
       <h2>NiNi — Funny</h2>
       <p>... (nội dung giới thiệu) ...</p>
     </section>
   </main>
 
-  <!-- =========================================
-BEGIN PATCH index.html — Auth modal (đồng bộ tab)
-Việc đã làm:
-- Mỗi tab có data-auth="login|signup|forgot"
-- Mỗi pane có data-pane="login|signup|forgot"
-- Mặc định chỉ pane "login" có .is-active
-========================================= -->
-<!-- ========== AUTH MODAL (Glass) — REPLACE BLOCK NÀY VÀO index.html ========== -->
-<div id="authModal" class="modal" aria-hidden="true">
-  <div class="modal__backdrop"></div>
-  <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <header class="modal__head">
-      <h3 id="authTitle" class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
-        Đăng nhập / Đăng ký
-      </h3>
-      <button class="modal__close" data-close aria-label="Đóng">✕</button>
-    </header>
+  <!-- ========== AUTH MODAL (IDs đã chuẩn hoá để khớp JS) ========== -->
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <header class="modal__head">
+        <h3 id="authTitle" class="modal__title">
+          <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
+          Đăng nhập / Đăng ký
+        </h3>
+        <button class="modal__close" data-close aria-label="Đóng">✕</button>
+      </header>
 
-    <!-- Tabs -->
-    <nav id="authTabs" class="tabs-line">
-      <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-      <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-      <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
-    </nav>
+      <nav id="authTabs" class="tabs-line">
+        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
+        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
+      </nav>
 
-    <!-- Pane: Login -->
-    <form class="form is-active" data-pane="login" onsubmit="return false;">
-      <div class="row"><label>Email</label>
-        <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row"><label>Mật khẩu</label>
-        <input id="loginPwd" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
+      <!-- Login -->
+      <form class="form is-active" data-pane="login" onsubmit="return false;">
+        <div class="row"><label>Email</label>
+          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row"><label>Mật khẩu</label>
+          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="row">
+          <button id="btnEmailLogin" class="btn solid" type="button">Đăng nhập</button>
+          <button id="btnGoogleLogin" class="btn solid" type="button">Đăng nhập Google</button>
+          <button id="btnResendVerify" type="button" class="btn ghost" style="display:none">Gửi lại email xác minh</button>
+        </div>
+        <p id="loginNote" class="note"></p>
+      </form>
 
-      <div class="row">
-        <button id="btnLogin" class="btn solid">Đăng nhập</button>
+      <!-- Signup -->
+      <form class="form" data-pane="signup" onsubmit="return false;">
+        <div class="row"><label>Email</label>
+          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row"><label>Mật khẩu mới</label>
+          <input id="signupPassword" class="input underline" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password">
+        </div>
+        <div class="row">
+          <button id="btnEmailSignup" class="btn solid" type="button">Tạo tài khoản</button>
+        </div>
+        <p id="signupNote" class="note"></p>
+      </form>
 
-        <!-- Nút gửi lại email xác minh (ẩn cho đến khi cần) -->
-        <button id="btnResendVerify" type="button" class="btn ghost" style="display:none">
-          Gửi lại email xác minh
-        </button>
-      </div>
-
-      <p id="loginNote" class="note"></p>
-    </form>
-
-    <!-- Pane: Signup -->
-    <form class="form" data-pane="signup" onsubmit="return false;">
-      <div class="row"><label>Email</label>
-        <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row"><label>Mật khẩu mới</label>
-        <input id="signupPwd" class="input underline" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password">
-      </div>
-
-      <div class="row">
-        <button id="btnSignup" class="btn solid">Tạo tài khoản</button>
-      </div>
-
-      <p id="signupNote" class="note"></p>
-    </form>
-
-    <!-- Pane: Reset -->
-    <form class="form" data-pane="reset" onsubmit="return false;">
-      <div class="row"><label>Email</label>
-        <input id="resetEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-      </div>
-      <div class="row">
-        <button id="btnReset" class="btn solid">Gửi link đặt lại mật khẩu</button>
-      </div>
-
-      <p id="resetNote" class="note"></p>
-    </form>
-  </section>
-</div>
-<!-- ========== HẾT AUTH MODAL ========== -->
-<!-- =========================================
-END PATCH index.html — Auth modal
-========================================= -->
+      <!-- Reset -->
+      <form class="form" data-pane="reset" onsubmit="return false;">
+        <div class="row"><label>Email</label>
+          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row">
+          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
+        </div>
+        <p id="forgotNote" class="note"></p>
+      </form>
+    </section>
+  </div>
+  <!-- ========== /AUTH MODAL ========== -->
 
   <!-- ========== READER MODAL (storybook) ========== -->
   <div class="modal" id="readerModal" aria-hidden="true">
     <div class="modal__backdrop" data-reader-close></div>
-    <div class="reader__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+    <div class="reader__panel modal__panel" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
       <button class="modal__close" data-reader-close aria-label="Đóng">×</button>
 
-      <header class="reader__head">
+      <header class="reader__head" style="display:flex;align-items:center;justify-content:space-between;">
         <h3 id="readerTitle" class="reader__title">NiNi Book</h3>
         <div id="pageCounterTop" class="reader__counter">Trang 1/1</div>
       </header>
@@ -173,14 +150,12 @@ END PATCH index.html — Auth modal
     </div>
   </div>
 
-  <!-- ========== SCRIPTS ========== -->
-  <!-- Hiệu ứng rơi (load trước app.js để app gọi setSeason) -->
+  <!-- Scripts -->
   <script src="/public/js/effects.js?v=2" defer></script>
-  <!-- App logic -->
   <script src="/public/js/app.js?v=13" defer></script>
-  <!-- Auth logic (Firebase + gửi mail reset/xác minh qua Netlify Functions của bạn) -->
-  <script type="module" src="/public/js/auth.js?v=2"></script>
+  <script type="module" src="/public/js/auth.js?v=3"></script>
 </body>
 </html>
-
-
+<!-- =========================
+END: /index.html
+========================= -->

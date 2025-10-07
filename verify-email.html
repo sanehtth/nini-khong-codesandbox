@@ -1,128 +1,47 @@
 <!doctype html>
-<html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Xác minh email — NiNi</title>
-  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Xác minh email — NiNi</title>
+<link rel="stylesheet" href="/styles.css?v=16"/>
+</head><body>
+<main class="viewport" style="display:grid;place-items:center;min-height:100vh">
+  <section class="modal__panel" style="position:static;max-width:520px">
+    <h3 class="modal__title">
+      <img src="/public/assets/icons/logonini.webp" class="modal__logo" alt="" />
+      Xác minh email
+    </h3>
+    <p id="msg" class="note">Đang xác minh...</p>
+  </section>
+</main>
 
-  <!-- ============ BẮT ĐẦU: STYLE CHUNG “KÍNH MỜ” ============ -->
-  <style>
-    :root{
-      --green: #2f6e3f; --green-2:#21512d; --text:#1c2024;
-      --glass-bg: rgba(255,255,255,.86);
-      --glass-blur: blur(10px);
-      --ring: rgba(47,110,63,.35);
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const app = initializeApp({
+    apiKey:"AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+    authDomain:"nini-8f3d4.firebaseapp.com",
+    projectId:"nini-8f3d4"
+  });
+  const auth = getAuth(app);
+  const msg = document.getElementById("msg");
+
+  const sp = new URLSearchParams(location.search);
+  const oob = sp.get("oobCode");
+
+  async function run(){
+    if(!oob){ msg.textContent="Thiếu oobCode."; msg.className="note err"; return; }
+    try{
+      await applyActionCode(auth, oob);
+      msg.textContent="Xác minh thành công! Đang chuyển về trang chủ...";
+      msg.className="note ok";
+      setTimeout(()=> location.href="/#home", 1200);
+    }catch(e){
+      msg.textContent = e?.code || e?.message || "Mã xác minh không hợp lệ/đã hết hạn.";
+      msg.className="note err";
     }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{
-      margin:0; color:var(--text);
-      font: 16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;
-      background: #e6f1e9 url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
-    }
-    /* Header giống index: logo + slogan chuyển màu */
-    .site-head{position:fixed; inset: 16px auto auto 16px; display:flex; align-items:center; gap:10px; z-index:10}
-    .brand{display:inline-flex; align-items:center; gap:10px; text-decoration:none; user-select:none}
-    .brand__logo{height:36px; width:auto}
-    .slogan{
-      font-weight:700; font-size:14px; letter-spacing:.2px;
-      background: linear-gradient(90deg,#F4D35E,#7BC67B,#8B5E3C);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-      filter: drop-shadow(0 1px 0 rgba(0,0,0,.15));
-      animation: hue 6s linear infinite;
-    }
-    @keyframes hue { from{ filter:hue-rotate(0) drop-shadow(0 1px 0 rgba(0,0,0,.15)); }
-                     to{ filter:hue-rotate(360deg) drop-shadow(0 1px 0 rgba(0,0,0,.15)); } }
-
-    /* Card kính mờ */
-    .wrap{min-height:100%; display:grid; place-items:center; padding:80px 16px}
-    .card{
-      width:min(560px,92vw); background:var(--glass-bg);
-      backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-      border-radius: 18px; box-shadow: 0 12px 36px rgba(0,0,0,.18);
-      border: 1px solid rgba(255,255,255,.55);
-      padding: 24px 22px 18px;
-    }
-    .title{margin:0; font-weight:800; color:var(--green-2)}
-    .desc{margin: 4px 0 12px; color:#5a6f64}
-    .note{margin-top:12px; font-weight:600}
-    .ok{color:#0f5132} .err{color:#7f1d1d}
-    .row{margin-top:14px; display:flex; gap:10px; align-items:center}
-    .btn{
-      height:42px; padding:0 16px; border-radius: 999px; border:1px solid rgba(0,0,0,.15);
-      background: rgba(255,255,255,.15); color:#173320; font-weight:800; cursor:pointer;
-      box-shadow: 0 6px 16px rgba(47,110,63,.25);
-    }
-    .btn:focus{outline:none; box-shadow: 0 0 0 3px var(--ring)}
-  </style>
-  <!-- ============ KẾT THÚC: STYLE CHUNG “KÍNH MỜ” ============ -->
-</head>
-<body>
-
-  <header class="site-head">
-    <a href="/#home" class="brand" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-      <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
-    </a>
-  </header>
-
-  <main class="wrap">
-    <section class="card" aria-live="polite">
-      <h1 class="title">Xác minh email</h1>
-      <p class="desc">Chúng mình đang xác thực liên kết. Vui lòng chờ trong giây lát…</p>
-
-      <div class="row">
-        <button id="btnHome" class="btn" style="display:none">Về trang chủ</button>
-      </div>
-
-      <p id="msg" class="note"></p>
-    </section>
-  </main>
-
-  <!-- Firebase (app + auth) -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    // ===== BẮT ĐẦU: Config Firebase của bạn =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
-    };
-    // ===== KẾT THÚC: Config Firebase của bạn =====
-
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const sp = new URLSearchParams(location.search);
-    const oobCode   = sp.get("oobCode");
-    const continueUrl = sp.get("continueUrl") || "/#home";
-
-    const msg = document.getElementById("msg");
-    const btnHome = document.getElementById("btnHome");
-
-    function note(t, ok){ msg.textContent=t||""; msg.className="note "+(ok?"ok":"err"); }
-
-    btnHome.addEventListener("click", ()=> location.href = continueUrl );
-
-    (async () => {
-      if (!oobCode) {
-        note("Thiếu mã xác minh (oobCode). Hãy mở lại đường dẫn từ email.", false);
-        btnHome.style.display = "inline-block";
-        return;
-      }
-      try{
-        await applyActionCode(auth, oobCode);
-        note("Xác minh email thành công! Bạn có thể đăng nhập ngay bây giờ.", true);
-      }catch(e){
-        note(e?.code || e?.message || "Liên kết không hợp lệ hoặc đã hết hạn.", false);
-      }
-      btnHome.style.display = "inline-block";
-    })();
-  </script>
-</body>
-</html>
+  }
+  run();
+</script>
+</body></html>

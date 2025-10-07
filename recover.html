@@ -1,0 +1,147 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Khôi phục tài khoản — NiNi</title>
+  <link rel="stylesheet" href="/public/styles.css?v=1" />
+  <style>
+    .panel{max-width:520px;margin:48px auto;padding:18px;border:1px solid #e5e7eb;border-radius:12px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .input{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:8px}
+    .btn{padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;cursor:pointer}
+    .ok{color:#0f5132}.bad{color:#7f1d1d}.note{margin-top:8px}
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h3>Khôi phục tài khoản (dùng SĐT đã liên kết)</h3>
+
+    <!-- Bước 1: OTP -->
+    <section id="step1">
+      <div class="row">
+        <input id="phone" class="input" inputmode="tel" placeholder="Số điện thoại (09xxxxxxxx)" />
+        <button id="sendOtp" class="btn">Gửi OTP</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="otp" class="input" inputmode="numeric" placeholder="Mã OTP 6 số" />
+        <button id="confirmOtp" class="btn">Xác nhận</button>
+      </div>
+      <p id="note1" class="note"></p>
+      <div id="recaptcha-login" style="height:0;overflow:hidden"></div>
+    </section>
+
+    <!-- Bước 2: đặt email/mật khẩu mới -->
+    <section id="step2" style="display:none">
+      <p class="ok">✅ Đã xác thực bằng SĐT. Hãy đặt <b>email mới</b> (nếu mất email cũ) và <b>mật khẩu</b>.</p>
+      <div class="row"><input id="newEmail" class="input" type="email" inputmode="email" placeholder="Email mới" /></div>
+      <div class="row"><input id="newPw" class="input" type="password" placeholder="Mật khẩu mới (≥ 8 ký tự)" /></div>
+      <div class="row"><button id="bindEmailPw" class="btn">Lưu email & mật khẩu</button></div>
+      <p id="note2" class="note"></p>
+    </section>
+
+    <div class="row" style="margin-top:12px">
+      <a class="btn" href="/index.html">← Về trang chủ</a>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth, RecaptchaVerifier, signInWithPhoneNumber,
+      EmailAuthProvider, linkWithCredential, updateEmail, updatePassword
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+      authDomain: "nini-8f3d4.firebaseapp.com",
+      projectId: "nini-8f3d4",
+      storageBucket: "nini-8f3d4.firebasestorage.app",
+      messagingSenderId: "991701821645",
+      appId: "1:991701821645:web:fb21c357562c6c801da184"
+    });
+
+    const auth = getAuth(app);
+    auth.languageCode = 'vi';
+
+    const $ = (id)=>document.getElementById(id);
+    const note1 = $('note1'), note2 = $('note2');
+    const step1 = $('step1'), step2 = $('step2');
+
+    let recaptchaLogin, loginConfirm;
+
+    function setNote(el, msg, ok=true){ el.textContent = msg || ''; el.className = 'note ' + (ok ? 'ok' : 'bad'); }
+    function ensureRecaptcha(){
+      if (recaptchaLogin) return recaptchaLogin;
+      recaptchaLogin = new RecaptchaVerifier(auth, 'recaptcha-login', { size:'invisible' });
+      return recaptchaLogin;
+    }
+
+    $('sendOtp').addEventListener('click', async () => {
+      const phone = ($('phone').value || '').trim();
+      if (!phone) { setNote(note1, 'Nhập số điện thoại.', false); return; }
+      try {
+        ensureRecaptcha();
+        // CẢNH BÁO: signInWithPhoneNumber sẽ đăng nhập bằng SĐT
+        // Ở khôi phục, ta CẦN điều này (user đã từng link phone).
+        loginConfirm = await signInWithPhoneNumber(auth, phone, recaptchaLogin);
+        setNote(note1, 'Đã gửi OTP. Nhập mã 6 số.', true);
+      } catch (e) {
+        console.error('send otp fail', e);
+        const code = e?.code || '';
+        setNote(note1, code === 'auth/too-many-requests' ? 'Bạn gửi quá nhiều lần. Thử lại sau.' : 'Không gửi được OTP.', false);
+      }
+    });
+
+    $('confirmOtp').addEventListener('click', async () => {
+      const code = ($('otp').value || '').trim();
+      if (!loginConfirm || !code) { setNote(note1, 'Thiếu OTP.', false); return; }
+      try {
+        const cred = await loginConfirm.confirm(code); // => signed-in with phone
+        console.log('signed in by phone uid=', cred.user?.uid);
+        setNote(note1, 'Đã xác thực SĐT.', true);
+        step1.style.display = 'none';
+        step2.style.display = '';
+      } catch (e) {
+        console.error('confirm otp fail', e);
+        setNote(note1, 'OTP sai hoặc hết hạn.', false);
+      }
+    });
+
+    $('bindEmailPw').addEventListener('click', async () => {
+      const u = auth.currentUser;
+      if (!u) { setNote(note2, 'Phiên đã hết. Vui lòng thực hiện lại OTP.', false); return; }
+
+      const email = ($('newEmail').value || '').trim();
+      const pw    = ($('newPw').value   || '').trim();
+      if (!email) { setNote(note2, 'Nhập email mới.', false); return; }
+      if (!pw || pw.length < 8) { setNote(note2, 'Mật khẩu phải ≥ 8 ký tự.', false); return; }
+
+      try {
+        // Nếu user là phone-only, thêm email+password bằng linkWithCredential
+        const emailCred = EmailAuthProvider.credential(email, pw);
+        await linkWithCredential(u, emailCred).catch(async (e) => {
+          // Nếu đã từng có email provider rồi, ta chỉ cần cập nhật email & password
+          if (e?.code === 'auth/provider-already-linked' || e?.code === 'auth/credential-already-in-use') {
+            await updateEmail(u, email);
+            await updatePassword(u, pw);
+            return;
+          }
+          throw e;
+        });
+
+        setNote(note2, 'Đã cập nhật email & mật khẩu. Bạn có thể dùng email mới để đăng nhập.', true);
+        // (tuỳ chọn) chuyển về trang chủ
+        setTimeout(()=> location.replace('/index.html'), 1000);
+      } catch (e) {
+        console.error('bind email/pw fail', e);
+        const code = e?.code || '';
+        setNote(note2,
+          code === 'auth/invalid-email' ? 'Email không hợp lệ.' :
+          code === 'auth/email-already-in-use' ? 'Email này đã được dùng ở tài khoản khác.' :
+          'Không cập nhật được. Hãy thử lại.', false);
+      }
+    });
+  </script>
+</body>
+</html>

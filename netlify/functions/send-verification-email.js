@@ -1,10 +1,12 @@
 // netlify/functions/send-verification-email.js
+// Gửi email xác minh + auto-create user nếu chưa có
+
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
 const CORS = {
-  'Access-Control-Allow-Origin': '*', // đổi thành 'https://nini-funny.com' nếu muốn
+  'Access-Control-Allow-Origin': '*', // có thể đổi thành 'https://nini-funny.com'
   'Access-Control-Allow-Headers': 'Content-Type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Content-Type': 'application/json; charset=utf-8',
@@ -25,7 +27,7 @@ function initFirebase() {
   });
 }
 
-function transporter() {
+function makeTransporter() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || 465);
   const user = process.env.SMTP_USER || process.env.SMTP_EMAIL;
@@ -37,37 +39,18 @@ function transporter() {
 
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s || '');
 
-exports.handler = async (event) => {
-  try {
-    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
-    }
-
-    let body;
-    try { body = JSON.parse(event.body || '{}'); } catch { body = {}; }
-    const email = (body.email || '').trim().toLowerCase();
-    const createIfMissing = body.createIfMissing !== false; // mặc định: true
-
-    if (!isEmail(email)) {
-      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'INVALID_EMAIL' }) };
-    }
-
-    initFirebase();
-// Sau khi đã: parse email, initFirebase()
-
 async function ensureUser(email, createIfMissing = true) {
   try {
-    // 1) Đã tồn tại -> trả về user
     return await admin.auth().getUserByEmail(email);
   } catch (e) {
     if (e?.code !== 'auth/user-not-found') throw e;
-    if (!createIfMissing) throw Object.assign(new Error('USER_NOT_FOUND'), { code: 'USER_NOT_FOUND' });
-
-    // 2) Chưa có -> tạo user (mật khẩu ngẫu nhiên)
-    const crypto = require('crypto');
+    if (!createIfMissing) {
+      const err = new Error('USER_NOT_FOUND');
+      err.code = 'USER_NOT_FOUND';
+      throw err;
+    }
+    // tạo user với mật khẩu ngẫu nhiên
     const randomPass = crypto.randomBytes(9).toString('base64');
-
     try {
       return await admin.auth().createUser({
         email,
@@ -76,7 +59,6 @@ async function ensureUser(email, createIfMissing = true) {
         disabled: false,
       });
     } catch (ce) {
-      // 3) Chống race condition: nếu vừa có ai tạo trước -> coi như tồn tại
       if (ce?.code === 'auth/email-already-exists') {
         return await admin.auth().getUserByEmail(email);
       }
@@ -85,35 +67,29 @@ async function ensureUser(email, createIfMissing = true) {
   }
 }
 
-// --- dùng ở function handler ---
-const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
-// ==> từ đây chắc chắn có userRecord; tiếp tục generateEmailVerificationLink + gửi mail
-
-    // 1) Lấy (hoặc tạo) user
-    let userRecord;
-    try {
-      userRecord = await admin.auth().getUserByEmail(email);
-    } catch (e) {
-      if (e?.code === 'auth/user-not-found') {
-        if (!createIfMissing) {
-          return { statusCode: 404, headers: CORS, body: JSON.stringify({ error: 'USER_NOT_FOUND' }) };
-        }
-        const randomPass = crypto.randomBytes(9).toString('base64'); // ~12 ký tự
-        userRecord = await admin.auth().createUser({
-          email,
-          password: randomPass,
-          emailVerified: false,
-          disabled: false,
-        });
-      } else {
-        throw e;
-      }
+exports.handler = async (event) => {
+  try {
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: 'Method Not Allowed' }) };
     }
 
-    // 2) Tạo VERIFY link, kèm continueUrl để sau verify chuyển sang reset
-    //    LƯU Ý: domain dưới đây phải nằm trong Firebase Auth → Authorized domains
+    let body = {};
+    try { body = JSON.parse(event.body || '{}'); } catch {}
+    const email = (body.email || '').trim().toLowerCase();
+    const createIfMissing = body.createIfMissing !== false; // mặc định true
+
+    if (!isEmail(email)) {
+      return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'INVALID_EMAIL' }) };
+    }
+
+    // 1) Firebase: đảm bảo user tồn tại
+    initFirebase();
+    const user = await ensureUser(email, createIfMissing);
+
+    // 2) Tạo verify link; xong sẽ quay về auth-action.html để sang bước reset
     const base = process.env.EMAIL_VERIFY_REDIRECT_URL || 'https://nini-funny.com/auth-action.html';
-    const params = new URLSearchParams({ next: 'reset', email }); // page sẽ đọc để gọi reset
+    const params = new URLSearchParams({ next: 'reset', email });
     const continueUrl = `${base}?${params.toString()}`;
 
     const verifyLink = await admin.auth().generateEmailVerificationLink(email, {
@@ -121,9 +97,9 @@ const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
       handleCodeInApp: true,
     });
 
-    // 3) Gửi email
-    const tx = transporter();
-    await tx.verify(); // bắt lỗi quyền gửi sớm
+    // 3) Gửi mail
+    const tx = makeTransporter();
+    await tx.verify();
 
     const fromHeader =
       process.env.FROM_EMAIL ||
@@ -131,8 +107,8 @@ const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
     if (!fromHeader) {
       return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: 'MISSING_FROM_EMAIL' }) };
     }
-
     const envelopeFrom = process.env.SMTP_ENVELOPE_FROM || fromHeader.replace(/^.*<|>.*$/g, '');
+
     const info = await tx.sendMail({
       from: fromHeader,
       to: email,
@@ -140,22 +116,17 @@ const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
       html: `
         <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6">
           <p>Chào bạn,</p>
-          <p>Bấm nút để <b>xác minh email</b>. Sau khi xác minh, bạn sẽ được chuyển tới trang <b>đặt mật khẩu mới</b>.</p>
-          <p>
-            <a href="${verifyLink}" style="display:inline-block;padding:10px 14px;border-radius:8px;border:1px solid #ddd;text-decoration:none">
-              Xác minh & đặt mật khẩu
-            </a>
-          </p>
-          <p>Nếu không bấm được, copy link sau vào trình duyệt:</p>
+          <p>Bấm nút để <b>xác minh email</b>. Sau khi xác minh, hệ thống sẽ chuyển bạn sang trang <b>đặt mật khẩu mới</b>.</p>
+          <p><a href="${verifyLink}" style="display:inline-block;padding:10px 14px;border-radius:8px;border:1px solid #ddd;text-decoration:none">Xác minh & đặt mật khẩu</a></p>
+          <p>Nếu không bấm được, hãy copy liên kết dưới và dán vào trình duyệt:</p>
           <p style="word-break:break-all">${verifyLink}</p>
         </div>`,
       envelope: { from: envelopeFrom, to: email },
     });
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true, uid: userRecord.uid, messageId: info.messageId }) };
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true, uid: user.uid, messageId: info.messageId }) };
   } catch (e) {
     console.error('send-verification-email error:', e);
-    // chuẩn hóa vài lỗi quen thuộc
     const msg =
       e?.message?.includes('MISSING_FIREBASE_ENV') ? 'MISSING_FIREBASE_ENV' :
       e?.message?.includes('MISSING_SMTP_ENV') ? 'MISSING_SMTP_ENV' :
@@ -163,4 +134,3 @@ const userRecord = await ensureUser(email, /*createIfMissing=*/ true);
     return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: msg }) };
   }
 };
-

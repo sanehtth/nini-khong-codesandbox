@@ -1,51 +1,55 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Email action</title>
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
-  <link rel="stylesheet" href="/public/styles.css?v=100" />
-  <meta name="robots" content="noindex, follow" />
+  <title>NiNi — Xử lý liên kết</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=auth1" />
 </head>
 <body>
   <header class="site-header">
-    <a href="/#home" class="brand"><img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt=""> 
-      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span></a>
+    <a class="brand" href="/#home">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" />
+      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
+    </a>
   </header>
 
   <main class="viewport" style="display:grid;place-items:center;min-height:calc(100vh - 80px);">
     <section class="modal__panel" style="position:static;max-width:560px;">
       <h3 class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" class="modal__logo" alt=""> Email action
+        <img class="modal__logo" src="/public/assets/icons/logonini.webp" alt=""/> Xác minh / Đặt lại mật khẩu
       </h3>
 
-      <div id="verifyBox" class="form">
-        <p id="verifyMsg" class="note">Đang xử lý xác minh…</p>
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
-          <a class="btn" href="/#home">Về trang chủ</a>
-        </div>
-      </div>
+      <!-- Khối kết quả chung -->
+      <div id="box-msg" class="note" style="margin:10px 0;"></div>
 
-      <form id="resetBox" class="form" onsubmit="return false;" style="display:none">
-        <label>Mật khẩu mới</label>
-        <input id="pwd" type="password" class="input" placeholder="≥ 8 ký tự" autocomplete="new-password" />
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
-          <button id="btnReset" class="btn">Đổi mật khẩu</button>
+      <!-- Khối đặt mật khẩu (chỉ hiện khi mode=resetPassword) -->
+      <form id="form-reset" class="form" onsubmit="return false;" style="display:none;">
+        <label for="pwd">Mật khẩu mới</label>
+        <input id="pwd" class="input underline" type="password" placeholder="≥ 8 ký tự" autocomplete="new-password">
+        <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+          <button id="btn-reset" class="btn solid">Đổi mật khẩu</button>
           <a class="btn" href="/#home">Về trang chủ</a>
         </div>
-        <p id="resetMsg" class="note"></p>
+        <p id="reset-note" class="note"></p>
       </form>
+
+      <!-- Nút quay lại khi verify xong -->
+      <div id="box-actions" style="display:none;margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
+        <a class="btn" href="/#home">Về trang chủ</a>
+        <a class="btn" href="/#home" onclick="localStorage.setItem('NINI_AUTH_LOGGED_IN','0')">Đăng nhập</a>
+      </div>
     </section>
   </main>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
-      getAuth, applyActionCode,
-      verifyPasswordResetCode, confirmPasswordReset
+      getAuth, applyActionCode, verifyPasswordResetCode, confirmPasswordReset
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+    // --- Firebase ---
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -57,69 +61,64 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    const sp   = new URLSearchParams(location.search);
-    const mode = sp.get("mode");
-    const code = sp.get("oobCode");
-    const cont = sp.get("continueUrl") || "/#home";
+    // --- Helpers UI ---
+    const $ = (id)=>document.getElementById(id);
+    const boxMsg = $("box-msg");
+    const resetForm = $("form-reset");
+    const resetNote = $("reset-note");
+    const btnReset = $("btn-reset");
+    const pwd = $("pwd");
+    const boxActions = $("box-actions");
 
-    const verifyBox = document.getElementById("verifyBox");
-    const verifyMsg = document.getElementById("verifyMsg");
-    const resetBox  = document.getElementById("resetBox");
-    const resetMsg  = document.getElementById("resetMsg");
-    const pwdInput  = document.getElementById("pwd");
-    const btnReset  = document.getElementById("btnReset");
+    const note = (el,msg,ok=true)=>{ if(!el) return; el.textContent = msg||""; el.classList.toggle("ok",ok); el.classList.toggle("err",!ok); };
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode");
+    const oob = params.get("oobCode");
 
-    const setMsg = (el, t, ok=true)=>{ el.textContent = t||""; el.style.color = ok ? "#0f5132" : "#7f1d1d"; };
-
-    async function run(){
-      if (!mode || !code){
-        setMsg(verifyMsg, "Thiếu tham số. Vui lòng mở link trực tiếp từ email.", false);
+    // --- Router theo mode ---
+    (async () => {
+      if (!oob || !mode) {
+        note(boxMsg, "Liên kết không hợp lệ (thiếu tham số).", false);
+        boxActions.style.display = "flex";
         return;
       }
 
-      if (mode === "verifyEmail"){
-        verifyBox.style.display = "block";
-        resetBox.style.display  = "none";
-        try{
-          await applyActionCode(auth, code);
-          setMsg(verifyMsg, "Xác minh email thành công! Bạn có thể đăng nhập.", true);
-          setTimeout(()=> location.href = cont, 1200);
-        }catch(e){
-          setMsg(verifyMsg, e?.code || e?.message || "Mã xác minh không hợp lệ hoặc đã hết hạn.", false);
+      try {
+        if (mode === "verifyEmail") {
+          note(boxMsg, "Đang xác minh email…");
+          await applyActionCode(auth, oob);
+          note(boxMsg, "Xác minh email thành công. Bạn có thể đăng nhập!", true);
+          boxActions.style.display = "flex";
         }
-      }
-      else if (mode === "resetPassword"){
-        verifyBox.style.display = "none";
-        resetBox.style.display  = "block";
+        else if (mode === "resetPassword") {
+          // Kiểm tra mã trước khi hiển thị form
+          await verifyPasswordResetCode(auth, oob);
+          note(boxMsg, "Vui lòng đặt mật khẩu mới cho tài khoản.", true);
+          resetForm.style.display = "block";
 
-        try{
-          // kiểm tra mã reset trước khi cho nhập
-          await verifyPasswordResetCode(auth, code);
-        }catch(e){
-          setMsg(resetMsg, e?.code || e?.message || "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.", false);
-          btnReset.disabled = true;
-          return;
+          btnReset.onclick = async () => {
+            const p = (pwd.value||"").trim();
+            if (p.length < 8) { note(resetNote, "Mật khẩu phải ≥ 8 ký tự.", false); return; }
+            btnReset.disabled = true; note(resetNote, "Đang đổi mật khẩu…", true);
+            try {
+              await confirmPasswordReset(auth, oob, p);
+              note(resetNote, "Đổi mật khẩu thành công. Bạn có thể đăng nhập lại!", true);
+              boxActions.style.display = "flex";
+            } catch (e) {
+              note(resetNote, e?.code || e?.message || "Không đổi được mật khẩu.", false);
+              btnReset.disabled = false;
+            }
+          };
         }
-
-        btnReset.addEventListener("click", async ()=>{
-          const p = (pwdInput.value||"").trim();
-          if (p.length < 8){ setMsg(resetMsg, "Mật khẩu phải ≥ 8 ký tự.", false); return; }
-          btnReset.disabled = true; setMsg(resetMsg, "Đang đổi mật khẩu…", true);
-          try{
-            await confirmPasswordReset(auth, code, p);
-            setMsg(resetMsg, "Đổi mật khẩu thành công. Bạn có thể đăng nhập.", true);
-            setTimeout(()=> location.href = "/#home", 1200);
-          }catch(e){
-            setMsg(resetMsg, e?.code || e?.message || "Không đổi được mật khẩu.", false);
-            btnReset.disabled = false;
-          }
-        });
+        else {
+          note(boxMsg, "Chưa hỗ trợ hành động này.", false);
+          boxActions.style.display = "flex";
+        }
+      } catch (e) {
+        note(boxMsg, e?.code || e?.message || "Liên kết không hợp lệ hoặc đã hết hạn.", false);
+        boxActions.style.display = "flex";
       }
-      else{
-        setMsg(verifyMsg, "Không hỗ trợ hành động này.", false);
-      }
-    }
-    run();
+    })();
   </script>
 </body>
 </html>

@@ -1,23 +1,24 @@
 <!-- ===========================
 BEGIN FILE: /public/js/auth.js
-Ghi chú:
-- Giữ nguyên Firebase config của bạn.
-- Chuẩn hoá setNote (màu xanh/thông báo OK, đỏ/lỗi)
-- Sửa logic Tab: switchAuth(which) + openAuth(which) để chỉ hiển thị 1 pane.
-- Signup: gửi email xác minh bằng Firebase (sendEmailVerification).
-- Forgot password: gọi API nội bộ (FORGOT_API) như bạn đang dùng.
 =========================== -->
 <script type="module">
-// ===== Firebase =====
+/* ============================================================
+ NiNi — AUTH (đã chỉnh)
+ - [PATCH] Dùng SMTP: /.netlify/functions/send-verification-email
+ - [PATCH] Resend verify khi login mà email chưa xác minh
+ - [PATCH] Forgot password gọi /.netlify/functions/send-reset
+ - [KEEP] Tabs/modal đóng/mở như cũ, không tạo xung đột với app.js
+============================================================ */
+
+/* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signOut,
   GoogleAuthProvider, signInWithPopup,
-  signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  sendEmailVerification
+  signInWithEmailAndPassword, createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ---- Firebase config ----
+/* ---------- Firebase Config ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
@@ -26,57 +27,55 @@ const firebaseConfig = {
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184"
 };
-
-// ---- Init ----
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-// ---- LocalStorage keys để toggle 2 nút Header ----
+/* ---------- LocalStorage Keys ---------- */
 const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
 const WHOKEY = "NINI_USER_DISPLAY";
 const SIGNAL = "NINI_SIGNED_OUT_AT";
 
-// ---- DOM Shortcuts ----
+/* ---------- DOM helpers ---------- */
 const $  = (id) => document.getElementById(id);
 
-// Header buttons
+/* Header */
 const btnLogin   = $("btnLogin");
 const btnLogout  = $("btnLogout");
 const whoSpan    = $("who");
 
-// Modal + tabs
-const modal      = $("authModal");
-const authTabs   = $("authTabs");
+/* Modal + Tabs */
+const modal    = $("authModal");
+const authTabs = $("authTabs");
 
-// Login controls
-const loginEmail = $("loginEmail");
-const loginPw    = $("loginPassword");
+/* Login */
+const loginEmail     = $("loginEmail");
+const loginPw        = $("loginPassword");
 const btnEmailLogin  = $("btnEmailLogin");
 const btnGoogleLogin = $("btnGoogleLogin");
 const loginNote      = $("loginNote");
+/* [PATCH] Nút resend verify (ẩn/hiện theo tình huống) */
+const btnResendVerify = $("btnResendVerify");
 
-// Signup controls
-const signupEmail = $("signupEmail");
-const signupPw    = $("signupPassword");
+/* Signup */
+const signupEmail    = $("signupEmail");
+const signupPw       = $("signupPassword");
 const btnEmailSignup = $("btnEmailSignup");
 const signupNote     = $("signupNote");
 
-// Forgot controls
+/* Forgot */
 const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
 
-// API nội bộ gửi link quên mật khẩu (cùng domain để khỏi CORS)
-const FORGOT_API = "/api/send-reset";
+/* ---------- [PATCH] Backend APIs ---------- */
+const FORGOT_API = "/.netlify/functions/send-reset";
+const VERIFY_API = "/.netlify/functions/send-verification-email";
 
-
-// =============================================
-// BEGIN: Helpers UI (setNote / toggle header)
-// =============================================
+/* ---------- Helpers UI ---------- */
 function setNote(el, msg, ok = true){
   if (!el) return;
   el.textContent = msg || "";
-  el.style.color = ok ? "#0f5132" : "#7f1d1d"; // xanh: ok, đỏ: lỗi
+  el.style.color = ok ? "#0f5132" : "#7f1d1d";
 }
 function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
 function setAuthUI(){
@@ -86,25 +85,16 @@ function setAuthUI(){
   if (btnLogin)  btnLogin.hidden  = logged;
   if (btnLogout) btnLogout.hidden = !logged;
 }
-// =============================================
-// END: Helpers UI
-// =============================================
 
-
-// =============================================
-// BEGIN: Modal Tabs (sửa ẩn/hiện đúng 1 pane)
-// =============================================
+/* ---------- Modal Tabs (không đè app.js) ---------- */
 function switchAuth(which) {
-  // bật tab
   document.querySelectorAll("#authModal .tab-line").forEach(b => {
     b.classList.toggle("is-active", b.dataset.auth === which);
   });
-  // bật pane tương ứng (form)
   document.querySelectorAll("#authModal .form").forEach(p => {
     p.classList.toggle("is-active", p.getAttribute("data-pane") === which);
   });
 }
-
 function openAuth(which = "login"){
   if (!modal) return;
   modal.setAttribute("aria-hidden","false");
@@ -113,18 +103,13 @@ function openAuth(which = "login"){
 function closeAuth(){
   modal?.setAttribute("aria-hidden","true");
 }
-
-// Lắng nghe click tab
 authTabs?.addEventListener("click", (e)=>{
   const t = e.target.closest("[data-auth]");
   if(!t) return;
-  const pane = t.getAttribute("data-auth") || "login";
-  switchAuth(pane);
+  switchAuth(t.getAttribute("data-auth") || "login");
 });
-
-// Đóng modal (nút X + backdrop)
-modal?.querySelectorAll("[data-close], .modal__backdrop").forEach(el=>el.addEventListener("click", closeAuth));
-// Nút mở/đóng
+modal?.querySelectorAll("[data-close], .modal__backdrop")
+  .forEach(el => el.addEventListener("click", closeAuth));
 btnLogin?.addEventListener("click", ()=>openAuth("login"));
 btnLogout?.addEventListener("click", async ()=>{
   try { await signOut(auth); } catch(_){}
@@ -133,22 +118,65 @@ btnLogout?.addEventListener("click", async ()=>{
   localStorage.setItem(SIGNAL, String(Date.now()));
   location.replace("/");
 });
-// =============================================
-// END: Modal Tabs
-// =============================================
 
+/* ==================================================
+   BEGIN PATCH: HÀM GỬI VERIFY MAIL (SMTP qua Function)
+================================================== */
+async function sendVerifyEmailSMTP(email){
+  // server sẽ tự tạo link verify (mode=verifyEmail) và gửi đi
+  const res = await fetch(VERIFY_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+  const data = await res.json().catch(()=>({}));
+  if (!res.ok) throw new Error(data?.message || "Không gửi được email xác minh");
+  return data;
+}
+/* ==================================================
+   END PATCH
+================================================== */
 
-// =============================================
-// BEGIN: Login / Google Sign-in
-// =============================================
+/* ---------- Login / Google ---------- */
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
+  btnResendVerify && (btnResendVerify.style.display = "none");
+
   try{
     const cred = await signInWithEmailAndPassword(
       auth,
       (loginEmail.value||"").trim(),
       loginPw.value||""
     );
+
+    /* ==================================================
+       BEGIN PATCH: chặn login khi chưa verify
+    ================================================== */
+    if (!cred.user.emailVerified){
+      try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
+      await signOut(auth);
+      setNote(
+        loginNote,
+        "Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — hãy kiểm tra hộp thư trước khi đăng nhập lại.",
+        false
+      );
+      if (btnResendVerify){
+        btnResendVerify.style.display = "inline-flex";
+        btnResendVerify.onclick = async ()=>{
+          setNote(loginNote, "Đang gửi lại email xác minh…");
+          try{ await sendVerifyEmailSMTP((loginEmail.value||"").trim()); 
+               setNote(loginNote, "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư!", true);
+          }catch(e){
+               setNote(loginNote, e.message || "Không gửi được email xác minh.", false);
+          }
+        };
+      }
+      return;
+    }
+    /* ==================================================
+       END PATCH
+    ================================================== */
+
     afterLogin(cred.user);
   }catch(e){
     setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false);
@@ -157,22 +185,27 @@ btnEmailLogin?.addEventListener("click", async ()=>{
 
 btnGoogleLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
+  btnResendVerify && (btnResendVerify.style.display = "none");
   try{
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
+
+    // Google đôi khi không có khái niệm emailVerified như password users,
+    // nhưng để an toàn vẫn kiểm tra:
+    if (cred.user.email && !cred.user.emailVerified){
+      try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
+      await signOut(auth);
+      setNote(loginNote, "Email Google của bạn chưa xác minh trong hệ thống. Đã gửi mail xác minh — kiểm tra hộp thư nhé.", false);
+      return;
+    }
+
     afterLogin(cred.user);
   }catch(e){
     setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false);
   }
 });
-// =============================================
-// END: Login / Google Sign-in
-// =============================================
 
-
-// =============================================
-// BEGIN: Signup (kèm gửi email xác minh Firebase)
-// =============================================
+/* ---------- Signup (SMTP verify) ---------- */
 btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
   try{
@@ -181,34 +214,31 @@ btnEmailSignup?.addEventListener("click", async ()=>{
 
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
-    // Gửi email xác minh
-    await sendEmailVerification(cred.user, {
-      url: "https://nini-funny.com/#home",
-      handleCodeInApp: true
-    });
-
+    /* ==================================================
+       BEGIN PATCH: gửi verify qua SMTP rồi signOut
+    ================================================== */
+    try { await sendVerifyEmailSMTP(email); } catch(_){}
+    try { await signOut(auth); } catch(_){}
     setNote(
       signupNote,
-      "Tạo tài khoản thành công. Vui lòng kiểm tra email để xác thực trước khi đăng nhập!",
+      "Tạo tài khoản thành công. Mình đã gửi email xác minh – hãy kiểm tra hộp thư rồi đăng nhập lại nhé!",
       true
     );
+    /* ==================================================
+       END PATCH
+    ================================================== */
+
   }catch(e){
     const nice = {
-      "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng chức năng 'Quên mật khẩu'.",
+      "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng 'Quên mật khẩu'.",
       "auth/invalid-email":       "Email không hợp lệ.",
       "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
     };
     setNote(signupNote, nice[e?.code] || (e?.code || e?.message || "Không tạo được tài khoản"), false);
   }
 });
-// =============================================
-// END: Signup (kèm gửi email xác minh Firebase)
-// =============================================
 
-
-// =============================================
-// BEGIN: Forgot password (gọi API nội bộ của bạn)
-// =============================================
+/* ---------- Forgot password ---------- */
 btnForgot?.addEventListener("click", async (e) => {
   e?.preventDefault?.();
 
@@ -223,11 +253,7 @@ btnForgot?.addEventListener("click", async (e) => {
     const res = await fetch(FORGOT_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        // đường dẫn trang reset của bạn
-        link: "https://nini-funny.com/reset-password.html",
-      }),
+      body: JSON.stringify({ email })
     });
     const data = await res.json().catch(() => ({}));
 
@@ -240,19 +266,14 @@ btnForgot?.addEventListener("click", async (e) => {
     setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
   }
 });
-// =============================================
-// END: Forgot password
-// =============================================
 
-
-// =============================================
-// BEGIN: State after login + sync Header
-// =============================================
+/* ---------- After Login + Header sync ---------- */
 function afterLogin(user){
   const who = user.displayName || user.email || user.phoneNumber || "user";
   localStorage.setItem(FLAG,"1");
   localStorage.setItem(WHOKEY, who);
-  setAuthUI(); closeAuth();
+  setAuthUI();
+  closeAuth();
   location.href = "/profile.html";
 }
 
@@ -268,9 +289,6 @@ window.addEventListener("storage", (e)=>{
   if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
 });
 setAuthUI();
-// =============================================
-// END: State after login + sync Header
-// =============================================
 </script>
 <!-- ===========================
 END FILE: /public/js/auth.js

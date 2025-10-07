@@ -107,16 +107,25 @@ async function smtpSendReset(email){
 }
 
 // Login
-btnEmailLogin?.addEventListener("click", async ()=>{
-  const off=setBusy(btnEmailLogin,true,"Đang đăng nhập…"); setNote(loginNote,"");
+btnLogin.addEventListener('click', async () => {
+  const email = cleanEmail(loginEmail.value);
+  const pw = (loginPw.value || '');
+
+  if (!email) { setNote(loginNote, 'Bạn chưa nhập email.', false); return; }
+
   try {
-  await smtpSendVerify(signupEmail.value.trim());
-  setNote(signupNote, 'Đã gửi email xác minh – kiểm tra hộp thư nhé.', true);
-} catch (e) {
-  // e.message bây giờ là mã lỗi chuẩn hoá từ server (SMTP_… / FIREBASE_…)
-  setNote(signupNote, e.message || 'Không gửi được email xác minh.', false);
-  console.error('smtpSendVerify error:', e);
-}
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    // ... tiếp tục flow
+  } catch (e) {
+    console.error('login error:', e);
+    const code = e.code || '';
+    const msg =
+      code === 'auth/invalid-email'   ? 'Email không hợp lệ.' :
+      code === 'auth/user-not-found'  ? 'Email chưa đăng ký.' :
+      code === 'auth/wrong-password'  ? 'Mật khẩu sai.' :
+      'Đăng nhập thất bại.';
+    setNote(loginNote, msg, false);
+  }
 });
 
 // Google
@@ -154,5 +163,6 @@ function afterLogin(user){ const who=user.displayName||user.email||user.phoneNum
 onAuthStateChanged(auth, (user)=>{ if(user){ const who=user.displayName||user.email||user.phoneNumber||"user"; localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY,who);} setAuthUI(); });
 window.addEventListener("storage",(e)=>{ if(e.key===FLAG||e.key===WHOKEY||e.key===SIGNAL) setAuthUI(); });
 setAuthUI();
+
 
 

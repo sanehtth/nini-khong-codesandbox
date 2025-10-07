@@ -1,14 +1,4 @@
-<!-- ===========================
-BEGIN FILE: /public/js/auth.js
-=========================== -->
-<script type="module">
-/* ============================================================
- NiNi — AUTH (đã chỉnh)
- - [PATCH] Dùng SMTP: /.netlify/functions/send-verification-email
- - [PATCH] Resend verify khi login mà email chưa xác minh
- - [PATCH] Forgot password gọi /.netlify/functions/send-reset
- - [KEEP] Tabs/modal đóng/mở như cũ, không tạo xung đột với app.js
-============================================================ */
+// NiNi — AUTH (SMTP verify + resend + forgot)
 
 /* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -53,7 +43,7 @@ const loginPw        = $("loginPassword");
 const btnEmailLogin  = $("btnEmailLogin");
 const btnGoogleLogin = $("btnGoogleLogin");
 const loginNote      = $("loginNote");
-/* [PATCH] Nút resend verify (ẩn/hiện theo tình huống) */
+/* Nút resend verify (tùy chọn) */
 const btnResendVerify = $("btnResendVerify");
 
 /* Signup */
@@ -67,11 +57,11 @@ const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
 
-/* ---------- [PATCH] Backend APIs ---------- */
+/* ---------- Backend APIs (Netlify Functions) ---------- */
 const FORGOT_API = "/.netlify/functions/send-reset";
 const VERIFY_API = "/.netlify/functions/send-verification-email";
 
-/* ---------- Helpers UI ---------- */
+/* ---------- UI helpers ---------- */
 function setNote(el, msg, ok = true){
   if (!el) return;
   el.textContent = msg || "";
@@ -86,7 +76,7 @@ function setAuthUI(){
   if (btnLogout) btnLogout.hidden = !logged;
 }
 
-/* ---------- Modal Tabs (không đè app.js) ---------- */
+/* ---------- Modal Tabs ---------- */
 function switchAuth(which) {
   document.querySelectorAll("#authModal .tab-line").forEach(b => {
     b.classList.toggle("is-active", b.dataset.auth === which);
@@ -100,9 +90,8 @@ function openAuth(which = "login"){
   modal.setAttribute("aria-hidden","false");
   switchAuth(which);
 }
-function closeAuth(){
-  modal?.setAttribute("aria-hidden","true");
-}
+function closeAuth(){ modal?.setAttribute("aria-hidden","true"); }
+
 authTabs?.addEventListener("click", (e)=>{
   const t = e.target.closest("[data-auth]");
   if(!t) return;
@@ -119,11 +108,8 @@ btnLogout?.addEventListener("click", async ()=>{
   location.replace("/");
 });
 
-/* ==================================================
-   BEGIN PATCH: HÀM GỬI VERIFY MAIL (SMTP qua Function)
-================================================== */
+/* ---------- gửi verify qua SMTP ---------- */
 async function sendVerifyEmailSMTP(email){
-  // server sẽ tự tạo link verify (mode=verifyEmail) và gửi đi
   const res = await fetch(VERIFY_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -133,49 +119,39 @@ async function sendVerifyEmailSMTP(email){
   if (!res.ok) throw new Error(data?.message || "Không gửi được email xác minh");
   return data;
 }
-/* ==================================================
-   END PATCH
-================================================== */
 
-/* ---------- Login / Google ---------- */
+/* ---------- Login ---------- */
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
-  btnResendVerify && (btnResendVerify.style.display = "none");
+  if (btnResendVerify) btnResendVerify.style.display = "none";
 
   try{
     const cred = await signInWithEmailAndPassword(
-      auth,
-      (loginEmail.value||"").trim(),
-      loginPw.value||""
+      auth, (loginEmail.value||"").trim(), loginPw.value||""
     );
 
-    /* ==================================================
-       BEGIN PATCH: chặn login khi chưa verify
-    ================================================== */
     if (!cred.user.emailVerified){
       try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
       await signOut(auth);
       setNote(
         loginNote,
-        "Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — hãy kiểm tra hộp thư trước khi đăng nhập lại.",
+        "Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — hãy kiểm tra hộp thư trước khi đăng nhập.",
         false
       );
       if (btnResendVerify){
         btnResendVerify.style.display = "inline-flex";
         btnResendVerify.onclick = async ()=>{
           setNote(loginNote, "Đang gửi lại email xác minh…");
-          try{ await sendVerifyEmailSMTP((loginEmail.value||"").trim()); 
-               setNote(loginNote, "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư!", true);
+          try{
+            await sendVerifyEmailSMTP((loginEmail.value||"").trim());
+            setNote(loginNote, "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư!", true);
           }catch(e){
-               setNote(loginNote, e.message || "Không gửi được email xác minh.", false);
+            setNote(loginNote, e.message || "Không gửi được email xác minh.", false);
           }
         };
       }
       return;
     }
-    /* ==================================================
-       END PATCH
-    ================================================== */
 
     afterLogin(cred.user);
   }catch(e){
@@ -183,15 +159,14 @@ btnEmailLogin?.addEventListener("click", async ()=>{
   }
 });
 
+/* ---------- Google ---------- */
 btnGoogleLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
-  btnResendVerify && (btnResendVerify.style.display = "none");
+  if (btnResendVerify) btnResendVerify.style.display = "none";
   try{
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
 
-    // Google đôi khi không có khái niệm emailVerified như password users,
-    // nhưng để an toàn vẫn kiểm tra:
     if (cred.user.email && !cred.user.emailVerified){
       try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
       await signOut(auth);
@@ -205,29 +180,22 @@ btnGoogleLogin?.addEventListener("click", async ()=>{
   }
 });
 
-/* ---------- Signup (SMTP verify) ---------- */
+/* ---------- Signup: tạo user + gửi verify SMTP + signOut ---------- */
 btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
   try{
     const email = (signupEmail.value||"").trim();
     const pass  = signupPw.value||"";
 
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-
-    /* ==================================================
-       BEGIN PATCH: gửi verify qua SMTP rồi signOut
-    ================================================== */
+    await createUserWithEmailAndPassword(auth, email, pass);
     try { await sendVerifyEmailSMTP(email); } catch(_){}
     try { await signOut(auth); } catch(_){}
+
     setNote(
       signupNote,
-      "Tạo tài khoản thành công. Mình đã gửi email xác minh – hãy kiểm tra hộp thư rồi đăng nhập lại nhé!",
+      "Tạo tài khoản thành công. Mình đã gửi email xác minh — hãy kiểm tra hộp thư rồi đăng nhập lại nhé!",
       true
     );
-    /* ==================================================
-       END PATCH
-    ================================================== */
-
   }catch(e){
     const nice = {
       "auth/email-already-in-use": "Email này đã được đăng ký. Bạn hãy đăng nhập hoặc dùng 'Quên mật khẩu'.",
@@ -289,7 +257,3 @@ window.addEventListener("storage", (e)=>{
   if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
 });
 setAuthUI();
-</script>
-<!-- ===========================
-END FILE: /public/js/auth.js
-=========================== -->

@@ -284,6 +284,43 @@ body{
 .note{ margin-top:8px; font-weight:600; }
 .note.ok{ color:#0f5132; } .note.err{ color:#7f1d1d; }
 /* ==== HẾT: Style chung cho modal/auth ==== */
+/* ==== FIX modal can giua + z-index + click ==== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;                  /* cao hơn hiệu ứng rơi và mọi thứ khác */
+  display: flex;                 /* can giữa panel */
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 16px;             /* không dính sát mép */
+}
+
+.modal__backdrop{
+  position:absolute; inset:0;
+  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,.25);
+  pointer-events: auto;          /* nhận click để đóng ngoài panel */
+}
+
+.modal__panel{
+  position: relative; z-index: 1;
+  width: min(680px, 92vw);
+  margin: 0;                     /* KHÔNG margin – để flex căn giữa chuẩn */
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(255,255,255,.55);
+  box-shadow: 0 12px 36px rgba(0,0,0,.22);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;          /* panel nhận click */
+}
+
+.form .row { width: 100%; }
+.input.underline { width: 100%; box-sizing: border-box; }
+
+/* Đảm bảo hiệu ứng rơi KHÔNG che modal */
+#frame canvas { pointer-events: none; z-index: 0 !important; }
+
 
 
 

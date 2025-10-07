@@ -79,14 +79,12 @@ exports.handler = async (event) => {
 
     // (giữ nguyên logic của bạn, chỉ thêm message khi OK/ERR)
 
-await transporter.sendMail({ from, to: email, subject, html });
-return { statusCode: 200, headers: corsHeaders, body: JSON.stringify({ ok: true, message: "Đã gửi link đặt lại mật khẩu" }) };
-  } catch (e) {
-    return {
-      statusCode: 500,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: e.message })
-    };
-  }
+const actionCodeSettings = {
+  url: 'https://nini-funny.com/auth-action.html', // trang custom
+  handleCodeInApp: true,
 };
+const link = await admin.auth().generatePasswordResetLink(email, actionCodeSettings);
+
+};
+
 

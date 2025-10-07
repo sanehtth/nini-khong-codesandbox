@@ -25,19 +25,115 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 // ---------- Helpers (đừng đổi tên; KHÔNG dùng $ để tránh trùng) ----------
-const $id = (id) => document.getElementById(id);
 const $$  = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 const on  = (el, evt, fn) => el && el.addEventListener(evt, fn);
 const setText = (el, s) => { if (el) el.textContent = s ?? ""; };
 
+/* ===== Helpers chung (đặt một lần, nếu bạn đã có thì bỏ qua phần trùng) ===== */
+const $id = (id) => document.getElementById(id);
+const setNote = (el, msg, ok=true) => { if(!el) return; el.textContent = msg || ""; el.style.color = ok ? "#0f5132" : "#7f1d1d"; };
 function cleanEmail(s) {
   return String(s || "")
     .normalize("NFKC")
     .replace(/[\u200B-\u200D\uFEFF]/g, "") // zero-width
-    .replace(/\s/g, "")                    // mọi khoảng trắng
+    .replace(/\s/g, "")                    // xoá mọi khoảng trắng
     .toLowerCase();
 }
-function setNote(el, msg, ok=true){ if(!el) return; el.textContent = msg || ""; el.style.color = ok ? "#0f5132" : "#7f1d1d"; }
+function mapAuthError(e) {
+  const code = e?.code || "";
+  return (
+    code === "auth/invalid-email"   ? "Email không hợp lệ." :
+    code === "auth/user-not-found"  ? "Email chưa đăng ký." :
+    code === "auth/wrong-password"  ? "Mật khẩu sai." :
+    code === "auth/too-many-requests" ? "Bạn thử quá nhiều lần, vui lòng thử lại sau." :
+    e?.message || "Đăng nhập thất bại."
+  );
+}
+
+/* ===== LOGIN bằng event delegation (bắt click dù DOM render sau) ===== */
+document.addEventListener("click", async (ev) => {
+  const btn = ev.target.closest('[data-role="btn-login"], #btnLogin');
+  if (!btn) return;
+
+  // Tìm input/note trong cùng panel; fallback về id toàn cục
+  const panel   = btn.closest(".auth-panel") || document;
+  const emailEl = panel.querySelector('#loginEmail, input[name="loginEmail"]') || $id('loginEmail');
+  const pwEl    = panel.querySelector('#loginPassword, input[name="loginPassword"]') || $id('loginPassword');
+  const noteEl  = panel.querySelector('#loginNote, .login-note') || $id('loginNote');
+
+  const email = cleanEmail(emailEl?.value);
+  const pw    = String(pwEl?.value || "");
+
+  if (!email) { setNote(noteEl, "Bạn chưa nhập email.", false); emailEl?.focus(); return; }
+  if (!pw)    { setNote(noteEl, "Bạn chưa nhập mật khẩu.", false); pwEl?.focus();   return; }
+
+  try {
+    setNote(noteEl, "Đang đăng nhập...", true);
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    console.log("login ok uid=", cred.user?.uid, "emailVerified=", cred.user?.emailVerified);
+    setNote(noteEl, "Đăng nhập thành công!", true);
+    // TODO: đóng modal/cập nhật UI ở đây
+  } catch (e) {
+    console.error("login fail:", e);
+    setNote(noteEl, mapAuthError(e), false);
+  }
+});
+
+/* ===== Gửi email xác minh (nút có id #btnSendVerify hoặc data-role) ===== */
+async function smtpSendVerify(emailInput) {
+  const email = cleanEmail(
+    typeof emailInput === "string" ? emailInput
+      : emailInput?.email || emailInput?.user?.email || ""
+  );
+  const res = await fetch("/.netlify/functions/send-verification-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+  const text = await res.text(); let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+  if (!res.ok) { console.error("verify FAILED", res.status, data, "sent=", email); throw new Error(data?.error || `HTTP ${res.status}`); }
+  console.log("verify OK", data, "sent=", email);
+  return data;
+}
+
+document.addEventListener("click", async (ev) => {
+  const btn = ev.target.closest('[data-role="btn-send-verify"], #btnSendVerify, #btnEmailSignup');
+  if (!btn) return;
+  const panel   = btn.closest(".auth-panel") || document;
+  const emailEl = panel.querySelector('#signupEmail, #verifyEmail, #loginEmail') || $id('signupEmail') || $id('loginEmail');
+  const noteEl  = panel.querySelector('#signupNote, .signup-note, #loginNote') || $id('signupNote') || $id('loginNote');
+  try {
+    const email = cleanEmail(emailEl?.value || "");
+    if (!email) { setNote(noteEl, "Bạn chưa nhập email.", false); return; }
+    await smtpSendVerify(email);
+    setNote(noteEl, "Đã gửi email xác minh – kiểm tra hộp thư nhé.", true);
+  } catch (e) {
+    setNote(noteEl, e.message || "Không gửi được email xác minh.", false);
+  }
+});
+
+/* ===== Quên mật khẩu (nếu bạn vẫn giữ flow này) ===== */
+document.addEventListener("click", async (ev) => {
+  const btn = ev.target.closest('#btnForgotSend, [data-role="btn-forgot-send"]');
+  if (!btn) return;
+  const panel   = btn.closest(".auth-panel") || document;
+  const emailEl = panel.querySelector('#forgot_email, #loginEmail') || $id('forgot_email') || $id('loginEmail');
+  const noteEl  = panel.querySelector('#forgotNote, .forgot-note, #loginNote') || $id('forgotNote') || $id('loginNote');
+  try {
+    const email = cleanEmail(emailEl?.value || "");
+    if (!email) { setNote(noteEl, "Bạn chưa nhập email.", false); return; }
+    await sendPasswordResetEmail(auth, email, {
+      url: "https://nini-funny.com/reset-password.html",
+      handleCodeInApp: true,
+    });
+    setNote(noteEl, "Đã gửi link đặt lại mật khẩu – kiểm tra email nhé.", true);
+  } catch (e) {
+    console.error("forgot fail:", e);
+    setNote(noteEl, mapAuthError(e), false);
+  }
+});
+
 
 // ---------- DOM refs ----------
 const loginEmail   = $id("loginEmail");
@@ -185,3 +281,4 @@ onAuthStateChanged(auth, (user) => {
 // on($id('btnLogout'), 'click', () => signOut(auth));
 
 // ================== END ==================
+

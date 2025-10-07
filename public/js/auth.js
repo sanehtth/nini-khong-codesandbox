@@ -1,3 +1,55 @@
+// helpers
+const $  = (id) => document.getElementById(id);
+const on = (el, evt, fn) => el && el.addEventListener(evt, fn); // chỉ gắn nếu có element
+
+// Lấy element (đúng id trong HTML của bạn)
+const loginEmail = $('loginEmail');   // <input id="loginEmail">
+const loginPw    = $('loginPw');      // <input id="loginPw">
+const btnLogin   = $('btnLogin');     // <button id="btnLogin">Đăng nhập</button>
+const btnSendVerify = $('btnSendVerify'); // <button id="btnSendVerify">Gửi email xác minh</button>
+
+// Làm sạch email để tránh INVALID_EMAIL
+function cleanEmail(s) {
+  return String(s || '')
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\s/g, '')
+    .toLowerCase();
+}
+
+// ===== GẮN HANDLER AN TOÀN =====
+on(btnSendVerify, 'click', async () => {
+  try {
+    const email = cleanEmail(($('verifyEmail')?.value) || loginEmail?.value || '');
+    const res = await fetch('/.netlify/functions/send-verification-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const j = await res.json().catch(()=> ({}));
+    if (!res.ok) throw new Error(j.error || `HTTP ${res.status}`);
+    // TODO: show toast: "Đã gửi email xác minh…"
+  } catch (e) {
+    console.error('send-verification-email FAILED:', e);
+    // TODO: show toast lỗi
+  }
+});
+
+on(btnLogin, 'click', async () => {
+  try {
+    const email = cleanEmail(loginEmail?.value);
+    const pw    = (loginPw?.value || '');
+    if (!email) throw new Error('EMPTY_EMAIL');
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    // TODO: login ok flow
+  } catch (e) {
+    console.error('login error:', e);
+    const code = e.code || '';
+    // TODO: map code -> message
+  }
+});
+
+
 // Xử lý mọi kiểu khoảng trắng & ký tự ẩn trong email
 function cleanEmail(s) {
   return String(s || '')
@@ -163,6 +215,7 @@ function afterLogin(user){ const who=user.displayName||user.email||user.phoneNum
 onAuthStateChanged(auth, (user)=>{ if(user){ const who=user.displayName||user.email||user.phoneNumber||"user"; localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY,who);} setAuthUI(); });
 window.addEventListener("storage",(e)=>{ if(e.key===FLAG||e.key===WHOKEY||e.key===SIGNAL) setAuthUI(); });
 setAuthUI();
+
 
 
 

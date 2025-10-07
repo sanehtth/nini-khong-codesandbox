@@ -4,25 +4,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Xác minh email — NiNi</title>
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
-  <link rel="stylesheet" href="/styles.css?v=100" />
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/public/styles.css?v=101" />
+  <meta name="robots" content="noindex,follow" />
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="/#home">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="" />
-      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
-    </a>
-  </header>
-
-  <main class="viewport" style="display:grid;place-items:center;min-height:calc(100vh - 80px)">
-    <section class="modal__panel" style="position:static;max-width:560px">
+  <main class="viewport" style="display:grid;place-items:center;min-height:100vh;">
+    <section class="modal__panel" style="max-width:560px">
       <h3 class="modal__title">
-        <img class="modal__logo" src="/public/assets/icons/logonini.webp" alt="" />
+        <img src="/public/assets/icons/logonini.webp" class="modal__logo" alt="">
         Xác minh email
       </h3>
       <p id="msg" class="note"></p>
-      <div style="margin-top:12px">
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+        <button id="btnSendReset" class="btn" style="display:none">Gửi link đặt mật khẩu</button>
         <a class="btn" href="/#home">Về trang chủ</a>
       </div>
     </section>
@@ -43,23 +38,40 @@
     const auth = getAuth(app);
 
     const msg = document.getElementById("msg");
+    const btn = document.getElementById("btnSendReset");
     const setMsg = (t, ok=true)=>{ msg.textContent=t; msg.className = "note " + (ok?"ok":"err"); };
 
     const sp = new URLSearchParams(location.search);
-    const mode = sp.get("mode");
-    const oob  = sp.get("oobCode");
-    if (mode !== "verifyEmail" || !oob) {
-      setMsg("Liên kết không hợp lệ hoặc đã hết hạn.", false);
-    } else {
-      setMsg("Đang xác minh…");
-      try {
-        await applyActionCode(auth, oob);
-        setMsg("Xác minh email thành công! Bạn có thể đăng nhập.", true);
-        setTimeout(()=> location.href = "/#home", 1200);
-      } catch (e) {
-        setMsg(e?.code || e?.message || "Không xác minh được email.", false);
+    const oobCode = sp.get("oobCode");
+    const emailHint = sp.get("email"); // nếu có
+
+    if(!oobCode){ setMsg("Thiếu mã xác minh (oobCode). Hãy mở lại link trong email.", false); }
+    else {
+      try{
+        await applyActionCode(auth, oobCode);
+        setMsg("Xác minh email thành công! Bạn có thể đặt mật khẩu để đăng nhập.");
+        btn.style.display = "inline-flex";
+      }catch(e){
+        setMsg(e?.code || e?.message || "Liên kết xác minh không hợp lệ hoặc đã hết hạn.", false);
       }
     }
+
+    btn.addEventListener("click", async ()=>{
+      btn.disabled = true; btn.textContent = "Đang gửi…";
+      try{
+        const res = await fetch("/.netlify/functions/send-reset", {
+          method:"POST", headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ email: emailHint || "" })
+        });
+        const j = await res.json().catch(()=>({}));
+        if(!res.ok) throw new Error(j.message || "Không gửi được link đặt mật khẩu.");
+        setMsg("Đã gửi link đặt mật khẩu. Kiểm tra hộp thư nhé!", true);
+      }catch(e){
+        setMsg(e.message || "Không gửi được link đặt mật khẩu.", false);
+      }finally{
+        btn.disabled = false; btn.textContent = "Gửi link đặt mật khẩu";
+      }
+    });
   </script>
 </body>
 </html>

@@ -3,170 +3,103 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Xử lý liên kết</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=auth1" />
+  <title>Xử lý liên kết — NiNi</title>
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
+  <link rel="stylesheet" href="/public/styles.css?v=100" />
+  <meta name="robots" content="noindex, follow" />
+  <style>
+    .panel{max-width:640px;margin:64px auto;padding:24px;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.08);font-family:system-ui,Roboto,Arial}
+    .ok{color:#0f5132}.err{color:#7f1d1d}
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <a class="brand" href="/#home">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi — Funny" />
-      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
-    </a>
-  </header>
-
-  <main class="viewport" style="display:grid;place-items:center;min-height:calc(100vh - 80px);">
-    <section class="modal__panel" style="position:static;max-width:560px;">
-      <h3 class="modal__title">
-        <img class="modal__logo" src="/public/assets/icons/logonini.webp" alt=""/> Xác minh / Đặt lại mật khẩu
-      </h3>
-
-      <!-- Khối kết quả chung -->
-      <div id="box-msg" class="note" style="margin:10px 0;"></div>
-
-      <!-- Khối đặt mật khẩu (chỉ hiện khi mode=resetPassword) -->
-      <form id="form-reset" class="form" onsubmit="return false;" style="display:none;">
-        <label for="pwd">Mật khẩu mới</label>
-        <input id="pwd" class="input underline" type="password" placeholder="≥ 8 ký tự" autocomplete="new-password">
-        <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
-          <button id="btn-reset" class="btn solid">Đổi mật khẩu</button>
-          <a class="btn" href="/#home">Về trang chủ</a>
-        </div>
-        <p id="reset-note" class="note"></p>
-      </form>
-
-      <!-- Nút quay lại khi verify xong -->
-      <div id="box-actions" style="display:none;margin-top:12px;display:flex;gap:10px;justify-content:flex-end">
-        <a class="btn" href="/#home">Về trang chủ</a>
-        <a class="btn" href="/#home" onclick="localStorage.setItem('NINI_AUTH_LOGGED_IN','0')">Đăng nhập</a>
-      </div>
-    </section>
+  <main class="panel">
+    <h3>NiNi — Xác minh / Đặt mật khẩu</h3>
+    <p id="status">Đang xử lý liên kết...</p>
+    <p id="actions" style="display:none">
+      <a href="/#home">Về trang chủ</a> · <a href="/#home">Đăng nhập</a>
+    </p>
   </main>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth,
-  applyActionCode,
-  sendPasswordResetEmail,
-  confirmPasswordReset
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// TODO: thay config của bạn
-const app = initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-});
-const auth = getAuth(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+      authDomain: "nini-8f3d4.firebaseapp.com",
+      projectId: "nini-8f3d4",
+      storageBucket: "nini-8f3d4.firebasestorage.app",
+      messagingSenderId: "991701821645",
+      appId: "1:991701821645:web:fb21c357562c6c801da184"
+    };
 
-// Helpers
-function qs(name, urlObj = new URL(location.href)) {
-  return urlObj.searchParams.get(name);
-}
-function parseContinue() {
-  // next & email có thể nằm trong continueUrl (bị encode)
-  let next = qs('next');               // nếu có ở cấp ngoài
-  let email = qs('email');             // nếu có ở cấp ngoài
-  const cont = qs('continueUrl');
-  if (cont) {
-    try {
-      const inner = new URL(cont);
-      next = next || inner.searchParams.get('next');
-      email = email || inner.searchParams.get('email');
-    } catch (_) {}
-  }
-  return { next, email };
-}
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-async function handleVerify(oobCode) {
-  const { next, email } = parseContinue();
+    const status = document.getElementById('status');
+    const actions = document.getElementById('actions');
 
-  try {
-    await applyActionCode(auth, oobCode);       // ✅ xác minh thành công
-    // Hiển thị thông báo nhỏ nếu muốn
-    document.getElementById('status')?.replaceChildren(document.createTextNode('Đã xác minh email.'));
+    const url = new URL(location.href);
+    const mode = url.searchParams.get('mode');
+    const oobCode = url.searchParams.get('oobCode');
 
-    if (next === 'reset' && email) {
-      // Gửi email đặt mật khẩu ngay sau khi verify
-      await sendPasswordResetEmail(auth, email);
-
-      // Có 2 lựa chọn:
-      // A) Chỉ báo "đã gửi mail đặt mật khẩu", để user vào hộp thư bấm link
-      document.getElementById('status')?.append(' Đã gửi email đặt mật khẩu – vui lòng kiểm tra hộp thư.');
-
-      // B) (tuỳ chọn nâng cao) Nếu không muốn gửi thêm email reset,
-      //    bạn có thể tự render form và dùng confirmPasswordReset với oobCode của link reset.
-      //    Cách A an toàn & đơn giản hơn.
-    } else {
-      // Không có request reset → cho về trang chủ hoặc login
+    function getEmailFromContinueUrl() {
+      let email = url.searchParams.get('email');
+      const cont = url.searchParams.get('continueUrl');
+      if (cont) {
+        try { email ||= new URL(cont).searchParams.get('email'); } catch {}
+      }
+      return email;
     }
-  } catch (e) {
-    console.error('verify error', e);
-    document.getElementById('status')?.replaceChildren(
-      document.createTextNode('Xác minh thất bại: ' + (e.message || 'UNKNOWN'))
-    );
-  }
-}
 
-async function handleReset(oobCode) {
-  // Trang này được mở từ link reset trong email (sau bước verify)
-  const form = document.getElementById('resetForm');
-  form.style.display = 'block';
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const pw = (document.getElementById('newPw').value || '').trim();
-    if (pw.length < 6) {
-      alert('Mật khẩu tối thiểu 6 ký tự');
-      return;
+    async function goResetNow(email) {
+      // Gọi function tạo link reset → trích oobCode → chuyển sang reset-password.html
+      const r = await fetch('/.netlify/functions/make-reset-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const j = await r.json().catch(()=> ({}));
+      if (!r.ok) throw new Error(j.error || 'MAKE_RESET_LINK_FAILED');
+      const oc = new URL(j.link).searchParams.get('oobCode');
+      if (!oc) throw new Error('NO_OOBCODE');
+      location.href = `/reset-password.html?oobCode=${encodeURIComponent(oc)}`;
     }
-    try {
-      await confirmPasswordReset(auth, oobCode, pw);
-      form.replaceChildren(document.createTextNode('Đặt mật khẩu thành công!'));
-    } catch (e) {
-      alert('Đặt mật khẩu thất bại: ' + (e.message || 'UNKNOWN'));
-      console.error('confirmPasswordReset error', e);
-    }
-  });
-}
 
-(async function main() {
-  const mode = qs('mode');
-  const oobCode = qs('oobCode');
+    (async () => {
+      try {
+        if (mode === 'verifyEmail' && oobCode) {
+          await applyActionCode(auth, oobCode); // ✅ xác minh thành công
+          status.textContent = 'Đã xác minh email. Đang chuyển sang trang đặt mật khẩu...';
+          status.className = 'ok';
+          const email = getEmailFromContinueUrl();
+          if (email) {
+            await goResetNow(email); // ➜ vào trang đặt mật khẩu ngay
+            return;
+          }
+          // fallback hiếm hoi
+          actions.style.display = 'block';
+          status.textContent = 'Đã xác minh email. Vui lòng đăng nhập.';
+          return;
+        }
 
-  // Khung hiển thị đơn giản
-  const root = document.getElementById('authActionRoot');
-  if (!root) {
-    const box = document.createElement('div');
-    box.id = 'authActionRoot';
-    box.style.cssText = 'max-width:620px;margin:64px auto;padding:24px;border-radius:12px;box-shadow:0 8px 18px rgba(0,0,0,.08);font-family:system-ui,Roboto,Arial';
-    box.innerHTML = `
-      <h3>Xác minh / Đặt lại mật khẩu</h3>
-      <p id="status"></p>
-      <form id="resetForm" style="display:none">
-        <label>Mật khẩu mới</label><br/>
-        <input id="newPw" type="password" style="padding:8px;margin:8px 0;width:100%" />
-        <button type="submit" style="padding:8px 12px">Đổi mật khẩu</button>
-      </form>
-      <div style="margin-top:16px">
-        <a href="/">Về trang chủ</a> · <a href="/#home">Đăng nhập</a>
-      </div>
-    `;
-    document.body.appendChild(box);
-  }
+        if (mode === 'resetPassword' && oobCode) {
+          // trường hợp đi từ luồng "Quên mật khẩu"
+          location.href = `/reset-password.html?oobCode=${encodeURIComponent(oobCode)}`;
+          return;
+        }
 
-  if (mode === 'verifyEmail' && oobCode) {
-    await handleVerify(oobCode);
-  } else if (mode === 'resetPassword' && oobCode) {
-    await handleReset(oobCode);
-  } else {
-    document.getElementById('status')?.replaceChildren(
-      document.createTextNode('Liên kết không hợp lệ hoặc đã hết hạn.')
-    );
-  }
-})();
-</script>
+        status.textContent = 'Liên kết không hợp lệ hoặc đã hết hạn.';
+        status.className = 'err';
+        actions.style.display = 'block';
+      } catch (e) {
+        console.error('auth-action error:', e);
+        status.textContent = 'Có lỗi khi xử lý liên kết: ' + (e.message || 'UNKNOWN');
+        status.className = 'err';
+        actions.style.display = 'block';
+      }
+    })();
+  </script>
 </body>
 </html>
-
-

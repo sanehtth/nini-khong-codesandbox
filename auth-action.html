@@ -64,7 +64,12 @@
       if (!r.ok) throw new Error(j.error || 'MAKE_RESET_LINK_FAILED');
       const oc = new URL(j.link).searchParams.get('oobCode');
       if (!oc) throw new Error('NO_OOBCODE');
-      location.href = `/reset-password.html?oobCode=${encodeURIComponent(oc)}`;
+      // cũ:
+// location.href = `/reset-password.html?oobCode=${encodeURIComponent(oc)}`;
+
+// mới:
+location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oc)}`);
+
     }
 
     (async () => {
@@ -103,3 +108,4 @@
   </script>
 </body>
 </html>
+

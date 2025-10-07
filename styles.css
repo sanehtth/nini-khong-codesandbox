@@ -389,6 +389,22 @@ body{
   backdrop-filter: blur(10px);
   pointer-events: auto;
 }
+/* === Reader toolbar fixes === */
+.reader__toolbar .btn.small {
+  min-width: 56px;
+  height: 36px;
+  padding: 0 10px;
+  font-weight: 800;
+  color: #173320;          /* chữ đậm, không trắng trên nền nhạt */
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(0,0,0,.15);
+}
+.reader__toolbar .btn.small.is-active {
+  box-shadow: 0 0 0 2px rgba(47,110,63,.35) inset;
+}
+#readerModal { z-index: 10001; }     /* luôn trên mọi overlay khác */
+#authModal   { z-index: 10000; }
+
 
 
 

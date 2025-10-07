@@ -1,13 +1,13 @@
-// ===================== NiNi Auth JS (ONE FILE, SAFE) =====================
-// Firebase (module)
+// ===================== NiNi Auth JS (FULL, SMTP reset) =====================
+// Firebase (ESM)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
   signInWithPopup,
   GoogleAuthProvider,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // --- Firebase config ---
@@ -31,27 +31,37 @@ const NINI_AUTH = getAuth(NINI_APP);
   }
   window.__NINI_AUTH_BOOTED__ = true;
 
+  // ---------- Endpoints ----------
+  const VERIFY_API = "/.netlify/functions/send-verification-email";
+  const RESET_API  = "/.netlify/functions/send-reset"; // << dùng SMTP mail pro
+
   // ---------- Helpers ----------
-  const NINI_$id = (id) => document.getElementById(id);
-  const NINI_setNote = (el, msg, ok=true) => { if(!el) return; el.textContent = msg || ""; el.style.color = ok ? "#0f5132" : "#7f1d1d"; };
-  function NINI_cleanEmail(s) {
+  const $id = (id) => document.getElementById(id);
+  const setNote = (el, msg, ok = true) => {
+    if (!el) return;
+    el.textContent = msg || "";
+    el.style.color = ok ? "#0f5132" : "#7f1d1d";
+  };
+  function cleanEmail(s) {
     return String(s || "")
       .normalize("NFKC")
       .replace(/[\u200B-\u200D\uFEFF]/g, "") // zero-width
-      .replace(/\s/g, "")                    // mọi khoảng trắng
+      .replace(/\s/g, "")                    // xoá khoảng trắng
       .toLowerCase();
   }
-  function NINI_mapAuthErr(e) {
+  function mapAuthError(e) {
     const code = e?.code || "";
     return (
       code === "auth/invalid-email"     ? "Email không hợp lệ." :
       code === "auth/user-not-found"    ? "Email chưa đăng ký." :
       code === "auth/wrong-password"    ? "Mật khẩu sai." :
       code === "auth/too-many-requests" ? "Bạn thử quá nhiều lần, vui lòng thử lại sau." :
+      code === "auth/invalid-credential"? "Email hoặc mật khẩu không đúng." :
       e?.message || "Yêu cầu thất bại."
     );
   }
-  function NINI_findEmailInput(root) {
+  // Tìm input email/password linh hoạt (để Enter/submit cũng chạy)
+  function findEmailInput(root) {
     const qs = [
       "#loginEmail",
       'input[type="email"]',
@@ -62,7 +72,7 @@ const NINI_AUTH = getAuth(NINI_APP);
     for (const sel of qs) { const el = root.querySelector(sel); if (el) return el; }
     return null;
   }
-  function NINI_findPasswordInput(root) {
+  function findPasswordInput(root) {
     const qs = [
       "#loginPassword",
       'input[type="password"]',
@@ -73,24 +83,43 @@ const NINI_AUTH = getAuth(NINI_APP);
     for (const sel of qs) { const el = root.querySelector(sel); if (el) return el; }
     return null;
   }
-  function NINI_noteElFor(root) {
-    return root.querySelector("#loginNote, .login-note") || NINI_$id("loginNote");
+  function noteElFor(root) {
+    return root.querySelector("#loginNote, .login-note") || $id("loginNote");
   }
 
-  // ---------- Endpoints ----------
-  const NINI_VERIFY_API = "/.netlify/functions/send-verification-email";
+  // --- AUTH FLAG for site (index/profile can read) ---
+  const AUTH_FLAG_KEY = "NINI_AUTH_LOGGED_IN";
+  function setAuthFlag(val) {
+    const v = val ? "1" : "0";
+    try { localStorage.setItem(AUTH_FLAG_KEY, v); } catch {}
+    window.niniAuth = window.niniAuth || {};
+    window.niniAuth.isLoggedIn = !!val;
+    window.dispatchEvent(new CustomEvent("nini:authchange", { detail: { loggedIn: !!val }}));
+  }
+  function toggleAuthUI(user) {
+    const loggedIn = !!user || (localStorage.getItem(AUTH_FLAG_KEY) === "1");
+    document.querySelectorAll("[data-show='in']").forEach(el => el.style.display = loggedIn ? "" : "none");
+    document.querySelectorAll("[data-show='out']").forEach(el => el.style.display = loggedIn ? "none" : "");
+    document.querySelectorAll(".who").forEach(el => el.textContent = user?.displayName || user?.email || "");
+  }
 
-  // ---------- API: gửi email xác minh (định nghĩa 1 lần) ----------
-  async function NINI_sendVerify(emailInput) {
-    const email = NINI_cleanEmail(
+  // --- Redirect after login ---
+  function NINI_goHome() {
+    const url = new URLSearchParams(location.search).get("next") || "/index.html";
+    location.replace(url);
+  }
+
+  // ---------- API callers ----------
+  async function apiSendVerify(emailInput) {
+    const email = cleanEmail(
       typeof emailInput === "string"
         ? emailInput
         : emailInput?.email || emailInput?.user?.email || ""
     );
-    const res = await fetch(NINI_VERIFY_API, {
+    const res = await fetch(VERIFY_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email }),
     });
     const text = await res.text(); let data = {};
     try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
@@ -102,29 +131,53 @@ const NINI_AUTH = getAuth(NINI_APP);
     return data;
   }
 
-  // ---------- LOGIN core ----------
-  async function NINI_doLoginFrom(scope, source="unknown") {
-    const emailEl = NINI_findEmailInput(scope) || NINI_$id("loginEmail");
-    const pwEl    = NINI_findPasswordInput(scope) || NINI_$id("loginPassword");
-    const note    = NINI_noteElFor(scope);
+  async function apiSendReset(email) {
+    const res = await fetch(RESET_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const text = await res.text(); let data = {};
+    try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+    if (!res.ok) {
+      console.error("[reset] FAILED", res.status, data);
+      throw new Error(data?.error || `HTTP ${res.status}`);
+    }
+    console.log("[reset] OK", data);
+    return data;
+  }
 
-    const email = NINI_cleanEmail(emailEl?.value);
+  // ---------- LOGIN core ----------
+  async function doLoginFrom(scope, source = "unknown") {
+    const emailEl = findEmailInput(scope) || $id("loginEmail");
+    const pwEl    = findPasswordInput(scope) || $id("loginPassword");
+    const note    = noteElFor(scope);
+
+    const email = cleanEmail(emailEl?.value);
     const pw    = String(pwEl?.value || "");
 
     console.log("[login] source=", source, "emailEl=", !!emailEl, "pwEl=", !!pwEl, "email=", email);
 
-    if (!email) { NINI_setNote(note, "Bạn chưa nhập email.", false); emailEl?.focus(); return; }
-    if (!pw)    { NINI_setNote(note, "Bạn chưa nhập mật khẩu.", false); pwEl?.focus();   return; }
+    if (!email) { setNote(note, "Bạn chưa nhập email.", false); emailEl?.focus(); return; }
+    if (!pw)    { setNote(note, "Bạn chưa nhập mật khẩu.", false); pwEl?.focus();   return; }
 
     try {
-      NINI_setNote(note, "Đang đăng nhập...");
+      setNote(note, "Đang đăng nhập...");
       const cred = await signInWithEmailAndPassword(NINI_AUTH, email, pw);
       console.log("[login] OK uid=", cred.user?.uid, "verified=", cred.user?.emailVerified);
-      NINI_setNote(note, "Đăng nhập thành công!", true);
-      // TODO: đóng modal / cập nhật UI tại đây nếu muốn
+
+      setAuthFlag(true);
+      toggleAuthUI(cred.user);
+      setNote(note, "Đăng nhập thành công!", true);
+      NINI_goHome(); // chuyển về index
     } catch (e) {
       console.error("[login] FAIL:", e);
-      NINI_setNote(note, NINI_mapAuthErr(e), false);
+      setNote(note, mapAuthError(e), false);
+      setAuthFlag(false);
+      toggleAuthUI(null);
+      // Gợi ý hiện nút resend verify nếu cần (tuỳ hệ thống có chặn unverified hay không)
+      const btnResend = $id("btnResendVerify");
+      if (btnResend) btnResend.style.display = "";
     }
   }
 
@@ -132,96 +185,119 @@ const NINI_AUTH = getAuth(NINI_APP);
   document.addEventListener("submit", (ev) => {
     const form = ev.target.closest("form");
     if (!form) return;
-    // form login có ô mật khẩu
-    if (NINI_findPasswordInput(form)) {
+    if (findPasswordInput(form)) {
       ev.preventDefault();
-      NINI_doLoginFrom(form, "form-submit");
+      doLoginFrom(form, "form-submit");
     }
   }, true);
 
   // ---------- Delegation: click các nút ----------
   document.addEventListener("click", async (ev) => {
-    // Đăng nhập
-    const btnLogin = ev.target.closest(
-      '#btnLogin, [data-role="btn-login"], button[name="login"], button[id*="login" i], button'
-    );
-    if (btnLogin) {
-      const txt = (btnLogin.textContent || "").trim().toLowerCase();
-      if (
-        btnLogin.id === "btnLogin" ||
-        btnLogin.getAttribute("data-role") === "btn-login" ||
-        /đăng nhập/i.test(txt) || /login/.test(txt)
-      ) {
-        if (btnLogin.closest("form")) ev.preventDefault();
-        const scope = btnLogin.closest(".auth-panel") || btnLogin.closest("form") || document;
-        NINI_doLoginFrom(scope, "button-click");
-        return;
-      }
-    }
+    const target = ev.target;
 
-    // Gửi email xác minh (đăng ký mới / gửi lại)
-    const btnVerify = ev.target.closest('[data-role="btn-send-verify"], #btnSendVerify, #btnEmailSignup');
-    if (btnVerify) {
-      const scope  = btnVerify.closest(".auth-panel") || document;
-      const emailEl = scope.querySelector('#signupEmail, #verifyEmail, #loginEmail') ||
-                      NINI_$id('signupEmail') || NINI_$id('loginEmail');
-      const noteEl  = scope.querySelector('#signupNote, .signup-note, #loginNote') ||
-                      NINI_$id('signupNote') || NINI_$id('loginNote');
-      try {
-        const email = NINI_cleanEmail(emailEl?.value || "");
-        if (!email) { NINI_setNote(noteEl, "Bạn chưa nhập email.", false); return; }
-        await NINI_sendVerify(email);
-        NINI_setNote(noteEl, "Đã gửi email xác minh – kiểm tra hộp thư nhé.", true);
-      } catch (e) {
-        NINI_setNote(noteEl, e.message || "Không gửi được email xác minh.", false);
-      }
+    // Đăng nhập bằng email/password
+    if (target.closest("#btnEmailLogin, [data-role='btn-login']")) {
+      const scope = target.closest(".auth-panel, [data-pane='login']") || document;
+      if (target.closest("form")) ev.preventDefault();
+      doLoginFrom(scope, "button-click");
       return;
     }
 
-    // Quên mật khẩu (nếu dùng flow này)
-    const btnForgot = ev.target.closest('#btnForgotSend, [data-role="btn-forgot-send"]');
-    if (btnForgot) {
-      const scope  = btnForgot.closest(".auth-panel") || document;
-      const emailEl = scope.querySelector('#forgot_email, #loginEmail') ||
-                      NINI_$id('forgot_email') || NINI_$id('loginEmail');
-      const noteEl  = scope.querySelector('#forgotNote, .forgot-note, #loginNote') ||
-                      NINI_$id('forgotNote') || NINI_$id('loginNote');
+    // Google login (optional)
+    if (target.closest("#btnGoogleLogin, [data-role='btn-google']")) {
+      const note = $id("loginNote");
       try {
-        const email = NINI_cleanEmail(emailEl?.value || "");
-        if (!email) { NINI_setNote(noteEl, "Bạn chưa nhập email.", false); return; }
-        await sendPasswordResetEmail(NINI_AUTH, email, {
-          url: "https://nini-funny.com/reset-password.html",
-          handleCodeInApp: true,
-        });
-        NINI_setNote(noteEl, "Đã gửi link đặt lại mật khẩu – kiểm tra email nhé.", true);
-      } catch (e) {
-        console.error("[forgot] FAIL:", e);
-        NINI_setNote(noteEl, NINI_mapAuthErr(e), false);
-      }
-      return;
-    }
-
-    // Google login (tuỳ chọn)
-    const btnGoogle = ev.target.closest('#btnGoogleLogin, [data-role="btn-google"]');
-    if (btnGoogle) {
-      try {
-        await signInWithPopup(NINI_AUTH, new GoogleAuthProvider());
-        const note = NINI_noteElFor(btnGoogle.closest(".auth-panel") || document);
-        NINI_setNote(note, "Đăng nhập Google thành công!", true);
+        setNote(note, "Đang đăng nhập Google...");
+        const cred = await signInWithPopup(NINI_AUTH, new GoogleAuthProvider());
+        setAuthFlag(true);
+        toggleAuthUI(cred.user);
+        setNote(note, "Đăng nhập Google thành công!", true);
+        NINI_goHome();
       } catch (e) {
         console.error("[google] FAIL:", e);
-        const note = NINI_noteElFor(btnGoogle.closest(".auth-panel") || document);
-        NINI_setNote(note, "Đăng nhập Google thất bại.", false);
+        setNote(note, "Đăng nhập Google thất bại.", false);
       }
+      return;
+    }
+
+    // Gửi email xác minh (đăng ký mới / resend)
+    if (target.closest("#btnEmailSignup, #btnResendVerify, [data-role='btn-send-verify']")) {
+      const emailEl =
+        $id("signupEmail") || $id("loginEmail");
+      const noteEl =
+        $id("signupNote") || $id("loginNote");
+      try {
+        const email = cleanEmail(emailEl?.value || "");
+        if (!email) { setNote(noteEl, "Bạn chưa nhập email.", false); return; }
+        await apiSendVerify(email);
+        setNote(noteEl, "Đã gửi email xác minh – kiểm tra hộp thư nhé.", true);
+      } catch (e) {
+        setNote(noteEl, e.message || "Không gửi được email xác minh.", false);
+      }
+      return;
+    }
+
+    // Quên mật khẩu — gửi qua SMTP mail pro (Netlify function /send-reset)
+    if (target.closest("#btnForgotSend, [data-role='btn-forgot-send']")) {
+      const emailEl = $id("forgot_email") || $id("loginEmail");
+      const noteEl  = $id("forgotNote") || $id("loginNote");
+      const btn     = target.closest("#btnForgotSend, [data-role='btn-forgot-send']");
+      const email   = cleanEmail(emailEl?.value || "");
+      if (!email) { setNote(noteEl, "Bạn chưa nhập email.", false); return; }
+
+      btn.disabled = true;
+      setNote(noteEl, "Đang gửi email đặt lại mật khẩu…", true);
+      try {
+        await apiSendReset(email);
+        setNote(noteEl, "Đã gửi link đặt lại mật khẩu – kiểm tra hộp thư nhé.", true);
+      } catch (e) {
+        setNote(noteEl, e?.message || "Không gửi được email đặt lại mật khẩu.", false);
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    // Đăng xuất
+    if (target.closest("#btnLogout, [data-role='btn-logout'], .btn-logout")) {
+      try { await signOut(NINI_AUTH); } catch {}
+      finally {
+        setAuthFlag(false);
+        toggleAuthUI(null);
+        console.log("[logout] OK");
+      }
+      return;
     }
   });
 
-  // ---------- Theo dõi trạng thái đăng nhập (tuỳ bạn update UI) ----------
+  // ---------- Theo dõi trạng thái đăng nhập ----------
   onAuthStateChanged(NINI_AUTH, (user) => {
-    console.log("[auth] state:", user ? `IN (${user.email})` : "OUT");
-    // ví dụ:
-    // if (user) document.body.classList.add('logged-in');
-    // else document.body.classList.remove('logged-in');
+    console.log("[auth] state:", user ? `IN (${user.email || user.displayName || "user"})` : "OUT");
+    setAuthFlag(!!user);
+    toggleAuthUI(user);
+  });
+
+  // ---------- Dev helpers ----------
+  window.niniAuth = window.niniAuth || {};
+  Object.assign(window.niniAuth, {
+    isLoggedIn: localStorage.getItem(AUTH_FLAG_KEY) === "1",
+    async hardReset() {
+      try { await signOut(NINI_AUTH); } catch {}
+      try { indexedDB.deleteDatabase("firebaseLocalStorageDb"); } catch {}
+      try { localStorage.clear(); sessionStorage.clear(); } catch {}
+      location.reload();
+    },
+    async forceLogin(email, pass) {
+      const note = $id("loginNote");
+      try {
+        const cred = await signInWithEmailAndPassword(NINI_AUTH, cleanEmail(email), String(pass || ""));
+        setAuthFlag(true); toggleAuthUI(cred.user);
+        setNote(note, "Đăng nhập thành công!", true);
+        NINI_goHome();
+      } catch (e) {
+        console.error(e); setNote(note, mapAuthError(e), false);
+      }
+    },
   });
 })(); // END guard
 // ================== END ==================

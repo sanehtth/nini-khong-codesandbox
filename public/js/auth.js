@@ -68,12 +68,28 @@ btnLogin?.addEventListener("click", ()=>openAuth("login"));
 btnLogout?.addEventListener("click", async ()=>{ try{await signOut(auth);}catch{} localStorage.setItem(FLAG,"0"); localStorage.removeItem(WHOKEY); localStorage.setItem(SIGNAL, String(Date.now())); location.replace("/"); });
 
 // Backend helpers
-async function smtpSendVerify(email){
-  const res = await fetch(VERIFY_API, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ email, continueUrl: "https://nini-funny.com/verify_email.html" }) });
-  const j = await res.json().catch(()=>({}));
-  if(!res.ok) throw new Error(j.message || "Không gửi được email xác minh.");
-  return j;
+async function smtpSendVerify(email) {
+  const res = await fetch('/.netlify/functions/send-verification-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+
+  // Luôn đọc body để lấy lỗi chi tiết từ server
+  const text = await res.text();
+  let data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
+
+  if (!res.ok) {
+    // In hết ra console để thấy nguyên nhân thật
+    console.error('send-verification-email FAILED', res.status, data);
+    throw new Error(data?.error || `HTTP ${res.status}`);
+  }
+
+  console.log('send-verification-email OK', data);
+  return data;
 }
+
 async function smtpSendReset(email){
   const res = await fetch(FORGOT_API, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ email }) });
   const j = await res.json().catch(()=>({}));
@@ -84,18 +100,14 @@ async function smtpSendReset(email){
 // Login
 btnEmailLogin?.addEventListener("click", async ()=>{
   const off=setBusy(btnEmailLogin,true,"Đang đăng nhập…"); setNote(loginNote,"");
-  try{
-    const cred = await signInWithEmailAndPassword(auth, (loginEmail?.value||"").trim(), loginPw?.value||"");
-    if(!cred.user.emailVerified){
-      try{ await smtpSendVerify(cred.user.email); }catch{}
-      await signOut(auth);
-      setNote(loginNote,"Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — kiểm tra hộp thư nhé.", false);
-      btnResendVerify.style.display = "inline-flex";
-      btnResendVerify.onclick = async ()=>{ const off2=setBusy(btnResendVerify,true,"Đang gửi…"); try{ await smtpSendVerify((loginEmail?.value||"").trim()); setNote(loginNote,"Đã gửi lại email xác minh.",true); }catch(e){ setNote(loginNote, e.message, false);} finally{ off2(); } };
-      return;
-    }
-    afterLogin(cred.user);
-  }catch(e){ setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false); } finally{ off(); }
+  try {
+  await smtpSendVerify(signupEmail.value.trim());
+  setNote(signupNote, 'Đã gửi email xác minh – kiểm tra hộp thư nhé.', true);
+} catch (e) {
+  // e.message bây giờ là mã lỗi chuẩn hoá từ server (SMTP_… / FIREBASE_…)
+  setNote(signupNote, e.message || 'Không gửi được email xác minh.', false);
+  console.error('smtpSendVerify error:', e);
+}
 });
 
 // Google
@@ -133,3 +145,4 @@ function afterLogin(user){ const who=user.displayName||user.email||user.phoneNum
 onAuthStateChanged(auth, (user)=>{ if(user){ const who=user.displayName||user.email||user.phoneNumber||"user"; localStorage.setItem(FLAG,"1"); localStorage.setItem(WHOKEY,who);} setAuthUI(); });
 window.addEventListener("storage",(e)=>{ if(e.key===FLAG||e.key===WHOKEY||e.key===SIGNAL) setAuthUI(); });
 setAuthUI();
+

@@ -1,4 +1,4 @@
-// NiNi — AUTH (SMTP verify + resend + forgot)
+// NiNi — AUTH (SMTP verify + resend + forgot) + toast + logs
 
 /* ---------- Firebase ---------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -21,7 +21,7 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 /* ---------- LocalStorage Keys ---------- */
-const FLAG   = "NINI_AUTH_LOGGED_IN";  // "1"|"0"
+const FLAG   = "NINI_AUTH_LOGGED_IN";
 const WHOKEY = "NINI_USER_DISPLAY";
 const SIGNAL = "NINI_SIGNED_OUT_AT";
 
@@ -43,8 +43,7 @@ const loginPw        = $("loginPassword");
 const btnEmailLogin  = $("btnEmailLogin");
 const btnGoogleLogin = $("btnGoogleLogin");
 const loginNote      = $("loginNote");
-/* Nút resend verify (tùy chọn) */
-const btnResendVerify = $("btnResendVerify");
+const btnResendVerify = $("btnResendVerify"); // optional
 
 /* Signup */
 const signupEmail    = $("signupEmail");
@@ -57,21 +56,63 @@ const forgotInput = $("forgot_email");
 const btnForgot   = $("btnForgotSend");
 const forgotNote  = $("forgotNote");
 
-/* ---------- Backend APIs (Netlify Functions) ---------- */
+/* ---------- Backend APIs ---------- */
 const FORGOT_API = "/.netlify/functions/send-reset";
 const VERIFY_API = "/.netlify/functions/send-verification-email";
 
-/* ---------- UI helpers ---------- */
-function setNote(el, msg, ok = true){
-  if (!el) return;
-  el.textContent = msg || "";
-  el.style.color = ok ? "#0f5132" : "#7f1d1d";
+/* ---------- Toast helper (bảo đảm luôn thấy thông báo) ---------- */
+function toast(msg = "", type = "info") {
+  let box = document.getElementById("nini_toast_box");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "nini_toast_box";
+    Object.assign(box.style, {
+      position: "fixed", right: "16px", bottom: "16px",
+      display: "flex", flexDirection: "column", gap: "8px",
+      zIndex: 99999
+    });
+    document.body.appendChild(box);
+  }
+  const t = document.createElement("div");
+  t.textContent = msg;
+  Object.assign(t.style, {
+    maxWidth: "360px", padding: "10px 12px",
+    borderRadius: "10px",
+    boxShadow: "0 6px 18px rgba(0,0,0,.25)",
+    color: type === "error" ? "#7f1d1d" : "#0f5132",
+    background: "rgba(255,255,255,.9)",
+    backdropFilter: "blur(8px)",
+    fontSize: "14px"
+  });
+  box.appendChild(t);
+  setTimeout(()=> t.remove(), 4500);
 }
+
+/* ---------- setNote + fallback toast ---------- */
+function setNote(el, msg, ok = true){
+  if (el) {
+    el.textContent = msg || "";
+    el.style.color = ok ? "#0f5132" : "#7f1d1d";
+  }
+  // luôn hiện toast để bạn nhìn thấy
+  toast(msg || "", ok ? "ok" : "error");
+}
+
+/* ---------- small helpers ---------- */
+function setBusy(button, busy = true, labelWhenBusy = "Đang xử lý…") {
+  if (!button) return () => {};
+  const old = button.textContent;
+  button.disabled = !!busy;
+  if (busy) button.textContent = labelWhenBusy;
+  else button.textContent = old;
+  return () => { button.disabled = false; button.textContent = old; };
+}
+
 function isLoggedIn(){ return localStorage.getItem(FLAG) === "1"; }
 function setAuthUI(){
   const logged = isLoggedIn();
   const who    = localStorage.getItem(WHOKEY) || "";
-  whoSpan.textContent = logged && who ? `(${who})` : "";
+  if (whoSpan) whoSpan.textContent = logged && who ? `(${who})` : "";
   if (btnLogin)  btnLogin.hidden  = logged;
   if (btnLogout) btnLogout.hidden = !logged;
 }
@@ -108,14 +149,16 @@ btnLogout?.addEventListener("click", async ()=>{
   location.replace("/");
 });
 
-/* ---------- gửi verify qua SMTP ---------- */
+/* ---------- gọi Function gửi verify qua SMTP ---------- */
 async function sendVerifyEmailSMTP(email){
+  console.log("[VERIFY] POST", VERIFY_API, { email });
   const res = await fetch(VERIFY_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email })
   });
   const data = await res.json().catch(()=>({}));
+  console.log("[VERIFY] resp", res.status, data);
   if (!res.ok) throw new Error(data?.message || "Không gửi được email xác minh");
   return data;
 }
@@ -124,30 +167,26 @@ async function sendVerifyEmailSMTP(email){
 btnEmailLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   if (btnResendVerify) btnResendVerify.style.display = "none";
-
+  const unbusy = setBusy(btnEmailLogin, true, "Đang đăng nhập…");
   try{
     const cred = await signInWithEmailAndPassword(
-      auth, (loginEmail.value||"").trim(), loginPw.value||""
+      auth, (loginEmail?.value||"").trim(), loginPw?.value||""
     );
 
     if (!cred.user.emailVerified){
-      try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
+      try { await sendVerifyEmailSMTP(cred.user.email); } catch(e){ console.warn(e); }
       await signOut(auth);
-      setNote(
-        loginNote,
-        "Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — hãy kiểm tra hộp thư trước khi đăng nhập.",
-        false
-      );
+      setNote(loginNote, "Tài khoản chưa xác minh. Mình vừa gửi lại email xác minh — kiểm tra hộp thư nhé.", false);
       if (btnResendVerify){
         btnResendVerify.style.display = "inline-flex";
         btnResendVerify.onclick = async ()=>{
-          setNote(loginNote, "Đang gửi lại email xác minh…");
+          const off = setBusy(btnResendVerify, true, "Đang gửi lại…");
           try{
-            await sendVerifyEmailSMTP((loginEmail.value||"").trim());
+            await sendVerifyEmailSMTP((loginEmail?.value||"").trim());
             setNote(loginNote, "Đã gửi lại email xác minh. Vui lòng kiểm tra hộp thư!", true);
           }catch(e){
             setNote(loginNote, e.message || "Không gửi được email xác minh.", false);
-          }
+          }finally{ off(); }
         };
       }
       return;
@@ -156,39 +195,41 @@ btnEmailLogin?.addEventListener("click", async ()=>{
     afterLogin(cred.user);
   }catch(e){
     setNote(loginNote, e?.code || e?.message || "Không đăng nhập được", false);
-  }
+  }finally{ unbusy(); }
 });
 
 /* ---------- Google ---------- */
 btnGoogleLogin?.addEventListener("click", async ()=>{
   setNote(loginNote,"");
   if (btnResendVerify) btnResendVerify.style.display = "none";
+  const unbusy = setBusy(btnGoogleLogin, true, "Đang mở Google…");
   try{
     const provider = new GoogleAuthProvider();
     const cred = await signInWithPopup(auth, provider);
 
     if (cred.user.email && !cred.user.emailVerified){
-      try { await sendVerifyEmailSMTP(cred.user.email); } catch(_){}
+      try { await sendVerifyEmailSMTP(cred.user.email); } catch(e){ console.warn(e); }
       await signOut(auth);
-      setNote(loginNote, "Email Google của bạn chưa xác minh trong hệ thống. Đã gửi mail xác minh — kiểm tra hộp thư nhé.", false);
+      setNote(loginNote, "Email Google chưa xác minh trong hệ thống. Đã gửi mail xác minh — kiểm tra hộp thư nhé.", false);
       return;
     }
 
     afterLogin(cred.user);
   }catch(e){
     setNote(loginNote, e?.code || e?.message || "Không đăng nhập được với Google", false);
-  }
+  }finally{ unbusy(); }
 });
 
 /* ---------- Signup: tạo user + gửi verify SMTP + signOut ---------- */
 btnEmailSignup?.addEventListener("click", async ()=>{
   setNote(signupNote,"");
+  const unbusy = setBusy(btnEmailSignup, true, "Đang tạo tài khoản…");
   try{
-    const email = (signupEmail.value||"").trim();
-    const pass  = signupPw.value||"";
+    const email = (signupEmail?.value||"").trim();
+    const pass  = (signupPw?.value||"");
 
     await createUserWithEmailAndPassword(auth, email, pass);
-    try { await sendVerifyEmailSMTP(email); } catch(_){}
+    try { await sendVerifyEmailSMTP(email); } catch(e){ console.warn(e); }
     try { await signOut(auth); } catch(_){}
 
     setNote(
@@ -203,36 +244,36 @@ btnEmailSignup?.addEventListener("click", async ()=>{
       "auth/weak-password":       "Mật khẩu quá yếu (ít nhất 8 ký tự).",
     };
     setNote(signupNote, nice[e?.code] || (e?.code || e?.message || "Không tạo được tài khoản"), false);
-  }
+  }finally{ unbusy(); }
 });
 
 /* ---------- Forgot password ---------- */
 btnForgot?.addEventListener("click", async (e) => {
   e?.preventDefault?.();
-
   const email = (forgotInput?.value || "").trim();
   if (!email) {
     setNote(forgotNote, "Vui lòng nhập email.", false);
     return;
   }
-  setNote(forgotNote, "Đang gửi...", true);
-
+  const unbusy = setBusy(btnForgot, true, "Đang gửi…");
   try {
+    console.log("[RESET] POST", FORGOT_API, { email });
     const res = await fetch(FORGOT_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
     });
     const data = await res.json().catch(() => ({}));
+    console.log("[RESET] resp", res.status, data);
 
     if (res.ok) {
-      setNote(forgotNote, data.message || "Đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra email!", true);
+      setNote(forgotNote, data.message || "Đã gửi liên kết đặt lại mật khẩu. Kiểm tra email nhé!", true);
     } else {
       setNote(forgotNote, data.message || "Không gửi được mail. Vui lòng thử lại!", false);
     }
   } catch (err) {
     setNote(forgotNote, "Không kết nối được máy chủ. Kiểm tra lại URL API.", false);
-  }
+  } finally { unbusy(); }
 });
 
 /* ---------- After Login + Header sync ---------- */
@@ -244,7 +285,6 @@ function afterLogin(user){
   closeAuth();
   location.href = "/profile.html";
 }
-
 onAuthStateChanged(auth, (user)=>{
   if (user){
     const who = user.displayName || user.email || user.phoneNumber || "user";
@@ -252,7 +292,6 @@ onAuthStateChanged(auth, (user)=>{
   }
   setAuthUI();
 });
-
 window.addEventListener("storage", (e)=>{
   if (e.key===FLAG || e.key===WHOKEY || e.key===SIGNAL) setAuthUI();
 });

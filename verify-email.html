@@ -1,47 +1,65 @@
 <!doctype html>
-<html lang="vi"><head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Xác minh email — NiNi</title>
-<link rel="stylesheet" href="/styles.css?v=16"/>
-</head><body>
-<main class="viewport" style="display:grid;place-items:center;min-height:100vh">
-  <section class="modal__panel" style="position:static;max-width:520px">
-    <h3 class="modal__title">
-      <img src="/public/assets/icons/logonini.webp" class="modal__logo" alt="" />
-      Xác minh email
-    </h3>
-    <p id="msg" class="note">Đang xác minh...</p>
-  </section>
-</main>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Xác minh email — NiNi</title>
+  <link rel="icon" type="image/webp" href="/public/assets/icons/logo_nini.webp" />
+  <link rel="stylesheet" href="/styles.css?v=100" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/#home">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="" />
+      <span class="brand__slogan">Chơi mê ly, bứt phá tư duy</span>
+    </a>
+  </header>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <main class="viewport" style="display:grid;place-items:center;min-height:calc(100vh - 80px)">
+    <section class="modal__panel" style="position:static;max-width:560px">
+      <h3 class="modal__title">
+        <img class="modal__logo" src="/public/assets/icons/logonini.webp" alt="" />
+        Xác minh email
+      </h3>
+      <p id="msg" class="note"></p>
+      <div style="margin-top:12px">
+        <a class="btn" href="/#home">Về trang chủ</a>
+      </div>
+    </section>
+  </main>
 
-  const app = initializeApp({
-    apiKey:"AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-    authDomain:"nini-8f3d4.firebaseapp.com",
-    projectId:"nini-8f3d4"
-  });
-  const auth = getAuth(app);
-  const msg = document.getElementById("msg");
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const sp = new URLSearchParams(location.search);
-  const oob = sp.get("oobCode");
+    const app = initializeApp({
+      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+      authDomain: "nini-8f3d4.firebaseapp.com",
+      projectId: "nini-8f3d4",
+      storageBucket: "nini-8f3d4.firebasestorage.app",
+      messagingSenderId: "991701821645",
+      appId: "1:991701821645:web:fb21c357562c6c801da184"
+    });
+    const auth = getAuth(app);
 
-  async function run(){
-    if(!oob){ msg.textContent="Thiếu oobCode."; msg.className="note err"; return; }
-    try{
-      await applyActionCode(auth, oob);
-      msg.textContent="Xác minh thành công! Đang chuyển về trang chủ...";
-      msg.className="note ok";
-      setTimeout(()=> location.href="/#home", 1200);
-    }catch(e){
-      msg.textContent = e?.code || e?.message || "Mã xác minh không hợp lệ/đã hết hạn.";
-      msg.className="note err";
+    const msg = document.getElementById("msg");
+    const setMsg = (t, ok=true)=>{ msg.textContent=t; msg.className = "note " + (ok?"ok":"err"); };
+
+    const sp = new URLSearchParams(location.search);
+    const mode = sp.get("mode");
+    const oob  = sp.get("oobCode");
+    if (mode !== "verifyEmail" || !oob) {
+      setMsg("Liên kết không hợp lệ hoặc đã hết hạn.", false);
+    } else {
+      setMsg("Đang xác minh…");
+      try {
+        await applyActionCode(auth, oob);
+        setMsg("Xác minh email thành công! Bạn có thể đăng nhập.", true);
+        setTimeout(()=> location.href = "/#home", 1200);
+      } catch (e) {
+        setMsg(e?.code || e?.message || "Không xác minh được email.", false);
+      }
     }
-  }
-  run();
-</script>
-</body></html>
+  </script>
+</body>
+</html>

@@ -1,13 +1,6 @@
 // netlify/functions/send-verification-email.js
-const nodemailer = require('nodemailer');
 const admin = require('firebase-admin');
-
-const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com';
-const cors = {
-  'Access-Control-Allow-Origin': ALLOW_ORIGIN,
-  'Access-Control-Allow-Methods': 'POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-};
+const nodemailer = require('nodemailer');
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -20,44 +13,35 @@ if (!admin.apps.length) {
 }
 
 exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers: cors, body: JSON.stringify({ error:'Method Not Allowed' }) };
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 204 };
+  if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  try{
-    const { email, continueUrl } = JSON.parse(event.body||'{}');
-    if (!email) return { statusCode: 400, headers: cors, body: JSON.stringify({ error:'Missing email' }) };
+  try {
+    const { email } = JSON.parse(event.body || '{}');
+    if (!email) return { statusCode: 400, body: 'Missing email' };
 
-    // tạo user nếu chưa có (password tạm)
-    let user;
-    try { user = await admin.auth().getUserByEmail(email); }
-    catch { user = await admin.auth().createUser({ email, emailVerified:false, password: Math.random().toString(36).slice(2) + "!Ab9" }); }
-
+    // Link trỏ thẳng tới trang custom
     const link = await admin.auth().generateEmailVerificationLink(email, {
-      url: continueUrl || 'https://nini-funny.com/verify_email.html',
+      url: 'https://nini-funny.com/auth-action.html',
       handleCodeInApp: true,
     });
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 465),
       secure: (process.env.SMTP_SECURE || 'true') === 'true',
       auth: { user: process.env.SMTP_USER || process.env.SMTP_EMAIL, pass: process.env.SMTP_PASS },
     });
 
-    const from = process.env.FROM_EMAIL || `"NiNi Funny" <${process.env.SMTP_EMAIL}>`;
-    const subject = process.env.VERIFY_SUBJECT || 'Xác minh email cho NiNi — Funny';
+    await transporter.sendMail({
+      from: process.env.FROM_EMAIL || `"NiNi Funny" <${process.env.SMTP_EMAIL}>`,
+      to: email,
+      subject: 'Xác minh email NiNi',
+      html: `<p>Nhấn để xác minh: <a href="${link}">Xác minh email</a></p>`,
+    });
 
-    const html = `
-      <p>Xin chào,</p>
-      <p>Nhấn nút dưới đây để xác minh email cho tài khoản NiNi:</p>
-      <p><a href="${link}" target="_blank" rel="noopener" style="background:#2f6e3f;color:#fff;padding:10px 14px;border-radius:999px;text-decoration:none">Xác minh email</a></p>
-      <p>Nếu không bấm được, hãy copy liên kết sau:</p>
-      <p><a href="${link}">${link}</a></p>
-    `;
-
-    await transporter.sendMail({ from, to: email, subject, html });
-    return { statusCode: 200, headers: cors, body: JSON.stringify({ ok:true }) };
-  }catch(e){
-    return { statusCode: 500, headers: cors, body: JSON.stringify({ error: e.message }) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+  } catch (e) {
+    return { statusCode: 500, body: JSON.stringify({ error: e.message }) };
   }
 };

@@ -67,62 +67,76 @@ Việc đã làm:
 - Mỗi pane có data-pane="login|signup|forgot"
 - Mặc định chỉ pane "login" có .is-active
 ========================================= -->
-<div class="modal" id="authModal" aria-hidden="true">
-  <div class="modal__backdrop" data-close></div>
-  <div class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <button class="modal__close" data-close aria-label="Đóng">×</button>
+<!-- ========== AUTH MODAL (Glass) — REPLACE BLOCK NÀY VÀO index.html ========== -->
+<div id="authModal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop"></div>
+  <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <header class="modal__head">
+      <h3 id="authTitle" class="modal__title">
+        <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
+        Đăng nhập / Đăng ký
+      </h3>
+      <button class="modal__close" data-close aria-label="Đóng">✕</button>
+    </header>
 
-    <h3 id="authTitle" class="modal__title">
-      <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-      Đăng nhập / Đăng ký
-    </h3>
-
-    <div class="tabs-line" id="authTabs">
+    <!-- Tabs -->
+    <nav id="authTabs" class="tabs-line">
       <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
       <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-      <button class="tab-line" data-auth="forgot">Quên mật khẩu</button>
-    </div>
+      <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
+    </nav>
 
-    <!-- Login -->
+    <!-- Pane: Login -->
     <form class="form is-active" data-pane="login" onsubmit="return false;">
-      <button type="button" class="btn btn-ghost full" id="btnGoogleLogin">Đăng nhập với Google</button>
-      <div class="or">hoặc</div>
-      <label>Email</label>
-      <input id="loginEmail" type="email" placeholder="you@example.com" />
-      <label>Mật khẩu</label>
-      <input id="loginPassword" type="password" placeholder="••••••••" />
-      <div class="row">
-        <button id="btnEmailLogin" type="button" class="btn">Đăng nhập</button>
+      <div class="row"><label>Email</label>
+        <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
       </div>
+      <div class="row"><label>Mật khẩu</label>
+        <input id="loginPwd" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <div class="row">
+        <button id="btnLogin" class="btn solid">Đăng nhập</button>
+
+        <!-- Nút gửi lại email xác minh (ẩn cho đến khi cần) -->
+        <button id="btnResendVerify" type="button" class="btn ghost" style="display:none">
+          Gửi lại email xác minh
+        </button>
+      </div>
+
       <p id="loginNote" class="note"></p>
     </form>
 
-    <!-- Sign up -->
+    <!-- Pane: Signup -->
     <form class="form" data-pane="signup" onsubmit="return false;">
-      <label>Email</label>
-      <input id="signupEmail" type="email" placeholder="you@example.com" />
-      <label>Mật khẩu mới</label>
-      <input id="signupPassword" type="password" placeholder="Tối thiểu 8 ký tự" />
-      <div class="row">
-        <button id="btnEmailSignup" type="button" class="btn">Tạo tài khoản</button>
+      <div class="row"><label>Email</label>
+        <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
       </div>
+      <div class="row"><label>Mật khẩu mới</label>
+        <input id="signupPwd" class="input underline" type="password" placeholder="Tối thiểu 8 ký tự" autocomplete="new-password">
+      </div>
+
+      <div class="row">
+        <button id="btnSignup" class="btn solid">Tạo tài khoản</button>
+      </div>
+
       <p id="signupNote" class="note"></p>
     </form>
 
-    <!-- Forgot password -->
-    <div id="forgotForm" class="form" data-pane="forgot">
-      <label>Email</label>
-      <input id="forgot_email" type="email" placeholder="you@example.com" />
-      <div class="row">
-        <button id="btnForgotSend" class="btn" type="button">Gửi link đặt lại mật khẩu</button>
-        <span id="forgotNote" class="note"></span>
+    <!-- Pane: Reset -->
+    <form class="form" data-pane="reset" onsubmit="return false;">
+      <div class="row"><label>Email</label>
+        <input id="resetEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
       </div>
-    </div>
-  </div>
-</div>
+      <div class="row">
+        <button id="btnReset" class="btn solid">Gửi link đặt lại mật khẩu</button>
+      </div>
 
-<!-- Gọi logic -->
-<script type="module" src="/public/js/auth.js?v=2"></script>
+      <p id="resetNote" class="note"></p>
+    </form>
+  </section>
+</div>
+<!-- ========== HẾT AUTH MODAL ========== -->
 <!-- =========================================
 END PATCH index.html — Auth modal
 ========================================= -->
@@ -168,4 +182,5 @@ END PATCH index.html — Auth modal
   <script type="module" src="/public/js/auth.js?v=2"></script>
 </body>
 </html>
+
 

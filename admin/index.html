@@ -252,6 +252,56 @@
 </section>
 
   </main>
+<script>
+  // ===== Brand settings (logo/slogan) =====
+  const BRAND_KEY = 'NINI_THEME_BRAND';
+  const DEFAULT_BRAND = {
+    logoMain:  '/public/assets/icons/logo_text.webp',
+    logoSmall: '/public/assets/icons/logonini.webp',
+    slogan:    'Chơi mê ly, bứt phá tư duy'
+  };
+
+  const $B = s => document.getElementById(s);
+  const inpMain  = $B('brandLogoMain');
+  const inpSmall = $B('brandLogoSmall');
+  const inpSlog  = $B('brandSlogan');
+
+  function loadBrand() {
+    let b = DEFAULT_BRAND;
+    try { b = { ...DEFAULT_BRAND, ...(JSON.parse(localStorage.getItem(BRAND_KEY)||'{}')) }; } catch {}
+    inpMain.value  = b.logoMain;
+    inpSmall.value = b.logoSmall;
+    inpSlog.value  = b.slogan;
+    applyBrandToPage(b);
+  }
+  function saveBrand() {
+    const b = {
+      logoMain:  inpMain.value.trim()  || DEFAULT_BRAND.logoMain,
+      logoSmall: inpSmall.value.trim() || DEFAULT_BRAND.logoSmall,
+      slogan:    inpSlog.value.trim()  || DEFAULT_BRAND.slogan
+    };
+    localStorage.setItem(BRAND_KEY, JSON.stringify(b));
+    applyBrandToPage(b);
+    alert('Đã lưu brand.');
+  }
+  function resetBrand() {
+    localStorage.removeItem(BRAND_KEY);
+    loadBrand();
+    alert('Đã về mặc định.');
+  }
+  function applyBrandToPage(b) {
+    // Logo lớn ở header
+    document.querySelectorAll('.brand__logo').forEach(img => { if (b.logoMain)  img.src = b.logoMain; });
+    // Logo nhỏ trong tiêu đề/modal... -> nhớ gắn class="brand__logo--small" cho ảnh nhỏ
+    document.querySelectorAll('.brand__logo--small').forEach(img => { if (b.logoSmall) img.src = b.logoSmall; });
+    // Slogan văn bản
+    document.querySelectorAll('.brand__slogan').forEach(el => { if (b.slogan) el.textContent = b.slogan; });
+  }
+
+  $B('btnSaveBrand').onclick  = saveBrand;
+  $B('btnResetBrand').onclick = resetBrand;
+  loadBrand();
+</script>
 
   <script>
     /* =======================
@@ -453,6 +503,7 @@ body{
   </script>
 </body>
 </html>
+
 
 
 

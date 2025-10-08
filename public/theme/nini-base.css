@@ -396,4 +396,31 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   margin:0 !important;
 }
 
+/* ==== Hero (frame) chỉ còn Nhím, canh giữa bằng grid ==== */
+#frame{
+  display: grid !important;
+  place-items: center !important;        /* canh giữa ngang + dọc */
+  width: min(1180px, 92vw);
+  margin: 14px auto 0 !important;        /* đẩy khối xuống dưới header một chút */
+  min-height: clamp(180px, 26vw, 300px); /* chiều cao vùng hero */
+  padding: 6px 0;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* Ẩn mọi thứ trong frame trừ Nhím */
+#frame > :not(.nini){ display: none !important; }
+
+/* Kích thước ảnh Nhím, bỏ transform cũ */
+.nini{
+  display: block !important;
+  width: clamp(160px, 18vw, 260px) !important;
+  height: auto !important;
+  margin: 0 !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
 

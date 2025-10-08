@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Admin</title>
   <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
-  <!-- có thể giữ /styles.css của bạn; block dưới bổ sung lớp glass + header đồng bộ -->
   <link rel="stylesheet" href="/styles.css?v=admin3" />
   <style>
     :root{
@@ -18,7 +17,6 @@
       --green-2:#21512d;
       --radius: 18px;
     }
-    /* ===== Header giống trang index ===== */
     .site-header{
       position:sticky; top:0; z-index:50;
       display:flex; align-items:center; gap:16px;
@@ -38,10 +36,7 @@
       animation: hue 10s linear infinite;
     }
     @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
-
     .spacer{flex:1}
-
-    /* ===== Nút / Tab glass ===== */
     .btn,.admin-tab{
       appearance:none; border:1px solid var(--glass-brd);
       background: var(--glass-bg);
@@ -50,17 +45,15 @@
       box-shadow: 0 4px 10px rgba(47,110,63,.18);
       transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease;
       backdrop-filter: blur(8px);
+      text-decoration:none;
     }
     .btn:hover,.admin-tab:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47,110,63,.28); border-color:#fff }
     .btn:active,.admin-tab:active{ transform: translateY(0) }
-
     .admin-tabs{ display:flex; gap:10px; flex-wrap:wrap; }
     .admin-tab.is-active{
       box-shadow: 0 0 0 2px rgba(47,110,63,.25), 0 10px 26px rgba(47,110,63,.35);
       border-color:#fff;
     }
-
-    /* ===== Khung container ===== */
     .shell{width:min(1180px,94vw); margin:18px auto 90px}
     .glass-card{
       background: var(--glass-bg);
@@ -69,13 +62,9 @@
       box-shadow: var(--glass-shadow);
       backdrop-filter: blur(10px);
     }
-
-    /* ===== Bộ panel ===== */
     .panel{ display:none; margin-top:14px; }
     .panel.is-current{ display:block; }
     .panel .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:14px; }
-
-    /* ===== Input: no fill, chỉ 1 gạch dưới ===== */
     .input{
       background: transparent; border:0; outline:none;
       border-bottom:2px solid rgba(255,255,255,.55);
@@ -83,28 +72,18 @@
       min-width: 220px;
     }
     .input:focus{ border-bottom-color:#9fc5b0; box-shadow: 0 4px 0 -2px rgba(47,110,63,.25) inset; }
-
-    /* ===== Bảng glass ===== */
     .table-wrap{ overflow:auto; border-radius: 0 0 var(--radius) var(--radius); }
     table{ width:100%; border-collapse: collapse; color:var(--ink); }
     thead tr{ background: rgba(255,255,255,.25); }
     th,td{ padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); text-align:left; }
     tbody tr:hover{ background: rgba(255,255,255,.08); }
-
     .muted{ color:var(--muted); font-size:13px }
-
-    /* small button */
     .btn.small{ padding:6px 10px; }
-
-    /* spacing fix on top of table */
     .glass-head{ padding:12px 14px; border-bottom:1px solid var(--glass-brd); }
-
-    /* link back */
     .link{ text-decoration:none; color:var(--green-2); font-weight:700 }
   </style>
 </head>
 <body>
-  <!-- ===== Header chung ===== -->
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
@@ -116,15 +95,15 @@
   </header>
 
   <main class="shell">
-    <!-- Tabs admin -->
     <nav class="admin-tabs" id="adminTabs" aria-label="Admin sections">
       <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
       <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
       <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
-      <a class="admin-tab" href="/admin/storybook.html" style="text-decoration:none">Tạo Storybook</a>
+      <a class="admin-tab" href="/admin/storybook.html">Tạo Storybook</a>
+      <!-- NÚT MỚI: Tạo Avatar JSON -->
+      <a class="admin-tab" href="/admin/avatar.html">Tạo Avatar JSON</a>
     </nav>
 
-    <!-- Panel: Scores -->
     <section id="p-scores" class="panel is-current glass-card" aria-labelledby="tab-scores">
       <div class="glass-head">
         <div class="muted">Chọn ngày ➜ tải dữ liệu (đọc từ Function của bạn).</div>
@@ -139,14 +118,8 @@
         <table>
           <thead>
             <tr>
-              <th>Thời gian (UTC)</th>
-              <th>User</th>
-              <th>Tên</th>
-              <th>Game</th>
-              <th>Session</th>
-              <th>Điểm</th>
-              <th>Tối đa</th>
-              <th>Giây</th>
+              <th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th>
+              <th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th>
             </tr>
           </thead>
           <tbody id="grid"></tbody>
@@ -154,7 +127,6 @@
       </div>
     </section>
 
-    <!-- Panel: Queue -->
     <section id="p-queue" class="panel glass-card">
       <div class="glass-head"><strong>Hàng đợi cục bộ</strong></div>
       <div class="toolbar">
@@ -162,7 +134,6 @@
       </div>
     </section>
 
-    <!-- Panel: Reports -->
     <section id="p-reports" class="panel glass-card">
       <div class="glass-head"><strong>Báo cáo ngày</strong></div>
       <div class="toolbar">
@@ -173,25 +144,16 @@
 
   <script>
     const API = "/.netlify/functions/admin-auth";
-
-    // ===== 1) Guard: kiểm tra phiên khi vào trang =====
     (async () => {
       try{
         const r = await fetch(`${API}/check`, { credentials: "include" });
-        const j = await r.json().catch(()=>({}));
-        if (!j || !j.ok) location.href = "/admin/login.html";
-      }catch(_){
-        location.href = "/admin/login.html";
-      }
+        const j = await r.json().catch(()=>({})); if (!j || !j.ok) location.href = "/admin/login.html";
+      }catch{ location.href = "/admin/login.html"; }
     })();
-
-    // ===== 2) Logout =====
     document.getElementById("btnLogout").onclick = async () => {
-      try{ await fetch(`${API}/logout`, { method:"POST", credentials:"include" }); }catch(_){}
+      try{ await fetch(`${API}/logout`, { method:"POST", credentials:"include" }); }catch{}
       location.href = "/admin/login.html";
     };
-
-    // ===== 3) Tabs =====
     const tabs = document.getElementById("adminTabs");
     tabs.addEventListener("click", (e)=>{
       const b = e.target.closest(".admin-tab"); if (!b || b.tagName === "A") return;
@@ -200,11 +162,9 @@
       document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("is-current", p.id === `p-${key}`));
     });
 
-    // ===== 4) Load bảng điểm (ví dụ) =====
     const $ = s => document.querySelector(s);
     const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
     const today = new Date().toISOString().slice(0,10); pick.value = today;
-
     $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
     let rows = []; load();
 
@@ -212,29 +172,22 @@
       stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
       try{
         const d = pick.value || today;
-        // Đổi endpoint này sang function thật
         const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || "Lỗi");
         rows = j.events || [];
         stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
         render(rows);
-      }catch(e){
-        stat.textContent = "Không tải được dữ liệu.";
-      }
+      }catch{ stat.textContent = "Không tải được dữ liệu."; }
     }
     function render(list){
       grid.innerHTML = list.map(e=>{
         const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
         return `<tr>
-          <td>${t}</td>
-          <td>${esc(e.userId)}</td>
-          <td>${esc(e.displayName)}</td>
+          <td>${t}</td><td>${esc(e.userId)}</td><td>${esc(e.displayName)}</td>
           <td>${esc(e.gameId)}</td>
           <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
-          <td>${e.score}</td>
-          <td>${e.maxScore}</td>
-          <td>${e.durationSec ?? ""}</td>
+          <td>${e.score}</td><td>${e.maxScore}</td><td>${e.durationSec ?? ""}</td>
         </tr>`;
       }).join('');
     }
@@ -259,4 +212,3 @@
   </script>
 </body>
 </html>
-

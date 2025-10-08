@@ -51,12 +51,9 @@
 
   <!-- ===== Viewport ===== -->
   <main class="viewport">
-    <section class="frame" id="frame" aria-label="Khung hiển thị">
+    <section class="frame" id="frame">
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-      
-
-      <!-- Kệ sách (Spring) -->
-      <div id="shelfMount" class="shelf-card" hidden></div>
+         
     </section>
 
     
@@ -142,18 +139,17 @@
 
   <!-- Xử lý đăng nhập (module Firebase) hiện có -->
   <script type="module" src="/public/js/auth.js?v=3"></script>
-  <footer>
-    <section class="chips">
-    <div class="chips">
-        <button class="chip is-active" data-section="intro">Giới thiệu</button>
-        <button class="chip" data-section="rules">Luật chơi</button>
-        <button class="chip" data-section="forum">Diễn đàn</button>
-        <button class="chip" data-section="feedback">Góp ý</button>
-      </div>
-     </section> 
-  </footer>
+  <footer class="site-footer">
+  <nav class="footer-nav">
+    <a class="chip" href="/about.html">Giới thiệu</a>
+    <a class="chip" href="/rules.html">Luật chơi</a>
+    <a class="chip" href="/forum.html">Diễn đàn</a>
+    <a class="chip" href="/feedback.html">Góp ý</a>
+  </nav>
+</footer>
 </body>
 </html>
+
 
 
 

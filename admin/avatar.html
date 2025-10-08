@@ -1,57 +1,41 @@
 <!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Avatar Builder</title>
-  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=admin3" />
-  <style>
-    :root{
-      --bg-admin: url("/public/assets/bg/nini_home.webp");   /* ✅ nền */
-      --glass-bg: rgba(255,255,255,.15);
-      --glass-brd: rgba(255,255,255,.35);
-      --glass-shadow: 0 10px 30px rgba(47,110,63,.25);
-      --ink:#1c2024; --muted:#6b7b8c;
-    }
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:#e9f3ee var(--bg-admin) center/cover fixed no-repeat;
-    }
+  <script>
+(function(){
+  const ENDPOINT='/.netlify/functions/theme';
+  const KEY='NINI_THEME_CACHE_V1';
+  const MAX_AGE=3600; // 1h
 
-    .site-header{
-      position:sticky; top:0; z-index:50;
-      display:flex; align-items:center; gap:16px;
-      padding:10px 14px; margin:12px auto; width:min(1180px,94vw);
-      backdrop-filter: blur(10px);
-      background: var(--glass-bg);
-      border:1px solid var(--glass-brd);
-      border-radius: 14px; box-shadow: var(--glass-shadow);
-    }
-    .brand{display:flex; align-items:center; gap:10px; text-decoration:none}
-    .brand__logo{height:34px} .brand__slogan{font-weight:700; background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b); -webkit-background-clip:text; background-clip:text; color:transparent}
-    .shell{width:min(1180px,94vw); margin:18px auto 90px}
-    .glass-card{background:var(--glass-bg); border:1px solid var(--glass-brd); border-radius:18px; backdrop-filter:blur(10px); box-shadow:var(--glass-shadow)}
-    .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:12px 14px}
-    .btn{appearance:none; border:1px solid var(--glass-brd); background:var(--glass-bg); border-radius:999px; padding:8px 14px; cursor:pointer}
-    .btn.small{padding:6px 10px}
-    .input,select{background:transparent; border:0; outline:none; border-bottom:2px solid rgba(255,255,255,.55); padding:6px 4px; color:var(--ink); min-width:160px}
-    .grid{display:grid; grid-template-columns: 110px 1fr 1fr 1.3fr 120px 120px 1fr 210px; gap:10px; align-items:center; padding:10px 14px; border-top:1px solid var(--glass-brd)}
-    .grid.head{font-weight:700; background:rgba(255,255,255,.25)}
-    .muted{color:var(--muted); font-size:13px}
-    .avt-img{width:64px; height:64px; border-radius:12px; object-fit:cover; border:1px solid rgba(255,255,255,.4); background:#fff}
-    .note{padding:12px 14px; color:var(--muted)}
-    .row-btns{display:flex; gap:6px}
-    .danger{border-color:#c55}
-  </style>
+  function inject(css){
+    try{
+      let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent=css;
+    }catch(_){}
+  }
+
+  try{
+    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+    const now=Date.now()/1000|0;
+    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+    fetch(ENDPOINT, {cache:'no-store'})
+      .then(r=>r.text())
+      .then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
+      }).catch(_=>{});
+  }catch(_){}
+})();
+</script>
+
 </head>
-<body>
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
-    <a class="brand" href="/#home">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi" />
-      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
+  </header>
+<body>
     <div style="flex:1"></div>
     <a class="btn" href="/admin/index.html">↩ Về Admin</a>
   </header>
@@ -195,3 +179,4 @@
   </script>
 </body>
 </html>
+

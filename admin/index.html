@@ -1,108 +1,43 @@
 <!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Admin</title>
-  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=admin3" />
-  <style>
-    :root{
-      --bg-admin: url("/public/assets/bg/nini_home.webp");    /* ✅ nền */
-      --glass-bg: rgba(255,255,255,.15);
-      --glass-brd: rgba(255,255,255,.35);
-      --glass-shadow: 0 10px 30px rgba(47,110,63,.25);
-      --ink: #1c2024; --muted:#6b7b8c; --green:#2f6e3f; --green-2:#21512d; --radius: 18px;
-    }
-    /* ===== Background (cover, fixed) ===== */
-    html,body{height:100%}
-    body{
-      margin:0;
-      background: #e9f3ee var(--bg-admin) center/cover fixed no-repeat;
-    }
+<script>
+(function(){
+  const ENDPOINT='/.netlify/functions/theme';
+  const KEY='NINI_THEME_CACHE_V1';
+  const MAX_AGE=3600; // 1h
 
-    /* ===== Header giống trang index ===== */
-    .site-header{
-      position:sticky; top:0; z-index:50;
-      display:flex; align-items:center; gap:16px;
-      padding:10px 14px; margin:12px auto; width:min(1180px,94vw);
-      backdrop-filter: blur(10px);
-      background: var(--glass-bg);
-      border:1px solid var(--glass-brd);
-      border-radius: 14px;
-      box-shadow: var(--glass-shadow);
-    }
-    .brand{display:flex; align-items:center; gap:10px; text-decoration:none}
-    .brand__logo{height:34px}
-    .brand__slogan{
-      font-weight:700; letter-spacing:.2px; user-select:none;
-      background: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-      animation: hue 10s linear infinite;
-    }
-    @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
-    .spacer{flex:1}
+  function inject(css){
+    try{
+      let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent=css;
+    }catch(_){}
+  }
 
-    .btn,.admin-tab{
-      appearance:none; border:1px solid var(--glass-brd);
-      background: var(--glass-bg);
-      color: var(--ink);
-      border-radius: 999px; padding:8px 14px; cursor:pointer;
-      box-shadow: 0 4px 10px rgba(47,110,63,.18);
-      transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease;
-      backdrop-filter: blur(8px);
-      text-decoration:none;
-    }
-    .btn:hover,.admin-tab:hover{ transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47,110,63,.28); border-color:#fff }
-    .btn:active,.admin-tab:active{ transform: translateY(0) }
-    .admin-tabs{ display:flex; gap:10px; flex-wrap:wrap; }
-    .admin-tab.is-active{
-      box-shadow: 0 0 0 2px rgba(47,110,63,.25), 0 10px 26px rgba(47,110,63,.35);
-      border-color:#fff;
-    }
-
-    .shell{width:min(1180px,94vw); margin:18px auto 90px}
-    .glass-card{
-      background: var(--glass-bg);
-      border:1px solid var(--glass-brd);
-      border-radius: var(--radius);
-      box-shadow: var(--glass-shadow);
-      backdrop-filter: blur(10px);
-    }
-
-    .panel{ display:none; margin-top:14px; }
-    .panel.is-current{ display:block; }
-    .panel .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 14px; }
-
-    .input{
-      background: transparent; border:0; outline:none;
-      border-bottom:2px solid rgba(255,255,255,.55);
-      padding:6px 4px; color:var(--ink);
-      min-width: 220px;
-    }
-    .input:focus{ border-bottom-color:#9fc5b0; box-shadow: 0 4px 0 -2px rgba(47,110,63,.25) inset; }
-
-    .table-wrap{ overflow:auto; border-radius: 0 0 var(--radius) var(--radius); }
-    table{ width:100%; border-collapse: collapse; color:var(--ink); }
-    thead tr{ background: rgba(255,255,255,.25); }
-    th,td{ padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); text-align:left; }
-    tbody tr:hover{ background: rgba(255,255,255,.08); }
-    .muted{ color:var(--muted); font-size:13px }
-    .btn.small{ padding:6px 10px; }
-    .glass-head{ padding:12px 14px; border-bottom:1px solid var(--glass-brd); }
-  </style>
+  try{
+    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+    const now=Date.now()/1000|0;
+    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+    fetch(ENDPOINT, {cache:'no-store'})
+      .then(r=>r.text())
+      .then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
+      }).catch(_=>{});
+  }catch(_){}
+})();
+</script>
 </head>
-<body>
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan"><span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span></div>
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
+  <body>
     <div class="spacer"></div>
     <a class="btn" href="/" rel="noopener">↘ Về trang chủ</a>
     <button id="btnLogout" class="btn">Đăng xuất</button>
   </header>
-
   <main class="shell">
     <nav class="admin-tabs" id="adminTabs" aria-label="Admin sections">
       <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
@@ -211,3 +146,4 @@
   </script>
 </body>
 </html>
+

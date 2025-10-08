@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Storybook Editor</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=sb1" />
+  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=admin-storybook" />
 
-  <!-- Theme loader (cache 1h) -->
+  <!-- Inject theme động từ Netlify Function (nếu có) -->
   <script>
   (function(){
     const ENDPOINT='/.netlify/functions/theme';
@@ -21,173 +21,203 @@
     try{
       const cache=JSON.parse(localStorage.getItem(KEY)||'null');
       const now=Date.now()/1000|0;
-      if(cache && (now-cache.ts)<MAX_AGE) inject(cache.css);
+      if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
       fetch(ENDPOINT,{cache:'no-store'}).then(r=>r.text()).then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY,JSON.stringify({ts:Date.now()/1000|0,css})); }
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
       }).catch(()=>{});
     }catch(_){}
   })();
   </script>
 
+  <!-- Fallback CSS nhỏ để trang luôn hiển thị -->
   <style>
     :root{
       --bg-url: url('/public/assets/bg/nini_home.webp');
+      --glass-bg: rgba(255,255,255,.14);
+      --glass-brd: rgba(255,255,255,.35);
+      --ink:#1c2024;
+      --muted:#6b7b8c;
+      --radius:18px;
     }
-    body{ background: #0b1f0e var(--bg-url) center/cover fixed no-repeat; }
-    .shell{ width:min(1180px,94vw); margin:18px auto 96px; }
-    .site-header{ position:sticky; top:10px; z-index:50; margin:12px auto; width:min(1180px,94vw); }
-    .panel-glass,.panel,.card{
-      background: rgba(255,255,255,.15);
-      border:1px solid rgba(255,255,255,.35);
-      border-radius:16px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 30px rgba(47,110,63,.25);
+    body{min-height:100svh;background:#0b1f13 var(--bg-url) center/cover fixed no-repeat;color:var(--ink)}
+    .site-header{
+      position:sticky;top:0;z-index:20;display:flex;gap:12px;align-items:center;
+      width:min(1180px,94vw);margin:14px auto;padding:10px 14px;
+      background:var(--glass-bg);border:1px solid var(--glass-brd);backdrop-filter:blur(10px);border-radius:14px;
     }
-    .panel{ padding:14px; margin:12px 0; }
-    .panel h2{ margin:0 0 10px; }
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
-    .grid{ display:grid; gap:10px }
-    .grid-2{ grid-template-columns: 1fr 1fr }
-    @media (max-width: 860px){ .grid-2{ grid-template-columns: 1fr } }
-    label{ display:grid; gap:6px; font-size:14px }
-    input,textarea{
-      width:100%; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.35);
-      background: rgba(255,255,255,.12); color:#182217; outline:none;
+    .brand{display:flex;gap:10px;align-items:center;text-decoration:none}
+    .brand__logo{height:34px}
+    .brand__slogan{font-weight:700;letter-spacing:.2px;background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+      -webkit-background-clip:text;background-clip:text;color:transparent}
+    .btn{
+      appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);color:var(--ink);
+      border-radius:999px;padding:8px 14px;cursor:pointer;backdrop-filter:blur(8px)
     }
-    textarea{ min-height:88px; resize:vertical }
-    .btn{ appearance:none; padding:8px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.15); cursor:pointer }
-    .btn.gray{ background: rgba(255,255,255,.1) }
-    .btn.danger{ border-color:#7f1d1d; color:#7f1d1d }
-    .btn.sm{ padding:6px 10px }
-    .muted{ color:#556b5d; font-size:13px }
-    .kbd{ background: rgba(255,255,255,.2); padding:2px 6px; border-radius:6px }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; white-space:pre; overflow:auto; padding:10px; border-radius:12px; background: rgba(255,255,255,.1) }
-    .pagehead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
+    .btn.small{padding:6px 10px}
+    .btn.gray{opacity:.9}
+    .btn.danger{border-color:#ffb0b0}
+    .muted{color:var(--muted);font-size:13px}
+    .page-hero{display:flex;justify-content:center}
+    .panel-glass{
+      width:min(1180px,94vw);margin:12px auto 80px;background:var(--glass-bg);
+      border:1px solid var(--glass-brd);border-radius:var(--radius);backdrop-filter:blur(10px)
+    }
+    .wrap-page{padding:12px}
+    .panel{background:transparent;margin:10px 0;border:1px dashed rgba(255,255,255,.25);border-radius:12px}
+    .panel>h2{margin:0;padding:10px 12px}
+    .grid{display:grid;gap:10px;padding:10px 12px}
+    .grid-2{grid-template-columns:1fr 1fr}
+    label{display:flex;flex-direction:column;gap:6px;font-size:14px}
+    input,textarea,select{
+      width:100%;padding:8px 10px;border:0;border-bottom:2px solid rgba(255,255,255,.55);
+      background:transparent;color:var(--ink);outline:0
+    }
+    textarea{resize:vertical}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px}
+    .note{padding:10px 12px;color:var(--muted)}
+    .kbd{background:rgba(255,255,255,.22);padding:2px 6px;border-radius:6px}
+    .card{background:rgba(255,255,255,.08);border:1px solid var(--glass-brd);border-radius:12px;margin:10px 12px}
+    .pagehead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px}
+    .flex-end{display:flex;gap:8px}
+    pre.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background:rgba(0,0,0,.15);padding:10px;border-radius:10px;overflow:auto}
+    .spacer{flex:1}
   </style>
 </head>
-<body>
 
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <!-- Header -->
   <header class="site-header">
-    <a class="brand" href="/#home" aria-label="NiNi — Funny" style="text-decoration:none; display:flex; gap:10px; align-items:center">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" style="height:34px">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
-    <div style="margin-left:auto; display:flex; gap:10px">
-      <a class="btn" href="/admin/index.html">↖ Về Admin</a>
-    </div>
+    <div class="spacer"></div>
+    <a class="btn" href="/admin/index.html">↩ Về Admin</a>
   </header>
 
-  <main class="shell">
-    <!-- BOOK META -->
-    <section class="panel">
-      <h2>Book</h2>
-      <div class="grid grid-2" id="bookForm">
-        <label>IDBook <input id="IDBook" type="text" placeholder="VD: B002"></label>
-        <label>L_imageBia (Link ảnh bìa) <input id="L_imageBia" type="text" placeholder="https://.../cover.webp"></label>
-        <label>little_vi (Tên sách VI) <input id="little_vi" type="text" placeholder="NiNi và ..."></label>
-        <label>little_en (Book title EN) <input id="little_en" type="text" placeholder="NiNi and ..."></label>
-        <label>auther <input id="auther" type="text" placeholder="Tác giả"></label>
-        <label>design <input id="design" type="text" placeholder="Thiết kế"></label>
-      </div>
-      <div class="muted" style="margin-top:6px">Tự lưu nháp vào trình duyệt (localStorage).</div>
-    </section>
+  <!-- Main -->
+  <main class="page-hero">
+    <section class="panel-glass wrap-page" aria-label="Storybook Editor">
 
-    <!-- ACTIONS -->
-    <section class="panel">
-      <h2>Actions</h2>
-      <div class="row">
-        <button id="btnSave" class="btn">Lưu (nháp)</button>
-        <button id="btnAdd" class="btn">Add Page</button>
-        <button id="btnDel" class="btn danger">Delete Page (cuối)</button>
+      <!-- BOOK META -->
+      <section class="panel">
+        <h2>Book</h2>
+        <div class="grid grid-2" id="bookForm">
+          <label>IDBook <input id="IDBook" type="text" placeholder="VD: B002"></label>
+          <label>L_imageBia (Link ảnh bìa) <input id="L_imageBia" type="text" placeholder="https://.../cover.webp"></label>
+          <label>little_vi (Tên sách VI) <input id="little_vi" type="text" placeholder="NiNi và ..."></label>
+          <label>little_en (Book title EN) <input id="little_en" type="text" placeholder="NiNi and ..."></label>
+          <label>auther <input id="auther" type="text" placeholder="Tác giả"></label>
+          <label>design <input id="design" type="text" placeholder="Thiết kế"></label>
+        </div>
+        <div class="muted" style="padding:0 12px 12px">Tự lưu nháp vào trình duyệt (localStorage).</div>
+      </section>
 
-        <button id="btnExport" class="btn gray">Export JSON</button>
-        <button id="btnImport" class="btn gray">Import JSON</button>
-        <input id="fileImport" type="file" accept="application/json" hidden>
+      <!-- ACTIONS -->
+      <section class="panel">
+        <h2>Actions</h2>
+        <div class="row">
+          <button id="btnSave" class="btn">Lưu (nháp)</button>
+          <button id="btnAdd" class="btn">Add Page</button>
+          <button id="btnDel" class="btn danger">Delete Page (cuối)</button>
 
-        <span class="muted">|</span>
+          <button id="btnExport" class="btn gray">Export JSON</button>
+          <button id="btnImport" class="btn gray">Import JSON</button>
+          <input id="fileImport" type="file" accept="application/json" hidden>
 
-        <button id="btnDLBook" class="btn">Tải book.json</button>
-        <button id="btnDLManifest" class="btn">Tải manifest.json</button>
-        <button id="btnDLBoth" class="btn gray">Tải cả hai</button>
+          <span class="muted">|</span>
 
-        <span class="muted">|</span>
+          <button id="btnDLBook" class="btn">Tải book.json</button>
+          <button id="btnDLManifest" class="btn">Tải manifest.json</button>
+          <button id="btnDLBoth" class="btn gray">Tải cả hai</button>
 
-        <button id="btnGitLoad" class="btn gray">Tải từ GitHub</button>
-        <button id="btnGitSave" class="btn">Lưu lên GitHub</button>
-      </div>
+          <span class="muted">|</span>
 
-      <details style="margin-top:10px">
-        <summary class="muted">Xem nhanh snippet manifest (copy dán vào file manifest sẵn có)</summary>
-        <pre id="manifestSnippet" class="mono"></pre>
-      </details>
-    </section>
+          <button id="btnGitLoad" class="btn gray">Tải từ GitHub</button>
+          <button id="btnGitSave" class="btn">Lưu lên GitHub</button>
+        </div>
 
-    <!-- PAGES -->
-    <section class="panel">
-      <h2>Pages</h2>
-      <div id="pagesWrap"></div>
-    </section>
+        <details style="margin:10px 12px">
+          <summary class="muted">Xem nhanh snippet manifest (copy dán vào file manifest sẵn có)</summary>
+          <pre id="manifestSnippet" class="mono"></pre>
+        </details>
+      </section>
 
-    <section class="panel">
-      <h2>Gợi ý đặt file</h2>
-      <div class="muted">
-        • Đặt <span class="kbd">/public/content/storybook/<b>IDBook</b>.json</span><br>
-        • Manifest: <span class="kbd">/public/content/storybook/library-manifest.json</span><br>
-        • Đang chạy site: chỉ cần upload 2 file là kệ sách nhận ra ngay.
-      </div>
+      <!-- PAGES -->
+      <section class="panel">
+        <h2>Pages</h2>
+        <div id="pagesWrap"></div>
+      </section>
+
+      <!-- HINT -->
+      <section class="panel">
+        <h2>Gợi ý đặt file</h2>
+        <div class="note">
+          • Đặt <span class="kbd">/public/content/storybook/<b>IDBook</b>.json</span><br>
+          • Manifest tại <span class="kbd">/public/content/storybook/library-manifest.json</span><br>
+          • Với site đang chạy, chỉ cần upload 2 file này là kệ sách nhận ra ngay.
+        </div>
+      </section>
+
     </section>
   </main>
 
-  <!-- BRAND APPLY -->
+  <!-- App -->
   <script>
-  (function applyBrandEverywhere(){
-    const BRAND_KEY='NINI_THEME_BRAND';
-    try {
-      const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
-      if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
-      if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
-    } catch {}
-  })();
-  </script>
+  /* =======================================================================
+     STATE + HELPERS
+     ======================================================================= */
+  const $ = sel => document.querySelector(sel);
 
-  <!-- EDITOR LOGIC -->
-  <script>
-  const $  = s => document.querySelector(s);
-  const $$ = s => document.querySelectorAll(s);
-
-  let book = { IDBook:"", little_vi:"", little_en:"", auther:"", design:"", L_imageBia:"", pages:[] };
+  let book = {
+    IDBook:"", little_vi:"", little_en:"",
+    auther:"", design:"", L_imageBia:"",
+    pages:[]
+  };
 
   function emptyPage(){
     return { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" };
   }
+
   function download(name, dataStr){
     const blob = new Blob([dataStr], {type:'application/json'});
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = name; a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),0);
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
-  let autosaveTimer;
-  function autosave(){ clearTimeout(autosaveTimer); autosaveTimer=setTimeout(()=>localStorage.setItem('storybook_draft_full', JSON.stringify(book)), 300); }
 
+  let autosaveTimer;
+  function autosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(()=>localStorage.setItem('storybook_draft_full', JSON.stringify(book)), 350);
+  }
+
+  /* Bind BOOK inputs */
   ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>{
-    $("#"+id).addEventListener('input', e=>{ book[id]=e.target.value; renderManifestSnippet(); autosave(); });
+    const el = document.getElementById(id);
+    el.addEventListener('input', e => { book[id] = e.target.value; renderManifestSnippet(); autosave(); });
   });
 
+  /* Pages rendering */
   function renderPages(){
-    const wrap = $("#pagesWrap"); wrap.innerHTML="";
-    if(!Array.isArray(book.pages) || !book.pages.length) book.pages=[emptyPage()];
+    const wrap = document.getElementById("pagesWrap");
+    wrap.innerHTML = "";
+
+    if(!Array.isArray(book.pages) || !book.pages.length) book.pages = [emptyPage()];
 
     book.pages.forEach((p,idx)=>{
       const card = document.createElement('div');
-      card.className="card"; card.style.padding="12px"; card.style.margin="10px 0";
+      card.className = 'card';
       card.innerHTML = `
         <div class="pagehead">
           <strong>Page #${idx+1}</strong>
-          <div class="row" style="gap:6px">
-            <button class="btn sm" data-act="up">↑</button>
-            <button class="btn sm" data-act="down">↓</button>
-            <button class="btn sm danger" data-act="rm">Xoá</button>
+          <div class="flex-end">
+            <button class="btn small" data-act="up">↑</button>
+            <button class="btn small" data-act="down">↓</button>
+            <button class="btn small danger" data-act="rm">Xoá</button>
           </div>
         </div>
         <div class="grid grid-2">
@@ -202,21 +232,21 @@
       `;
       wrap.appendChild(card);
 
+      // fill & bind
       card.querySelectorAll('[data-f]').forEach(inp=>{
-        const k=inp.dataset.f; inp.value=p[k]||"";
-        inp.addEventListener('input',e=>{ book.pages[idx][k]=e.target.value; autosave(); });
+        const k = inp.dataset.f;
+        inp.value = p[k] || "";
+        inp.addEventListener('input', e=>{ book.pages[idx][k] = e.target.value; autosave(); });
       });
 
-      const up=card.querySelector('[data-act="up"]');
-      const dn=card.querySelector('[data-act="down"]');
-      const rm=card.querySelector('[data-act="rm"]');
-      up.disabled = idx===0; dn.disabled = idx===book.pages.length-1;
-      up.onclick = ()=>{ if(idx===0) return; [book.pages[idx-1],book.pages[idx]]=[book.pages[idx],book.pages[idx-1]]; renderPages(); autosave(); };
-      dn.onclick = ()=>{ if(idx===book.pages.length-1) return; [book.pages[idx],book.pages[idx+1]]=[book.pages[idx+1],book.pages[idx]]; renderPages(); autosave(); };
-      rm.onclick = ()=>{ if(!confirm(`Xoá Page #${idx+1}?`)) return; book.pages.splice(idx,1); renderPages(); autosave(); };
+      // move / remove
+      card.querySelector('[data-act="up"]').onclick   = ()=>{ if(idx===0) return; [book.pages[idx-1],book.pages[idx]]=[book.pages[idx],book.pages[idx-1]]; renderPages(); autosave(); };
+      card.querySelector('[data-act="down"]').onclick = ()=>{ if(idx===book.pages.length-1) return; [book.pages[idx],book.pages[idx+1]]=[book.pages[idx+1],book.pages[idx]]; renderPages(); autosave(); };
+      card.querySelector('[data-act="rm"]').onclick   = ()=>{ if(!confirm(\`Xoá Page #${idx+1}?\`)) return; book.pages.splice(idx,1); renderPages(); autosave(); };
     });
   }
 
+  /* Manifest helpers */
   function buildManifestEntry(){
     return {
       id: book.IDBook || "unknown",
@@ -228,90 +258,151 @@
     };
   }
   function renderManifestSnippet(){
-    const snippet = { books:[ buildManifestEntry() ] };
-    $("#manifestSnippet").textContent = JSON.stringify(snippet, null, 2);
+    const entry = buildManifestEntry();
+    const snippet = { books: [entry] };
+    document.getElementById("manifestSnippet").textContent = JSON.stringify(snippet, null, 2);
   }
 
-  // Buttons
-  $("#btnAdd").onclick = ()=>{ book.pages.push(emptyPage()); renderPages(); autosave(); };
-  $("#btnDel").onclick = ()=>{ if(!book.pages.length) return; if(!confirm("Xoá trang cuối?")) return; book.pages.pop(); renderPages(); autosave(); };
-  $("#btnSave").onclick = ()=>{ localStorage.setItem('storybook_draft_full', JSON.stringify(book)); alert("Đã lưu nháp trong trình duyệt."); };
+  /* Buttons */
+  document.getElementById("btnAdd").onclick = ()=>{ book.pages.push(emptyPage()); renderPages(); autosave(); };
+  document.getElementById("btnDel").onclick = ()=>{ if(!book.pages.length) return; if(!confirm("Xoá trang cuối cùng?")) return; book.pages.pop(); renderPages(); autosave(); };
+  document.getElementById("btnSave").onclick = ()=>{ localStorage.setItem('storybook_draft_full', JSON.stringify(book)); alert("Đã lưu bản nháp vào trình duyệt."); };
 
-  $("#btnExport").onclick = ()=> download((book.IDBook||"book")+".json", JSON.stringify(book, null, 2));
-  $("#btnImport").onclick = ()=> $("#fileImport").click();
-  $("#fileImport").addEventListener('change', async e=>{
-    const f=e.target.files[0]; if(!f) return;
+  document.getElementById("btnExport").onclick = ()=>{
+    const json = JSON.stringify(book, null, 2);
+    download((book.IDBook||"book") + ".json", json);
+  };
+  document.getElementById("btnImport").onclick = ()=> document.getElementById("fileImport").click();
+  document.getElementById("fileImport").addEventListener('change', async e=>{
+    const f = e.target.files[0]; if(!f) return;
     try{
-      const data=JSON.parse(await f.text());
+      const data = JSON.parse(await f.text());
       book = {
-        IDBook:data.IDBook||"", little_vi:data.little_vi||"", little_en:data.little_en||"",
-        auther:data.auther||"", design:data.design||"", L_imageBia:data.L_imageBia||"",
-        pages:Array.isArray(data.pages)?data.pages:[]
+        IDBook: data.IDBook || "",
+        little_vi: data.little_vi || "",
+        little_en: data.little_en || "",
+        auther: data.auther || "",
+        design: data.design || "",
+        L_imageBia: data.L_imageBia || "",
+        pages: Array.isArray(data.pages) ? data.pages.map(p=>({
+          TDBook: p.TDBook || "",
+          IDPage: p.IDPage || "",
+          noidung_vi: p.noidung_vi || "",
+          noidung_en: p.noidung_en || "",
+          L_image_P: p.L_image_P || "",
+          L_sound_vi: p.L_sound_vi || "",
+          L_sound_en: p.L_sound_en || ""
+        })) : []
       };
-      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
+      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>document.getElementById(id).value = book[id]||"");
       renderPages(); renderManifestSnippet(); autosave();
     }catch(err){ alert("Import lỗi: " + err.message); }
-    finally{ e.target.value=""; }
+    finally{ e.target.value = ""; }
   });
 
-  $("#btnDLBook").onclick = ()=>{
+  document.getElementById("btnDLBook").onclick = ()=>{
     if(!book.IDBook) return alert("Nhập IDBook trước!");
     download(`${book.IDBook}.json`, JSON.stringify(book, null, 2));
   };
-  $("#btnDLManifest").onclick = ()=> download(`library-manifest.json`, JSON.stringify({books:[buildManifestEntry()]}, null, 2));
-  $("#btnDLBoth").onclick = ()=>{ if(!book.IDBook) return alert("Nhập IDBook trước!"); $("#btnDLBook").click(); setTimeout(()=>$("#btnDLManifest").click(),120); };
+  document.getElementById("btnDLManifest").onclick = ()=>{
+    const mf = { books: [buildManifestEntry()] };
+    download(`library-manifest.json`, JSON.stringify(mf, null, 2));
+  };
+  document.getElementById("btnDLBoth").onclick = ()=>{
+    if(!book.IDBook) return alert("Nhập IDBook trước!");
+    document.getElementById("btnDLBook").click();
+    setTimeout(()=>document.getElementById("btnDLManifest").click(), 120);
+  };
 
-  // GitHub helper via Netlify Function proxies
+  // ==== Helper gọi Netlify Functions để lấy/ghi GitHub ====
   async function ghGet(path, asRaw=false){
     const url = `/.netlify/functions/sb-github-get?path=${encodeURIComponent(path)}${asRaw?'&raw=1':''}`;
     const res = await fetch(url);
-    if(!res.ok) throw new Error(await res.text());
-    return asRaw?await res.text():await res.json();
+    if (!res.ok) throw new Error(await res.text());
+    return asRaw ? await res.text() : await res.json();
   }
-  $("#btnGitLoad").onclick = async ()=>{
+
+  document.getElementById('btnGitLoad').onclick = async ()=>{
     try{
-      if(!book.IDBook) return alert('Nhập IDBook trước!');
+      if (!book.IDBook) return alert('Nhập IDBook trước!');
       const path = `public/content/storybook/${book.IDBook}.json`;
-      const got  = await ghGet(path, true);
+      const got = await ghGet(path, true); // raw text
       const data = JSON.parse(got);
-      book = { IDBook:data.IDBook||"", little_vi:data.little_vi||"", little_en:data.little_en||"", auther:data.auther||"", design:data.design||"", L_imageBia:data.L_imageBia||"", pages:Array.isArray(data.pages)?data.pages:[] };
-      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
+      book = {
+        IDBook: data.IDBook || "",
+        little_vi: data.little_vi || "",
+        little_en: data.little_en || "",
+        auther: data.auther || "",
+        design: data.design || "",
+        L_imageBia: data.L_imageBia || "",
+        pages: Array.isArray(data.pages) ? data.pages : []
+      };
+      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>document.getElementById(id).value = book[id]||"");
       renderPages(); renderManifestSnippet();
       alert('Đã nạp sách từ GitHub.');
-    }catch(e){ alert('Không tải được từ GitHub: '+e.message); }
+    }catch(e){
+      alert('Không tải được từ GitHub: ' + e.message);
+    }
   };
-  $("#btnGitSave").onclick = async ()=>{
+
+  document.getElementById('btnGitSave').onclick = async ()=>{
     try{
-      if(!book.IDBook) return alert('Nhập IDBook trước!');
+      if (!book.IDBook) return alert('Nhập IDBook trước!');
       const path = `public/content/storybook/${book.IDBook}.json`;
-      let sha;
-      try{ const meta = await ghGet(path,false); sha = meta?.data?.sha; }catch(_){}
-      const res = await fetch('/.netlify/functions/sb-github-save',{
-        method:'POST', headers:{'content-type':'application/json'},
-        body: JSON.stringify({ path, content: JSON.stringify(book, null, 2), sha, buildHook:true })
+
+      // lấy sha hiện tại (nếu file đã tồn tại)
+      let sha = undefined;
+      try{
+        const meta = await ghGet(path, false); // JSON metadata (từ function)
+        sha = meta?.data?.sha;
+      }catch(_){ /* 404 -> file mới */ }
+
+      const res = await fetch('/.netlify/functions/sb-github-save', {
+        method:'POST',
+        headers:{ 'content-type':'application/json' },
+        body: JSON.stringify({
+          path,
+          content: JSON.stringify(book, null, 2),
+          sha,               // có thì update, không có thì create
+          buildHook: true    // nếu đã set NETLIFY_BUILD_HOOK_URL → redeploy
+        })
       });
       const j = await res.json();
-      if(!res.ok || !j.ok) throw new Error(j.error||'Save fail');
+      if (!res.ok || !j.ok) throw new Error(j.error || 'Save fail');
       alert('Đã lưu lên GitHub và kích hoạt redeploy (nếu cấu hình).');
-    }catch(e){ alert('Lỗi lưu GitHub: '+e.message); }
+    }catch(e){
+      alert('Lỗi lưu GitHub: ' + e.message);
+    }
   };
 
-  // Boot
-  (function init(){
-    try{
-      const saved = JSON.parse(localStorage.getItem('storybook_draft_full')||"null");
-      if(saved){ book = {...book, ...saved}; if(Array.isArray(saved.pages)) book.pages=saved.pages; }
-    }catch(_){}
-    ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
-    renderPages(); renderManifestSnippet();
-  })();
-
-  // rời trang khi có dữ liệu
+  // cảnh báo rời trang nếu có dữ liệu
   window.addEventListener('beforeunload', (e)=>{
     const has = (book.IDBook||book.little_vi||book.little_en||book.auther||book.design||book.L_imageBia||
       (book.pages && book.pages.some(p=>Object.values(p).some(Boolean))));
     if(has){ e.preventDefault(); e.returnValue=''; }
   });
+
+  // BOOT
+  (function init(){
+    try{
+      const saved = JSON.parse(localStorage.getItem('storybook_draft_full')||"null");
+      if(saved){ book = {...book, ...saved}; if(Array.isArray(saved.pages)) book.pages = saved.pages; }
+    }catch{}
+    ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>document.getElementById(id).value = book[id]||"");
+    renderPages(); renderManifestSnippet();
+  })();
+  </script>
+
+  <!-- Áp dụng logo/slogan đã lưu trong Theme -->
+  <script>
+  (function applyBrandEverywhere(){
+    const BRAND_KEY='NINI_THEME_BRAND';
+    try{
+      const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
+      if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
+      if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
+    }catch(_){}
+  })();
   </script>
 </body>
 </html>

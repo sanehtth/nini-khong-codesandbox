@@ -15,7 +15,7 @@ a{text-decoration:none;color:inherit}
 /* ========== 2) Tokens & theme ========== */
 :root{
   /* brand */
-  --brand-ink:#1c2024;          /* chữ chính */
+  --brand-ink:#fcfeff;          /* chữ chính */
   --brand-muted:#6b7b8c;        /* chữ mờ */
   --brand-green:#2f6e3f;        /* nhấn */
   --brand-green-2:#21512d;      /* nhấn đậm */
@@ -393,6 +393,7 @@ body{
   border-bottom: 2px solid rgba(255,255,255,.9);
   font-weight: 700;
 }
+
 
 
 

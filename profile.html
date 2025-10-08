@@ -13,6 +13,38 @@
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
+	    <!-- Auth controls -->
+    <div class="auth-area">
+      <!-- CHƯA login -->
+      <button id="authBtn"
+              class="auth-btn"
+              data-role="btn-login"
+              data-show="out">Đăng nhập / Đăng ký</button>
+
+      <!-- ĐÃ login: Avatar mở hồ sơ -->
+      <a id="btnAvatar"
+         class="avatar-btn"
+         data-show="in"
+         href="/profile.html"
+         style="display:none"
+         title="Hồ sơ">
+        <img id="avatarImg"
+             src="/public/assets/avatar/NV1.webp"
+             alt="Tài khoản"
+             onerror="this.src='/public/assets/avatar/NV1.webp'">
+      </a>
+
+      <!-- ĐÃ login: Đăng xuất -->
+      <button id="btnLogout"
+              class="auth-btn"
+              data-role="btn-logout"
+              data-show="in"
+              style="display:none">
+        Đăng xuất <span class="who"></span>
+      </button>
+
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+    </div>
   </header>
 
   <main class="page-hero bg-cover">
@@ -485,4 +517,5 @@
   </script>
 </body>
 </html>
+
 

@@ -1,0 +1,27 @@
+{
+  "updatedAt": 1759909609642,
+  "avatars": [
+    {
+      "id": "NV1",
+      "title_vi": "NiNi – nam",
+      "title_en": "NiNi – boy",
+      "image": "/public/assets/avatar/NV1.webp",
+      "rarity": "common",
+      "price": 0,
+      "xp_required": 0,
+      "tags": [
+        "starter"
+      ]
+    },
+    {
+      "id": "NV2",
+      "title_vi": "NiNi - nu",
+      "title_en": "NiNi - Girl",
+      "image": "/public/assets/avatar/NV2.webp",
+      "rarity": "common",
+      "price": 0,
+      "xp_required": 0,
+      "tags": []
+    }
+  ]
+}

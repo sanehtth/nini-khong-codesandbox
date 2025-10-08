@@ -176,8 +176,20 @@
     }
     function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
   </script>
+ <script>
+(function applyBrandEverywhere(){
+  const BRAND_KEY='NINI_THEME_BRAND';
+  try {
+    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
+    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
+    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
+    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
+  } catch {}
+})();
+</script>
 </body>
-</html>
+ </html>
+
 
 
 

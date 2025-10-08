@@ -404,6 +404,46 @@ body{
 }
 #readerModal { z-index: 10001; }     /* luôn trên mọi overlay khác */
 #authModal   { z-index: 10000; }
+/* ======== PAGE SHELL dùng chung cho các trang độc lập ======== */
+body.page-bg{
+  min-height:100dvh;
+  background-image:url('/public/assets/bg/nini_home.webp');
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+}
+
+/* Card kính mờ giữa màn hình (dùng cho các trang đơn) */
+.center-wrap{
+  min-height:calc(100dvh - 80px);
+  display:grid;
+  place-items:center;
+  padding:24px 12px;
+}
+.center-card{
+  width:min(680px, 92vw);
+  background:var(--glass-2, rgba(255,255,255,.28));
+  border:1px solid rgba(17,24,39,.12);
+  border-radius:16px;
+  padding:16px;
+  color:var(--text,#0f172a);
+  box-shadow: inset 0 0 0 1px rgba(17,24,39,.06);
+}
+
+/* Đưa modal Auth vào chính giữa viewport */
+#authModal .modal__panel{
+  position:fixed !important;
+  top:50% !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:auto !important;
+  transform:translate(-50%,-50%) !important;
+  margin:0 !important;
+  max-width:min(760px, 96vw);
+  width:min(720px, 96vw);
+}
+#authModal .modal__backdrop{ backdrop-filter:blur(4px); }
+
 
 
 

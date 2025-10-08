@@ -6,6 +6,8 @@
   <title>NiNi — Storybook Editor</title>
   <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=admin-storybook-safe" />
+
+  <!-- Load theme CSS (nếu có) -->
   <script>
   (function(){
     var ENDPOINT='/.netlify/functions/theme';
@@ -20,12 +22,16 @@
       var cache=JSON.parse(localStorage.getItem(KEY)||'null');
       var now=(Date.now()/1000)|0;
       if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-      fetch(ENDPOINT,{cache:'no-store'}).then(function(r){return r.text();}).then(function(css){
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css: css})); }
-      }).catch(function(){});
+      fetch(ENDPOINT,{cache:'no-store'})
+        .then(function(r){return r.text();})
+        .then(function(css){
+          if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css: css})); }
+        })
+        .catch(function(){});
     }catch(_){}
   })();
   </script>
+
   <style>
     :root{
       --bg-url: url('/public/assets/bg/nini_home.webp');
@@ -75,7 +81,7 @@
 
   <main class="page-hero">
     <section class="panel-glass wrap-page" aria-label="Storybook Editor">
-
+      <!-- BOOK -->
       <section class="panel">
         <h2>Book</h2>
         <div class="grid grid-2">
@@ -89,6 +95,7 @@
         <div class="muted" style="padding:0 12px 12px">Tự lưu nháp vào trình duyệt (localStorage).</div>
       </section>
 
+      <!-- ACTIONS -->
       <section class="panel">
         <h2>Actions</h2>
         <div class="row">
@@ -118,6 +125,7 @@
         </details>
       </section>
 
+      <!-- PAGES -->
       <section class="panel">
         <h2>Pages</h2>
         <div id="pagesWrap"></div>
@@ -131,12 +139,11 @@
           • Với site đang chạy, chỉ cần upload 2 file này là kệ sách nhận ra ngay.
         </div>
       </section>
-
     </section>
   </main>
 
   <script>
-  // Helpers
+  // ===== Helpers =====
   function $(s){return document.querySelector(s);}
   function download(name, dataStr){
     var blob=new Blob([dataStr],{type:'application/json'});
@@ -146,7 +153,7 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // State
+  // ===== State =====
   var book={
     IDBook:"", little_vi:"", little_en:"",
     auther:"", design:"", L_imageBia:"",
@@ -164,13 +171,13 @@
     },350);
   }
 
-  // Bind book inputs
+  // ===== Bind book inputs =====
   ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){
     var el=document.getElementById(id);
     el.addEventListener('input', function(e){ book[id]=e.target.value; renderManifestSnippet(); autosave(); });
   });
 
-  // Render pages
+  // ===== Render pages =====
   function renderPages(){
     var wrap=document.getElementById('pagesWrap');
     wrap.innerHTML='';
@@ -228,7 +235,7 @@
     });
   }
 
-  // Manifest
+  // ===== Manifest =====
   function buildManifestEntry(){
     return {
       id: book.IDBook || 'unknown',
@@ -245,7 +252,7 @@
     document.getElementById('manifestSnippet').textContent=JSON.stringify(snippet,null,2);
   }
 
-  // Buttons
+  // ===== Buttons =====
   document.getElementById('btnAdd').onclick=function(){ book.pages.push(emptyPage()); renderPages(); autosave(); };
   document.getElementById('btnDel').onclick=function(){ if(!book.pages.length) return; if(!confirm('Xoa trang cuoi?')) return; book.pages.pop(); renderPages(); autosave(); };
   document.getElementById('btnSave').onclick=function(){ localStorage.setItem('storybook_draft_full', JSON.stringify(book)); alert('Da luu ban nhap vao trinh duyet.'); };
@@ -256,31 +263,33 @@
   document.getElementById('btnImport').onclick=function(){ document.getElementById('fileImport').click(); };
   document.getElementById('fileImport').addEventListener('change', function(e){
     var f=e.target.files[0]; if(!f) return;
-    f.text().then(function(txt){
-      var data=JSON.parse(txt);
-      book={
-        IDBook: data.IDBook || '',
-        little_vi: data.little_vi || '',
-        little_en: data.little_en || '',
-        auther: data.auther || '',
-        design: data.design || '',
-        L_imageBia: data.L_imageBia || '',
-        pages: Array.isArray(data.pages)? data.pages.map(function(p){
-          return {
-            TDBook: p.TDBook || '',
-            IDPage: p.IDPage || '',
-            noidung_vi: p.noidung_vi || '',
-            noidung_en: p.noidung_en || '',
-            L_image_P: p.L_image_P || '',
-            L_sound_vi: p.L_sound_vi || '',
-            L_sound_en: p.L_sound_en || ''
-          };
-        }): []
-      };
-      ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
-      renderPages(); renderManifestSnippet(); autosave();
-      e.target.value='';
-    }).catch(function(err){ alert('Import loi: '+err.message); e.target.value=''; });
+    f.text()
+      .then(function(txt){
+        var data=JSON.parse(txt);
+        book={
+          IDBook: data.IDBook || '',
+          little_vi: data.little_vi || '',
+          little_en: data.little_en || '',
+          auther: data.auther || '',
+          design: data.design || '',
+          L_imageBia: data.L_imageBia || '',
+          pages: Array.isArray(data.pages)? data.pages.map(function(p){
+            return {
+              TDBook: p.TDBook || '',
+              IDPage: p.IDPage || '',
+              noidung_vi: p.noidung_vi || '',
+              noidung_en: p.noidung_en || '',
+              L_image_P: p.L_image_P || '',
+              L_sound_vi: p.L_sound_vi || '',
+              L_sound_en: p.L_sound_en || ''
+            };
+          }): []
+        };
+        ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
+        renderPages(); renderManifestSnippet(); autosave();
+        e.target.value='';
+      })
+      .catch(function(err){ alert('Import loi: '+err.message); e.target.value=''; });
   });
 
   document.getElementById('btnDLBook').onclick=function(){
@@ -296,7 +305,7 @@
     setTimeout(function(){ document.getElementById('btnDLManifest').click(); },120);
   };
 
-  // GitHub helpers qua Netlify Functions (tu chon)
+  // ===== GitHub helpers qua Netlify Functions =====
   function ghGet(path, asRaw){
     var url='/.netlify/functions/sb-github-get?path='+encodeURIComponent(path)+(asRaw?'&raw=1':'');
     return fetch(url).then(function(r){ if(!r.ok) return r.text().then(function(t){throw new Error(t);}); return asRaw?r.text():r.json(); });
@@ -304,39 +313,44 @@
   document.getElementById('btnGitLoad').onclick=function(){
     if(!book.IDBook) return alert('Nhap IDBook truoc!');
     var path='public/content/storybook/'+book.IDBook+'.json';
-    ghGet(path,true).then(function(raw){
-      var data=JSON.parse(raw);
-      book.IDBook=data.IDBook||''; book.little_vi=data.little_vi||''; book.little_en=data.little_en||'';
-      book.auther=data.auther||''; book.design=data.design||''; book.L_imageBia=data.L_imageBia||'';
-      book.pages=Array.isArray(data.pages)?data.pages:[];
-      ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
-      renderPages(); renderManifestSnippet();
-      alert('Da nap sach tu GitHub.');
-    }).catch(function(e){ alert('Khong tai duoc tu GitHub: '+e.message); });
+    ghGet(path,true)
+      .then(function(raw){
+        var data=JSON.parse(raw);
+        book.IDBook=data.IDBook||''; book.little_vi=data.little_vi||''; book.little_en=data.little_en||'';
+        book.auther=data.auther||''; book.design=data.design||''; book.L_imageBia=data.L_imageBia||'';
+        book.pages=Array.isArray(data.pages)?data.pages:[];
+        ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
+        renderPages(); renderManifestSnippet();
+        alert('Da nap sach tu GitHub.');
+      })
+      .catch(function(e){ alert('Khong tai duoc tu GitHub: '+e.message); });
   };
   document.getElementById('btnGitSave').onclick=function(){
     if(!book.IDBook) return alert('Nhap IDBook truoc!');
     var path='public/content/storybook/'+book.IDBook+'.json';
     var sha;
-    ghGet(path,false).then(function(meta){ sha=meta && meta.data && meta.data.sha; }).catch(function(){})
-    .then(function(){
-      return fetch('/.netlify/functions/sb-github-save',{
-        method:'POST',
-        headers:{'content-type':'application/json'},
-        body:JSON.stringify({ path:path, content:JSON.stringify(book,null,2), sha:sha, buildHook:true })
-      });
-    }).then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.ok) throw new Error(j.error||'Save fail'); return j; }); })
-    .then(function(){ alert('Da luu len GitHub va kick redeploy (neu cau hinh).'); })
-    ["catch"](function(e){ alert('Loi luu GitHub: '+e.message); });
-  });
+    ghGet(path,false)
+      .then(function(meta){ sha=meta && meta.data && meta.data.sha; })
+      .catch(function(){})
+      .then(function(){
+        return fetch('/.netlify/functions/sb-github-save',{
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          body:JSON.stringify({ path:path, content:JSON.stringify(book,null,2), sha:sha, buildHook:true })
+        });
+      })
+      .then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.ok) throw new Error(j.error||'Save fail'); return j; }); })
+      .then(function(){ alert('Da luu len GitHub va kick redeploy (neu cau hinh).'); })
+      .catch(function(e){ alert('Loi luu GitHub: '+e.message); });
+  };
 
-  // Leave guard
+  // ===== Leave guard =====
   window.addEventListener('beforeunload', function(e){
     var has=(book.IDBook||book.little_vi||book.little_en||book.auther||book.design||book.L_imageBia||(book.pages&&book.pages.some(function(p){return Object.keys(p).some(function(k){return !!p[k];});})));
     if(has){ e.preventDefault(); e.returnValue=''; }
   });
 
-  // Boot
+  // ===== Boot =====
   (function init(){
     try{
       var saved=JSON.parse(localStorage.getItem('storybook_draft_full')||'null');
@@ -349,6 +363,7 @@
   })();
   </script>
 
+  <!-- Áp dụng brand (logo/slogan) nếu đã set ở admin -->
   <script>
   (function(){
     var KEY='NINI_THEME_BRAND';
@@ -361,4 +376,3 @@
   </script>
 </body>
 </html>
-

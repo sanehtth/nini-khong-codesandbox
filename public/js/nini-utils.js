@@ -1,7 +1,8 @@
 /*! NiNi Utils (non-module, global) v2 */
 (function (global) {
-  // giữ lại nếu đã có
-  var NINI = global.NINI || {};
+  // Bảo đảm namespace tồn tại trên window
+  global.NINI = global.NINI || {};
+  var NINI = global.NINI;
 
   /* ===================== DOM helpers ===================== */
   NINI.$ = function (sel, root) { return (root || document).querySelector(sel); };
@@ -146,4 +147,5 @@
   // gắn global
   global.NINI = NINI;
 })(window);
+
 

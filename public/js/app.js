@@ -1,8 +1,9 @@
 /* NiNi — App JS (full, đã chỉnh)
-   - [THÊM] gọi window.fx.setSeason(season) để sync hiệu ứng rơi
-   - [THÊM] TTS nút 🔊
-   - [SỬA] bộ đếm trang trên góc phải (#pageCounterTop)
-   - [SỬA] render phụ đề vào #subtitleText
+   - [GIỮ] gọi window.fx.setSeason(season) để sync hiệu ứng rơi
+   - [GIỮ] TTS nút 🔊
+   - [SỬA] bind click kệ bằng event delegation (ổn định khi re-render)
+   - [THÊM] phím tắt reader (←/→/Esc), preload ảnh trang kế/ trước
+   - [CẢI THIỆN] hiển thị lỗi fetch rõ ràng, phòng ngừa HashChangeEvent
 */
 (() => {
   const IMAGES = {
@@ -23,6 +24,7 @@
   const frame   = $("#frame");
   const content = $("#content");
 
+  // ---------------- MÙA ----------------
   function setSeason(season) {
     const img = IMAGES[season] || IMAGES.home;
 
@@ -38,15 +40,23 @@
 
     const newHash = `#/${season}`;
     if (location.hash !== newHash) {
+      // replaceState không tự bắn hashchange -> ta chủ động bắn (nếu browser không hỗ trợ HashChangeEvent, dùng CustomEvent)
       history.replaceState({}, "", newHash);
-      window.dispatchEvent(new HashChangeEvent("hashchange"));
+      try {
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      } catch {
+        window.dispatchEvent(new CustomEvent("hashchange"));
+      }
     }
 
     if (season === "spring") {
       renderShelfInFrame();
     } else {
       const mount = $("#shelfMount");
-      if (mount) mount.hidden = true, mount.innerHTML = "";
+      if (mount) {
+        mount.hidden = true;
+        mount.innerHTML = "";
+      }
     }
   }
 
@@ -58,6 +68,7 @@
 
   tabs.forEach(btn => btn.addEventListener("click", () => setSeason(btn.dataset.season)));
 
+  // ---------------- NỘI DUNG CHÍP ----------------
   const chips = $$(".chip");
   const SECTIONS = {
     intro: `<h2>NiNi — Funny</h2><p>...</p>`,
@@ -72,7 +83,7 @@
     if (content) content.innerHTML = SECTIONS[ch.dataset.section] || SECTIONS.intro;
   }));
 
-  // ===== Auth modal (GIỮ – không xung đột với auth.js) =====
+  // ---------------- AUTH MODAL (không đụng auth.js) ----------------
   const authBtn   = $("#authBtn");
   const authModal = $("#authModal");
   const closeEls  = authModal ? $$("[data-close]", authModal) : [];
@@ -96,11 +107,16 @@
   });
   tabLines.forEach(t => t.addEventListener("click", () => switchAuth(t.dataset.auth)));
 
-  // ===== Kệ sách =====
+  // ---------------- KỆ SÁCH ----------------
   let libraryManifest = null;
 
   async function fetchJSON(url) {
-    const res = await fetch(url, { cache:"no-store" });
+    let res;
+    try {
+      res = await fetch(url, { cache:"no-store" });
+    } catch (e) {
+      throw new Error(`Không thể kết nối: ${url}`);
+    }
     if (!res.ok) throw new Error(`Fetch fail ${url}: ${res.status}`);
     return await res.json();
   }
@@ -122,7 +138,7 @@
     const title = b.title_vi || b.title_en || b.id || "NiNi book";
     const meta  = b.author ? `Tác giả: ${b.author}` : "";
     return `
-      <article class="book-card" data-book="${b.id}">
+      <article class="book-card" tabindex="0" role="button" aria-label="Mở sách ${title}" data-book="${b.id}">
         <img class="book-card__cover" src="${cover}" alt="${title}">
         <div class="book-card__body">
           <h4 class="book-card__title">${title}</h4>
@@ -132,26 +148,47 @@
     `;
   }
 
+  // Delegation: bind 1 lần cho mount
+  function bindShelfClicks(mount) {
+    if (!mount || mount.__bound) return;
+    mount.__bound = true;
+    mount.addEventListener("click", (e) => {
+      const card = e.target.closest(".book-card");
+      if (!card) return;
+      openBookById(card.dataset.book);
+    });
+    // Enter mở sách
+    mount.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const card = e.target.closest(".book-card");
+      if (!card) return;
+      openBookById(card.dataset.book);
+    });
+  }
+
   async function renderShelfInFrame() {
     const mount = $("#shelfMount");
     if (!mount) return;
     const data = await loadLibraryManifest();
+
+    mount.hidden = false;
     if (!data || !Array.isArray(data.books) || !data.books.length) {
-      mount.hidden = false;
-      mount.innerHTML = `<div class="shelf-empty">Chưa có sách. Đặt <code>${LIB_MANIFEST_URL}</code> và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.</div>`;
+      mount.innerHTML = `<div class="shelf-empty">
+        Chưa có sách. Đặt <code>${LIB_MANIFEST_URL}</code>
+        và các file <code>/public/content/storybook/&lt;ID&gt;.json</code>.
+      </div>`;
+      bindShelfClicks(mount);
       return;
     }
 
     const html = data.books.map(tplBookCard).join("");
-    mount.hidden = false;
-    mount.innerHTML = `<div class="shelf"><h3 class="shelf__title">Kệ sách</h3><div class="shelf__grid">${html}</div></div>`;
+    mount.innerHTML = `<div class="shelf">
+      <h3 class="shelf__title">Kệ sách</h3>
+      <div class="shelf__grid">${html}</div>
+    </div>`;
 
-    mount.querySelectorAll(".book-card").forEach(card => {
-      card.addEventListener("click", () => {
-        const id = card.dataset.book;
-        openBookById(id);
-      });
-    });
+    // đảm bảo mount luôn bắt được click, kể cả sau re-render
+    bindShelfClicks(mount);
   }
 
   async function openBookById(id) {
@@ -164,7 +201,7 @@
     }
   }
 
-  // ===== Reader 16:9 + TTS =====
+  // ---------------- READER + TTS ----------------
   const readerModal  = $("#readerModal");
   const calViewport  = $("#calendarViewport");
   const calBg        = $("#calendarBg");
@@ -174,6 +211,8 @@
   const btnLangEn    = $("#btnLangEn");
   const btnSpeak     = $("#btnSpeak");
   const btnReaderClose = readerModal && $('[data-reader-close]', readerModal);
+  const subtitleEl   = $("#subtitleText");
+  const pageCounterTop = $("#pageCounterTop");
 
   let currentBook = null;
   let pageIdx = 0;
@@ -219,10 +258,10 @@
   }
 
   function renderSubtitle(){
-    const el = $("#subtitleText"); if (!el || !currentBook) return;
+    if (!subtitleEl || !currentBook) return;
     const p = (currentBook.pages||[])[pageIdx]||{};
     const txt = speakLang==="en"?pageTextEn(p):pageTextVi(p);
-    el.textContent = txt || "";
+    subtitleEl.textContent = txt || "";
   }
 
   function setLoading(on){
@@ -234,8 +273,18 @@
   function renderPageCounter(){
     const total = (currentBook?.pages||[]).length || 1;
     const txt = `Trang ${Math.min(pageIdx+1,total)}/${total}`;
-    const elTop = $("#pageCounterTop"); if (elTop) elTop.textContent = txt;
-    const elOld = $("#pageCounter"); if (elOld) elOld.textContent = txt;
+    if (pageCounterTop) pageCounterTop.textContent = txt;
+    const elOld = $("#pageCounter");
+    if (elOld) elOld.textContent = txt;
+  }
+
+  function preloadAround(idx){
+    const pages = currentBook?.pages || [];
+    [idx-1, idx+1].forEach(i=>{
+      const p = pages[i];
+      const u = p && pickPageImage(p);
+      if (u){ const img=new Image(); img.src=u; }
+    });
   }
 
   function renderCalendarPage(){
@@ -245,7 +294,12 @@
     const url = pickPageImage(p);
     if (!url){ calBg.style.backgroundImage=""; setLoading(false); return; }
     const tmp = new Image();
-    tmp.onload = ()=>{ calBg.style.backgroundImage = `url("${url}")`; setLoading(false); if (isSpeaking) speakCurrent(); };
+    tmp.onload = ()=>{
+      calBg.style.backgroundImage = `url("${url}")`;
+      setLoading(false);
+      preloadAround(pageIdx);
+      if (isSpeaking) speakCurrent();
+    };
     tmp.onerror= ()=>{ calBg.style.backgroundImage = ""; setLoading(false); };
     tmp.src = url;
   }
@@ -268,9 +322,16 @@
   btnSpeak ?.addEventListener("click", ()=>{ if(isSpeaking) stopSpeak(); else speakCurrent(); });
   btnReaderClose?.addEventListener("click", closeReader);
   readerModal?.addEventListener("click", e=>{ if (e.target===readerModal || e.target.classList.contains("modal__backdrop")) closeReader(); });
+  // phím tắt reader
+  window.addEventListener("keydown", (e)=>{
+    if (readerModal?.getAttribute("aria-hidden") !== "false") return;
+    if (e.key === "Escape") closeReader();
+    else if (e.key === "ArrowLeft")  btnPrevImg?.click();
+    else if (e.key === "ArrowRight") btnNextImg?.click();
+  });
   setLang(speakLang);
 
-  // ===== Admin hotkey =====
+  // ---------------- Admin hotkey ----------------
   (() => {
     const ADMIN_KEY = "nini_admin_btn";
     const adminBtn = document.getElementById("adminBtn");
@@ -286,8 +347,12 @@
     });
   })();
 
-  // ===== Startup =====
+  // ---------------- Startup ----------------
   bootSeasonFromHash();
   window.addEventListener("hashchange", bootSeasonFromHash);
   Object.values(IMAGES).forEach(src => { const i=new Image(); i.src=src; });
+
+  // đảm bảo kệ luôn nghe click (kể cả khi CSS/DOM thay đổi)
+  const mountInit = $("#shelfMount");
+  if (mountInit) bindShelfClicks(mountInit);
 })();

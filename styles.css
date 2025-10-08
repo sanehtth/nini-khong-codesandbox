@@ -36,7 +36,7 @@ body{
 .brand__slogan{
   font-weight:700; letter-spacing:.2px; user-select:none;
   /* text gradient animate: vàng → xanh → nâu */
-  background: linear-gradient(90deg,#f3d56b 0%, #2f6e3f 50%, #7a5b3a 100%);
+  background: linear-gradient(90deg,#3b8a5a 0%, #2f6e3f 50%, #7a5b3a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -443,6 +443,7 @@ body.page-bg{
   width:min(720px, 96vw);
 }
 #authModal .modal__backdrop{ backdrop-filter:blur(4px); }
+
 
 
 

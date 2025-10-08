@@ -1,66 +1,25 @@
 <!doctype html>
 <html lang="vi">
-<script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
-
-  function inject(css){
-    try{
-      let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base href="/" />
   <title>NiNi — Funny</title>
 
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=16" />
-  <style>
-    :root{
-      --shell: 1180px;
-    }
-    /* Khung hiển thị chính */
-    .viewport{ width:min(var(--shell),94vw); margin:14px auto 80px; }
-    .frame{ position:relative; width:100%; border-radius:18px; overflow:hidden; }
-    /* Kệ sách luôn click được, không bị lớp khác đè */
-    #shelfMount.shelf-card{
-      position:relative;
-      z-index:2;
-      width:calc(100% - 48px);
-      margin: clamp(120px, 18vh, 220px) auto 0; /* đẩy xuống vùng hoa */
-    }
-    /* Card nội dung bên dưới, không đè lên frame */
-    .content{ width:min(var(--shell),94vw); margin:14px auto 0; position:relative; z-index:1; }
+  <!-- Style nền tảng dùng chung -->
+  <link rel="stylesheet" href="/public/css/nini-base.css?v=1" />
+  <!-- Tải theme động từ Netlify Function (logo/slogan/màu…) -->
+  <script src="/public/js/theme-boot.js" defer></script>
 
-    /* Nhóm auth ở header */
+  <style>
+    /* Trang chủ chỉ cần chút bổ sung nhẹ */
+    .frame{position:relative}
     .auth-area{display:flex;gap:10px;align-items:center}
     .avatar-btn img{width:32px;height:32px;border-radius:50%}
-
-    /* Bật/tắt nút Admin */
-    .admin-link.is-hidden{ display:none !important; }
   </style>
 </head>
-<body>
-  <!-- Header -->
+<body data-page="home" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <!-- Header dùng chung -->
   <header class="site-header">
     <a class="brand" href="#/home" id="brandLink" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
@@ -78,38 +37,28 @@
     <!-- Auth controls -->
     <div class="auth-area">
       <!-- CHƯA login -->
-      <button id="authBtn"
-              class="auth-btn"
-              data-show="out">Đăng nhập / Đăng ký</button>
+      <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
 
       <!-- ĐÃ login: Avatar mở hồ sơ -->
-      <a id="btnAvatar"
-         class="avatar-btn"
-         data-show="in"
-         href="/profile.html"
-         style="display:none"
-         title="Hồ sơ">
-        <img id="avatarImg"
-             src="/public/assets/avatar/NV1.webp"
-             alt="Tài khoản"
-             onerror="this.src='/public/assets/avatar/NV1.webp'">
+      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
+        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản" onerror="this.src='/public/assets/avatar/NV1.webp'">
       </a>
 
       <!-- ĐÃ login: Đăng xuất -->
-      <button id="btnLogout"
-              class="auth-btn"
-              data-show="in"
-              style="display:none">
+      <button id="btnLogout" class="auth-btn" data-show="in" style="display:none">
         Đăng xuất <span class="who"></span>
       </button>
 
-      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/index.html" rel="noopener">Admin</a>
     </div>
   </header>
 
   <!-- Viewport -->
   <main class="viewport">
     <section class="frame" id="frame" aria-label="Khung hiển thị">
+      <!-- Kệ sách hiển thị TRÊN -->
+      <div id="shelfMount" class="shelf-card" hidden></div>
+
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
@@ -117,9 +66,6 @@
         <button class="chip" data-section="forum">Diễn đàn</button>
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
-
-      <!-- Kệ sách (Spring) -->
-      <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
     <section class="content" id="content" aria-live="polite">
@@ -127,26 +73,8 @@
       <p>... (nội dung giới thiệu) ...</p>
     </section>
   </main>
-<!-- ========== an nut admin ========== -->
-  <script>
-  (function adminHotkey(){
-    const btn = document.getElementById('adminBtn'); if (!btn) return;
-    const KEY = 'nini_admin_btn';
-    function apply(){ const on = localStorage.getItem(KEY) === 'on'; btn.classList.toggle('is-hidden', !on); }
-    apply();
-    window.addEventListener('keydown', (e)=>{
-      const hit = (e.altKey && (e.key==='a' || e.key==='A')) || (e.ctrlKey && e.altKey && (e.key==='a' || e.key==='A'));
-      if (hit){
-        e.preventDefault();
-        const on = localStorage.getItem(KEY) === 'on';
-        localStorage.setItem(KEY, on ? 'off' : 'on');
-        apply();
-      }
-    });
-  })();
-</script>
 
-  <!-- ========== AUTH MODAL (Glass) ========== -->
+  <!-- AUTH MODAL (3 tab riêng, không dính nhau) -->
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
     <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -194,7 +122,7 @@
         <p id="signupNote" class="note"></p>
       </form>
 
-      <!-- Reset password -->
+      <!-- Reset -->
       <form class="form" data-pane="reset" onsubmit="return false;">
         <div class="row">
           <label>Email</label>
@@ -208,7 +136,7 @@
     </section>
   </div>
 
-  <!-- ===== Ẩn/hiện nhanh theo flag trước khi auth.js chạy ===== -->
+  <!-- Ẩn/hiện nhanh theo flag trước khi auth.js chạy -->
   <script>
     (function bootHeaderAuthUI(){
       function applyAuthUI(){
@@ -221,13 +149,10 @@
     })();
   </script>
 
-  <!-- ===== Đồng bộ avatar header từ local profile ===== -->
+  <!-- Đồng bộ avatar header từ local profile -->
   <script>
     (function headerAvatar(){
-      const LS_ACCOUNTS = 'NINI_ACCOUNTS_V3';
-      const LS_ACTIVE   = 'NINI_ACTIVE_USER_V3';
-      const FALLBACK    = '/public/assets/avatar/NV1.webp';
-
+      const LS_ACCOUNTS='NINI_ACCOUNTS_V3', LS_ACTIVE='NINI_ACTIVE_USER_V3', FALLBACK='/public/assets/avatar/NV1.webp';
       function readActiveProfile(){
         try{
           const uid  = JSON.parse(localStorage.getItem(LS_ACTIVE)  || 'null');
@@ -235,61 +160,22 @@
           return (uid && accs && accs[uid]) ? accs[uid] : null;
         }catch{ return null; }
       }
-
       function applyAvatar(){
-        const img = document.getElementById('avatarImg');
-        if (!img) return;
+        const img = document.getElementById('avatarImg'); if (!img) return;
         const pf  = readActiveProfile();
         const url = (pf && pf.avatarUrl) ? pf.avatarUrl : FALLBACK;
-        const abs = new URL(url, location.origin).href;
-        if (img.src !== abs) img.src = url;
+        if (img.getAttribute('src') !== url) img.setAttribute('src', url);
       }
-
       applyAvatar();
       window.addEventListener('nini:authchange',    applyAvatar);
       window.addEventListener('nini:profilechange', applyAvatar);
-      window.addEventListener('storage', (e)=>{
-        if (e.key === 'NINI_ACCOUNTS_V3' || e.key === 'NINI_ACTIVE_USER_V3') applyAvatar();
-      });
+      window.addEventListener('storage', (e)=>{ if (e.key==='NINI_ACCOUNTS_V3'||e.key==='NINI_ACTIVE_USER_V3') applyAvatar(); });
     })();
   </script>
 
-  <!-- ===== Fallback hotkey cho Admin (Alt+A hoặc Ctrl+Alt+A) ===== -->
-  <script>
-    (function adminHotkey(){
-      const btn = document.getElementById('adminBtn'); if (!btn) return;
-      const KEY = 'nini_admin_btn';
-      function apply(){ const on = localStorage.getItem(KEY) === 'on'; btn.classList.toggle('is-hidden', !on); }
-      apply();
-      window.addEventListener('keydown', (e)=>{
-        const hit = (e.altKey && (e.key==='a' || e.key==='A')) || (e.ctrlKey && e.altKey && (e.key==='a' || e.key==='A'));
-        if (hit){
-          e.preventDefault();
-          const on = localStorage.getItem(KEY) === 'on';
-          localStorage.setItem(KEY, on ? 'off' : 'on');
-          apply();
-        }
-      });
-    })();
-  </script>
-
-  <!-- Scripts -->
+  <!-- App logic -->
   <script src="/public/js/effects.js?v=3" defer></script>
-  <script src="/public/js/app.js?v=14" defer></script>
-  <script type="module" src="/public/js/auth.js?v=3"></script>
- <script>
-(function applyBrandEverywhere(){
-  const BRAND_KEY='NINI_THEME_BRAND';
-  try {
-    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
-    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
-    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
-    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
-  } catch {}
-})();
-</script>
+  <script src="/public/js/app.js?v=15" defer></script>
+  <script type="module" src="/public/js/auth.js?v=4"></script>
 </body>
 </html>
-
-
-

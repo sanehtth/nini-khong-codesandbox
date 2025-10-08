@@ -67,6 +67,9 @@
     .flex-end{display:flex;gap:8px}
     pre.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;background:rgba(0,0,0,.15);padding:10px;border-radius:10px;overflow:auto}
     .spacer{flex:1}
+    /* Buộc hiển thị panel trong trang Storybook – ghi đè style chung */
+      main .panel { display: block !important; }
+
   </style>
 </head>
 <body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
@@ -376,3 +379,4 @@
   </script>
 </body>
 </html>
+

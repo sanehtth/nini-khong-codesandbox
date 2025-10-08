@@ -294,3 +294,56 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   padding:16px;
 }
 
+/* ===== Layout chung cho toàn site ===== */
+:root{
+  --shell: 1180px;                 /* bề rộng tối đa của khung nội dung */
+  --frame-h: clamp(520px, 62vh, 720px); /* chiều cao khung hero trên index */
+  --bg-url: url('/public/assets/bg/nini_home.webp'); /* nền mặc định */
+}
+
+/* nền toàn trang (dùng được cho các trang auth/profile/admin) */
+body{
+  background-image: var(--bg-url);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* khối chứa nội dung chuẩn */
+.viewport{ width:min(var(--shell),94vw); margin:14px auto 80px; }
+
+/* khung hero (index – nơi hiển thị storybook/hoa) */
+.frame{
+  position: relative;
+  width: 100%;
+  height: var(--frame-h);
+  border-radius: 18px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center 72%; /* thấy nhiều thảm hoa */
+}
+
+/* chip nổi trên khung */
+.chips{ position: relative; z-index: 4; }
+
+/* kệ sách nằm trong khung */
+#shelfMount.shelf-card{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(48px, 10vh, 110px);
+  width: min(980px, calc(100% - 80px));
+  margin: 0;
+  z-index: 3;
+}
+
+/* khối văn bản dưới khung */
+.content{ width:min(var(--shell),94vw); margin:14px auto 0; position:relative; z-index:1; }
+
+/* auth ở header */
+.auth-area{ display:flex; gap:10px; align-items:center }
+.avatar-btn img{ width:32px; height:32px; border-radius:50% }
+
+/* ẩn hoàn toàn nút Admin khi toggle */
+.admin-link.is-hidden{ display:none !important; }
+

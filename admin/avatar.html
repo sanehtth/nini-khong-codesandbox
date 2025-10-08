@@ -1,55 +1,107 @@
 <!doctype html>
 <html lang="vi">
-  <script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Avatar Builder</title>
+  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
+  <!-- Style chung của site -->
+  <link rel="stylesheet" href="/styles.css?v=admin-theme" />
 
-  function inject(css){
-    try{
+  <!-- Inject theme động từ Netlify Function (nếu có) -->
+  <script>
+  (function(){
+    const ENDPOINT='/.netlify/functions/theme';
+    const KEY='NINI_THEME_CACHE_V1';
+    const MAX_AGE=3600; // 1h
+    function inject(css){
       let s=document.getElementById('themeOverride');
       if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
       s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
+    }
+    try{
+      const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+      const now=Date.now()/1000|0;
+      if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+      fetch(ENDPOINT,{cache:'no-store'}).then(r=>r.text()).then(css=>{
         if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
+      }).catch(()=>{});
+    }catch(_){}
+  })();
+  </script>
 
+  <!-- Fallback CSS nhỏ để trang tự đứng vững kể cả khi styles.css chưa cập nhật -->
+  <style>
+    :root{
+      --bg-url: url('/public/assets/bg/nini_home.webp');
+      --glass-bg: rgba(255,255,255,.14);
+      --glass-brd: rgba(255,255,255,.35);
+      --ink:#1c2024;
+      --muted:#6b7b8c;
+      --radius:18px;
+    }
+    body{min-height:100svh;background: #0b1f13 var(--bg-url) center/cover fixed no-repeat;}
+    .site-header{
+      position:sticky;top:0;z-index:20;display:flex;gap:12px;align-items:center;
+      width:min(1180px,94vw);margin:14px auto;padding:10px 14px;
+      background:var(--glass-bg);border:1px solid var(--glass-brd);backdrop-filter:blur(10px);
+      border-radius:14px;
+    }
+    .brand{display:flex;gap:10px;align-items:center;text-decoration:none}
+    .brand__logo{height:34px}
+    .brand__slogan{font-weight:700;letter-spacing:.2px;background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+      -webkit-background-clip:text;background-clip:text;color:transparent}
+    .btn{
+      appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);color:var(--ink);
+      border-radius:999px;padding:8px 14px;cursor:pointer;backdrop-filter:blur(8px)
+    }
+    .btn.small{padding:6px 10px}
+    .btn.danger{border-color:#ffb0b0}
+    .muted{color:var(--muted);font-size:13px}
+    .page-hero{display:flex;justify-content:center}
+    .panel-glass{
+      width:min(1180px,94vw);margin:12px auto 80px;background:var(--glass-bg);
+      border:1px solid var(--glass-brd);border-radius:var(--radius);backdrop-filter:blur(10px)
+    }
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px}
+    .grid.head, .grid{display:grid;gap:8px;align-items:center;padding:8px 12px}
+    .grid.head{grid-template-columns:80px 120px 1fr 1fr 120px 110px 110px 1fr;font-weight:700}
+    .grid{grid-template-columns:80px 120px 1fr 1fr 120px 110px 110px 1fr}
+    .avt-img{width:64px;height:64px;border-radius:14px;object-fit:cover;border:1px solid var(--glass-brd);background:#fff}
+    .input{
+      width:100%;padding:8px 10px;border:0;border-bottom:2px solid rgba(255,255,255,.55);
+      background:transparent;color:var(--ink);outline:0
+    }
+    .row-btns{display:flex;gap:6px;align-items:center}
+    .note{padding:10px 12px;color:var(--muted)}
+    .spacer{flex:1}
+    .wrap-page{padding:10px 0 14px}
+  </style>
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <!-- Header -->
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
-  <body>
-    <div style="flex:1"></div>
+    <div class="spacer"></div>
     <a class="btn" href="/admin/index.html">↩ Về Admin</a>
   </header>
 
-  <main class="page-hero bg-cover">
-    <section class="panel-glass">
+  <!-- Main -->
+  <main class="page-hero">
+    <section class="panel-glass wrap-page" aria-label="Avatar Builder">
       <div class="toolbar">
         <strong>Avatar Builder</strong>
         <span class="muted">/public/content/avatars/<b>avatar-manifest.json</b></span>
         <button id="btnAdd" class="btn small">+ Thêm avatar</button>
-        <button id="btnSave" class="btn small">Lưu nháp (trình duyệt)</button>
+        <button id="btnSave" class="btn small">Lưu nháp</button>
         <button id="btnImport" class="btn small">Import JSON</button>
         <button id="btnDownload" class="btn small">Tải manifest.json</button>
-        <button id="btnFetch" class="btn small">Tải từ GitHub/site</button>
-        <input type="file" id="filePicker" accept=".json" hidden>
+        <button id="btnFetch" class="btn small">Tải từ site/Git</button>
+        <input type="file" id="filePicker" accept=".json" hidden />
         <span id="stat" class="muted"></span>
       </div>
 
@@ -60,18 +112,18 @@
       <div id="rows"></div>
 
       <div class="note">
-        Gợi ý schema:
-        <code>{ id, title_vi, title_en, image, rarity, price, xp_required, tags }</code>.
-        Ảnh đề xuất lưu ở <code>/public/assets/avatar/*.webp</code>.
+        Schema: <code>{ id, title_vi, title_en, image, rarity, price, xp_required, tags }</code> •
+        Ảnh nên đặt tại <code>/public/assets/avatar/*.webp</code>.
       </div>
     </section>
   </main>
 
+  <!-- App -->
   <script>
     const LS_KEY = "ADMIN_AVATARS_DRAFT_V1";
     const REMOTE_JSON = "/public/content/avatars/avatar-manifest.json";
 
-    const $ = s => document.querySelector(s);
+    const $  = s => document.querySelector(s);
     const rowsEl = $("#rows"), stat = $("#stat");
     const rarityOptions = ["common","rare","epic","legendary"];
 
@@ -81,41 +133,32 @@
     ];
     render();
 
-    $("#btnAdd").onclick = () => { avatars.push(blank()); render(); };
-    $("#btnSave").onclick = () => { saveDraft(); flash("Đã lưu nháp vào trình duyệt"); };
-    $("#btnDownload").onclick = () => {
-      const payload = manifest();
-      download("avatar-manifest.json", JSON.stringify(payload, null, 2));
-    };
-    $("#btnImport").onclick = () => $("#filePicker").click();
+    $("#btnAdd").onclick      = () => { avatars.push(blank()); render(); };
+    $("#btnSave").onclick     = () => { saveDraft(); flash("Đã lưu nháp vào trình duyệt"); };
+    $("#btnDownload").onclick = () => download("avatar-manifest.json", JSON.stringify({updatedAt:Date.now(), avatars}, null, 2));
+    $("#btnImport").onclick   = () => $("#filePicker").click();
     $("#filePicker").onchange = async (e)=>{
       const f = e.target.files[0]; if(!f) return;
       try{
-        const text = await f.text();
-        const j = JSON.parse(text);
-        if (Array.isArray(j.avatars)) avatars = j.avatars; else if (Array.isArray(j)) avatars = j;
-        else throw new Error("JSON không đúng định dạng.");
+        const j = JSON.parse(await f.text());
+        avatars = Array.isArray(j.avatars) ? j.avatars : (Array.isArray(j) ? j : []);
         render(); flash("Đã import JSON");
       }catch(err){ alert("Import lỗi: " + err.message); }
       e.target.value = "";
     };
     $("#btnFetch").onclick = async ()=>{
       try{
-        const r = await fetch(REMOTE_JSON, { cache:"no-store" });
+        const r = await fetch(REMOTE_JSON, {cache:"no-store"});
         const j = await r.json();
-        if (!j) throw 0;
         avatars = Array.isArray(j.avatars) ? j.avatars : (Array.isArray(j) ? j : []);
-        render(); flash("Đã tải manifest hiện có.");
-      }catch{ alert("Không tìm thấy hoặc đọc được " + REMOTE_JSON); }
+        render(); flash("Đã tải manifest hiện có");
+      }catch{ alert("Không tìm thấy/đọc được " + REMOTE_JSON); }
     };
 
     function blank(){
-      return { id:"AVT"+String(Date.now()).slice(-5),
-               title_vi:"", title_en:"",
-               image:"/public/assets/avatar/NV1.webp",
-               rarity:"common", price:0, xp_required:0, tags:[] };
+      return { id:"AVT"+String(Date.now()).slice(-5), title_vi:"", title_en:"",
+               image:"/public/assets/avatar/NV1.webp", rarity:"common", price:0, xp_required:0, tags:[] };
     }
-    function manifest(){ return { updatedAt: Date.now(), avatars }; }
     function saveDraft(){ localStorage.setItem(LS_KEY, JSON.stringify(avatars)); }
     function loadDraft(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
     function flash(msg){ stat.textContent = msg; setTimeout(()=>stat.textContent="",1800); }
@@ -124,6 +167,7 @@
       const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
       document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },0);
     }
+    function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
 
     function render(){
       rowsEl.innerHTML = avatars.map((avt, i) => rowTpl(avt, i)).join("");
@@ -139,11 +183,11 @@
       });
       rowsEl.querySelectorAll("[data-action]").forEach(btn=>{
         const i = Number(btn.dataset.i);
-        const act = btn.dataset.action;
+        const a = btn.dataset.action;
         btn.onclick = ()=>{
-          if (act==="up"   && i>0)              { const [x]=avatars.splice(i,1); avatars.splice(i-1,0,x); render(); }
-          if (act==="down" && i<avatars.length-1){ const [x]=avatars.splice(i,1); avatars.splice(i+1,0,x); render(); }
-          if (act==="del") { if (confirm("Xóa avatar này?")) { avatars.splice(i,1); render(); } }
+          if (a==="up"   && i>0)               { const [x]=avatars.splice(i,1); avatars.splice(i-1,0,x); render(); }
+          if (a==="down" && i<avatars.length-1){ const [x]=avatars.splice(i,1); avatars.splice(i+1,0,x); render(); }
+          if (a==="del") { if(confirm("Xoá avatar này?")) { avatars.splice(i,1); render(); } }
         };
       });
     }
@@ -174,22 +218,18 @@
           </div>
         </div>`;
     }
-    function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c])); }
   </script>
- <script>
-(function applyBrandEverywhere(){
-  const BRAND_KEY='NINI_THEME_BRAND';
-  try {
-    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
-    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
-    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
-    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
-  } catch {}
-})();
-</script>
+
+  <!-- Áp dụng logo/slogan tuỳ chỉnh đã lưu -->
+  <script>
+  (function applyBrandEverywhere(){
+    const BRAND_KEY='NINI_THEME_BRAND';
+    try{
+      const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
+      if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
+      if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
+    }catch(_){}
+  })();
+  </script>
 </body>
- </html>
-
-
-
-
+</html>

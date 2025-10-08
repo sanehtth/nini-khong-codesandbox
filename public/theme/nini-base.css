@@ -222,3 +222,16 @@ thead tr{background:rgba(255,255,255,.25)}
 th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.25);text-align:left}
 tbody tr:hover{background:rgba(255,255,255,.08)}
 .glass-head{padding:12px 14px;border-bottom:1px solid var(--glass-brd)}
+
+/* Main frame luôn căn giữa */
+.frame{ position:relative; width:min(1180px,94vw); margin:12px auto; }
+
+/* Hàng chip nằm sát đầu khối frame, không absolute */
+.chips{
+  position:static;
+  display:flex; gap:10px; flex-wrap:wrap;
+  margin:8px 10px 12px;
+}
+
+/* Thẻ card giới thiệu trong frame (nếu dùng) */
+.frame .intro{ margin:10px; }

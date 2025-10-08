@@ -1,5 +1,32 @@
 <!doctype html>
 <html lang="vi">
+  <script>
+(function(){
+  const ENDPOINT='/.netlify/functions/theme';
+  const KEY='NINI_THEME_CACHE_V1';
+  const MAX_AGE=3600; // 1h
+
+  function inject(css){
+    try{
+      let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent=css;
+    }catch(_){}
+  }
+
+  try{
+    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+    const now=Date.now()/1000|0;
+    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+    fetch(ENDPOINT, {cache:'no-store'})
+      .then(r=>r.text())
+      .then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
+      }).catch(_=>{});
+  }catch(_){}
+})();
+</script>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -67,3 +94,4 @@
   </script>
 </body>
 </html>
+

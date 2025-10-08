@@ -224,8 +224,7 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 .glass-head{padding:12px 14px;border-bottom:1px solid var(--glass-brd)}
 
 /* Main frame luôn căn giữa */
-.frame{ position:relative; width:min(1180px,94vw); margin:12px auto; }
-
+/*.frame{ position:relative; width:min(1180px,94vw); margin:12px auto; }*/
 /* Hàng chip nằm sát đầu khối frame, không absolute */
 .chips{
   position:static;
@@ -234,9 +233,9 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 }
 
 /* Thẻ card giới thiệu trong frame (nếu dùng) */
-.frame .intro{ margin:10px; }
+/* .frame .intro{ margin:10px; }*/
 /* Ẩn kệ sách tạm thời */
-#shelfMount { display:none !important; }
+/* #shelfMount { display:none !important; } */
 
 /* Nếu vẫn còn khối content cũ thì ẩn luôn: */
 /* .content { display:none !important; } */
@@ -295,6 +294,7 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   user-select:none;
 }
 .chip:is(:hover,:focus){ filter:brightness(1.06); }
+
 
 
 

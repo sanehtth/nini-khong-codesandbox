@@ -228,4 +228,111 @@
           window.dispatchEvent(new CustomEvent('nini:profilechange'));
         }
         note.textContent="Đã lưu hồ sơ."; toast("Lưu hồ sơ thành công",true);
-      }catch(e
+      }catch(e){
+        note.textContent="Không lưu được.";
+        toast("Lưu hồ sơ thất bại (kiểm tra Firestore Rules cho collection 'users')",false);
+      }
+    }
+
+    async function refreshAll(uid){
+      const cloud=await loadCloudProfile(uid);
+      const local=readLocalProfile();
+      const pf=local?.profile||{ name:"Player", coins:300, xp:0, chests:0, unlocked:{topics:{},categories:{}} };
+      const merged={ ...pf, ...(cloud||{}), name:cloud?.name||pf.name, coins:(cloud?.coins??pf.coins)|0, xp:(cloud?.xp??pf.xp)|0, chests:(cloud?.chests??pf.chests)|0, avatarUrl:cloud?.avatarUrl||pf.avatarUrl||"/public/assets/avatar/NV1.webp", unlocked:cloud?.unlocked||pf.unlocked };
+      writeLocalProfile(uid,merged);
+      /* >>> header cập nhật avatar */
+      window.dispatchEvent(new CustomEvent('nini:profilechange'));
+      renderKPI(merged);
+      document.getElementById("pf_avatar_img").src=merged.avatarUrl; document.getElementById("pf_avatar").value=merged.avatarUrl;
+      return {cloud,merged};
+    }
+
+    async function changePassword(){
+      const u = auth.currentUser;
+      const note = document.getElementById("pwNote");
+      note.className = "note"; note.textContent = "";
+      if (!u) { note.textContent = "Vui lòng đăng nhập trước."; return; }
+
+      const hasPasswordProvider = (u.providerData || []).some(p => p.providerId === "password");
+
+      const cur = document.getElementById("pw_current").value;
+      const pw1 = document.getElementById("pw_new").value;
+      const pw2 = document.getElementById("pw_confirm").value;
+
+      if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
+      if (pw1 !== pw2) { note.textContent = "Mật khẩu mới không khớp."; return; }
+
+      try {
+        if (!hasPasswordProvider) {
+          try { await reauthenticateWithPopup(u, new GoogleAuthProvider()); } catch(_) {}
+          if (!u.email) { note.textContent = "Tài khoản Google không có email xác thực — không thể thêm mật khẩu."; note.className = "note bad"; return; }
+          const cred = EmailAuthProvider.credential(u.email, pw1);
+          await linkWithCredential(u, cred);
+          note.textContent = "Đã thêm mật khẩu cho tài khoản."; note.className = "note ok";
+        } else {
+          if (u.email) {
+            if (!cur) { note.textContent = "Nhập mật khẩu hiện tại để xác thực."; return; }
+            const cred = EmailAuthProvider.credential(u.email, cur);
+            await reauthenticateWithCredential(u, cred);
+          }
+          await updatePassword(u, pw1);
+          note.textContent = "Đổi mật khẩu thành công."; note.className = "note ok";
+        }
+        ["pw_current","pw_new","pw_confirm"].forEach(id => document.getElementById(id).value = "");
+      } catch (e) {
+        const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
+        note.textContent = "Không thể cập nhật: " + msg; note.className = "note bad";
+      }
+    }
+
+    // Avatar events (CẬP NHẬT LOCAL + phát sự kiện để header đổi ảnh ngay)
+    document.getElementById("pf_avatar_img").addEventListener("click", ()=>document.getElementById("pf_avatar").focus());
+    document.getElementById("btnApplyAvatar").addEventListener("click", ()=>{
+      const url=document.getElementById("pf_avatar").value.trim()||"/public/assets/avatar/NV1.webp";
+      document.getElementById("pf_avatar_img").src=url;
+      const cur=readLocalProfile(); 
+      if(cur){ cur.profile={...cur.profile, avatarUrl:url}; writeLocalProfile(cur.uid, cur.profile); }
+      window.dispatchEvent(new CustomEvent('nini:profilechange'));
+    });
+
+    // Wire UI
+    document.getElementById("btnSendOtp").addEventListener("click", sendOTP);
+    document.getElementById("btnVerifyOtp").addEventListener("click", verifyOTP);
+    document.getElementById("btnOpenChest").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await openChestHandler(u.uid); });
+    document.getElementById("btnRefresh").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return; await refreshAll(u.uid); toast("Đồng bộ xong.",true); });
+    document.getElementById("btnChangePw").addEventListener("click", changePassword);
+    document.getElementById("profileForm").addEventListener("submit", async e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await saveProfile(u.uid); });
+
+    // Đăng xuất
+    document.getElementById("signoutBtn").addEventListener("click", async ()=>{
+      try{ await signOut(auth); }catch(e){}
+      finally{
+        localStorage.removeItem(LS_ACCOUNTS);
+        localStorage.removeItem(LS_ACTIVE);
+        localStorage.setItem("NINI_AUTH_LOGGED_IN", "0");
+        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));
+        window.dispatchEvent(new CustomEvent('nini:authchange'));
+        location.replace("/#home");
+      }
+    });
+
+    // Guard + load
+    onAuthStateChanged(auth, async (user)=>{
+      const hint=document.getElementById("authHint");
+      if(!user){ location.replace("/#home"); return; }
+
+      document.getElementById("pf_email").value = user.email || user.phoneNumber || "";
+      document.getElementById("profileForm").querySelectorAll("input,select,button").forEach(el=>el.disabled=false);
+
+      const local=readLocalProfile(); const cloud=await loadCloudProfile(user.uid);
+      const base=local?.profile||{ name:user.displayName||"Player", coins:300, xp:0, chests:0, createdAt:Date.now(), unlocked:{topics:{},categories:{}} };
+      const merged={...base,...(cloud||{})};
+      writeLocalProfile(user.uid,merged);
+      window.dispatchEvent(new CustomEvent('nini:profilechange'));
+
+      fillForm(user,merged,cloud); renderKPI(merged);
+      hint.innerHTML=`Đăng nhập: <strong>${user.email||user.phoneNumber||"tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
+    });
+  </script>
+</body>
+</html>

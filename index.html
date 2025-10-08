@@ -101,6 +101,24 @@
       <p>... (nội dung giới thiệu) ...</p>
     </section>
   </main>
+<!-- ========== an nut admin ========== -->
+  <script>
+  (function adminHotkey(){
+    const btn = document.getElementById('adminBtn'); if (!btn) return;
+    const KEY = 'nini_admin_btn';
+    function apply(){ const on = localStorage.getItem(KEY) === 'on'; btn.classList.toggle('is-hidden', !on); }
+    apply();
+    window.addEventListener('keydown', (e)=>{
+      const hit = (e.altKey && (e.key==='a' || e.key==='A')) || (e.ctrlKey && e.altKey && (e.key==='a' || e.key==='A'));
+      if (hit){
+        e.preventDefault();
+        const on = localStorage.getItem(KEY) === 'on';
+        localStorage.setItem(KEY, on ? 'off' : 'on');
+        apply();
+      }
+    });
+  })();
+</script>
 
   <!-- ========== AUTH MODAL (Glass) ========== -->
   <div id="authModal" class="modal" aria-hidden="true">
@@ -235,3 +253,4 @@
   <script type="module" src="/public/js/auth.js?v=3"></script>
 </body>
 </html>
+

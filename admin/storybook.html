@@ -22,7 +22,7 @@
       if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
       fetch(ENDPOINT,{cache:'no-store'}).then(function(r){return r.text();}).then(function(css){
         if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css: css})); }
-      })["catch"](function(){});
+      }).catch(function(){});
     }catch(_){}
   })();
   </script>
@@ -280,7 +280,7 @@
       ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
       renderPages(); renderManifestSnippet(); autosave();
       e.target.value='';
-    })["catch"](function(err){ alert('Import loi: '+err.message); e.target.value=''; });
+    }).catch(function(err){ alert('Import loi: '+err.message); e.target.value=''; });
   });
 
   document.getElementById('btnDLBook').onclick=function(){
@@ -312,13 +312,13 @@
       ['IDBook','little_vi','little_en','auther','design','L_imageBia'].forEach(function(id){ document.getElementById(id).value=book[id]||''; });
       renderPages(); renderManifestSnippet();
       alert('Da nap sach tu GitHub.');
-    })["catch"](function(e){ alert('Khong tai duoc tu GitHub: '+e.message); });
+    }).catch(function(e){ alert('Khong tai duoc tu GitHub: '+e.message); });
   };
   document.getElementById('btnGitSave').onclick=function(){
     if(!book.IDBook) return alert('Nhap IDBook truoc!');
     var path='public/content/storybook/'+book.IDBook+'.json';
     var sha;
-    ghGet(path,false).then(function(meta){ sha=meta && meta.data && meta.data.sha; })["catch"](function(){})
+    ghGet(path,false).then(function(meta){ sha=meta && meta.data && meta.data.sha; }).catch(function(){})
     .then(function(){
       return fetch('/.netlify/functions/sb-github-save',{
         method:'POST',
@@ -361,3 +361,4 @@
   </script>
 </body>
 </html>
+

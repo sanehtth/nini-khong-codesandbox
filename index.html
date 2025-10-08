@@ -9,9 +9,28 @@
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
   <link rel="stylesheet" href="/styles.css?v=16" />
   <style>
-    .frame{position:relative}
+    :root{
+      --shell: 1180px;
+    }
+    /* Khung hiển thị chính */
+    .viewport{ width:min(var(--shell),94vw); margin:14px auto 80px; }
+    .frame{ position:relative; width:100%; border-radius:18px; overflow:hidden; }
+    /* Kệ sách luôn click được, không bị lớp khác đè */
+    #shelfMount.shelf-card{
+      position:relative;
+      z-index:2;
+      width:calc(100% - 48px);
+      margin: clamp(120px, 18vh, 220px) auto 0; /* đẩy xuống vùng hoa */
+    }
+    /* Card nội dung bên dưới, không đè lên frame */
+    .content{ width:min(var(--shell),94vw); margin:14px auto 0; position:relative; z-index:1; }
+
+    /* Nhóm auth ở header */
     .auth-area{display:flex;gap:10px;align-items:center}
     .avatar-btn img{width:32px;height:32px;border-radius:50%}
+
+    /* Bật/tắt nút Admin */
+    .admin-link.is-hidden{ display:none !important; }
   </style>
 </head>
 <body>
@@ -35,7 +54,6 @@
       <!-- CHƯA login -->
       <button id="authBtn"
               class="auth-btn"
-              data-role="btn-login"
               data-show="out">Đăng nhập / Đăng ký</button>
 
       <!-- ĐÃ login: Avatar mở hồ sơ -->
@@ -54,7 +72,6 @@
       <!-- ĐÃ login: Đăng xuất -->
       <button id="btnLogout"
               class="auth-btn"
-              data-role="btn-logout"
               data-show="in"
               style="display:none">
         Đăng xuất <span class="who"></span>
@@ -189,6 +206,25 @@
       window.addEventListener('nini:profilechange', applyAvatar);
       window.addEventListener('storage', (e)=>{
         if (e.key === 'NINI_ACCOUNTS_V3' || e.key === 'NINI_ACTIVE_USER_V3') applyAvatar();
+      });
+    })();
+  </script>
+
+  <!-- ===== Fallback hotkey cho Admin (Alt+A hoặc Ctrl+Alt+A) ===== -->
+  <script>
+    (function adminHotkey(){
+      const btn = document.getElementById('adminBtn'); if (!btn) return;
+      const KEY = 'nini_admin_btn';
+      function apply(){ const on = localStorage.getItem(KEY) === 'on'; btn.classList.toggle('is-hidden', !on); }
+      apply();
+      window.addEventListener('keydown', (e)=>{
+        const hit = (e.altKey && (e.key==='a' || e.key==='A')) || (e.ctrlKey && e.altKey && (e.key==='a' || e.key==='A'));
+        if (hit){
+          e.preventDefault();
+          const on = localStorage.getItem(KEY) === 'on';
+          localStorage.setItem(KEY, on ? 'off' : 'on');
+          apply();
+        }
       });
     })();
   </script>

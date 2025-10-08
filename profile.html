@@ -1,104 +1,25 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hồ sơ & Thành tích — NiNi</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=20" />
-  <style>
-    /* ====== Nền giống trang index ====== */
-    html,body{height:100%}
-    body{
-      margin:0;
-      background: #e9f3ee url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
-      color:var(--text);
-    }
-    /* ====== Header giống index ====== */
-    .site-header{
-      position:sticky; top:0; z-index:50;
-      display:flex; align-items:center; gap:16px;
-      padding:10px 14px; margin:12px auto; width:min(1180px,94vw);
-      backdrop-filter: blur(10px);
-      background: rgba(255,255,255,.15);
-      border:1px solid rgba(255,255,255,.35);
-      border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(47,110,63,.25);
-    }
-    .brand{display:flex; align-items:center; gap:10px; text-decoration:none}
-    .brand__logo{height:34px}
-    .brand__slogan{
-      font-weight:700; letter-spacing:.2px; user-select:none;
-      background: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-      animation: hue 10s linear infinite;
-    }
-    @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
-    .tabs a.tab{ text-decoration:none }
-
-    /* ====== Layout trang Profile ====== */
-    .page-wrap{ width:min(1100px, 94vw); margin:18px auto 32px; display:grid; gap:16px; grid-template-columns: 1.2fr .8fr; }
-    .card{ background: rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:16px; padding:16px 16px 18px; color:var(--text); box-shadow: 0 10px 26px rgba(47,110,63,.22); backdrop-filter: blur(10px); }
-    .card h2{ margin:0 0 10px; font-size:20px }
-    .meta{ font-size:13px; color:var(--text-dim); margin:-2px 0 12px }
-    .grid-2{ display:grid; grid-template-columns: 140px 1fr; gap:14px; align-items:start }
-    .fld{ display:grid; grid-template-columns: 180px 1fr; align-items:center; gap:10px; margin:8px 0 }
-    .fld > span{ color:var(--text-dim); font-size:14px }
-    .fld input, .fld select{ width:100%; padding:10px 12px; color:var(--text); background:transparent; border:none; border-bottom:1px solid rgba(17,24,39,.28); outline:none }
-    .row{ display:flex; gap:10px; margin-top:12px; align-items:center; flex-wrap:wrap }
-    .kpi{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin:8px 0 10px }
-    .kpi .tile{ background: rgba(255,255,255,.18); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px; text-align:center }
-    .kpi .tile h3{ margin:0; font-size:13px; color:var(--text-dim) } .kpi .tile .val{ font-size:22px; font-weight:800; margin-top:4px }
-    .bar{ height:8px; background:rgba(17,24,39,.12); border-radius:999px; overflow:hidden } .bar>i{ display:block; height:100%; background:linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752) }
-    .pill-ghost{ padding:6px 10px; border-radius:999px; border:1px dashed rgba(17,24,39,.25); color:var(--text-dim) }
-    .reward{ display:grid; gap:10px; margin-top:10px; background: rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px }
-    .reward .chest-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap }
-    .muted{ color:var(--text-dim); font-size:13px } .note{ font-size:12px; color:var(--text-dim) } .ok{ color:#0f5132 } .bad{ color:#7f1d1d }
-    .avatar-wrap{ display:flex; align-items:center; gap:14px }
-    .avatar{ width:96px; height:96px; border-radius:50%; border:1px solid rgba(17,24,39,.15); object-fit:cover; box-shadow:0 2px 10px rgba(17,24,39,.08); background:#fff }
-    .pw-card{ margin-top:14px; background:rgba(255,255,255,.14); border:1px solid rgba(17,24,39,.12); border-radius:12px; padding:12px }
-    .pw-card h3{ margin:0 0 8px; font-size:16px }
-
-    /* ====== Modal avatar shop ====== */
-    .modal{position:fixed;inset:0;display:none}
-    .modal[aria-hidden="false"]{display:block}
-    .modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(4px)}
-    .modal__panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(860px,94vw);max-height:min(88vh,940px);overflow:auto;border-radius:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);box-shadow:0 20px 60px rgba(0,0,0,.25)}
-    .shop__head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.35)}
-    .shop__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px}
-    @media (max-width:840px){.shop__grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:540px){.shop__grid{grid-template-columns:1fr}}
-    .avt-card{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:12px;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto}
-    .avt-card__img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#fff}
-    .avt-card__body{padding:10px}
-    .avt-card__title{margin:0 0 4px;font-weight:700}
-    .tag{font-size:12px;border:1px solid rgba(255,255,255,.5);padding:2px 8px;border-radius:999px;margin-left:6px}
-    .avt-card__foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px}
-    .btn{appearance:none;border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.18);color:inherit;border-radius:999px;padding:8px 12px;cursor:pointer}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .btn.small{padding:6px 10px}
-    .btn.ghost{background:transparent}
-    .btn.solid{background:#2f6e3f;border-color:#2f6e3f;color:#fff}
-    @media (max-width: 920px){ .page-wrap{ grid-template-columns: 1fr; } .grid-2{ grid-template-columns: 1fr; } }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NiNi — Hồ sơ & Thành tích</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
+  <link rel="stylesheet" href="/styles.css?v=21">
 </head>
-<body>
-  <!-- HEADER -->
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
-    <a class="brand" href="/#home">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê lý, bứt phá tư duy</div>
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
-    <nav class="tabs" aria-label="Điều hướng nhanh"><a class="tab" href="/#/">← Về trang chủ</a></nav>
-    <a class="auth-btn" id="signoutBtn" href="javascript:void(0)">Đăng xuất</a>
   </header>
 
-  <!-- MAIN -->
-  <main class="viewport">
-    <div class="page-wrap">
-      <!-- Thông tin cá nhân -->
-      <section class="card">
-        <h2>Thông tin cá nhân</h2>
+  <main class="page-hero bg-cover">
+	<div class="page-wrap">
+ 	<!-- Thông tin cá nhân -->
+    <section class="panel-glass">
+       <h2>Thông tin cá nhân</h2>
         <div class="meta" id="authHint">Đang kiểm tra đăng nhập…</div>
 
         <div class="grid-2">
@@ -163,9 +84,9 @@
 
         <!-- Recaptcha (ẩn) cho OTP -->
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
-      </section>
 
-      <!-- Thành tích -->
+    </section>
+<!-- Thành tích -->
       <section class="card">
         <h2>Thành tích</h2>
         <div class="meta">Theo dõi tiến trình học & phần thưởng</div>
@@ -564,4 +485,3 @@
   </script>
 </body>
 </html>
-

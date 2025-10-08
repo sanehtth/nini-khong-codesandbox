@@ -294,7 +294,48 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   user-select:none;
 }
 .chip:is(:hover,:focus){ filter:brightness(1.06); }
+/* 1) Ẩn hoàn toàn khối content cũ */
+#content,
+.content{
+  display:none !important;
+  height:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+}
 
+/* 2) Tắt tấm kính/pseudo của frame (nếu styles cũ có) */
+.frame::before{ content:none !important; }
 
+/* 3) Trung hòa kích thước frame: không nền, không viền, không min-height */
+.frame{
+  width:min(1180px,94vw);
+  margin:16px auto 8px;
+  background:none !important;
+  border:0 !important;
+  min-height:0 !important;
+  padding:0 !important;
 
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
+/* 4) Ẩn mascot cũ nếu còn (class .nini) – chỉ dùng .nini-avatar mới */
+.frame img.nini{ display:none !important; }
+
+/* 5) Bé Nhím ở giữa */
+.nini-avatar{
+  display:block;
+  width:clamp(120px,18vw,220px);
+  aspect-ratio:1/1;
+  object-fit:contain;
+  margin:32px auto;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.22));
+  animation:niniFloat 3s ease-in-out infinite;
+}
+@keyframes niniFloat{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
+  100%{transform:translateY(0)}
+}

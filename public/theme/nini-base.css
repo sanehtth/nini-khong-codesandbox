@@ -235,3 +235,64 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 
 /* Thẻ card giới thiệu trong frame (nếu dùng) */
 .frame .intro{ margin:10px; }
+/* Ẩn kệ sách tạm thời */
+#shelfMount { display:none !important; }
+
+/* Nếu vẫn còn khối content cũ thì ẩn luôn: */
+/* .content { display:none !important; } */
+
+/* Khung chính gọn gàng */
+.frame{
+  width:min(1180px,94vw);
+  margin:12px auto;
+  position:relative;
+  min-height:340px; /* đủ chỗ cho bé Nhím */
+}
+
+/* Bé Nhím đứng giữa + nhún nhẹ cho vui */
+.nini-avatar{
+  display:block;
+  margin:40px auto;
+  width:clamp(120px,18vw,220px);
+  aspect-ratio:1/1;
+  object-fit:contain;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.22));
+  animation: niniFloat 3s ease-in-out infinite;
+}
+@keyframes niniFloat{
+  0%{ transform:translateY(0) }
+  50%{ transform:translateY(-10px) }
+  100%{ transform:translateY(0) }
+}
+
+/* Footer chứa 4 nút */
+.site-footer{
+  width:min(1180px,94vw);
+  margin:24px auto;
+  padding:12px;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-brd);
+  border-radius:var(--radius);
+  backdrop-filter:blur(10px);
+}
+.footer-nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+/* Nếu trang chưa có style .chip thì thêm nhanh: */
+.chip{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid var(--glass-brd);
+  background:var(--glass-bg);
+  color:var(--ink);
+  cursor:pointer;
+  text-decoration:none;
+  user-select:none;
+}
+.chip:is(:hover,:focus){ filter:brightness(1.06); }
+

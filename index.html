@@ -42,14 +42,12 @@ BEGIN: /index.html  (FULL PATCH)
               data-show="out">Đăng nhập / Đăng ký</button>
 
       <!-- Avatar dẫn tới trang hồ sơ (chỉ hiện khi ĐÃ login) -->
-      <a id="btnAvatar"
-         class="avatar-btn"
-         data-show="in"
-         href="/profile.html"
-         style="display:none"
-         title="Hồ sơ">
-        <img src="/public/assets/icons/user-avatar.svg" alt="Tài khoản">
-      </a>
+      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" title="Hồ sơ" style="display:none">
+  <img src="/public/assets/avatar/NV1.webp"
+       alt="Tài khoản"
+       onerror="this.src='/public/assets/icons/logonini.webp'">
+</a>
+
 
       <!-- Nút Đăng xuất (chỉ hiện khi ĐÃ login) -->
       <button id="btnLogout"
@@ -169,3 +167,4 @@ BEGIN: /index.html  (FULL PATCH)
 <!-- =========================
 END: /index.html
 ========================= -->
+

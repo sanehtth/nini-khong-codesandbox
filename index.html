@@ -53,23 +53,18 @@
   <main class="viewport">
     <section class="frame" id="frame" aria-label="Khung hiển thị">
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-      <div class="chips">
-        <button class="chip is-active" data-section="intro">Giới thiệu</button>
-        <button class="chip" data-section="rules">Luật chơi</button>
-        <button class="chip" data-section="forum">Diễn đàn</button>
-        <button class="chip" data-section="feedback">Góp ý</button>
-      </div>
+      
 
       <!-- Kệ sách (Spring) -->
       <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
+    
+  </main>
     <section class="content" id="content" aria-live="polite">
       <h2>NiNi — Funny</h2>
       <p>... (nội dung giới thiệu) ...</p>
     </section>
-  </main>
-
   <!-- ===== Modal đăng nhập (dùng lại auth.js hiện có của bạn) ===== -->
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
@@ -146,6 +141,15 @@
 
   <!-- Xử lý đăng nhập (module Firebase) hiện có -->
   <script type="module" src="/public/js/auth.js?v=3"></script>
+  <footer>
+    <div class="chips">
+        <button class="chip is-active" data-section="intro">Giới thiệu</button>
+        <button class="chip" data-section="rules">Luật chơi</button>
+        <button class="chip" data-section="forum">Diễn đàn</button>
+        <button class="chip" data-section="feedback">Góp ý</button>
+      </div>
+  </footer>
 </body>
 </html>
+
 

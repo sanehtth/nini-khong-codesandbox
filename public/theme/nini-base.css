@@ -154,7 +154,7 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line-strong); 
 .chips{position:absolute;top:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap}
 .chip{appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);padding:6px 10px;border-radius:999px;cursor:pointer}
 .chip.is-active{border-color:#fff;box-shadow:0 0 0 2px rgba(47,110,63,.25)}
-.content{background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);padding:12px}
+/*.content{background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);padding:12px}
 
 /* Shelf (Spring) */
 .shelf-card{margin:12px}
@@ -295,4 +295,5 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   user-select:none;
 }
 .chip:is(:hover,:focus){ filter:brightness(1.06); }
+
 

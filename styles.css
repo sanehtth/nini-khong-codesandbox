@@ -379,5 +379,20 @@ body{
   user-select: none;
   z-index: 2;
 }
+/* Auth modal: chỉ hiển thị form đang active */
+#authModal .form { 
+  display: none !important;
+  margin-top: 10px;
+}
+#authModal .form.is-active {
+  display: block !important;
+}
+
+/* (tuỳ chọn) làm rõ tab đang chọn */
+#authModal .tabs-line .tab-line.is-active {
+  border-bottom: 2px solid rgba(255,255,255,.9);
+  font-weight: 700;
+}
+
 
 

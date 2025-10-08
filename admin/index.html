@@ -8,15 +8,20 @@
   <link rel="stylesheet" href="/styles.css?v=admin3" />
   <style>
     :root{
+      --bg-admin: url("/public/assets/bg/nini_home.webp");    /* ✅ nền */
       --glass-bg: rgba(255,255,255,.15);
       --glass-brd: rgba(255,255,255,.35);
       --glass-shadow: 0 10px 30px rgba(47,110,63,.25);
-      --ink: #1c2024;
-      --muted:#6b7b8c;
-      --green:#2f6e3f;
-      --green-2:#21512d;
-      --radius: 18px;
+      --ink: #1c2024; --muted:#6b7b8c; --green:#2f6e3f; --green-2:#21512d; --radius: 18px;
     }
+    /* ===== Background (cover, fixed) ===== */
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: #e9f3ee var(--bg-admin) center/cover fixed no-repeat;
+    }
+
+    /* ===== Header giống trang index ===== */
     .site-header{
       position:sticky; top:0; z-index:50;
       display:flex; align-items:center; gap:16px;
@@ -28,7 +33,7 @@
       box-shadow: var(--glass-shadow);
     }
     .brand{display:flex; align-items:center; gap:10px; text-decoration:none}
-    .brand__logo{height:34px; width:auto; display:block}
+    .brand__logo{height:34px}
     .brand__slogan{
       font-weight:700; letter-spacing:.2px; user-select:none;
       background: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
@@ -37,6 +42,7 @@
     }
     @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
     .spacer{flex:1}
+
     .btn,.admin-tab{
       appearance:none; border:1px solid var(--glass-brd);
       background: var(--glass-bg);
@@ -54,6 +60,7 @@
       box-shadow: 0 0 0 2px rgba(47,110,63,.25), 0 10px 26px rgba(47,110,63,.35);
       border-color:#fff;
     }
+
     .shell{width:min(1180px,94vw); margin:18px auto 90px}
     .glass-card{
       background: var(--glass-bg);
@@ -62,9 +69,11 @@
       box-shadow: var(--glass-shadow);
       backdrop-filter: blur(10px);
     }
+
     .panel{ display:none; margin-top:14px; }
     .panel.is-current{ display:block; }
-    .panel .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:14px; }
+    .panel .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 14px; }
+
     .input{
       background: transparent; border:0; outline:none;
       border-bottom:2px solid rgba(255,255,255,.55);
@@ -72,6 +81,7 @@
       min-width: 220px;
     }
     .input:focus{ border-bottom-color:#9fc5b0; box-shadow: 0 4px 0 -2px rgba(47,110,63,.25) inset; }
+
     .table-wrap{ overflow:auto; border-radius: 0 0 var(--radius) var(--radius); }
     table{ width:100%; border-collapse: collapse; color:var(--ink); }
     thead tr{ background: rgba(255,255,255,.25); }
@@ -80,7 +90,6 @@
     .muted{ color:var(--muted); font-size:13px }
     .btn.small{ padding:6px 10px; }
     .glass-head{ padding:12px 14px; border-bottom:1px solid var(--glass-brd); }
-    .link{ text-decoration:none; color:var(--green-2); font-weight:700 }
   </style>
 </head>
 <body>
@@ -100,14 +109,11 @@
       <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
       <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
       <a class="admin-tab" href="/admin/storybook.html">Tạo Storybook</a>
-      <!-- NÚT MỚI: Tạo Avatar JSON -->
       <a class="admin-tab" href="/admin/avatar.html">Tạo Avatar JSON</a>
     </nav>
 
     <section id="p-scores" class="panel is-current glass-card" aria-labelledby="tab-scores">
-      <div class="glass-head">
-        <div class="muted">Chọn ngày ➜ tải dữ liệu (đọc từ Function của bạn).</div>
-      </div>
+      <div class="glass-head"><div class="muted">Chọn ngày ➜ tải dữ liệu (đọc từ Function của bạn).</div></div>
       <div class="toolbar">
         <input id="pickDate" type="date" class="input" />
         <button id="btnLoad" class="btn small">Tải dữ liệu</button>
@@ -117,10 +123,7 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th>
-              <th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th>
-            </tr>
+            <tr><th>Thời gian (UTC)</th><th>User</th><th>Tên</th><th>Game</th><th>Session</th><th>Điểm</th><th>Tối đa</th><th>Giây</th></tr>
           </thead>
           <tbody id="grid"></tbody>
         </table>
@@ -129,16 +132,12 @@
 
     <section id="p-queue" class="panel glass-card">
       <div class="glass-head"><strong>Hàng đợi cục bộ</strong></div>
-      <div class="toolbar">
-        <span class="muted">Khu vực này bạn có thể gắn lại <code>queue.js</code> của bạn.</span>
-      </div>
+      <div class="toolbar"><span class="muted">Khu vực này bạn có thể gắn lại <code>queue.js</code> của bạn.</span></div>
     </section>
 
     <section id="p-reports" class="panel glass-card">
       <div class="glass-head"><strong>Báo cáo ngày</strong></div>
-      <div class="toolbar">
-        <span class="muted">Gọi Function <code>daily-rollup</code> của bạn nếu đã triển khai.</span>
-      </div>
+      <div class="toolbar"><span class="muted">Gọi Function <code>daily-rollup</code> của bạn nếu đã triển khai.</span></div>
     </section>
   </main>
 

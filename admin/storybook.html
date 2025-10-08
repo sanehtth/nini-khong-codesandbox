@@ -1,64 +1,43 @@
 ﻿<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Storybook Editor</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <style>
-    /* ===== THEME SÁNG, NỀN MỜ (ăn khớp admin) ===== */
-    :root{
-      --ink:#243246; --ink-dim:#617892; --line:rgba(27,43,65,.18);
-      --card:#ffffff; --veil:rgba(255,255,255,.65);
-      --pill1:#7BC6FF; --pill2:#A6FFCB; --danger1:#ff9898; --danger2:#ffb1a6;
-    }
-    html,body{height:100%}
-    body{
-      margin:0; color:var(--ink);
-      font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      background:
-        radial-gradient(1400px 700px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
-        linear-gradient(180deg, #f4fbff, #f7fff9);
-    }
-    .wrap{max-width:1100px; margin:24px auto 80px; padding:0 16px}
-    .panel{
-      background:var(--card); border:1px solid var(--line); border-radius:14px;
-      padding:16px 16px 18px; box-shadow:0 20px 60px rgba(0,0,0,.08);
-      backdrop-filter: blur(6px); margin-bottom:14px;
-    }
-    .panel>h2{margin:0 0 10px; font-size:16px; font-weight:800; letter-spacing:.2px}
-    .muted{color:var(--ink-dim); font-size:12px}
-    .grid{display:grid; gap:12px}
-    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media (max-width:880px){.grid-2{grid-template-columns:1fr}}
-    label{display:block; font-size:13px; color:var(--ink-dim)}
-    input,textarea{
-      width:100%; margin-top:6px; padding:10px 12px;
-      border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); outline:none;
-    }
-    input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(123,198,255,.28)}
-    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .btn{
-      appearance:none; border:none; cursor:pointer; padding:10px 14px; border-radius:999px;
-      color:#0b1220; background:linear-gradient(135deg,var(--pill1),var(--pill2));
-      box-shadow:0 6px 16px rgba(123,198,255,.25);
-    }
-    .btn:hover{filter:brightness(1.05)}
-    .btn:active{transform:translateY(1px)}
-    .btn.gray{color:var(--ink); background:linear-gradient(135deg,#fff,#f6f9ff); border:1px solid var(--line); box-shadow:none}
-    .btn.danger{color:#2a0a0a; background:linear-gradient(135deg,var(--danger1),var(--danger2))}
-    .btn.sm{padding:6px 10px; font-size:13px}
-    .card{border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff}
-    .pagehead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
-    .pagehead strong{font-size:14px}
-    .flex-end{display:flex; gap:8px; align-items:center; justify-content:flex-end}
-    .note{padding:10px 12px; border:1px dashed var(--line); border-radius:10px; background:#fff}
-    .kbd{font:600 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas; background:#f0f5ff; border:1px solid #dbe7ff; padding:2px 6px; border-radius:6px}
-    .mono{font:12px ui-monospace, SFMono-Regular, Menlo, Consolas}
-    details > summary{cursor:pointer; user-select:none}
-  </style>
+  <script>
+(function(){
+  const ENDPOINT='/.netlify/functions/theme';
+  const KEY='NINI_THEME_CACHE_V1';
+  const MAX_AGE=3600; // 1h
+
+  function inject(css){
+    try{
+      let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent=css;
+    }catch(_){}
+  }
+
+  try{
+    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+    const now=Date.now()/1000|0;
+    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+    fetch(ENDPOINT, {cache:'no-store'})
+      .then(r=>r.text())
+      .then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
+      }).catch(_=>{});
+  }catch(_){}
+})();
+</script>
+
 </head>
-<body>
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <header class="site-header">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </a>
+  </header>
+<main class="page-hero bg-cover">
+    <section class="panel-glass">
+  <body>
   <div class="wrap">
     <!-- ===================================================================
          BOOK META
@@ -123,7 +102,8 @@
       </div>
     </section>
   </div>
-
+</section>
+</main>
   <script>
   /* =======================================================================
      STATE + HELPERS
@@ -383,7 +363,19 @@
     }
   };
 </script>
+<script>
+(function applyBrandEverywhere(){
+  const BRAND_KEY='NINI_THEME_BRAND';
+  try {
+    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
+    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
+    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
+    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
+  } catch {}
+})();
+</script>
 
 </body>
 </html>
+
 

@@ -21,7 +21,7 @@
       "rarity": "common",
       "price": 0,
       "xp_required": 0,
-      "tags": []
+      "tags": ["starter"]
     }
   ]
 }

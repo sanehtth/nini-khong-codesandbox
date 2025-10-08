@@ -393,6 +393,65 @@ body{
   border-bottom: 2px solid rgba(255,255,255,.9);
   font-weight: 700;
 }
+/* ==== NiNi — Form: underline only (global) ==== */
+:root{
+  --input-ink: var(--ink, #1c2024);
+  --input-underline: rgba(255,255,255,.75);
+  --input-underline-muted: rgba(255,255,255,.45);
+}
+
+/* Áp dụng cho hầu hết input text-like, select, textarea (không đụng checkbox/radio/range) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="url"],
+input[type="search"],
+input[type="datetime-local"],
+input[type="date"],
+select,
+textarea{
+  appearance: none;
+  background: transparent;          /* no fill */
+  color: var(--input-ink);
+  border: 0;                        /* bỏ viền */
+  border-bottom: 2px solid var(--input-underline-muted);   /* chỉ 1 gạch dưới */
+  border-radius: 0;
+  padding: 8px 10px 8px 4px;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+/* Focus: gạch dưới trắng rõ hơn + nhấn nhẹ */
+input:focus,
+select:focus,
+textarea:focus{
+  border-bottom-color: var(--input-underline);
+  box-shadow: 0 4px 0 -2px var(--input-underline) inset;
+}
+
+/* Placeholder & disabled */
+input::placeholder,
+textarea::placeholder{ color: var(--input-underline-muted); opacity: .9; }
+input:disabled,
+select:disabled,
+textarea:disabled{ opacity:.6; border-bottom-style: dotted; cursor:not-allowed; }
+
+/* Select – vẽ mũi tên trắng nhỏ, vẫn giữ nền trong suốt */
+select{
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--input-underline) 50%),
+    linear-gradient(135deg, var(--input-underline) 50%, transparent 50%);
+  background-position: right 12px top 55%, right 6px top 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* Input nhóm nhỏ (OTP, …) có thể dùng class này nếu cần sát nhau hơn */
+.input--compact{ padding:6px 8px 6px 2px; border-bottom-width: 1.5px; }
+
 
 
 

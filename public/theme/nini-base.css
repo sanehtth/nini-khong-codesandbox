@@ -367,4 +367,33 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 /* --- 4) Ẩn luôn content cũ nếu còn --- */
 #content, .content { display:none !important; height:0 !important; padding:0 !important; margin:0 !important; border:0 !important; }
 
+/* ===== Center NiNi in the hero area ===== */
+#frame{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  min-height: 220px;                 /* chiều cao hero */
+  background:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:16px 0;
+}
+
+/* Ẩn mọi con của frame trừ NiNi (chips đã fixed ở footer) */
+#frame > :not(.nini){ display:none !important; }
+
+/* Kích thước & canh giữa NiNi cho chắc */
+.nini{
+  display:block !important;
+  position:relative !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  width: clamp(160px, 13vw, 240px) !important;
+  height:auto !important;
+  background:none !important;
+  box-shadow:none !important;
+  filter:none !important;
+  margin:0 !important;
+}
+
 

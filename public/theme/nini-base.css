@@ -149,8 +149,8 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line-strong); 
 /* ========== Index viewport / frame / content ========== */
 .viewport{width:min(1180px,94vw);margin:0 auto 60px;display:grid;grid-template-columns: 1.2fr .8fr;gap:14px}
 @media (max-width: 980px){ .viewport{grid-template-columns:1fr} }
-.frame{position:relative;min-height:420px;background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);overflow:hidden}
-.frame .nini{position:absolute;bottom:-6px;right:-6px;width:180px;opacity:.9;pointer-events:none}
+/*.frame{position:relative;min-height:420px;background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);overflow:hidden} */
+/*.frame .nini{position:absolute;bottom:-6px;right:-6px;width:180px;opacity:.9;pointer-events:none} */
 .chips{position:absolute;top:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap}
 .chip{appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);padding:6px 10px;border-radius:999px;cursor:pointer}
 .chip.is-active{border-color:#fff;box-shadow:0 0 0 2px rgba(47,110,63,.25)}
@@ -295,5 +295,6 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   user-select:none;
 }
 .chip:is(:hover,:focus){ filter:brightness(1.06); }
+
 
 

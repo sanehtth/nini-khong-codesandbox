@@ -327,4 +327,44 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   padding: 0 !important;
   margin: 0 !important;
 }
+/* --- 0) Ẩn mọi thứ còn sót của frame/shelf --- */
+#frame { display: contents !important; }                /* bỏ cái box của frame */
+#frame::before,
+#frame::after { content: none !important; }
+.shelf, .shelf-card, .shelf-wrap, .shelf-row,
+.frame-bg, .frame-row, .hero-strip { display:none !important; }
+
+/* --- 1) Chỉ giữ NiNi, không nền/viền/phủ mờ --- */
+#frame .nini, .nini {
+  display:block !important;
+  background:none !important;
+  box-shadow:none !important;
+  filter:none !important;
+  margin:24px auto 0 !important;
+  width:clamp(160px,12vw,220px);
+  height:auto !important;
+}
+
+/* --- 2) Dời 4 nút xuống “footer” (cố định đáy) --- */
+.chips{
+  position:fixed;
+  left:50%;
+  bottom:max(16px, env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  display:flex; gap:10px;
+  padding:10px 14px;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-brd);
+  border-radius:999px;
+  z-index:20;
+}
+
+/* --- 3) Ẩn mọi dải kính mờ thừa ngay dưới header --- */
+.site-header + .panel-glass,
+.site-header + .glass,
+.viewport .glass-row { display:none !important; }
+
+/* --- 4) Ẩn luôn content cũ nếu còn --- */
+#content, .content { display:none !important; height:0 !important; padding:0 !important; margin:0 !important; border:0 !important; }
+
 

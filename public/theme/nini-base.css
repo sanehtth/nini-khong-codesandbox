@@ -239,15 +239,6 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 
 /* Nếu vẫn còn khối content cũ thì ẩn luôn: */
 /* .content { display:none !important; } */
-
-/* Khung chính gọn gàng */
-.frame{
-  width:min(1180px,94vw);
-  margin:12px auto;
-  position:relative;
-  min-height:340px; /* đủ chỗ cho bé Nhím */
-}
-
 /* Bé Nhím đứng giữa + nhún nhẹ cho vui */
 .nini-avatar{
   display:block;
@@ -294,35 +285,6 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   user-select:none;
 }
 .chip:is(:hover,:focus){ filter:brightness(1.06); }
-/* 1) Ẩn hoàn toàn khối content cũ */
-#content,
-.content{
-  display:none !important;
-  height:0 !important;
-  padding:0 !important;
-  margin:0 !important;
-  border:0 !important;
-}
-
-/* 2) Tắt tấm kính/pseudo của frame (nếu styles cũ có) */
-.frame::before{ content:none !important; }
-
-/* 3) Trung hòa kích thước frame: không nền, không viền, không min-height */
-.frame{
-  width:min(1180px,94vw);
-  margin:16px auto 8px;
-  background:none !important;
-  border:0 !important;
-  min-height:0 !important;
-  padding:0 !important;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* 4) Ẩn mascot cũ nếu còn (class .nini) – chỉ dùng .nini-avatar mới */
-.frame img.nini{ display:none !important; }
 
 /* 5) Bé Nhím ở giữa */
 .nini-avatar{
@@ -339,3 +301,30 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   50%{transform:translateY(-10px)}
   100%{transform:translateY(0)}
 }
+/* #frame không còn tạo hộp riêng → không còn vệt kính */
+#frame {
+  display: contents !important;   /* giữ con bên trong, bỏ cái box */
+}
+
+/* Nếu có style cũ vẫn bơm nền/viền qua pseudo thì tắt luôn */
+#frame::before,
+#frame::after {
+  content: none !important;
+}
+
+/* Phòng hờ style cũ còn nặn kính/viền trên con của frame */
+#frame, #frame *:empty {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+/* Bảo đảm không còn chiều cao/ khoảng cách thừa */
+#frame {
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+

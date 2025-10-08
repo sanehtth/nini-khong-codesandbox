@@ -150,7 +150,7 @@ body::after{
 .form .row{display:flex; gap:10px; align-items:center; margin:8px 0; flex-wrap:wrap}
 .input{
   width:100%; min-width:260px; padding:10px 8px;
-  background:transparent; border:none; border-bottom:2px solid rgba(255,255,255,.55);
+  background:transparent; border:none; border-bottom:2px solid rgba(255,255,255,.15);
   outline:none; color:var(--brand-ink)
 }
 .input:focus{border-bottom-color:#9fc5b0; box-shadow:0 4px 0 -2px rgba(47,110,63,.25) inset}
@@ -393,6 +393,7 @@ body{
   border-bottom: 2px solid rgba(255,255,255,.9);
   font-weight: 700;
 }
+
 
 
 

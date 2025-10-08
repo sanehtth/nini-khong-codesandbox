@@ -346,4 +346,38 @@ body{
 
 /* ẩn hoàn toàn nút Admin khi toggle */
 .admin-link.is-hidden{ display:none !important; }
+/* ===== Đặt lại vị trí trong khung .frame ===== */
+
+/* Kệ sách ở TRÊN, căn giữa */
+#shelfMount.shelf-card{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: clamp(18px, 6vh, 48px);     /* khoảng cách từ viền trên */
+  bottom: auto;
+  width: min(980px, calc(100% - 80px));
+  z-index: 3;
+}
+
+/* 4 chip xuống DƯỚI, căn giữa */
+.frame .chips{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(28px, 9vh, 90px);  /* khoảng cách từ viền dưới */
+  z-index: 4;
+}
+
+/* Bé NiNi xuống dưới bên trái */
+.frame .nini{
+  position: absolute;
+  left: clamp(18px, 7vw, 64px);
+  bottom: clamp(120px, 20vh, 220px); /* thấp hơn để nhường chỗ kệ sách */
+  width: clamp(140px, 22vw, 240px);
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+}
+
 

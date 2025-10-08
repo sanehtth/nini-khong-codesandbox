@@ -1,37 +1,48 @@
 <!doctype html>
 <html lang="vi">
+  <script>
+(function(){
+  const ENDPOINT='/.netlify/functions/theme';
+  const KEY='NINI_THEME_CACHE_V1';
+  const MAX_AGE=3600; // 1h
+
+  function inject(css){
+    try{
+      let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent=css;
+    }catch(_){}
+  }
+
+  try{
+    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
+    const now=Date.now()/1000|0;
+    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
+    fetch(ENDPOINT, {cache:'no-store'})
+      .then(r=>r.text())
+      .then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
+      }).catch(_=>{});
+  }catch(_){}
+})();
+</script>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Admin Login</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=admin1" />
-  <style>
-    /* NOTE: cùng phong cách “kính trắng mờ” như site chính */
-    .wrap { min-height: 100dvh; display:flex; align-items:center; justify-content:center; }
-    .card {
-      width:min(560px, 92vw);
-      background: rgba(255,255,255,.7);
-      border:1px solid rgba(0,0,0,.08);
-      border-radius:16px; padding:18px 18px 14px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.15), inset 0 0 0 1px rgba(255,255,255,.35);
-      backdrop-filter: blur(8px);
-      color:#22313f;
-    }
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-    input[type=password]{
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.15);
-      background:#fff; color:#22313f; outline:none;
-    }
-    .btn{padding:10px 14px; border-radius:999px; border:1px solid rgba(0,0,0,.15); background:#fff; cursor:pointer}
-    .btn:hover{border-color:#000}
-    .muted{color:#6b7b8c; font-size:13px}
-    .err{color:#c21d1d; margin-top:10px}
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NiNi — Hồ sơ & Thành tích</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
+  <link rel="stylesheet" href="/styles.css?v=21">
 </head>
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <header class="site-header">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </a>
+  </header>
 <body>
-  <main class="wrap">
-    <section class="card">
+   <main class="page-hero bg-cover">
+    <section class="panel-glass">
       <h2 style="margin:0 0 10px">NiNi — Admin</h2>
       <p class="muted" style="margin:0 0 12px">Nhập mật khẩu admin để vào bảng điều khiển.</p>
 
@@ -82,3 +93,4 @@
 </body>
 </html>
 <!-- --------------- HẾT FILE login.html --------------- -->
+

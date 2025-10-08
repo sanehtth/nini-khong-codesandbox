@@ -277,7 +277,19 @@
   <script src="/public/js/effects.js?v=3" defer></script>
   <script src="/public/js/app.js?v=14" defer></script>
   <script type="module" src="/public/js/auth.js?v=3"></script>
+ <script>
+(function applyBrandEverywhere(){
+  const BRAND_KEY='NINI_THEME_BRAND';
+  try {
+    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
+    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
+    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
+    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
+  } catch {}
+})();
+</script>
 </body>
 </html>
+
 
 

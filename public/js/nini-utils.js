@@ -52,6 +52,12 @@
     set: function (k, v) { localStorage.setItem(k, JSON.stringify(v)); },
     del: function (k) { localStorage.removeItem(k); }
   };
+// alias để tương thích code cũ gọi NINI.store.*
+  NINI.store = {
+    get: NINI.storage.get,
+    set: NINI.storage.set,
+    del: NINI.storage.del
+};
 
   // key “chuẩn” hay dùng trong project
   NINI.KEY = {
@@ -140,3 +146,4 @@
   // gắn global
   global.NINI = NINI;
 })(window);
+

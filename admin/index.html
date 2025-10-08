@@ -147,13 +147,18 @@
 
   <main class="shell">
     <!-- Tabs -->
-    <nav class="admin-tabs" id="adminTabs" aria-label="Admin sections">
-      <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
-      <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
-      <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
-      <button class="admin-tab" data-tab="theme">Chỉnh style</button>
-      <a class="admin-tab" href="/admin/storybook.html" style="text-decoration:none">Tạo Storybook</a>
-    </nav>
+    <!-- Tabs admin -->
+<nav class="admin-tabs" id="adminTabs" aria-label="Admin sections">
+  <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
+  <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
+  <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
+  <button class="admin-tab" data-tab="theme">Chỉnh style</button>
+
+  <!-- Các tool mở trang riêng -->
+  <a class="admin-tab" href="/admin/storybook.html" style="text-decoration:none">Tạo Storybook</a>
+  <a class="admin-tab" href="/admin/avatar.html" style="text-decoration:none">Tạo Avatar JSON</a>
+</nav>
+
 
     <!-- Panel: Scores -->
     <section id="p-scores" class="panel is-current glass-card" aria-labelledby="tab-scores">
@@ -436,3 +441,4 @@ body{
   </script>
 </body>
 </html>
+

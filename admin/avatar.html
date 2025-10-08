@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
@@ -8,11 +8,18 @@
   <link rel="stylesheet" href="/styles.css?v=admin3" />
   <style>
     :root{
+      --bg-admin: url("/public/assets/bg/nini_home.webp");   /* ✅ nền */
       --glass-bg: rgba(255,255,255,.15);
       --glass-brd: rgba(255,255,255,.35);
       --glass-shadow: 0 10px 30px rgba(47,110,63,.25);
-      --ink: #1c2024; --muted:#6b7b8c;
+      --ink:#1c2024; --muted:#6b7b8c;
     }
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:#e9f3ee var(--bg-admin) center/cover fixed no-repeat;
+    }
+
     .site-header{
       position:sticky; top:0; z-index:50;
       display:flex; align-items:center; gap:16px;
@@ -20,19 +27,16 @@
       backdrop-filter: blur(10px);
       background: var(--glass-bg);
       border:1px solid var(--glass-brd);
-      border-radius: 14px;
-      box-shadow: var(--glass-shadow);
+      border-radius: 14px; box-shadow: var(--glass-shadow);
     }
     .brand{display:flex; align-items:center; gap:10px; text-decoration:none}
-    .brand__logo{height:34px}
-    .brand__slogan{font-weight:700; background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-      -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .brand__logo{height:34px} .brand__slogan{font-weight:700; background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b); -webkit-background-clip:text; background-clip:text; color:transparent}
     .shell{width:min(1180px,94vw); margin:18px auto 90px}
     .glass-card{background:var(--glass-bg); border:1px solid var(--glass-brd); border-radius:18px; backdrop-filter:blur(10px); box-shadow:var(--glass-shadow)}
     .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:12px 14px}
     .btn{appearance:none; border:1px solid var(--glass-brd); background:var(--glass-bg); border-radius:999px; padding:8px 14px; cursor:pointer}
     .btn.small{padding:6px 10px}
-    .input, select{background:transparent; border:0; outline:none; border-bottom:2px solid rgba(255,255,255,.55); padding:6px 4px; color:var(--ink); min-width:160px}
+    .input,select{background:transparent; border:0; outline:none; border-bottom:2px solid rgba(255,255,255,.55); padding:6px 4px; color:var(--ink); min-width:160px}
     .grid{display:grid; grid-template-columns: 110px 1fr 1fr 1.3fr 120px 120px 1fr 210px; gap:10px; align-items:center; padding:10px 14px; border-top:1px solid var(--glass-brd)}
     .grid.head{font-weight:700; background:rgba(255,255,255,.25)}
     .muted{color:var(--muted); font-size:13px}
@@ -67,14 +71,8 @@
       </div>
 
       <div class="grid head">
-        <div>Ảnh</div>
-        <div>ID</div>
-        <div>Tên VI</div>
-        <div>Tên EN</div>
-        <div>Độ hiếm</div>
-        <div>Giá (xu)</div>
-        <div>XP cần</div>
-        <div>Ảnh URL</div>
+        <div>Ảnh</div><div>ID</div><div>Tên VI</div><div>Tên EN</div>
+        <div>Độ hiếm</div><div>Giá (xu)</div><div>XP cần</div><div>Ảnh URL</div>
       </div>
       <div id="rows"></div>
 
@@ -88,7 +86,7 @@
 
   <script>
     const LS_KEY = "ADMIN_AVATARS_DRAFT_V1";
-    const REMOTE_JSON = "/public/content/avatars/avatar-manifest.json"; // đường dẫn đọc hiện có
+    const REMOTE_JSON = "/public/content/avatars/avatar-manifest.json";
 
     const $ = s => document.querySelector(s);
     const rowsEl = $("#rows"), stat = $("#stat");
@@ -134,15 +132,9 @@
                image:"/public/assets/avatar/NV1.webp",
                rarity:"common", price:0, xp_required:0, tags:[] };
     }
-    function manifest(){
-      return { updatedAt: Date.now(), avatars: avatars };
-    }
-    function saveDraft(){
-      localStorage.setItem(LS_KEY, JSON.stringify(avatars));
-    }
-    function loadDraft(){
-      try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; }
-    }
+    function manifest(){ return { updatedAt: Date.now(), avatars }; }
+    function saveDraft(){ localStorage.setItem(LS_KEY, JSON.stringify(avatars)); }
+    function loadDraft(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
     function flash(msg){ stat.textContent = msg; setTimeout(()=>stat.textContent="",1800); }
     function download(name, text){
       const blob = new Blob([text], {type:"application/json;charset=utf-8"});
@@ -152,7 +144,6 @@
 
     function render(){
       rowsEl.innerHTML = avatars.map((avt, i) => rowTpl(avt, i)).join("");
-      // bind
       rowsEl.querySelectorAll("[data-idx]").forEach(el=>{
         const i = Number(el.dataset.idx);
         if (el.name === "image") el.addEventListener("input", e=>update(i,"image",e.target.value,true));
@@ -163,12 +154,11 @@
         if (el.name === "price") el.addEventListener("input", e=>update(i,"price", Number(e.target.value||0)));
         if (el.name === "xp")    el.addEventListener("input", e=>update(i,"xp_required", Number(e.target.value||0)));
       });
-      // buttons
       rowsEl.querySelectorAll("[data-action]").forEach(btn=>{
         const i = Number(btn.dataset.i);
         const act = btn.dataset.action;
         btn.onclick = ()=>{
-          if (act==="up"   && i>0)          { const [x]=avatars.splice(i,1); avatars.splice(i-1,0,x); render(); }
+          if (act==="up"   && i>0)              { const [x]=avatars.splice(i,1); avatars.splice(i-1,0,x); render(); }
           if (act==="down" && i<avatars.length-1){ const [x]=avatars.splice(i,1); avatars.splice(i+1,0,x); render(); }
           if (act==="del") { if (confirm("Xóa avatar này?")) { avatars.splice(i,1); render(); } }
         };

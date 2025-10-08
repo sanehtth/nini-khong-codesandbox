@@ -248,3 +248,49 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   .grid-2{grid-template-columns:1fr}
   .fld{grid-template-columns:1fr}
 }
+/* ====== BRAND: logo + slogan trên header ====== */
+.brand{display:flex;align-items:center;gap:10px}
+.brand__logo{height:34px;width:auto;display:block}
+.brand__slogan{
+  font-weight:700; letter-spacing:.2px; user-select:none;
+  background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation:brandHue 10s linear infinite;
+}
+@keyframes brandHue{to{filter:hue-rotate(360deg)}}
+
+/* ====== LOGO “tiêu đề” gắn cạnh H1/H2/H3 trong các page nhỏ ====== */
+.logo-title{height:22px;width:auto;vertical-align:-4px;margin-right:6px;display:inline-block}
+.logo-title--sm{height:18px;vertical-align:-3px}
+.logo-title--lg{height:28px;vertical-align:-6px}
+
+/* ====== BACKGROUND dùng chung (2 cách áp) ======
+   C1) Toàn site: body::before đã nhận --bg-url (có sẵn ở file unified)
+   C2) Theo khối cụ thể: thêm class .bg-cover hoặc data-bg="nini"
+*/
+.bg-cover,[data-bg="nini"]{
+  background: var(--bg-url) center/cover no-repeat;
+  position:relative;
+}
+.bg-cover::after,[data-bg="nini"]::after{
+  content:"";position:absolute;inset:0;background:rgba(255,255,255,.04);pointer-events:none
+}
+
+/* Khối hero cho các trang nhỏ (auth-action/reset/recover/profile/admin) */
+.page-hero{
+  min-height:calc(100dvh - 80px);
+  display:grid; place-items:center;
+  width:var(--wrap); margin:0 auto;
+}
+
+/* Khung kính mờ cho panel trung tâm trên nền */
+.panel-glass{
+  width:min(680px,94vw);
+  background:var(--glass-1);
+  border:1px solid var(--glass-brd);
+  border-radius:16px;
+  box-shadow:var(--glass-shadow);
+  backdrop-filter:blur(10px);
+  padding:16px;
+}
+

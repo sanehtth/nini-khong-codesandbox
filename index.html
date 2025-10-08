@@ -5,25 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base href="/" />
   <title>NiNi — Funny</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- Style nền tảng dùng chung -->
-  <link rel="stylesheet" href="/public/css/nini-base.css?v=1" />
-  <!-- Tải theme động từ Netlify Function (logo/slogan/màu…) -->
-  <script src="/public/js/theme-boot.js" defer></script>
-
-  <style>
-    /* Trang chủ chỉ cần chút bổ sung nhẹ */
-    .frame{position:relative}
-    .auth-area{display:flex;gap:10px;align-items:center}
-    .avatar-btn img{width:32px;height:32px;border-radius:50%}
-  </style>
+  <!-- CSS chung đã gom -->
+  <link rel="stylesheet" href="/css/nini-base.css">
 </head>
-<body data-page="home" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <!-- Header dùng chung -->
+
+<!-- Đặt background qua CSS variable để mọi trang dùng 1 file nền -->
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+
+  <!-- ===== Header chung ===== -->
   <header class="site-header">
-    <a class="brand" href="#/home" id="brandLink" aria-label="NiNi — Funny">
+    <a class="brand" href="#/home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan"><span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span></div>
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
 
     <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
@@ -39,9 +34,10 @@
       <!-- CHƯA login -->
       <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
 
-      <!-- ĐÃ login: Avatar mở hồ sơ -->
+      <!-- ĐÃ login: avatar mở hồ sơ -->
       <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
-        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản" onerror="this.src='/public/assets/avatar/NV1.webp'">
+        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản"
+             onerror="this.src='/public/assets/avatar/NV1.webp'">
       </a>
 
       <!-- ĐÃ login: Đăng xuất -->
@@ -49,16 +45,13 @@
         Đăng xuất <span class="who"></span>
       </button>
 
-      <a id="adminBtn" class="admin-link is-hidden" href="/admin/index.html" rel="noopener">Admin</a>
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
     </div>
   </header>
 
-  <!-- Viewport -->
+  <!-- ===== Viewport ===== -->
   <main class="viewport">
     <section class="frame" id="frame" aria-label="Khung hiển thị">
-      <!-- Kệ sách hiển thị TRÊN -->
-      <div id="shelfMount" class="shelf-card" hidden></div>
-
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
       <div class="chips">
         <button class="chip is-active" data-section="intro">Giới thiệu</button>
@@ -66,6 +59,9 @@
         <button class="chip" data-section="forum">Diễn đàn</button>
         <button class="chip" data-section="feedback">Góp ý</button>
       </div>
+
+      <!-- Kệ sách (Spring) -->
+      <div id="shelfMount" class="shelf-card" hidden></div>
     </section>
 
     <section class="content" id="content" aria-live="polite">
@@ -74,7 +70,7 @@
     </section>
   </main>
 
-  <!-- AUTH MODAL (3 tab riêng, không dính nhau) -->
+  <!-- ===== Modal đăng nhập (dùng lại auth.js hiện có của bạn) ===== -->
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
     <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
@@ -96,11 +92,13 @@
       <form class="form is-active" data-pane="login" onsubmit="return false;">
         <div class="row">
           <label>Email</label>
-          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com"
+                 autocomplete="email" autocapitalize="off" spellcheck="false">
         </div>
         <div class="row">
           <label>Mật khẩu</label>
-          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
+          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••"
+                 autocomplete="current-password">
         </div>
         <div class="row">
           <button id="btnEmailLogin"  class="btn solid"  type="button">Đăng nhập</button>
@@ -114,7 +112,8 @@
       <form class="form" data-pane="signup" onsubmit="return false;">
         <div class="row">
           <label>Email</label>
-          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com"
+                 autocomplete="email" autocapitalize="off" spellcheck="false">
         </div>
         <div class="row">
           <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
@@ -122,11 +121,12 @@
         <p id="signupNote" class="note"></p>
       </form>
 
-      <!-- Reset -->
+      <!-- Reset password -->
       <form class="form" data-pane="reset" onsubmit="return false;">
         <div class="row">
           <label>Email</label>
-          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false">
+          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com"
+                 autocomplete="email" autocapitalize="off" spellcheck="false">
         </div>
         <div class="row">
           <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
@@ -136,49 +136,15 @@
     </section>
   </div>
 
-  <!-- Ẩn/hiện nhanh theo flag trước khi auth.js chạy -->
-  <script>
-    (function bootHeaderAuthUI(){
-      function applyAuthUI(){
-        var logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
-        document.querySelectorAll('[data-show="in"]').forEach(function(el){ el.style.display = logged ? '' : 'none'; });
-        document.querySelectorAll('[data-show="out"]').forEach(function(el){ el.style.display = logged ? 'none' : ''; });
-      }
-      applyAuthUI();
-      window.addEventListener('nini:authchange', applyAuthUI);
-    })();
-  </script>
+  <!-- ===== Scripts: CHỈ các file cần thiết ===== -->
+  <script src="/js/nini-utils.js"></script>
+  <script src="/js/nini-header.js" defer></script>
 
-  <!-- Đồng bộ avatar header từ local profile -->
-  <script>
-    (function headerAvatar(){
-      const LS_ACCOUNTS='NINI_ACCOUNTS_V3', LS_ACTIVE='NINI_ACTIVE_USER_V3', FALLBACK='/public/assets/avatar/NV1.webp';
-      function readActiveProfile(){
-        try{
-          const uid  = JSON.parse(localStorage.getItem(LS_ACTIVE)  || 'null');
-          const accs = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
-          return (uid && accs && accs[uid]) ? accs[uid] : null;
-        }catch{ return null; }
-      }
-      function applyAvatar(){
-        const img = document.getElementById('avatarImg'); if (!img) return;
-        const pf  = readActiveProfile();
-        const url = (pf && pf.avatarUrl) ? pf.avatarUrl : FALLBACK;
-        if (img.getAttribute('src') !== url) img.setAttribute('src', url);
-      }
-      applyAvatar();
-      window.addEventListener('nini:authchange',    applyAvatar);
-      window.addEventListener('nini:profilechange', applyAvatar);
-      window.addEventListener('storage', (e)=>{ if (e.key==='NINI_ACCOUNTS_V3'||e.key==='NINI_ACTIVE_USER_V3') applyAvatar(); });
-    })();
-  </script>
+  <!-- Hiệu ứng (tuỳ chọn) + logic trang chủ hiện có của bạn -->
+  <script src="/public/js/effects.js?v=3" defer></script>
+  <script src="/public/js/app.js?v=14" defer></script>
 
-  <!-- App logic -->
-  <script src="/js/theme-boot.js" defer></script>
-<script type="module" src="/js/nini-fb.js"></script>          <!-- auth/firebase chuẩn mới -->
-<script src="/js/app-home.js" defer></script>            <!-- logic riêng trang home -->
-<script src="/public/js/effects.js?v=3" defer></script>  <!-- hiệu ứng rơi hoa (nếu cần) -->
-
+  <!-- Xử lý đăng nhập (module Firebase) hiện có -->
+  <script type="module" src="/public/js/auth.js?v=3"></script>
 </body>
 </html>
-

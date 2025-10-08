@@ -1,6 +1,3 @@
-<!-- =========================
-BEGIN: /index.html  (FULL PATCH)
-========================= -->
 <!doctype html>
 <html lang="vi">
 <head>
@@ -35,25 +32,26 @@ BEGIN: /index.html  (FULL PATCH)
 
     <!-- Auth controls -->
     <div class="auth-area">
-      <!-- Nút mở modal đăng nhập/đăng ký (chỉ hiện khi CHƯA login) -->
+      <!-- CHƯA login -->
       <button id="authBtn"
               class="auth-btn"
               data-role="btn-login"
               data-show="out">Đăng nhập / Đăng ký</button>
 
-      <!-- Avatar dẫn tới trang hồ sơ (chỉ hiện khi ĐÃ login) -->
+      <!-- ĐÃ login: Avatar mở hồ sơ -->
       <a id="btnAvatar"
-   class="avatar-btn"
-   data-show="in"
-   href="/profile.html"
-   style="display:none"
-   title="Hồ sơ">
-  <img id="avatarImg"
-       src="/public/assets/avatar/NV1.webp"
-       alt="Tài khoản"
-       onerror="this.src='/public/assets/avatar/NV1.webp'">
-</a>
-      <!-- Nút Đăng xuất (chỉ hiện khi ĐÃ login) -->
+         class="avatar-btn"
+         data-show="in"
+         href="/profile.html"
+         style="display:none"
+         title="Hồ sơ">
+        <img id="avatarImg"
+             src="/public/assets/avatar/NV1.webp"
+             alt="Tài khoản"
+             onerror="this.src='/public/assets/avatar/NV1.webp'">
+      </a>
+
+      <!-- ĐÃ login: Đăng xuất -->
       <button id="btnLogout"
               class="auth-btn"
               data-role="btn-logout"
@@ -123,7 +121,7 @@ BEGIN: /index.html  (FULL PATCH)
         <p id="loginNote" class="note"></p>
       </form>
 
-      <!-- Signup: chỉ nhập email → gửi mail xác minh -->
+      <!-- Signup -->
       <form class="form" data-pane="signup" onsubmit="return false;">
         <div class="row">
           <label>Email</label>
@@ -149,7 +147,7 @@ BEGIN: /index.html  (FULL PATCH)
     </section>
   </div>
 
-  <!-- ===== Inline boot: ẩn/hiện nhanh theo flag trước khi auth.js chạy ===== -->
+  <!-- ===== Ẩn/hiện nhanh theo flag trước khi auth.js chạy ===== -->
   <script>
     (function bootHeaderAuthUI(){
       function applyAuthUI(){
@@ -162,14 +160,42 @@ BEGIN: /index.html  (FULL PATCH)
     })();
   </script>
 
-  <!-- Scripts (single set, no duplicates) -->
+  <!-- ===== Đồng bộ avatar header từ local profile ===== -->
+  <script>
+    (function headerAvatar(){
+      const LS_ACCOUNTS = 'NINI_ACCOUNTS_V3';
+      const LS_ACTIVE   = 'NINI_ACTIVE_USER_V3';
+      const FALLBACK    = '/public/assets/avatar/NV1.webp';
+
+      function readActiveProfile(){
+        try{
+          const uid  = JSON.parse(localStorage.getItem(LS_ACTIVE)  || 'null');
+          const accs = JSON.parse(localStorage.getItem(LS_ACCOUNTS) || '{}');
+          return (uid && accs && accs[uid]) ? accs[uid] : null;
+        }catch{ return null; }
+      }
+
+      function applyAvatar(){
+        const img = document.getElementById('avatarImg');
+        if (!img) return;
+        const pf  = readActiveProfile();
+        const url = (pf && pf.avatarUrl) ? pf.avatarUrl : FALLBACK;
+        const abs = new URL(url, location.origin).href;
+        if (img.src !== abs) img.src = url;
+      }
+
+      applyAvatar();
+      window.addEventListener('nini:authchange',    applyAvatar);
+      window.addEventListener('nini:profilechange', applyAvatar);
+      window.addEventListener('storage', (e)=>{
+        if (e.key === 'NINI_ACCOUNTS_V3' || e.key === 'NINI_ACTIVE_USER_V3') applyAvatar();
+      });
+    })();
+  </script>
+
+  <!-- Scripts -->
   <script src="/public/js/effects.js?v=3" defer></script>
   <script src="/public/js/app.js?v=14" defer></script>
   <script type="module" src="/public/js/auth.js?v=3"></script>
 </body>
 </html>
-<!-- =========================
-END: /index.html
-========================= -->
-
-

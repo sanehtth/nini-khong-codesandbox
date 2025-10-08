@@ -1,67 +1,75 @@
-﻿// NiNi - Header Auth/Brand UI (dùng chung cho mọi trang)
-(function () {
-  const ACTIVE_KEY = 'NINI_ACTIVE_USER_V3';
-  const ACCS_KEY   = 'NINI_ACCOUNTS_V3';
-  const LOGGED_KEY = 'NINI_AUTH_LOGGED_IN';
-  const BRAND_KEY  = 'NINI_THEME_BRAND';
-  const FALLBACK_AVATAR = '/public/assets/avatar/NV1.webp';
+// nini-header.js
+(() => {
+  const $  = NINI.$;
+  const $$ = NINI.$$;
 
-  function readActiveProfile() {
-    try {
-      const uid  = JSON.parse(localStorage.getItem(ACTIVE_KEY) || 'null');
-      const accs = JSON.parse(localStorage.getItem(ACCS_KEY)   || '{}');
-      return (uid && accs && accs[uid]) ? accs[uid] : null;
-    } catch { return null; }
+  /* 1) Nạp CSS theme do bạn chỉnh trong Admin (nếu có) */
+  (function loadTheme(){
+    const ENDPOINT='/.netlify/functions/theme';
+    const KEY='NINI_THEME_CACHE_V1';
+    const MAX=3600; // 1h
+    function inject(css){
+      let s = document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent = css;
+    }
+    try{
+      const c = NINI.store.get(KEY);
+      const now = (Date.now()/1000)|0;
+      if (c && (now-(c.ts|0)) < MAX) inject(c.css);
+      fetch(ENDPOINT,{cache:'no-store'})
+        .then(r=>r.text()).then(css=>{ if(css){ inject(css); NINI.store.set(KEY,{ts:now, css}); } })
+        .catch(()=>{});
+    }catch{}
+  })();
+
+  /* 2) Áp dụng brand (logo/slogan) đã lưu */
+  (function applyBrand(){
+    try{
+      const b = NINI.store.get('NINI_THEME_BRAND', {});
+      if (b.logoMain)  $$('.brand__logo').forEach(i=> i.src = b.logoMain);
+      if (b.slogan)    $$('.brand__slogan').forEach(e=> e.textContent = b.slogan);
+    }catch{}
+  })();
+
+  /* 3) Toggle UI theo trạng thái đăng nhập (flag trong LS) */
+  function applyAuthUI(){
+    const logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
+    $$('[data-show="in"]').forEach(el => el.style.display  = logged ? '' : 'none');
+    $$('[data-show="out"]').forEach(el => el.style.display = logged ? 'none' : '');
   }
+  applyAuthUI();
+  document.addEventListener('nini:authchange', applyAuthUI);
+  window.addEventListener('storage', e=>{
+    if (e.key === 'NINI_AUTH_LOGGED_IN') applyAuthUI();
+  });
 
-  function applyAuthUI() {
-    const logged = localStorage.getItem(LOGGED_KEY) === '1';
-
-    document.querySelectorAll('[data-show="in"]')
-      .forEach(el => el.style.display = logged ? '' : 'none');
-    document.querySelectorAll('[data-show="out"]')
-      .forEach(el => el.style.display = logged ? 'none' : '');
-
-    // avatar ở header (id="avatarImg" hoặc class="avatar-img")
-    const pf  = readActiveProfile();
-    const url = (pf && pf.avatarUrl) ? pf.avatarUrl : FALLBACK_AVATAR;
+  /* 4) Ảnh avatar trên header (đọc từ hồ sơ local) */
+  function readActiveProfile(){
+    const uid  = NINI.store.get('NINI_ACTIVE_USER_V3', null);
+    const accs = NINI.store.get('NINI_ACCOUNTS_V3', {});
+    return (uid && accs[uid]) ? accs[uid] : null;
+  }
+  function applyAvatar(){
+    const img = $('#avatarImg'); if (!img) return;
+    const FALLBACK = '/public/assets/avatar/NV1.webp';
+    const pf = readActiveProfile();
+    const url = (pf && pf.avatarUrl) ? pf.avatarUrl : FALLBACK;
     const abs = new URL(url, location.origin).href;
-    document.querySelectorAll('#avatarImg,.avatar-img').forEach(img => {
-      if (img && img.src !== abs) img.src = url;
+    if (img.src !== abs) img.src = url;
+  }
+  applyAvatar();
+  document.addEventListener('nini:profilechange', applyAvatar);
+  window.addEventListener('storage', e=>{
+    if (e.key === 'NINI_ACCOUNTS_V3' || e.key === 'NINI_ACTIVE_USER_V3') applyAvatar();
+  });
+
+  /* 5) Alt+A: ẩn/hiện nút Admin nếu bạn muốn */
+  (function adminHotkey(){
+    const btn = document.getElementById('adminBtn');
+    if (!btn) return;
+    document.addEventListener('keydown', (e)=>{
+      if (e.altKey && (e.key==='a' || e.key==='A')) btn.classList.toggle('is-hidden');
     });
-
-    // tên ngắn ở nút đăng xuất (span.who)
-    const who = (pf && (pf.name || pf.displayName)) ? `(${pf.name || pf.displayName})` : '';
-    document.querySelectorAll('.who').forEach(el => el.textContent = who);
-  }
-
-  function applyBrand() {
-    try {
-      const b = JSON.parse(localStorage.getItem(BRAND_KEY) || '{}');
-      if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i => i.src = b.logoMain);
-      if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i => i.src = b.logoSmall);
-      if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e => e.textContent = b.slogan);
-    } catch {}
-  }
-
-  function init() {
-    applyBrand();
-    applyAuthUI();
-
-    // Nghe các sự kiện chuẩn trong site
-    window.addEventListener('nini:authchange',    applyAuthUI);
-    window.addEventListener('nini:profilechange', applyAuthUI);
-
-    // Sync khi tab khác thay đổi localStorage
-    window.addEventListener('storage', (e) => {
-      if ([ACCS_KEY, ACTIVE_KEY, LOGGED_KEY].includes(e.key)) applyAuthUI();
-      if (e.key === BRAND_KEY) applyBrand();
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  })();
 })();

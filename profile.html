@@ -1,45 +1,31 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Hồ sơ & Thành tích</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=21">
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/styles.css?v=21" />
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <!-- ===== Header giống index ===== -->
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
-	    <!-- Auth controls -->
+
     <div class="auth-area">
       <!-- CHƯA login -->
-      <button id="authBtn"
-              class="auth-btn"
-              data-role="btn-login"
-              data-show="out">Đăng nhập / Đăng ký</button>
+      <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
 
-      <!-- ĐÃ login: Avatar mở hồ sơ -->
-      <a id="btnAvatar"
-         class="avatar-btn"
-         data-show="in"
-         href="/profile.html"
-         style="display:none"
-         title="Hồ sơ">
-        <img id="avatarImg"
-             src="/public/assets/avatar/NV1.webp"
-             alt="Tài khoản"
+      <!-- ĐÃ login -->
+      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
+        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản"
              onerror="this.src='/public/assets/avatar/NV1.webp'">
       </a>
 
-      <!-- ĐÃ login: Đăng xuất -->
-      <button id="btnLogout"
-              class="auth-btn"
-              data-role="btn-logout"
-              data-show="in"
-              style="display:none">
+      <button id="btnLogout" class="auth-btn" data-show="in" style="display:none">
         Đăng xuất <span class="who"></span>
       </button>
 
@@ -47,11 +33,12 @@
     </div>
   </header>
 
+  <!-- ===== Main ===== -->
   <main class="page-hero bg-cover">
-	<div class="page-wrap">
- 	<!-- Thông tin cá nhân -->
-    <section class="card">
-       <h2>Thông tin cá nhân</h2>
+    <div class="page-wrap">
+      <!-- Thông tin cá nhân -->
+      <section class="card">
+        <h2>Thông tin cá nhân</h2>
         <div class="meta" id="authHint">Đang kiểm tra đăng nhập…</div>
 
         <div class="grid-2">
@@ -116,9 +103,9 @@
 
         <!-- Recaptcha (ẩn) cho OTP -->
         <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
+      </section>
 
-    </section>
-<!-- Thành tích -->
+      <!-- Thành tích -->
       <section class="card">
         <h2>Thành tích</h2>
         <div class="meta">Theo dõi tiến trình học & phần thưởng</div>
@@ -158,13 +145,13 @@
       </div>
       <div id="shopGrid" class="shop__grid" aria-live="polite"></div>
       <div class="row" style="padding:0 12px 12px 12px">
-        <input id="giftInput" class="btn" style="flex:1; text-align:left" placeholder="Nhập ID avatar để nhận quà (nếu có) — ví dụ: NV2" />
+        <input id="giftInput" class="btn" style="flex:1; text-align:left" placeholder="Nhập ID avatar để nhận quà (ví dụ: NV2)" />
         <button id="btnGiftClaim" class="btn small">Nhận quà</button>
       </div>
     </section>
   </div>
 
-  <!-- Firebase + logic -->
+  <!-- ===== Script ===== -->
   <script type="module">
     /* Firebase */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -176,7 +163,6 @@
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    /* ==== Firebase config ==== */
     const firebaseConfig = {
       apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
       authDomain: "nini-8f3d4.firebaseapp.com",
@@ -190,24 +176,42 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    /* ===== Keys LocalStorage ===== */
+    /* ===== Helpers ===== */
+    const $  = (s, r=document)=>r.querySelector(s);
+    const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
     const LS_ACCOUNTS="NINI_ACCOUNTS_V3", LS_ACTIVE="NINI_ACTIVE_USER_V3";
 
-    /* ===== Helpers ===== */
-    const $ = (s, r=document)=>r.querySelector(s);
-    const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
-    function readLocalProfile(){ try{ const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}"); const act=JSON.parse(localStorage.getItem(LS_ACTIVE)||"null"); if(!act||!accs[act]) return null; return {uid:act, profile:accs[act]}; }catch{return null;} }
-    function writeLocalProfile(uid, profile){ const accs={}; accs[uid]=profile; localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs)); localStorage.setItem(LS_ACTIVE,JSON.stringify(uid)); }
+    function readLocalProfile(){
+      try{
+        const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}");
+        const act =JSON.parse(localStorage.getItem(LS_ACTIVE)||"null");
+        if(!act||!accs[act]) return null;
+        return {uid:act, profile:accs[act]};
+      }catch{return null;}
+    }
+    function writeLocalProfile(uid, profile){
+      const accs={}; accs[uid]=profile;
+      localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs));
+      localStorage.setItem(LS_ACTIVE,JSON.stringify(uid));
+    }
     function setText(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
     function setBar(id,p){ const el=document.getElementById(id); if(el) el.style.width=Math.max(0,Math.min(100,p))+"%"; }
-    function toast(msg, ok=true){ const t=document.createElement('div'); t.textContent=msg; t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d"); document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+    function toast(msg, ok=true){
+      const t=document.createElement('div');
+      t.textContent=msg;
+      t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d");
+      document.body.appendChild(t); setTimeout(()=>t.remove(),2600);
+    }
 
-    /* ===== Firestore ===== */
     async function loadCloudProfile(uid){ const s=await getDoc(doc(db,"users",uid)); return s.exists()?s.data():null; }
     async function saveCloudProfile(uid,data){ await setDoc(doc(db,"users",uid),{...data,updatedAt:Date.now()},{merge:true}); }
 
-    /* ===== KPIs ===== */
-    function renderKPI(pf){ setText("valXP",pf.xp|0); setText("valCoins",pf.coins|0); setText("valChests",pf.chests|0); setBar("barXP",Math.min(100,(pf.xp|0)%100)); setBar("barCoins",Math.min(100,(pf.coins|0)%1000)); $("#btnOpenChest").disabled=!(pf.chests>0); $("#shopBalance").textContent=`Xu: ${pf.coins|0} • XP: ${pf.xp|0}`; }
+    function renderKPI(pf){
+      setText("valXP",pf.xp|0); setText("valCoins",pf.coins|0); setText("valChests",pf.chests|0);
+      setBar("barXP",Math.min(100,(pf.xp|0)%100)); setBar("barCoins",Math.min(100,(pf.coins|0)%1000));
+      const btn = $("#btnOpenChest"); if (btn) btn.disabled = !(pf.chests>0);
+      const bal = $("#shopBalance"); if (bal) bal.textContent = `Xu: ${pf.coins|0} • XP: ${pf.xp|0}`;
+    }
 
     function readForm(){
       return {
@@ -233,18 +237,20 @@
       $("#pf_city").value=cloud?.city||"";
       $("#pf_grade").value=cloud?.grade||"";
       $("#owningHint").textContent = base?.avatarId ? `Avatar hiện tại: ${base.avatarId}` : "";
+      const headerAv = $("#avatarImg"); if (headerAv) headerAv.src = avatar;
+      const who = $(".who"); if (who) who.textContent = ` ${u.email||u.phoneNumber||""}`;
     }
 
-    /* ===== OTP Phone ===== */
+    /* ===== OTP ===== */
     let recaptcha, confirmationResult;
-    function ensureRecaptcha(){ if(recaptcha) return recaptcha; // eslint-disable-next-line no-undef
-      recaptcha = new RecaptchaVerifier(auth,"recaptcha-container",{size:"invisible"}); return recaptcha; }
+    function ensureRecaptcha(){ if(recaptcha) return recaptcha; recaptcha = new RecaptchaVerifier(auth,"recaptcha-container",{size:"invisible"}); return recaptcha; }
     async function sendOTP(){ const phone=$("#pf_phone").value.trim(); if(!phone) return toast("Nhập số điện thoại trước.",false); try{ ensureRecaptcha(); confirmationResult=await signInWithPhoneNumber(auth,phone,recaptcha); toast("Đã gửi OTP.",true);}catch{ toast("Gửi OTP thất bại",false);} }
     async function verifyOTP(){ const code=$("#otp_code").value.trim(); if(!confirmationResult||!code) return toast("Chưa gửi OTP hoặc thiếu mã.",false); try{ await confirmationResult.confirm(code); toast("Xác thực số điện thoại thành công!",true);}catch{ toast("Mã OTP sai/hết hạn.",false);} }
 
-    /* ===== Rương thưởng (giữ nguyên) ===== */
+    /* ===== Chest ===== */
     function randomReward(){ const t=Math.random(); if(t<.5) return{type:"coins",amount:50+Math.floor(Math.random()*151)}; if(t<.85) return{type:"xp",amount:20+Math.floor(Math.random()*81)}; return{type:"both",amount:[30+Math.floor(Math.random()*71),80+Math.floor(Math.random()*121)]}; }
-    async function openChestHandler(uid){ const cur=readLocalProfile(); if(!cur||cur.uid!==uid) return; const pf=cur.profile; if(!(pf.chests>0)) return toast("Bạn chưa có rương.",false);
+    async function openChestHandler(uid){
+      const cur=readLocalProfile(); if(!cur||cur.uid!==uid) return; const pf=cur.profile; if(!(pf.chests>0)) return toast("Bạn chưa có rương.",false);
       const rw=randomReward(); pf.chests=(pf.chests|0)-1;
       if(rw.type==="coins"){ pf.coins=(pf.coins|0)+rw.amount; $("#lastReward").textContent=`+${rw.amount} xu`; }
       else if(rw.type==="xp"){ pf.xp=(pf.xp|0)+rw.amount; $("#lastReward").textContent=`+${rw.amount} XP`; }
@@ -259,41 +265,32 @@
         await saveCloudProfile(uid,{email:f.email||null,name:f.name||null,gender:f.gender||null,dob:f.dob||null,guardian:f.guardian||null,phone:f.phone||null,city:f.city||null,grade:f.grade||null});
         const cur=readLocalProfile(); if(cur&&cur.uid===uid){ cur.profile={...cur.profile, name:f.name||cur.profile.name}; writeLocalProfile(uid,cur.profile); }
         note.textContent="Đã lưu hồ sơ."; toast("Lưu hồ sơ thành công",true);
-      }catch(e){
-        note.textContent="Không lưu được.";
-        toast("Lưu hồ sơ thất bại (kiểm tra Firestore Rules cho collection 'users')",false);
-      }
+      }catch{ note.textContent="Không lưu được."; toast("Lưu hồ sơ thất bại (Firestore Rules?)",false); }
     }
 
     async function refreshAll(uid){
       const cloud=await loadCloudProfile(uid);
       const local=readLocalProfile();
-      const pf=local?.profile||{ name:"Player", coins:300, xp:0, chests:0, avatarId:"NV1", avatarUrl:"/public/assets/avatar/NV1.webp", unlocked:{avatars:{NV1:true}}, unlockedAt:{}, createdAt:Date.now() };
+      const pf=local?.profile||{ name:"Player", coins:300, xp:0, chests:0, avatarId:"NV1", avatarUrl:"/public/assets/avatar/NV1.webp", unlocked:{avatars:{NV1:true}}, createdAt:Date.now() };
       const merged={ ...pf, ...(cloud||{}),
         name: cloud?.name||pf.name,
-        coins:(cloud?.coins??pf.coins)|0,
-        xp:(cloud?.xp??pf.xp)|0,
-        chests:(cloud?.chests??pf.chests)|0,
+        coins:(cloud?.coins??pf.coins)|0, xp:(cloud?.xp??pf.xp)|0, chests:(cloud?.chests??pf.chests)|0,
         avatarId:cloud?.avatarId||pf.avatarId||"NV1",
         avatarUrl:cloud?.avatarUrl||pf.avatarUrl||"/public/assets/avatar/NV1.webp",
         unlocked: cloud?.unlocked || pf.unlocked || {avatars:{NV1:true}}
       };
       writeLocalProfile(uid,merged); renderKPI(merged);
-      $("#pf_avatar_img").src=merged.avatarUrl;
-      $("#owningHint").textContent = merged.avatarId ? `Avatar hiện tại: ${merged.avatarId}` : "";
+      $("#pf_avatar_img").src=merged.avatarUrl; $("#owningHint").textContent = `Avatar hiện tại: ${merged.avatarId}`;
+      const headerAv=$("#avatarImg"); if (headerAv) headerAv.src=merged.avatarUrl;
       return {cloud,merged};
     }
 
-    /* ===== Đổi/Thêm mật khẩu (giữ nguyên, tối ưu) ===== */
     async function changePassword(){
-      const u = auth.currentUser;
-      const note = $("#pwNote");
+      const u = auth.currentUser; const note = $("#pwNote");
       note.className = "note"; note.textContent = "";
       if (!u) { note.textContent = "Vui lòng đăng nhập trước."; return; }
       const hasPasswordProvider = (u.providerData || []).some(p => p.providerId === "password");
-      const cur = $("#pw_current").value;
-      const pw1 = $("#pw_new").value;
-      const pw2 = $("#pw_confirm").value;
+      const cur = $("#pw_current").value, pw1 = $("#pw_new").value, pw2 = $("#pw_confirm").value;
       if (!pw1 || pw1.length < 8) { note.textContent = "Mật khẩu mới cần ≥ 8 ký tự."; return; }
       if (pw1 !== pw2) { note.textContent = "Mật khẩu mới không khớp."; return; }
       try {
@@ -312,37 +309,16 @@
           await updatePassword(u, pw1);
           note.textContent = "Đổi mật khẩu thành công."; note.className = "note ok";
         }
-        ["pw_current","pw_new","pw_confirm"].forEach(id => $( "#"+id ).value = "");
+        ["pw_current","pw_new","pw_confirm"].forEach(id => { const el=$("#"+id); if(el) el.value=""; });
       } catch (e) {
         const msg = (e && e.code ? e.code.replace("auth/","").replace(/-/g," ") : (e?.message||""));
         note.textContent = "Không thể cập nhật: " + msg; note.className = "note bad";
       }
     }
 
-    // Wire UI cơ bản
-    $("#btnSendOtp").addEventListener("click", sendOTP);
-    $("#btnVerifyOtp").addEventListener("click", verifyOTP);
-    $("#btnOpenChest").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await openChestHandler(u.uid); });
-    $("#btnRefresh").addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return; await refreshAll(u.uid); toast("Đồng bộ xong.",true); });
-    $("#btnChangePw").addEventListener("click", changePassword);
-    $("#profileForm").addEventListener("submit", async e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await saveProfile(u.uid); });
-
-    // Đăng xuất
-    $("#signoutBtn").addEventListener("click", async ()=>{
-      try{ await signOut(auth); }catch(e){}
-      finally{
-        localStorage.removeItem(LS_ACCOUNTS);
-        localStorage.removeItem(LS_ACTIVE);
-        localStorage.setItem("NINI_AUTH_LOGGED_IN", "0");
-        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));
-        location.replace("/");
-      }
-    });
-
-    // ===== Avatar Shop / Owned =====
+    /* ===== Shop Avatar ===== */
     const REMOTE_AVATAR_MANIFEST = "/public/content/avatar/avatar-manifest.json";
     let AVATAR_LIST = [];
-
     async function loadAvatarManifest(){
       if (AVATAR_LIST.length) return AVATAR_LIST;
       try{
@@ -350,28 +326,21 @@
         const j = await r.json();
         AVATAR_LIST = Array.isArray(j?.avatars) ? j.avatars : (Array.isArray(j) ? j : []);
       }catch{
-        AVATAR_LIST = [
-          { id:"NV1", title_vi:"NiNi bạn nhỏ", title_en:"NiNi buddy", image:"/public/assets/avatar/NV1.webp", rarity:"common", price:0, xp_required:0, tags:["starter"] }
-        ];
+        AVATAR_LIST = [{ id:"NV1", title_vi:"NiNi bạn nhỏ", image:"/public/assets/avatar/NV1.webp", rarity:"common", price:0, xp_required:0, tags:["starter"] }];
       }
       return AVATAR_LIST;
     }
-
     function ensureProfileSkeleton(pf){
-      if (!pf.unlocked) pf.unlocked = {};
-      if (!pf.unlocked.avatars) pf.unlocked.avatars = {};
+      pf.unlocked ??= {}; pf.unlocked.avatars ??= {};
       if (!pf.unlocked.avatars.NV1) pf.unlocked.avatars.NV1 = true;
-      if (!pf.avatarId) { pf.avatarId = "NV1"; pf.avatarUrl = "/public/assets/avatar/NV1.webp"; }
+      pf.avatarId ??= "NV1"; pf.avatarUrl ??= "/public/assets/avatar/NV1.webp";
     }
-
     function renderShopGrid(pf){
-      const grid = $("#shopGrid");
-      const owned = pf.unlocked?.avatars || {};
+      const grid = $("#shopGrid"); const owned = pf.unlocked?.avatars || {};
       grid.innerHTML = AVATAR_LIST.map(av => {
         const has = !!owned[av.id];
-        const needXP = Number(av.xp_required||0);
-        const price  = Number(av.price||0);
-        const canBuy = !has && (pf.coins|0) >= price && (pf.xp|0) >= needXP;
+        const needXP = Number(av.xp_required||0), price = Number(av.price||0);
+        const canBuy = !has && (pf.coins|0)>=price && (pf.xp|0)>=needXP;
         return `
           <article class="avt-card">
             <img class="avt-card__img" loading="lazy" src="${av.image}" alt="${av.title_vi||av.id}">
@@ -383,31 +352,15 @@
             </div>
             <div class="avt-card__foot">
               <button class="btn small" data-act="use" data-id="${av.id}" ${has?"":"disabled"}>Dùng</button>
-              ${
-                has
-                  ? '<span class="pill-ghost">Đã sở hữu</span>'
-                  : `<button class="btn small solid" data-act="buy" data-id="${av.id}" ${canBuy?"":"disabled"}>Mua</button>`
-              }
+              ${ has ? '<span class="pill-ghost">Đã sở hữu</span>' :
+                `<button class="btn small solid" data-act="buy" data-id="${av.id}" ${canBuy?"":"disabled"}>Mua</button>`}
             </div>
-          </article>
-        `;
+          </article>`;
       }).join("");
-
-      // Bind buttons
-      grid.querySelectorAll("[data-act='use']").forEach(b=>{
-        b.onclick = async () => {
-          await setActiveAvatar(b.dataset.id);
-        };
-      });
-      grid.querySelectorAll("[data-act='buy']").forEach(b=>{
-        b.onclick = async () => {
-          await buyAvatar(b.dataset.id);
-        };
-      });
-
-      $("#shopBalance").textContent=`Xu: ${pf.coins|0} • XP: ${pf.xp|0}`;
+      grid.querySelectorAll("[data-act='use']").forEach(b=>b.onclick=()=>setActiveAvatar(b.dataset.id));
+      grid.querySelectorAll("[data-act='buy']").forEach(b=>b.onclick=()=>buyAvatar(b.dataset.id));
+      const bal=$("#shopBalance"); if (bal) bal.textContent=`Xu: ${pf.coins|0} • XP: ${pf.xp|0}`;
     }
-
     async function openShop(){
       const u = auth.currentUser; if(!u) return;
       await loadAvatarManifest();
@@ -417,7 +370,6 @@
       $("#shopModal").setAttribute("aria-hidden","false");
     }
     function closeShop(){ $("#shopModal").setAttribute("aria-hidden","true"); }
-
     async function setActiveAvatar(id){
       const u = auth.currentUser; if(!u) return;
       const cur = readLocalProfile(); if(!cur||cur.uid!==u.uid) return;
@@ -429,22 +381,18 @@
       writeLocalProfile(u.uid, cur.profile);
       $("#pf_avatar_img").src = cur.profile.avatarUrl;
       $("#owningHint").textContent = `Avatar hiện tại: ${id}`;
-      try{
-        await saveCloudProfile(u.uid, { avatarId: id, avatarUrl: cur.profile.avatarUrl });
-      }catch{}
+      const headerAv=$("#avatarImg"); if (headerAv) headerAv.src=cur.profile.avatarUrl;
+      try{ await saveCloudProfile(u.uid, { avatarId:id, avatarUrl:cur.profile.avatarUrl }); }catch{}
       toast("Đã đổi avatar!", true);
       renderShopGrid(cur.profile);
     }
-
     async function buyAvatar(id){
       const u = auth.currentUser; if(!u) return;
       const cur = readLocalProfile(); if(!cur||cur.uid!==u.uid) return;
       ensureProfileSkeleton(cur.profile);
       const av = AVATAR_LIST.find(x=>x.id===id); if(!av) return;
       const price = Number(av.price||0), needXP = Number(av.xp_required||0);
-      if ((cur.profile.coins|0) < price || (cur.profile.xp|0) < needXP){
-        return toast("Chưa đủ điều kiện (xu / XP).", false);
-      }
+      if ((cur.profile.coins|0) < price || (cur.profile.xp|0) < needXP) return toast("Chưa đủ điều kiện (xu / XP).", false);
       cur.profile.coins = (cur.profile.coins|0) - price;
       cur.profile.unlocked.avatars[id] = true;
       cur.profile.avatarId = id;
@@ -453,6 +401,7 @@
       renderKPI(cur.profile);
       $("#pf_avatar_img").src = cur.profile.avatarUrl;
       $("#owningHint").textContent = `Avatar hiện tại: ${id}`;
+      const headerAv=$("#avatarImg"); if (headerAv) headerAv.src=cur.profile.avatarUrl;
       try{
         await saveCloudProfile(u.uid, {
           coins: cur.profile.coins|0,
@@ -464,58 +413,75 @@
       toast("Mua & áp dụng avatar thành công!", true);
       renderShopGrid(cur.profile);
     }
-
     async function giftUnlock(id){
       const u = auth.currentUser; if(!u) return;
       const cur = readLocalProfile(); if(!cur||cur.uid!==u.uid) return;
-      await loadAvatarManifest();
-      ensureProfileSkeleton(cur.profile);
+      await loadAvatarManifest(); ensureProfileSkeleton(cur.profile);
       const av = AVATAR_LIST.find(x=>x.id===id);
-      if (!av) { toast("Mã quà không hợp lệ.", false); return; }
-      if (cur.profile.unlocked.avatars[id]){
-        await setActiveAvatar(id); return;
-      }
+      if (!av) return toast("Mã quà không hợp lệ.", false);
+      if (cur.profile.unlocked.avatars[id]) return setActiveAvatar(id);
       cur.profile.unlocked.avatars[id] = true;
-      cur.profile.avatarId = id;
-      cur.profile.avatarUrl = av.image || cur.profile.avatarUrl;
+      cur.profile.avatarId = id; cur.profile.avatarUrl = av.image || cur.profile.avatarUrl;
       writeLocalProfile(u.uid, cur.profile);
       $("#pf_avatar_img").src = cur.profile.avatarUrl;
       $("#owningHint").textContent = `Avatar hiện tại: ${id}`;
-      try{
-        await saveCloudProfile(u.uid, { avatarId:id, avatarUrl:cur.profile.avatarUrl, unlocked: cur.profile.unlocked });
-      }catch{}
+      const headerAv=$("#avatarImg"); if (headerAv) headerAv.src=cur.profile.avatarUrl;
+      try{ await saveCloudProfile(u.uid, { avatarId:id, avatarUrl:cur.profile.avatarUrl, unlocked: cur.profile.unlocked }); }catch{}
       toast("Đã nhận quà avatar!", true);
       renderShopGrid(cur.profile);
     }
 
-    // Events mở/đóng shop + claim gift trong modal
-    $("#btnPickAvatar").addEventListener("click", openShop);
-    $("#shopModal").addEventListener("click", (e)=>{ if (e.target.matches("[data-close]") || e.target===e.currentTarget) closeShop(); });
-    $("#btnGiftClaim").addEventListener("click", async ()=>{
-      const id = ($("#giftInput").value||"").trim(); if(!id) return;
-      await giftUnlock(id);
-      $("#giftInput").value = "";
+    /* ===== Gắn sự kiện UI (có kiểm tra null) ===== */
+    $("#btnSendOtp")   ?.addEventListener("click", sendOTP);
+    $("#btnVerifyOtp") ?.addEventListener("click", verifyOTP);
+    $("#btnOpenChest") ?.addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await openChestHandler(u.uid); });
+    $("#btnRefresh")   ?.addEventListener("click", async()=>{ const u=auth.currentUser; if(!u) return; await refreshAll(u.uid); toast("Đồng bộ xong.",true); });
+    $("#btnChangePw")  ?.addEventListener("click", changePassword);
+    $("#profileForm")  ?.addEventListener("submit", async e=>{ e.preventDefault(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập.",false); await saveProfile(u.uid); });
+
+    // >>> SỬA LẠI ID NÚT ĐĂNG XUẤT (đúng là #btnLogout)
+    $("#btnLogout")?.addEventListener("click", async ()=>{
+      try{ await signOut(auth); }catch{} finally{
+        localStorage.removeItem(LS_ACCOUNTS);
+        localStorage.removeItem(LS_ACTIVE);
+        localStorage.setItem("NINI_AUTH_LOGGED_IN", "0");
+        localStorage.setItem("NINI_SIGNED_OUT_AT", String(Date.now()));
+        location.replace("/");
+      }
     });
 
-    // Nếu vào profile với query ?gift=AVT_ID => tự claim
-    const sp = new URLSearchParams(location.search);
-    const giftId = sp.get("gift");
+    // Shop events
+    $("#btnPickAvatar")?.addEventListener("click", openShop);
+    $("#shopModal")?.addEventListener("click", (e)=>{ if (e.target.matches("[data-close]") || e.target===e.currentTarget) closeShop(); });
+    $("#btnGiftClaim")?.addEventListener("click", async ()=>{
+      const id = ($("#giftInput").value||"").trim(); if(!id) return; await giftUnlock(id); $("#giftInput").value = "";
+    });
 
-    // ===== GUARD: Chưa login -> về "/" =====
+    // Inline header toggle (để ẩn/hiện nhanh theo flag)
+    (function applyHeaderAuthUI(){
+      function render(){
+        const logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
+        document.querySelectorAll('[data-show="in"]').forEach(el=>el.style.display = logged ? '' : 'none');
+        document.querySelectorAll('[data-show="out"]').forEach(el=>el.style.display = logged ? 'none' : '');
+      }
+      render(); window.addEventListener('nini:authchange', render);
+    })();
+
+    // Nếu có ?gift=AVT_ID thì auto claim
+    const giftId = new URLSearchParams(location.search).get("gift");
+
+    // ===== Guard: chưa login thì trả về "/" =====
     onAuthStateChanged(auth, async (user)=>{
       const hint=$("#authHint");
-      if(!user){
-        location.replace("/");    // chặn truy cập trực tiếp
-        return;
-      }
-      $("#profileForm").querySelectorAll("input,select,button").forEach(el=>el.disabled=false);
+      if(!user){ location.replace("/"); return; }
+      $("#profileForm")?.querySelectorAll("input,select,button").forEach(el=>el.disabled=false);
       const { merged } = await refreshAll(user.uid);
       fillForm(user, merged, merged);
       hint.innerHTML=`Đăng nhập: <strong>${user.email||user.phoneNumber||"tài khoản"}</strong>. Bạn có thể cập nhật hồ sơ và xem thành tích tại đây.`;
+      localStorage.setItem("NINI_AUTH_LOGGED_IN","1");
+      window.dispatchEvent(new Event('nini:authchange'));
       if (giftId) { await giftUnlock(giftId); history.replaceState({}, "", location.pathname); }
     });
   </script>
 </body>
 </html>
-
-

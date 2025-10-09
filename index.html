@@ -1,55 +1,103 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- CSS theme gọn đã thống nhất -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css"/>
+  <!-- Theme chính -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
+
+  <!-- Favicon / Logo nhỏ (đã có file SVG) -->
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+
+  <!-- Sửa nhanh header & tầng lớp -->
+  <style>
+    /* Header đặt giữa, luôn nổi trên khung mờ */
+    .nini-header { position: relative; z-index: 50; }
+    .nini-header .glass {
+      max-width: 1120px;
+      margin: 10px auto 0;
+    }
+    /* Đảm bảo khung nội dung không đè lên header */
+    #frame.stage { position: relative; z-index: 1; }
+
+    /* Chip footer bo tròn, căn giữa toàn cục */
+    .footer-bar { max-width: 1120px; margin: 12px auto 24px; }
+
+    /* Logo nhỏ góc trái (nếu bạn muốn dùng) */
+    .brand__icon {
+      display:inline-flex; align-items:center; gap:8px;
+      font-weight:700;
+    }
+    .brand__icon img { height:20px; width:auto; display:block; }
+  </style>
 </head>
-<body>
-  <!-- Header mount -->
+<body class="spring">
+  <!-- Slot cho Header -->
   <div id="nini__header"></div>
 
-  <!-- Khung nội dung 16:9 (nếu dùng) -->
+  <!-- Khung 16:9 (nội dung trung tâm) -->
   <div id="frame" class="stage">
-    <!-- nội dung trang: để trống (sau này gắn game/shop...) -->
+    <main class="nini-main">
+      <!-- tùy chọn: để trống, sau này nhóc NiNi đi qua lại / game, shop… -->
+    </main>
   </div>
 
   <!-- Footer chips -->
   <footer class="footer-bar">
-    <nav class="footer-nav">
-      <a class="chip" href="/about">Giới thiệu</a>
+    <nav class="chips">
+      <a class="chip" href="/about.html">Giới thiệu</a>
       <a class="chip" href="/rules.html">Luật chơi</a>
-      <a class="chip" href="/forum/">Diễn đàn</a>
+      <a class="chip" href="/forum.html">Diễn đàn</a>
       <a class="chip" href="/feedback.html">Góp ý</a>
     </nav>
   </footer>
 
-  <!-- Header (NON-module) -->
-  <script src="/public/js/nini-header.js" defer ></script>
-  <!-- Firebase auth helpers (MODULE) -->
+  <!-- Header NON-module -->
+  <script src="/public/js/nini-header.js"></script>
+  <!-- Firebase/Auth (MODULE) – file của bạn đã gộp global NINI.fb rồi -->
   <script type="module" src="/public/js/nini-fb.js"></script>
 
   <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // mount 1 nơi duy nhất
-      NINI.header.mount('#nini__header', {
-        season: 'auto', // để header tự nhận từ URL/localStorage
-        routes: {
-          home:'/home',
-          spring:'/spring',
-          summer:'/summer',
-          autumn:'/autumn',
-          winter:'/winter',
-          profile:'/profile',
-          admin:'/admin/'
-        },
-        onNavigate: (href) => location.href = href
-      });
+    // Routes theo mùa (đi qua hash) + trang admin nếu cần
+    const routes = {
+      home:   '#/home',
+      spring: '#/spring',
+      summer: '#/summer',
+      autumn: '#/autumn',
+      winter: '#/winter',
+      admin:  '/admin/index.html'
+    };
+
+    // Đồng bộ class mùa trên body
+    function applySeasonFromHash() {
+      const seasons = ['home','spring','summer','autumn','winter'];
+      const cur = (location.hash || '#/spring').replace('#/','');
+      seasons.forEach(s => document.body.classList.remove(s));
+      document.body.classList.add(cur);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mount header chung
+      if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
+        NINI.header.mount('#nini__header', {
+          routes,
+          // Logo trái dùng webp chữ; icon nhỏ tab dùng svg (nếu muốn)
+          brandHTML: `
+            <a class="brand__icon" href="#/home" aria-label="NiNi Funny">
+              <img src="/public/assets/icons/logonini.svg" alt="">
+              <img src="/public/assets/icons/logo_text.webp" alt="NiNi">
+            </a>
+          `,
+          // Khi click mùa
+          onSeasonChange: () => applySeasonFromHash()
+        });
+      }
+      // Áp class lần đầu & mỗi lần đổi hash
+      applySeasonFromHash();
+      window.addEventListener('hashchange', applySeasonFromHash);
     });
   </script>
 </body>
 </html>
-

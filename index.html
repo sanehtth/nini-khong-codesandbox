@@ -10,6 +10,8 @@
 
   <!-- Base theme (nền 4 mùa, khung 16:9, glass, footer…) -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
+  <!-- ES module: gắn window.NINI.fb và cung cấp loginModal -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
 
   <style>
     /* Căn giữa header container + footer chips (đè nhẹ lên base) */
@@ -40,9 +42,7 @@
   </footer>
 
   <!-- Scripts -->
-  <!-- SDK Firebase wrapper của bạn: phải gắn vào global NINI.fb (KHÔNG để type="module") -->
-  <script type="module" src="/public/js/nini-fb.js"></script>
-
+  
   <!-- Header UI (non-module) -->
   <script src="/public/js/nini-header.js"></script>
 
@@ -61,4 +61,5 @@
   </script>
 </body>
 </html>
+
 

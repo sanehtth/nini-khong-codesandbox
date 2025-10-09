@@ -210,5 +210,23 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 .btn.small{padding:6px 10px;font-size:12px}
 .glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
 
+/* Center footer chips */
+.footer-bar{
+  display:flex;
+  justify-content:center;
+}
+.footer-bar .chips{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin:0 auto;
+  width:fit-content;          /* co gọn đúng chiều dài các chip */
+  padding:8px 12px;
+  border-radius:16px;
+  backdrop-filter: blur(6px);
+  background: var(--glass-bg);
+  border:1px solid var(--glass-brd);
+}
+
 
 

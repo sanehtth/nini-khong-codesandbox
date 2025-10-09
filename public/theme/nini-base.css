@@ -109,3 +109,63 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 .avatar-card{background:rgba(255,255,255,.06);border:1px solid var(--glass-brd);border-radius:12px;padding:8px;text-align:center}
 .avatar-card img{width:64px;height:64px;border-radius:12px;display:block;margin:0 auto 6px}
 .avatar-card .btn{font-size:12px;padding:6px 8px}
+
+/* ======= Shared Header (brand + seasons + user) ======= */
+.nh__bar{
+  position: sticky; top: 10px; z-index: 30;
+  width: min(1180px, 94vw); margin: 8px auto 14px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 14px;
+  background: var(--glass-bg); border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(10px);
+}
+.nh__brand{ display:flex; align-items:center; gap:10px; text-decoration:none }
+.nh__brand img{ height:34px }
+.nh__slogan{ font-weight:700; letter-spacing:.2px;
+  background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+/* seasons */
+.nh__seasons{ display:flex; gap:8px; margin-left:8px; flex-wrap:wrap }
+.nh__chip{
+  appearance:none; border:1px solid var(--glass-brd);
+  background:var(--glass-bg); color:var(--ink);
+  border-radius:999px; padding:6px 12px; cursor:pointer;
+  backdrop-filter:blur(8px);
+}
+.nh__chip.is-active{ border-color: rgba(255,255,255,.7) }
+
+/* user block (avatar + email + actions) */
+.nh__spacer{ flex:1 }
+.nh__user{ display:flex; align-items:center; gap:10px }
+.nh__avatar{
+  width:40px; height:40px; border-radius:50%;
+  object-fit:cover; border:2px solid var(--glass-brd);
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  background:#ddd;
+}
+.nh__email{ font-size:13px; color:var(--ink); opacity:.9 }
+.nh__btn{ padding:6px 10px; border-radius:999px; border:1px solid var(--glass-brd);
+  background:var(--glass-bg); cursor:pointer }
+
+/* ======= Auth Modal (3 tabs) ======= */
+.nh__modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.28);
+  backdrop-filter: blur(3px); display:none; z-index:50;
+}
+.nh__modal{ position:fixed; left:50%; top:50%;
+  transform:translate(-50%,-50%); width:min(520px,92vw);
+  background:var(--glass-bg); border:1px solid var(--glass-brd);
+  border-radius:16px; padding:14px; display:none; z-index:51;
+}
+.nh__tabs{ display:flex; gap:6px; margin-bottom:10px }
+.nh__tab{ padding:6px 12px; border-radius:999px; border:1px solid var(--glass-brd); cursor:pointer }
+.nh__tab.is-active{ background:rgba(255,255,255,.25) }
+.nh__panel{ display:none }
+.nh__panel.is-active{ display:block }
+.nh__row{ display:flex; flex-direction:column; gap:6px; margin:8px 0 }
+.nh__row input{ padding:8px 10px; border:0; border-bottom:2px solid rgba(255,255,255,.55); background:transparent; color:var(--ink); outline:0 }
+
+/* Ẩn khối auth cũ (nếu trang nào còn chưa xoá HTML cũ) */
+.auth-old, #authBox, .login-box, .footer-login { display:none !important; }

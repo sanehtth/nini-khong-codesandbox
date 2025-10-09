@@ -1,4 +1,4 @@
-﻿/* /public/js/fb.js  —  Firebase helper cho toàn site NiNi
+/* /public/js/fb.js  —  Firebase helper cho toàn site NiNi
    - Khởi tạo 1 lần, tái sử dụng
    - Cung cấp: app, auth, db
    - Tiện ích: onAuth, signInEmail, signInGoogle, logout, getIdToken,
@@ -46,10 +46,10 @@ export function getServices() {
   if (!app) initFirebase();
   return { app, auth, db };
 }
-// thêm vào dưới getServices()
+// Thêm helper lấy instance auth (tiện cho bridge non-module)
 export function getAuthInst(){ if(!auth) initFirebase(); return auth; }
 
-// bên dưới, giữ nguyên logout(), và export raw signOut nếu bạn muốn gọi trực tiếp
+// Cho phép gọi signOut trực tiếp nếu cần
 export { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* ---------- AUTH cơ bản ---------- */
@@ -131,4 +131,3 @@ export {
   reauthenticateWithPopup,
   updatePassword,
 };
-

@@ -14,10 +14,10 @@
 
 /* Seasons (gắn class trên <body> hoặc data-season="...") */
 body.home,  body[data-season="home"]   { --bg-url: url('/public/assets/bg/nini_home.webp'); }
-body.spring,body[data-season="spring"] { --bg-url: url('/public/assets/bg/nini_spring.webp'); }
-body.summer,body[data-season="summer"] { --bg-url: url('/public/assets/bg/nini_summer.webp'); }
-body.autumn,body[data-season="autumn"] { --bg-url: url('/public/assets/bg/nini_autumn.webp'); }
-body.winter,body[data-season="winter"] { --bg-url: url('/public/assets/bg/nini_winter.webp'); }
+body.spring,body[data-season="spring"] { --bg-url: url('/public/assets/images/seasons/spring.webp'); }
+body.summer,body[data-season="summer"] { --bg-url: url('/public/assets/images/seasons/summer.webp'); }
+body.autumn,body[data-season="autumn"] { --bg-url: url('/public/assets/images/seasons/autumn.webp'); }
+body.winter,body[data-season="winter"] { --bg-url: url('/public/assets/images/seasons/winter.webp'); }
 
 /* Reset ngắn */
 *,*::before,*::after{box-sizing:border-box}
@@ -169,3 +169,4 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 
 /* Ẩn khối auth cũ (nếu trang nào còn chưa xoá HTML cũ) */
 .auth-old, #authBox, .login-box, .footer-login { display:none !important; }
+

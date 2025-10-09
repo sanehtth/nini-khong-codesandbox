@@ -14,7 +14,7 @@
   <!-- (tuỳ chọn) override theme từ Netlify function -->
   <script defer src="/public/js/theme-boot.js"></script>
 </head>
-<body class="spring">
+<body class="home">
   <!-- Header mount point -->
   <div id="nini__header"></div>
 
@@ -43,14 +43,14 @@
   <script>
   window.addEventListener('DOMContentLoaded', () => {
     const routes = {
-      home:   '/',
+      home:   '/home',
       spring: '/spring',
       summer: '/summer',
       autumn: '/autumn',
       winter: '/winter',
       admin:  '/admin/index.html'
     };
-    const defaultSeason = 'spring';
+    const defaultSeason = 'home';
 
     if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
       NINI.header.mount('nini__header', {
@@ -65,3 +65,4 @@
   </script>
 </body>
 </html>
+

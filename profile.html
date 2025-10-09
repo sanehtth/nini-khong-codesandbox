@@ -1,219 +1,112 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Hồ sơ cá nhân</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Hồ sơ</title>
 
-  <!-- Style chuẩn cho toàn site -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css">
-  <!-- Style riêng cho trang profile (form, lưới trái/phải) -->
-  <link rel="stylesheet" href="/public/theme/profile.css">
+  <!-- Chỉ nạp base CSS mới -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 
-  <!-- (tùy chọn) Theme boot: nạp CSS động + brand -->
+  <!-- (tuỳ chọn) Brand/theme runtime -->
   <script>
-  (function(){
-    var ENDPOINT='/.netlify/functions/theme';
-    var KEY='NINI_THEME_CACHE_V1'; var MAX_AGE=3600;
-    function inject(css){ var s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }
-    try{
-      var cache=JSON.parse(localStorage.getItem(KEY)||'null');
-      var now=(Date.now()/1000)|0;
-      if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-      fetch(ENDPOINT,{cache:'no-store'}).then(r=>r.text()).then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(()=>{});
-    }catch(_){}
-  })();
+    (function(){ try{
+      const b = JSON.parse(localStorage.getItem('NINI_THEME_BRAND')||'{}');
+      if (b.css) { const s=document.createElement('style'); s.textContent=b.css; document.head.appendChild(s); }
+    }catch(_){}})();
   </script>
 </head>
-<body data-page="profile" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+<body>
 
-  <!-- Header & thanh mùa + avatar/đăng xuất được dựng bởi nini-header.js -->
+  <!-- Header tái sử dụng (logo, slogan, season tabs, avatar/user) -->
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
+    <nav id="seasonTabs" class="tabs">
+      <button class="tab" data-season="home">Home</button>
+      <button class="tab" data-season="spring">Spring</button>
+      <button class="tab" data-season="summer">Summer</button>
+      <button class="tab" data-season="autumn">Autumn</button>
+      <button class="tab" data-season="winter">Winter</button>
+    </nav>
+
     <div class="spacer"></div>
-    <div id="authPanel" class="auth-panel"></div>
+
+    <!-- Nút mở modal auth (đã được app.js gắn sự kiện) -->
+    <button id="authBtn" class="btn">Đăng nhập / Đăng ký</button>
+    <a id="adminBtn" class="btn is-hidden" href="/admin/index.html">Admin</a>
   </header>
 
-  <!-- Khung 16:9 ở giữa (giữa trang luôn giữ spacing đẹp) -->
   <main class="page-hero">
-    <section class="panel-glass profile-wrap">
-      <!-- NOTE: layout 2 cột lấy style trong /public/theme/profile.css -->
-      <div class="profile-left">
-        <h2>Thông tin cá nhân</h2>
-
-        <div class="avatar-card">
-          <img id="avatarImg" class="avatar-card__img" src="/public/assets/avatar/NV1.webp" alt="" />
-          <div class="row gap">
+    <!-- KHÔNG render #frame cho trang profile -->
+    <section class="panel-glass wrap-page" aria-label="Hồ sơ cá nhân">
+      <div class="grid grid-2">
+        <div>
+          <img id="avatarImg" class="avatar" src="/public/assets/avatar/NV1.webp" alt="avatar" />
+          <div class="row">
             <button id="btnUpload" class="btn small">Tải ảnh mới</button>
-            <button id="btnDefault" class="btn small gray">Về mặc định</button>
+            <button id="btnDefault" class="btn small">Về mặc định</button>
           </div>
         </div>
 
-        <form id="frm" class="form-grid">
-          <label>Email
-            <input id="email" type="email" disabled>
-          </label>
+        <div>
+          <label>Email <input id="email" class="input" readonly></label>
+          <label>Tên hiển thị <input id="displayName" class="input" placeholder="Bé NiNi"></label>
+          <label>Ngày sinh <input id="dob" class="input" type="date"></label>
+          <label>Tỉnh/Thành <input id="city" class="input" placeholder="Hà Nội / TPHCM ..."></label>
+          <label>Lớp/Khối <input id="grade" class="input" placeholder="Lớp 2, Lớp 3..."></label>
+          <label>Tên phụ huynh (tuỳ chọn) <input id="parentName" class="input"></label>
+          <label>Số điện thoại <input id="phone" class="input" placeholder="09xxxxxxxx"></label>
 
-          <label>Tên hiển thị
-            <input id="displayName" type="text" placeholder="Bé NiNi">
-          </label>
-
-          <label>Ngày sinh
-            <input id="dob" type="date" placeholder="yyyy-mm-dd">
-          </label>
-
-          <label>Tỉnh/Thành
-            <input id="city" type="text" placeholder="Hà Nội / TPHCM ...">
-          </label>
-
-          <label>Lớp/Khối
-            <input id="grade" type="text" placeholder="Lớp 2, Lớp 3...">
-          </label>
-
-          <label>Phụ huynh (tùy chọn)
-            <input id="parentName" type="text" placeholder="Tên phụ huynh">
-          </label>
-
-          <div class="row gap">
-            <label class="grow">Số điện thoại
-              <input id="phone" type="tel" placeholder="09xxxxxxxx">
-            </label>
-            <button id="btnOTP" class="btn small" type="button">Gửi OTP</button>
-            <input id="otp" class="input small" type="text" placeholder="Mã 6 số" style="max-width:120px">
-          </div>
-
-          <div class="row gap">
+          <div class="row">
             <button id="btnSave" class="btn">Lưu hồ sơ</button>
-            <button id="btnPwd" class="btn gray" type="button">Đổi / Thêm mật khẩu</button>
+            <button id="btnSetPass" class="btn gray">Đổi / Thêm mật khẩu</button>
           </div>
-        </form>
+        </div>
       </div>
 
-      <aside class="profile-right">
+      <aside class="panel" style="margin-top:16px">
         <h2>Thành tích</h2>
-        <div class="stat">
-          <div>XP: <b id="xp">0</b></div>
-          <div>Xu: <b id="xu">0</b></div>
-          <div class="muted">Rương mở cho XP/Xu ngẫu nhiên.</div>
-          <div class="row gap">
-            <button id="btnSync" class="btn small">Đồng bộ lại</button>
-          </div>
-        </div>
+        <div class="row"><span>XP:</span><span id="statXp">0</span></div>
+        <div class="row"><span>Xu:</span><span id="statCoin">0</span></div>
+        <button id="btnSync" class="btn small">Đồng bộ lại</button>
       </aside>
     </section>
 
-    <!-- Footer nav: 4 nút -->
-    <nav class="footer-nav">
-      <a class="chip" href="/#about">Giới thiệu</a>
-      <a class="chip" href="/#rule">Luật chơi</a>
-      <a class="chip" href="/forum.html">Diễn đàn</a>
-      <a class="chip" href="/feedback.html">Góp ý</a>
-    </nav>
+    <!-- Footer chips đồng bộ toàn site -->
+    <footer class="footer-nav">
+      <button class="chip" data-section="intro">Giới thiệu</button>
+      <button class="chip" data-section="rules">Luật chơi</button>
+      <button class="chip" data-section="forum">Diễn đàn</button>
+      <button class="chip" data-section="feedback">Góp ý</button>
+    </footer>
   </main>
 
-  <!-- JS nền (bắt buộc đúng thứ tự) -->
-  <script src="/public/js/nini-utils.js"></script>
-  <script src="/public/theme/nini-header.js"></script>
+  <!-- Modal Auth: dùng modal chung của site (đã có JS điều khiển) -->
+  <div id="authModal" aria-hidden="true">
+    <!-- ... markup modal như ở trang chủ (giữ nguyên) ... -->
+  </div>
 
-  <!-- Chỉ trang này mới cần Firebase (OTP / lưu hồ sơ cloud) -->
-  <script src="/public/js/nini-fb.js"></script>
+  <!-- JS: utils/header + auth modal + app (mùa, footer chips, modal hooks) -->
+  <script src="/public/js/nini-utils.js" defer></script>
+  <script src="/public/js/nini-header.js" defer></script>
+
+  <!-- KHÔNG dùng login page; dùng auth modal (ui-auth-js) -->
+  <script src="/public/js/ui-auth.js" defer></script> <!-- modal login/register: mở/đóng + gọi Netlify Functions -->
+  <script src="/public/js/app.js" defer></script>     <!-- season tabs, footer chips, modal open/close, v.v. -->
 
   <script>
-  // ====== PROFILE PAGE LOGIC ======
-  (function(){
-    const k = NINI.KEY;
-    const $ = s => document.querySelector(s);
-
-    // 1) Bắt buộc đã đăng nhập
-    const logged = !!NINI.store.get(k.AUTH_LOGGED_IN, false);
-    if (!logged) {
-      location.href = "/login.html?next=/profile";
-      return;
-    }
-
-    // 2) Lấy user đang hoạt động
-    const active = NINI.store.get(k.ACTIVE_USER, null);
-    const accounts = NINI.store.get(k.ACCOUNTS, {});
-    const pf = active && accounts[active] ? accounts[active] : {};
-
-    // 3) Đổ dữ liệu
-    $("#email").value       = pf.email || "";
-    $("#displayName").value = pf.displayName || "";
-    $("#dob").value         = pf.dob || "";
-    $("#city").value        = pf.city || "";
-    $("#grade").value       = pf.grade || "";
-    $("#parentName").value  = pf.parentName || "";
-    $("#phone").value       = pf.phone || "";
-    $("#avatarImg").src     = pf.avatarUrl || "/public/assets/avatar/NV1.webp";
-    $("#xp").textContent    = pf.xp || 0;
-    $("#xu").textContent    = pf.xu || 0;
-
-    // 4) Lưu local + (tuỳ chọn) cloud
-    $("#btnSave").onclick = (e)=>{
-      e.preventDefault();
-      const upd = {
-        email:       $("#email").value.trim(),
-        displayName: $("#displayName").value.trim(),
-        dob:         $("#dob").value,
-        city:        $("#city").value.trim(),
-        grade:       $("#grade").value.trim(),
-        parentName:  $("#parentName").value.trim(),
-        phone:       $("#phone").value.trim(),
-        avatarUrl:   $("#avatarImg").src,
-        xp: pf.xp || 0, xu: pf.xu || 0
-      };
-      const accs = NINI.store.get(k.ACCOUNTS, {});
-      accs[active] = Object.assign({}, accs[active]||{}, upd);
-      NINI.store.set(k.ACCOUNTS, accs);
-      alert("Đã lưu hồ sơ (local).");
-
-      // Nếu muốn đẩy cloud:
-      if (window.NiFb?.saveProfile) {
-        NiFb.saveProfile(active, upd).catch(()=>{});
+    // Guard: nếu chưa login thì mở modal, không redirect
+    (function(){
+      const isLoggedIn = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
+      if (!isLoggedIn) {
+        // Cho phép xem layout trước khi login, nhưng nếu bạn muốn bắt buộc thì:
+        document.getElementById('authBtn')?.click(); // mở modal
+        // return; // bật nếu bạn muốn chặn mọi thao tác tới khi đăng nhập
       }
-    };
-
-    // 5) Ảnh đại diện mặc định
-    $("#btnDefault").onclick = ()=>{
-      $("#avatarImg").src = "/public/assets/avatar/NV1.webp";
-    };
-
-    // 6) (Tuỳ chọn) upload ảnh mới
-    $("#btnUpload").onclick = ()=>{
-      if (!window.NiFb?.pickAndUploadAvatar) return alert("Tính năng upload chưa bật.");
-      NiFb.pickAndUploadAvatar(active).then(url=>{
-        $("#avatarImg").src = url;
-      }).catch(err=>alert("Upload lỗi: " + (err?.message||err)));
-    };
-
-    // 7) OTP
-    $("#btnOTP").onclick = ()=>{
-      if (!window.NiFb?.sendPhoneOTP) return alert("OTP chưa bật.");
-      NiFb.sendPhoneOTP($("#phone").value.trim())
-         .then(()=>alert("Đã gửi OTP"))
-         .catch(e=>alert("Lỗi OTP: "+(e?.message||e)));
-    };
-
-    // 8) Đồng bộ
-    $("#btnSync").onclick = ()=>{
-      if (!window.NiFb?.pullProfile) return alert("Sync chưa bật.");
-      NiFb.pullProfile(active).then(cloud=>{
-        if (!cloud) return alert("Chưa có dữ liệu cloud.");
-        const accs = NINI.store.get(k.ACCOUNTS, {});
-        accs[active] = Object.assign({}, accs[active]||{}, cloud);
-        NINI.store.set(k.ACCOUNTS, accs);
-        location.reload();
-      });
-    };
-  })();
+    })();
   </script>
 </body>
 </html>

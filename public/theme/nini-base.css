@@ -422,5 +422,39 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
   filter: none !important;
   box-shadow: none !important;
 }
+/* Tạo không gian đứng cho hero (Nhím) */
+#frame{
+  display: grid !important;
+  place-items: center !important;
+  width: min(1180px, 92vw);
+  margin: 16px auto 0 !important;              /* cách header một chút */
+  min-height: clamp(320px, 45vh, 560px) !important; /* TĂNG chiều cao hero */
+  padding: 6px 0;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* Ẩn mọi thứ trong frame trừ Nhím (cho chắc) */
+#frame > :not(.nini){ display: none !important; }
+
+/* Nhím – giữ tỉ lệ đẹp */
+.nini{
+  width: clamp(160px, 18vw, 260px) !important;
+  height: auto !important;
+}
+
+/* Đẩy thanh nút footer cách hero thêm một chút */
+#footerNav, .footer-bar{
+  margin-top: clamp(20px, 3vh, 36px) !important;
+}
+
+/* Nếu vẫn còn thấy vệt/đường mờ do pseudo-element cũ */
+#frame::before, #frame::after{ display:none !important; }
+
+/* Ẩn hoàn toàn kệ sách placeholder (nếu còn) */
+#shelfMount{ display:none !important; height:0 !important; padding:0 !important; margin:0 !important; }
+
 
 

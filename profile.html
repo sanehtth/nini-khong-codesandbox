@@ -46,7 +46,7 @@
     <!-- Thông tin cá nhân -->
     <section class="card">
       <div class="avatar-box">
-        <img id="pfAvatar" src="/public/assets/avatar/NiNi.webp" alt="">
+        <img id="pfAvatar" src="/public/assets/avatar/NV1.webp" alt="">
         <div class="btns">
           <button class="chip" id="btnUpload">Tải ảnh mới</button>
           <button class="chip" id="btnDefaultAvatar">Về mặc định</button>
@@ -118,7 +118,8 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="/public/js/nini-fb.js"></script>
+  <script type="module" src="/public/js/nini-fb.js"></script>
+
   <script src="/public/js/nini-header.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -149,8 +150,9 @@
       btnSync?.addEventListener('click', () => {/* TODO: đồng bộ hồ sơ */});
       btnSyncChest?.addEventListener('click', () => {/* TODO: đồng bộ rương */});
       btnUpload?.addEventListener('click', () => {/* TODO: upload avatar */});
-      btnDefaultAvatar?.addEventListener('click', () => { pfAvatar.src='/public/assets/avatar/NiNi.webp'; });
+      btnDefaultAvatar?.addEventListener('click', () => { pfAvatar.src='/public/assets/avatar/NV1.webp'; });
     });
   </script>
 </body>
 </html>
+

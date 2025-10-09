@@ -1,533 +1,95 @@
-/* ========== NiNi Base (ONE stylesheet for whole site) ========== */
-/* Reset */
+/* ========== NiNi Base (lite) — public pages only ========== */
+/* Reset cực gọn */
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%}
 body,h1,h2,h3,h4,p,figure,blockquote,dl,dd{margin:0}
-ul[role='list'],ol[role='list']{list-style:none}
-img,svg,video,canvas,audio,iframe{display:block;max-width:100%}
+img,svg,video,canvas{display:block;max-width:100%}
 button,input,select,textarea{font:inherit}
 :focus{outline:none}
 
 /* Tokens */
 :root{
   --bg-url: url('/public/assets/bg/nini_home.webp');
-
-  /* Colors */
-  --ink:#1c2024;            /* text on glass */
-  --ink-dim:#6b7b8c;
+  --ink:#1c2024; --ink-dim:#6b7b8c;
   --glass-bg: rgba(255,255,255,.14);
   --glass-brd: rgba(255,255,255,.35);
-  --glass-shadow: 0 10px 30px rgba(47,110,63,.25);
-
-  --line:#ffffff;           /* underline (inputs) */
-  --line-weak: rgba(255,255,255,.55);
-  --line-strong:#fff;
-
-  --ok:#0f5132;
-  --bad:#7f1d1d;
-
-  /* Radii / spacing */
-  --r:14px;
-  --r-lg:18px;
-  --sp-1:8px;
-  --sp-2:12px;
-  --sp-3:16px;
+  --shadow: 0 10px 30px rgba(47,110,63,.25);
+  --line:#fff; --line-weak: rgba(255,255,255,.55);
+  --r:18px; --sp:12px;
 }
 
-/* Base canvas */
+/* Canvas */
 body{
   min-height:100svh;
   color:var(--ink);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  background: #0b1f13 var(--bg-url) center/cover fixed no-repeat;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,Noto Sans,Liberation Sans,sans-serif;
+  background:#0b1f13 var(--bg-url) center/cover fixed no-repeat;
 }
 
-/* Utilities */
+/* Helpers */
 .muted{color:var(--ink-dim);font-size:13px}
-.note{color:var(--ink-dim);font-size:13px}
-.ok{color:var(--ok)} .bad{color:var(--bad)}
-.hide,[hidden]{display:none !important}
-.is-hidden{display:none !important}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.grid{display:grid;gap:10px}
-.grid-2{grid-template-columns:1fr 1fr}
-.bg-cover{background:var(--bg-url) center/cover no-repeat}
 
-/* ========== Header (glass) ========== */
+/* ===== Header (glass) ===== */
 .site-header{
-  position:sticky; top:0; z-index:40;
-  display:flex; align-items:center; gap:16px;
-  width:min(1180px,94vw);
-  margin:14px auto;
-  padding:10px 14px;
-  background:var(--glass-bg);
-  border:1px solid var(--glass-brd);
-  backdrop-filter: blur(10px);
-  border-radius: var(--r);
-  box-shadow: var(--glass-shadow);
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:16px;
+  width:min(1180px,94vw);margin:14px auto;padding:10px 14px;
+  background:var(--glass-bg);border:1px solid var(--glass-brd);
+  backdrop-filter:blur(10px);border-radius:var(--r);box-shadow:var(--shadow);
 }
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand__logo{height:34px;width:auto}
+.brand__logo{height:34px}
 .brand__slogan{
-  font-weight:700; letter-spacing:.2px; user-select:none;
-  background: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  animation: hue 10s linear infinite;
+  font-weight:700;letter-spacing:.2px;
+  background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:hue 10s linear infinite;
 }
 @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
 
-.auth-area{display:flex;gap:10px;align-items:center;margin-left:auto}
-.avatar-btn img{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.35)}
-
-/* Season tabs */
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 .tab{
   appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);
-  color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;
-  backdrop-filter:blur(8px)
+  color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;backdrop-filter:blur(8px)
 }
 .tab.is-active{box-shadow:0 0 0 2px rgba(47,110,63,.25);border-color:#fff}
 
-/* ========== Buttons ========== */
-.btn,.auth-btn,.admin-tab{
-  appearance:none; cursor:pointer; user-select:none;
-  border:1px solid var(--glass-brd);
-  background:var(--glass-bg);
-  color:var(--ink);
-  border-radius:999px;
-  padding:8px 14px;
-  backdrop-filter:blur(8px);
-  transition:transform .05s ease, box-shadow .2s ease, border-color .2s ease;
-  box-shadow: 0 4px 10px rgba(47,110,63,.18);
+/* ===== Inputs “1 gạch dưới trắng” ===== */
+.input,input,select,textarea{
+  width:100%;padding:8px 10px;color:var(--ink);
+  background:transparent;border:0;border-bottom:2px solid var(--line-weak)
 }
-.btn.small{padding:6px 10px}
-.btn.ghost{background:transparent}
-.btn.solid{background:rgba(255,255,255,.22)}
-.btn.danger{border-color:#ffb0b0}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(47,110,63,.28);border-color:#fff}
-.btn:active{transform:translateY(0)}
-
-/* Tabs-line (auth modal) */
-.tabs-line{display:flex;gap:10px;border-bottom:1px solid var(--glass-brd);padding:0 12px 8px}
-.tab-line{
-  background:transparent;border:0;padding:8px 10px;border-bottom:2px solid transparent;cursor:pointer;color:var(--ink)
-}
-.tab-line.is-active{border-bottom-color:#fff}
-
-/* ========== Inputs “1 gạch dưới trắng” ========== */
-.input, input, select, textarea{
-  width:100%;
-  padding:8px 10px;
-  color:var(--ink);
-  background:transparent;
-  border:0;
-  border-bottom:2px solid var(--line-weak);
-  outline:0;
-}
-.input.underline{border-bottom:2px solid var(--line)}
 input::placeholder,textarea::placeholder{color:rgba(255,255,255,.55)}
-input:focus,select:focus,textarea:focus{border-bottom-color:var(--line-strong); box-shadow:0 4px 0 -2px rgba(47,110,63,.25) inset}
+input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 
-/* ========== Modal (auth, shop, reader) ========== */
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center}
-.modal[aria-hidden="false"]{display:flex}
-.modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
-.modal__panel{
-  position:relative; z-index:2; width:min(680px,92vw);
+/* ===== Hero 16:9 Stage (game / NiNi) =====
+   - Chỉ cần đặt <div id="frame"> và nhét canvas/ảnh/video .stage vào trong.
+   - Nếu muốn chỉ hiển thị NiNi, cứ đặt <img class="nini"> vào giữa khung. */
+#frame{
+  position:relative; display:grid; place-items:center;
+  width:min(1180px,92vw); aspect-ratio:16/9; margin:16px auto 0;
+  overflow:hidden; border-radius:var(--r);
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.32);
+  box-shadow:0 10px 30px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.15);
+  backdrop-filter:blur(8px) saturate(120%);
+}
+#frame > .stage, #frame > canvas, #frame > img, #frame > video{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+}
+/* NiNi mascot (tuỳ chọn) */
+.nini{width:clamp(160px,18vw,260px);height:auto}
+
+/* ===== Footer 4 nút ===== */
+.footer-bar{
+  width:min(1180px,94vw); margin:16px auto 24px; padding:12px;
   background:var(--glass-bg); border:1px solid var(--glass-brd);
-  border-radius: var(--r-lg); box-shadow: var(--glass-shadow);
+  border-radius:var(--r); backdrop-filter:blur(10px)
 }
-.modal__head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--glass-brd)}
-.modal__title{display:flex;align-items:center;gap:8px;margin:0;font-size:18px}
-.modal__close{appearance:none;background:transparent;border:0;cursor:pointer;font-size:18px;padding:6px 8px;color:var(--ink)}
-
-.form{display:none;padding:12px}
-.form.is-active{display:block}
-.form .row{padding:6px 0}
-
-/* ========== Index viewport / frame / content ========== */
-.viewport{width:min(1180px,94vw);margin:0 auto 60px;display:grid;grid-template-columns: 1.2fr .8fr;gap:14px}
-@media (max-width: 980px){ .viewport{grid-template-columns:1fr} }
-/*.frame{position:relative;min-height:420px;background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);overflow:hidden} */
-/*.frame .nini{position:absolute;bottom:-6px;right:-6px;width:180px;opacity:.9;pointer-events:none} */
-.chips{position:absolute;top:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap}
-.chip{appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);padding:6px 10px;border-radius:999px;cursor:pointer}
-.chip.is-active{border-color:#fff;box-shadow:0 0 0 2px rgba(47,110,63,.25)}
-/*.content{background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:var(--r-lg);backdrop-filter:blur(10px);padding:12px}
-
-/* Shelf (Spring) */
-.shelf-card{margin:12px}
-.shelf__title{margin:0 0 8px 2px}
-.shelf__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.book-card{background:rgba(255,255,255,.08);border:1px solid var(--glass-brd);border-radius:12px;overflow:hidden;cursor:pointer;transition:transform .08s ease}
-.book-card:hover{transform:translateY(-2px)}
-.book-card__cover{width:100%;height:200px;object-fit:cover;background:#fff}
-.book-card__body{padding:8px 10px}
-.book-card__title{font-size:15px;margin:0 0 2px}
-.book-card__meta{font-size:12px;color:var(--ink-dim)}
-
-/* ========== Reader modal (calendar) ========== */
-.reader__panel{width:min(1100px,96vw)}
-#calendarViewport{position:relative;aspect-ratio:16/9;border-top:1px solid var(--glass-brd)}
-.calendar__bg{position:absolute;inset:0;background-size:cover;background-position:center}
-.calendar.is-loading .calendar__spinner{display:block}
-.calendar__spinner{display:none;position:absolute;inset:0;place-items:center}
-.reader__toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px;border-top:1px solid var(--glass-brd)}
-#pageCounterTop{font-size:14px;color:var(--ink-dim)}
-.reader__subtitle{padding:10px;font-size:14px}
-
-/* ========== Cards / sections (profile/admin) ========== */
-.card{background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:16px;padding:16px 16px 18px;box-shadow: inset 0 0 0 1px rgba(17,24,39,.06)}
-.card h2{margin:0 0 10px;font-size:20px}
-.meta{font-size:13px;color:var(--ink-dim);margin:-2px 0 12px}
-.fld{display:grid;grid-template-columns: 180px 1fr;align-items:center;gap:10px;margin:8px 0}
-.fld>span{color:var(--ink-dim);font-size:14px}
-
-/* KPI (profile) */
-.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0 10px}
-.kpi .tile{background:rgba(255,255,255,.18);border:1px solid var(--glass-brd);border-radius:12px;padding:12px;text-align:center}
-.kpi .tile h3{margin:0;font-size:13px;color:var(--ink-dim)}
-.kpi .tile .val{font-size:22px;font-weight:800;margin-top:4px}
-.bar{height:8px;background:rgba(17,24,39,.12);border-radius:999px;overflow:hidden}
-.bar>i{display:block;height:100%;background:linear-gradient(90deg,#ffd44d,#7bd86a,#4fb1ff,#b88752)}
-
-/* Avatar / Profile */
-.avatar-wrap{display:flex;align-items:center;gap:14px}
-.avatar{width:96px;height:96px;border-radius:50%;border:1px solid rgba(17,24,39,.15);object-fit:cover;background:#fff;box-shadow:0 2px 10px rgba(17,24,39,.08)}
-.pw-card{margin-top:14px;background:rgba(255,255,255,.14);border:1px solid var(--glass-brd);border-radius:12px;padding:12px}
-.pw-card h3{margin:0 0 8px;font-size:16px}
-
-/* Shop (avatar) */
-#shopModal .modal__panel{width:min(960px,96vw)}
-.shop__head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--glass-brd)}
-.shop__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:12px}
-.avt-card{background:rgba(255,255,255,.10);border:1px solid var(--glass-brd);border-radius:12px;overflow:hidden}
-.avt-card__img{width:100%;height:180px;object-fit:cover;background:#fff}
-.avt-card__body{padding:10px}
-.avt-card__title{display:flex;align-items:center;gap:8px;font-weight:700}
-.tag{display:inline-block;font-size:12px;border:1px dashed rgba(255,255,255,.45);padding:2px 6px;border-radius:999px}
-.avt-card__foot{display:flex;align-items:center;justify-content:space-between;padding:10px}
-
-/* Admin panels */
-.page-hero{display:flex;justify-content:center}
-.panel-glass{
-  width:min(1180px,94vw); margin:12px auto 80px;
-  background:var(--glass-bg); border:1px solid var(--glass-brd);
-  border-radius: var(--r-lg); backdrop-filter: blur(10px); box-shadow: var(--glass-shadow);
-}
-.table-wrap{overflow:auto;border-radius:0 0 var(--r) var(--r)}
-table{width:100%;border-collapse:collapse}
-thead tr{background:rgba(255,255,255,.25)}
-th,td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.25);text-align:left}
-tbody tr:hover{background:rgba(255,255,255,.08)}
-.glass-head{padding:12px 14px;border-bottom:1px solid var(--glass-brd)}
-
-/* Main frame luôn căn giữa */
-/*.frame{ position:relative; width:min(1180px,94vw); margin:12px auto; }*/
-/* Hàng chip nằm sát đầu khối frame, không absolute */
-.chips{
-  position:static;
-  display:flex; gap:10px; flex-wrap:wrap;
-  margin:8px 10px 12px;
-}
-
-/* Thẻ card giới thiệu trong frame (nếu dùng) */
-/* .frame .intro{ margin:10px; }*/
-/* Ẩn kệ sách tạm thời */
-/* #shelfMount { display:none !important; } */
-
-/* Nếu vẫn còn khối content cũ thì ẩn luôn: */
-/* .content { display:none !important; } */
-/* Bé Nhím đứng giữa + nhún nhẹ cho vui */
-.nini-avatar{
-  display:block;
-  margin:40px auto;
-  width:clamp(120px,18vw,220px);
-  aspect-ratio:1/1;
-  object-fit:contain;
-  filter:drop-shadow(0 8px 14px rgba(0,0,0,.22));
-  animation: niniFloat 3s ease-in-out infinite;
-}
-@keyframes niniFloat{
-  0%{ transform:translateY(0) }
-  50%{ transform:translateY(-10px) }
-  100%{ transform:translateY(0) }
-}
-
-/* Footer chứa 4 nút */
-.site-footer{
-  width:min(1180px,94vw);
-  margin:24px auto;
-  padding:12px;
-  background:var(--glass-bg);
-  border:1px solid var(--glass-brd);
-  border-radius:var(--radius);
-  backdrop-filter:blur(10px);
-}
-.footer-nav{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
-/* Nếu trang chưa có style .chip thì thêm nhanh: */
+.footer-nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .chip{
-  display:inline-block;
-  padding:6px 12px;
-  border-radius:999px;
-  border:1px solid var(--glass-brd);
-  background:var(--glass-bg);
-  color:var(--ink);
-  cursor:pointer;
-  text-decoration:none;
-  user-select:none;
+  display:inline-block;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--glass-brd);background:var(--glass-bg);
+  color:var(--ink);text-decoration:none;user-select:none
 }
-.chip:is(:hover,:focus){ filter:brightness(1.06); }
-
-/* 5) Bé Nhím ở giữa */
-.nini-avatar{
-  display:block;
-  width:clamp(120px,18vw,220px);
-  aspect-ratio:1/1;
-  object-fit:contain;
-  margin:32px auto;
-  filter:drop-shadow(0 8px 14px rgba(0,0,0,.22));
-  animation:niniFloat 3s ease-in-out infinite;
-}
-@keyframes niniFloat{
-  0%{transform:translateY(0)}
-  50%{transform:translateY(-10px)}
-  100%{transform:translateY(0)}
-}
-/* #frame không còn tạo hộp riêng → không còn vệt kính */
-#frame {
-  display: contents !important;   /* giữ con bên trong, bỏ cái box */
-}
-
-/* Nếu có style cũ vẫn bơm nền/viền qua pseudo thì tắt luôn */
-#frame::before,
-#frame::after {
-  content: none !important;
-}
-
-/* Phòng hờ style cũ còn nặn kính/viền trên con của frame */
-#frame, #frame *:empty {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  outline: 0 !important;
-}
-
-/* Bảo đảm không còn chiều cao/ khoảng cách thừa */
-#frame {
-  height: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-/* --- 0) Ẩn mọi thứ còn sót của frame/shelf --- */
-#frame { display: contents !important; }                /* bỏ cái box của frame */
-#frame::before,
-#frame::after { content: none !important; }
-.shelf, .shelf-card, .shelf-wrap, .shelf-row,
-.frame-bg, .frame-row, .hero-strip { display:none !important; }
-
-/* --- 1) Chỉ giữ NiNi, không nền/viền/phủ mờ --- */
-#frame .nini, .nini {
-  display:block !important;
-  background:none !important;
-  box-shadow:none !important;
-  filter:none !important;
-  margin:24px auto 0 !important;
-  width:clamp(160px,12vw,220px);
-  height:auto !important;
-}
-
-/* --- 2) Dời 4 nút xuống “footer” (cố định đáy) --- */
-.chips{
-  position:fixed;
-  left:50%;
-  bottom:max(16px, env(safe-area-inset-bottom));
-  transform:translateX(-50%);
-  display:flex; gap:10px;
-  padding:10px 14px;
-  background:var(--glass-bg);
-  border:1px solid var(--glass-brd);
-  border-radius:999px;
-  z-index:20;
-}
-
-/* --- 3) Ẩn mọi dải kính mờ thừa ngay dưới header --- */
-.site-header + .panel-glass,
-.site-header + .glass,
-.viewport .glass-row { display:none !important; }
-
-/* --- 4) Ẩn luôn content cũ nếu còn --- */
-#content, .content { display:none !important; height:0 !important; padding:0 !important; margin:0 !important; border:0 !important; }
-
-/* ===== Center NiNi in the hero area ===== */
-#frame{
-  display:flex !important;
-  justify-content:center !important;
-  align-items:center !important;
-  min-height: 220px;                 /* chiều cao hero */
-  background:none !important;
-  border:0 !important;
-  box-shadow:none !important;
-  padding:16px 0;
-}
-
-/* Ẩn mọi con của frame trừ NiNi (chips đã fixed ở footer) */
-#frame > :not(.nini){ display:none !important; }
-
-/* Kích thước & canh giữa NiNi cho chắc */
-.nini{
-  display:block !important;
-  position:relative !important;
-  left:50% !important;
-  transform:translateX(-50%) !important;
-  width: clamp(160px, 13vw, 240px) !important;
-  height:auto !important;
-  background:none !important;
-  box-shadow:none !important;
-  filter:none !important;
-  margin:0 !important;
-}
-
-/* ==== Hero (frame) chỉ còn Nhím, canh giữa bằng grid ==== */
-#frame{
-  display: grid !important;
-  place-items: center !important;        /* canh giữa ngang + dọc */
-  width: min(1180px, 92vw);
-  margin: 14px auto 0 !important;        /* đẩy khối xuống dưới header một chút */
-  min-height: clamp(180px, 26vw, 300px); /* chiều cao vùng hero */
-  padding: 6px 0;
-  background: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-
-/* Ẩn mọi thứ trong frame trừ Nhím */
-#frame > :not(.nini){ display: none !important; }
-
-/* Kích thước ảnh Nhím, bỏ transform cũ */
-.nini{
-  display: block !important;
-  width: clamp(160px, 18vw, 260px) !important;
-  height: auto !important;
-  margin: 0 !important;
-  filter: none !important;
-  box-shadow: none !important;
-}
-/* Tạo không gian đứng cho hero (Nhím) */
-#frame{
-  display: grid !important;
-  place-items: center !important;
-  width: min(1180px, 92vw);
-  margin: 16px auto 0 !important;              /* cách header một chút */
-  min-height: clamp(320px, 45vh, 560px) !important; /* TĂNG chiều cao hero */
-  padding: 6px 0;
-  background: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-}
-
-/* Ẩn mọi thứ trong frame trừ Nhím (cho chắc) */
-#frame > :not(.nini){ display: none !important; }
-
-/* Nhím – giữ tỉ lệ đẹp */
-.nini{
-  width: clamp(160px, 18vw, 260px) !important;
-  height: auto !important;
-}
-
-/* Đẩy thanh nút footer cách hero thêm một chút */
-#footerNav, .footer-bar{
-  margin-top: clamp(20px, 3vh, 36px) !important;
-}
-
-/* Nếu vẫn còn thấy vệt/đường mờ do pseudo-element cũ */
-#frame::before, #frame::after{ display:none !important; }
-
-/* Ẩn hoàn toàn kệ sách placeholder (nếu còn) */
-#shelfMount{ display:none !important; height:0 !important; padding:0 !important; margin:0 !important; }
-/* ===== 16:9 Stage (dùng chính #frame) ===== */
-#frame{
-  position: relative;
-  margin: 16px auto;
-  /* chọn kích thước theo tỉ lệ, luôn canh giữa */
-  display: grid;
-  place-items: center;
-
-  /* Ưu tiên theo chiều rộng; giới hạn tối đa để không quá to */
-  width: min(1180px, 92vw);
-  aspect-ratio: 16 / 9;
-
-  /* Cắt mọi thứ tràn ra ngoài khung */
-  overflow: hidden;
-
-  /* Trang trí nhẹ theo theme kính */
-  border-radius: var(--radius, 18px);
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.32);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,.28),
-    inset 0 0 0 1px rgba(255,255,255,.15);
-  backdrop-filter: blur(8px) saturate(120%);
-}
-
-/* Bảo đảm nội dung bên trong khung phủ kín */
-#frame > .stage,
-#frame > canvas,
-#frame > img,
-#frame > video{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;   /* muốn cover/contain tùy nhu cầu game */
-}
-
-/* Ẩn mọi thứ trong frame không phải nội dung game (nếu còn) */
-#frame > :not(.stage):not(canvas):not(img):not(video){
-  display: none !important;
-}
-
-/* Nhím linh vật đặt nổi trên stage (nếu dùng) */
-#frame .nini{
-  position: relative;
-  z-index: 1;
-  width: clamp(160px, 18vw, 240px);
-  height: auto;
-}
-
-/* ===== Đẩy footer xuống một chút (khoảng thở) ===== */
-#footerNav, .footer-bar{ margin-top: clamp(16px, 3vh, 36px); }
-
-/* ===== Chế độ tập trung (tối mờ phần ngoài khung) ===== */
-body.focus-stage::before{
-  content:"";
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
-  pointer-events: none;
-  z-index: 9;
-}
-body.focus-stage #frame{ z-index: 10; }
-
-/* Khi màn hình rộng nhưng lùn: ưu tiên chiều cao, tự tính chiều rộng theo 16:9 */
-@media (min-aspect-ratio: 16/9){
-  #frame{
-    height: min(70vh, 720px);
-    width: calc(100% * (16 / 9)); /* sẽ bị ràng bởi max-width bên trên */
-    max-width: min(1180px, 92vw);
-  }
-}
-
-
-
-
+.chip:is(:hover,:focus){filter:brightness(1.06)}

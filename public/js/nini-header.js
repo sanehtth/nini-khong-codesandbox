@@ -92,8 +92,8 @@
 
     // brand config (đã dùng đường dẫn bạn cung cấp)
     const brand = Object.assign({
-      logo: '/public/assets/icons/logonini.webp',
-      logoSmall: '/public/assets/icons/logo_text.webp',
+      logo: '/public/assets/icons/logo_text.webp',
+      logoSmall: '/public/assets/icons/logonini.webp',
       sloganText: 'Chơi mê ly, bứt phá tư duy'
     }, (opts.brand || {}));
 
@@ -166,3 +166,4 @@
   style.textContent = css;
   document.head.appendChild(style);
 })();
+

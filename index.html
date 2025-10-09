@@ -2,13 +2,33 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <base href="/" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
 
-  <!-- CSS chung đã gom -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css">
+  <!-- 1) CSS nền tảng dùng chung cho toàn site -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css?v=20241008-02" />
+
+  <!-- 2) Nạp util (tạo biến NINI toàn cục) rồi đến header -->
+  <script src="/public/js/nini-utils.js?v=20241008-02" defer></script>
+  <script src="/public/js/nini-header.js?v=20241008-02" defer></script>
+
+  <!-- 3) (Tuỳ chọn) Theme override từ Netlify Functions -->
+  <script>
+  (function(){
+    const KEY='NINI_THEME_CACHE_V1', ENDPOINT='/.netlify/functions/theme';
+    function inject(css){ let s=document.getElementById('themeOverride');
+      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
+      s.textContent = css;
+    }
+    try{
+      const now=Date.now()/1000|0, cache=JSON.parse(localStorage.getItem(KEY)||'null');
+      if(cache && (now-cache.ts)<3600) inject(cache.css);
+      fetch(ENDPOINT,{cache:'no-store'}).then(r=>r.text()).then(css=>{
+        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts:now, css})); }
+      }).catch(()=>{});
+    }catch(_){}
+  })();
+  </script>
 </head>
 
 <!-- Đặt background qua CSS variable để mọi trang dùng 1 file nền -->
@@ -146,6 +166,7 @@
 </footer>
 </body>
 </html>
+
 
 
 

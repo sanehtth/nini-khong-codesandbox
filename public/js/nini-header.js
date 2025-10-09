@@ -1,5 +1,4 @@
 <!-- /public/theme/nini-header.js -->
-<script>
 (function (global) {
   const KEY_SEASON = 'NINI_THEME_SEASON';
 
@@ -92,7 +91,6 @@
   global.NINI = global.NINI || {};
   global.NINI.header = { mount };
 })(window);
-</script>
 
 <style>
 /* header tối giản — dùng chung */
@@ -107,4 +105,5 @@
 .btn.small{padding:6px 10px;font-size:12px}
 .glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
 </style>
+
 

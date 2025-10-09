@@ -14,7 +14,7 @@
   <!-- (tuỳ chọn) override theme từ Netlify function -->
   <script defer src="/public/js/theme-boot.js"></script>
 </head>
-<body class="home">
+<body>
   <!-- Header mount point -->
   <div id="nini__header"></div>
 
@@ -34,35 +34,68 @@
   </footer>
 
   <!-- 1) Header (NON-module) — cần đúng path -->
-  <script defer src="/public/js/nini-header.js"></script>
+  <script src="/public/theme/nini-header.js"></script>
 
   <!-- 2) Firebase/auth helpers (MODULE) -->
   <script type="module" src="/public/js/nini-fb.js"></script>
 
   <!-- 3) Khởi động header sau khi DOM sẵn sàng -->
-  <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const routes = {
-      home:   '/home',
-      spring: '/spring',
-      summer: '/summer',
-      autumn: '/autumn',
-      winter: '/winter',
-      admin:  '/admin/index.html'
-    };
-    const defaultSeason = 'home';
+ <script>
+    (function () {
+      // --- Suy ra "mùa" từ URL
+      const path = location.pathname.replace(/\/+$/, '') || '/';
+      const known = { '/spring':'spring', '/summer':'summer', '/autumn':'autumn', '/winter':'winter' };
+      let currentSeason =
+        known[path] ||
+        localStorage.getItem('NINI_LAST_SEASON') ||
+        'spring';
 
-    if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
-      NINI.header.mount('nini__header', {
-        routes,
-        defaultSeason,
-        showLoginTabs: true  // bật modal đăng nhập 3 tab
+      // Gắn season vào body
+      document.body.classList.add(currentSeason);
+
+      // --- Khai báo routes điều hướng
+      const routes = {
+        home:   '/',
+        spring: '/spring',
+        summer: '/summer',
+        autumn: '/autumn',
+        winter: '/winter',
+        admin:  '/admin/index.html'
+      };
+
+      // --- Mount header
+      if (window.NINI && window.NINI.header && typeof NINI.header.mount === 'function') {
+        NINI.header.mount('nini__header', {
+          routes,
+          defaultSeason: currentSeason,
+
+          // Khi user bấm đổi mùa trên header
+          onSeasonChange: (season) => {
+            // cập nhật class body + nhớ lại
+            ['spring','summer','autumn','winter'].forEach(c => document.body.classList.remove(c));
+            document.body.classList.add(season);
+            localStorage.setItem('NINI_LAST_SEASON', season);
+          },
+
+          // Điều hướng khi click (nếu header dùng JS thay vì <a href>)
+          onNavigate: (path) => {
+            if (path) location.href = path;
+          }
+        });
+      }
+
+      // --- Đồng bộ trạng thái đăng nhập vào header
+      // nini-fb.js nên phát sự kiện 'nini:authchange' {detail: {user}}
+      document.addEventListener('nini:authchange', (e) => {
+        const user = e.detail && e.detail.user ? e.detail.user : null;
+        // nếu nini-header.js có hàm setUser thì gọi, còn không thì header tự nghe store
+        if (window.NINI && NINI.header && typeof NINI.header.setUser === 'function') {
+          NINI.header.setUser(user);
+        }
       });
-    } else {
-      console.warn('NINI.header chưa tải. Kiểm tra 404 hoặc path của /public/js/nini-header.js');
-    }
-  });
+    })();
   </script>
 </body>
 </html>
+
 

@@ -15,8 +15,11 @@
   <script defer src="/public/js/theme-boot.js"></script>
 </head>
 <body>
+  <!-- Header dùng chung -->
+  <div id="nini__header"></div>
+
   <main class="page-hero">
-    <!-- KHÔNG render #frame cho trang profile -->
+    <!-- KHÔNG dùng #frame cho trang form -->
     <section class="panel-glass wrap-page" aria-label="Hồ sơ cá nhân">
       <div class="grid grid-2">
         <div>
@@ -60,31 +63,42 @@
     </footer>
   </main>
 
-  <!-- Modal Auth: dùng modal chung của site (đã có JS điều khiển) -->
-  <div id="authModal" aria-hidden="true">
-    <!-- ... markup modal như ở trang chủ (giữ nguyên) ... -->
-  </div>
+  <!-- Modal Auth (3 tab) -->
+  <div id="authModal" aria-hidden="true"></div>
 
-  <!-- JS: utils/header + auth modal + app (mùa, footer chips, modal hooks) -->
-  <script src="/public/js/nini-utils.js" defer></script>
-  <script src="/public/js/nini-header.js" defer></script>
+  <!-- JS: utils + header (non-module) -->
+  <script defer src="/public/js/nini-utils.js"></script>
+  <script defer src="/public/js/nini-header.js"></script>
 
-  <!-- KHÔNG dùng login page; dùng auth modal (ui-auth-js) -->
-  <script src="/public/js/ui-auth.js" defer></script> <!-- modal login/register: mở/đóng + gọi Netlify Functions -->
-  <script src="/public/js/app.js" defer></script>     <!-- season tabs, footer chips, modal open/close, v.v. -->
+  <!-- JS: auth + app (module) -->
+  <script type="module" src="/public/js/nini-fb.js"></script>
+  <script defer src="/public/js/ui-auth.js"></script>
+  <script defer src="/public/js/app.js"></script>
 
   <script>
-    // Guard: nếu chưa login thì mở modal, không redirect
-    (function(){
-      const isLoggedIn = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
-      if (!isLoggedIn) {
-        // Cho phép xem layout trước khi login, nhưng nếu bạn muốn bắt buộc thì:
-        document.getElementById('authBtn')?.click(); // mở modal
-        // return; // bật nếu bạn muốn chặn mọi thao tác tới khi đăng nhập
+    // Mount header trên profile để avatar/email đồng nhất
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.NINI?.header?.mount) {
+        NINI.header.mount('nini__header', {
+          routes: {
+            home:   '/',
+            spring: '/spring',
+            summer: '/summer',
+            autumn: '/autumn',
+            winter: '/winter',
+            admin:  '/admin/index.html'
+          },
+          defaultSeason: 'spring',
+          showLoginTabs: true
+        });
       }
-    })();
+
+      // Nếu chưa login -> mở modal, KHÔNG redirect sang /login
+      const logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
+      if (!logged) {
+        document.getElementById('authBtn')?.click();
+      }
+    });
   </script>
 </body>
 </html>
-
-

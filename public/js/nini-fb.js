@@ -24,10 +24,12 @@ import {
    rồi khỏi sửa trong file: const firebaseConfig = window.__NINI_FB_CONFIG || {...}
 ----------------------------------------------------- */
 const firebaseConfig = window.__NINI_FB_CONFIG || {
-  apiKey:       "PASTE_YOUR_API_KEY",
-  authDomain:   "PASTE_YOUR_AUTH_DOMAIN",
-  projectId:    "PASTE_YOUR_PROJECT_ID",
-  appId:        "PASTE_YOUR_APP_ID",
+  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184",
   // (các field khác nếu bạn có: storageBucket, messagingSenderId, measurementId…)
 };
 
@@ -127,3 +129,4 @@ window.NINI.fb = {
 };
 
 console.info("[nini-fb] loaded");
+

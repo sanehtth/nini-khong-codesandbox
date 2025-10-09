@@ -48,3 +48,38 @@
       color:var(--ink); border-radius:999px; padding:6px 12px; cursor:pointer; }
 .btn.ghost{ background:transparent }
 .btn.solid{ border-color:#fff }
+/* Profile: input dạng chỉ 1 gạch dưới */
+.profile .input,
+.profile input[type="text"],
+.profile input[type="date"],
+.profile input[type="email"],
+.profile input[type="tel"],
+.profile select {
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  border-bottom: 2px solid rgba(255,255,255,.55);
+  background: transparent;
+  color: var(--ink);
+  outline: 0;
+}
+.profile .input:focus,
+.profile input:focus,
+.profile select:focus {
+  border-bottom-color: #fff;
+}
+
+/* khối card hồ sơ gọn gàng */
+.profile-card {
+  width: min(980px, 92vw);
+  margin: 18px auto;
+  padding: 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+}
+.profile .row { display:flex; gap:8px; flex-wrap:wrap; }
+.profile label { display:flex; flex-direction:column; gap:6px; }
+.profile .avatar { width: 120px; height:120px; border-radius: 14px; display:block; }
+

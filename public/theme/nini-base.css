@@ -170,35 +170,33 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 /* Ẩn khối auth cũ (nếu trang nào còn chưa xoá HTML cũ) */
 .auth-old, #authBox, .login-box, .footer-login { display:none !important; }
 
-/* 1) Đảm bảo header luôn nổi trên cùng và nhận click */
+/* Header luôn nằm trên cùng và nhận click */
 #nini__header,
-.nini-header {            /* class bạn dùng trong nini-header.js */
-  position: relative;
+.nini-header {
+  position: sticky;  /* hoặc relative nếu bạn không muốn dính top */
+  top: 0;
   z-index: 1000;
   pointer-events: auto;
 }
 
-/* 2) Khối frame (16:9) phải nằm dưới header và không phủ lên header */
+/* Khung nội dung không được phủ header */
 #frame.stage {
   position: relative;
-  z-index: 10;            /* nhỏ hơn header */
-  margin-top: 12px;       /* tách nhẹ khỏi header */
+  z-index: 10;          /* nhỏ hơn header */
+  margin-top: 12px;     /* tách nhẹ khỏi header nếu dùng sticky */
 }
 
-/* 3) Pseudo overlay của frame KHÔNG nhận sự kiện chuột */
+/* Mọi overlay của frame không chặn click/header */
 #frame.stage::before,
 #frame.stage::after {
-  pointer-events: none;   /* cho phép click xuyên qua overlay */
-  z-index: 0;             /* không cao hơn header */
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* 4) Nếu có overlay nền toàn trang (hero/veil/tint) thì cũng không chặn click */
-.hero,
-.hero::before,
-.hero::after,
-.body-veil,
-.body-veil::before,
-.body-veil::after {
+/* Nếu có veil/tint toàn trang, cũng không chặn click */
+.hero, .hero::before, .hero::after,
+.body-veil, .body-veil::before, .body-veil::after {
   pointer-events: none !important;
 }
+
 

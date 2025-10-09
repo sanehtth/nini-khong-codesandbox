@@ -1,4 +1,5 @@
-// /public/js/nini-header.js
+<!-- /public/js/nini-header.js -->
+<script>
 (() => {
   const KEY_SEASON = 'NINI_SEASON';
   const SEASONS = ['home', 'spring', 'summer', 'autumn', 'winter'];
@@ -25,9 +26,7 @@
   // ---- UI user (avatar / login)
   function userHTML(u) {
     if (!u) {
-      return `
-        <button class="btn-login" id="niniLoginBtn">Đăng nhập / Đăng ký</button>
-      `;
+      return `<button class="btn-login" id="niniLoginBtn">Đăng nhập / Đăng ký</button>`;
     }
     const avatar = u.photoURL || '/public/assets/avatar/NiNi.webp';
     return `
@@ -42,7 +41,6 @@
     const loginBtn = root.querySelector('#niniLoginBtn');
     if (loginBtn) {
       loginBtn.addEventListener('click', () => {
-        // mở modal đăng nhập của bạn
         if (globalThis.NINI?.fb?.loginModal) globalThis.NINI.fb.loginModal();
       });
     }
@@ -61,15 +59,13 @@
         <a class="logo" href="#/home" aria-label="NiNi home">
           <img class="logo-main" src="${brand.logo}" alt="" />
         </a>
-          <span class="slogan">${brand.sloganText || ''}</span>
+        <span class="slogan">${brand.sloganText || ''}</span>
       </div>
     `;
 
     const tabsHTML = `
       <nav class="tabs">
-        ${SEASONS.map(s => `
-          <a class="chip" data-s="${s}" href="#/${s}">${LABELS[s]}</a>
-        `).join('')}
+        ${SEASONS.map(s => `<a class="chip" data-s="${s}" href="#/${s}">${LABELS[s]}</a>`).join('')}
       </nav>
     `;
 
@@ -87,7 +83,7 @@
     const root = document.querySelector(selector);
     if (!root) return;
 
-    // brand config (đã dùng đường dẫn bạn cung cấp)
+    // brand config
     const brand = Object.assign({
       logo: '/public/assets/icons/logo_text.webp',
       sloganText: 'Chơi mê ly, bứt phá tư duy'
@@ -101,7 +97,7 @@
     setSeasonClass(s0);
     localStorage.setItem(KEY_SEASON, s0);
 
-    // click tab: chỉ cần để <a href="#/xxx"> — không chặn, hashchange sẽ xử lý
+    // click tab: chỉ cần để <a href="#/xxx"> — hashchange sẽ xử lý
     root.querySelectorAll('.tabs .chip').forEach(a => {
       a.addEventListener('click', () => {
         const s = a.dataset.s || 'spring';
@@ -145,14 +141,12 @@
 
   // ---- styles nhỏ cho header
   const css = `
-  .nini-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;border-radius:16px;margin:8px;}
+  .nini-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;border-radius:16px;margin:8px}
   .nini-header .brand{display:flex;align-items:center;gap:12px}
   .nini-header .logo-main{height:28px}
-  .nini-header .logo-small-img{height:26px}
   .nini-header .slogan{font-weight:600;opacity:.9}
   .nini-header .tabs{display:flex;gap:8px}
-  .nini-header .chip{display:inline-block;padding:6px 12px;border-radius:999px;cursor:pointer;
-     border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);text-decoration:none;color:inherit}
+  .nini-header .chip{display:inline-block;padding:6px 12px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);text-decoration:none;color:inherit}
   .nini-header .chip:hover{filter:brightness(1.06)}
   .nini-header .user-slot{display:flex;align-items:center;gap:8px}
   .nini-header .user-slot .avatar{height:28px;width:28px;border-radius:50%}
@@ -162,5 +156,4 @@
   style.textContent = css;
   document.head.appendChild(style);
 })();
-
-
+</script>

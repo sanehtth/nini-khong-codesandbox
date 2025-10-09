@@ -5,70 +5,65 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Base style gọn (đã có header, frame 16:9, chips, glass…) -->
+  <!-- Favicon: tránh 404 -->
+  <link rel="icon" href="/public/assets/icons/logo_nini.webp" type="image/webp" />
+
+  <!-- CSS nền + theme -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
 
-  <!-- (Tuỳ chọn) thay hình nền chung ở biến CSS root -->
-  <style>
-    :root{
-      --bg-url: url('/public/assets/bg/nini_home.webp');   /* nền mặc định */
-      /* nếu muốn mỗi mùa khác nhau, header sẽ set class .spring/.summer… vào <body>  */
-    }
-  </style>
+  <!-- (tuỳ chọn) override theme từ Netlify function -->
+  <script defer src="/public/js/theme-boot.js"></script>
 </head>
+<body class="spring">
+  <!-- Header mount point -->
+  <div id="nini__header"></div>
 
-<body class="page-home">
-  <!-- ============ HEADER ============ -->
-  <!-- Không phải tự viết HTML cho header; file nini-header.js sẽ render vào đây -->
-  <header id="nini__header"></header>
+  <!-- Khung chính 16:9 nếu cần -->
+  <div id="frame" class="stage">
+    <!-- nội dung trang -->
+  </div>
 
-  <!-- ============ MAIN ============ -->
-  <main class="page-hero">
-    <!-- Khung 16:9: chỉ cần #frame; mọi thứ bên trong tự căn giữa, cắt theo 16:9 -->
-    <section id="frame" aria-label="NiNi stage">
-      <!-- linh vật / ảnh / canvas đặt vào khung -->
-      <img class="nini" alt="NiNi" src="/public/assets/icons/nini.webp" />
-      <!-- Ví dụ nếu sau này dùng canvas/game: 
-           <canvas class="nini"></canvas> hoặc <video class="nini" autoplay muted loop></video> -->
-    </section>
-
-    <!-- Thanh chip footer ngắn gọn (tuỳ chọn) -->
-    <footer class="footer-nav">
+  <footer class="footer-bar">
+    <nav class="footer-nav">
       <a class="chip" href="/#about">Giới thiệu</a>
-      <a class="chip" href="/#rules">Luật chơi</a>
-      <a class="chip" href="/forum.html">Diễn đàn</a>
-      <a class="chip" href="/#feedback">Góp ý</a>
-    </footer>
-  </main>
+      <a class="chip" href="/rules.html">Luật chơi</a>
+      <a class="chip" href="/forum/">Diễn đàn</a>
+      <a class="chip" href="/feedback.html">Góp ý</a>
+    </nav>
+  </footer>
 
-  <!-- ============ SCRIPTS ============ -->
-  <!-- Utils (DOM helpers, store, qs…) -->
-  <script src="/public/js/nini-utils.js" defer></script>
-  <!-- Firebase + auth helpers (không auto-redirect sang /login) -->
-  <script src="/public/js/nini-fb.js" defer></script>
-  <!-- Header mới: vẽ logo + slogan + 4 mùa + avatar tròn + menu đăng nhập dạng modal 3 tab -->
-  <script src="/public/theme/nini-header.js" defer></script>
+  <!-- 1) Header (NON-module) — đảm bảo path TỒN TẠI -->
+  <script defer src="/public/js/nini-header.js"></script>
 
+  <!-- 2) Firebase auth helpers (MODULE) -->
+  <script type="module" src="/public/js/nini-fb.js"></script>
+
+  <!-- 3) Khởi động header sau khi DOM sẵn sàng -->
   <script>
-    // Khởi tạo header gọn:
-    // - auto tải brand từ localStorage nếu có (logo/slogan)
-    // - hiện avatar tròn nhỏ trên header khi đã đăng nhập
-    // - modal đăng nhập 3 tab (Đăng nhập / ĐK mới / Quên mật khẩu)
-    // - đổi mùa => gắn class .spring/.summer/.autumn/.winter lên body
-    document.addEventListener('DOMContentLoaded', () => {
-      NINI.header.mount('#nini__header', {
-        showSeasons: true,
-        routes: { home: '/#home', spring: '/#spring', summer: '/#summer', autumn: '/#autumn', winter: '/#winter', admin: '/admin/index.html' },
-        onSeasonChange: (season) => {
-          document.body.classList.remove('spring','summer','autumn','winter');
-          if (season) document.body.classList.add(season);
-        }
-      });
+  window.addEventListener('DOMContentLoaded', () => {
+    // Nếu bạn muốn tự động đổi mùa theo URL:
+    const routes = {
+      home:   '/',
+      spring: '/spring',
+      summer: '/summer',
+      autumn: '/autumn',
+      winter: '/winter',
+      admin:  '/admin/index.html'
+    };
+    // Mặc định mùa:
+    const defaultSeason = 'spring';
 
-      // ví dụ: bạn muốn mặc định hiện mùa “spring”
-      // document.body.classList.add('spring');
-    });
+    if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
+      NINI.header.mount('nini__header', {
+        routes,
+        defaultSeason,
+        // bật modal đăng nhập 3 tab tích hợp trong header
+        showLoginTabs: true
+      });
+    } else {
+      console.warn('NINI.header chưa tải. Kiểm tra 404 hoặc path của nini-header.js');
+    }
+  });
   </script>
 </body>
 </html>
-

@@ -1,4 +1,4 @@
-<!-- /public/theme/nini-header.js -->
+<!-- /public/js/nini-header.js -->
 (function (global) {
   const KEY_SEASON = 'NINI_THEME_SEASON';
 
@@ -34,7 +34,7 @@
     root.innerHTML = `
       <div class="nini-header glass">
         <div class="brand">
-          <a class="logo" href="/">NiNi</a>
+          <a class="logo" href="/public/assets/icons/logo_text.webp">NiNi</a>
           <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
         </div>
         <nav class="tabs">
@@ -91,3 +91,4 @@
   global.NINI = global.NINI || {};
   global.NINI.header = { mount };
 })(window);
+

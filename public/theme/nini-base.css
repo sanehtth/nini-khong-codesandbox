@@ -455,6 +455,79 @@ tbody tr:hover{background:rgba(255,255,255,.08)}
 
 /* Ẩn hoàn toàn kệ sách placeholder (nếu còn) */
 #shelfMount{ display:none !important; height:0 !important; padding:0 !important; margin:0 !important; }
+/* ===== 16:9 Stage (dùng chính #frame) ===== */
+#frame{
+  position: relative;
+  margin: 16px auto;
+  /* chọn kích thước theo tỉ lệ, luôn canh giữa */
+  display: grid;
+  place-items: center;
+
+  /* Ưu tiên theo chiều rộng; giới hạn tối đa để không quá to */
+  width: min(1180px, 92vw);
+  aspect-ratio: 16 / 9;
+
+  /* Cắt mọi thứ tràn ra ngoài khung */
+  overflow: hidden;
+
+  /* Trang trí nhẹ theo theme kính */
+  border-radius: var(--radius, 18px);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.28),
+    inset 0 0 0 1px rgba(255,255,255,.15);
+  backdrop-filter: blur(8px) saturate(120%);
+}
+
+/* Bảo đảm nội dung bên trong khung phủ kín */
+#frame > .stage,
+#frame > canvas,
+#frame > img,
+#frame > video{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* muốn cover/contain tùy nhu cầu game */
+}
+
+/* Ẩn mọi thứ trong frame không phải nội dung game (nếu còn) */
+#frame > :not(.stage):not(canvas):not(img):not(video){
+  display: none !important;
+}
+
+/* Nhím linh vật đặt nổi trên stage (nếu dùng) */
+#frame .nini{
+  position: relative;
+  z-index: 1;
+  width: clamp(160px, 18vw, 240px);
+  height: auto;
+}
+
+/* ===== Đẩy footer xuống một chút (khoảng thở) ===== */
+#footerNav, .footer-bar{ margin-top: clamp(16px, 3vh, 36px); }
+
+/* ===== Chế độ tập trung (tối mờ phần ngoài khung) ===== */
+body.focus-stage::before{
+  content:"";
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 9;
+}
+body.focus-stage #frame{ z-index: 10; }
+
+/* Khi màn hình rộng nhưng lùn: ưu tiên chiều cao, tự tính chiều rộng theo 16:9 */
+@media (min-aspect-ratio: 16/9){
+  #frame{
+    height: min(70vh, 720px);
+    width: calc(100% * (16 / 9)); /* sẽ bị ràng bởi max-width bên trên */
+    max-width: min(1180px, 92vw);
+  }
+}
+
 
 
 

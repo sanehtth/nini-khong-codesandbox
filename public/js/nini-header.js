@@ -1,190 +1,109 @@
-/* public/js/nini-header.js */
-;(function (global){
-  const NINI = global.NINI || (global.NINI = {});
-  const U = NINI || {};
+<!-- /public/theme/nini-header.js -->
+<script>
+(function (global) {
+  const KEY_SEASON = 'NINI_THEME_SEASON';
 
-  // ---- helpers (store + get active profile) ----
-  const KEY_ACCS = 'NINI_ACCOUNTS_V3';
-  const KEY_ACTIVE = 'NINI_ACTIVE_USER_V3';
-  const FALLBACK_AVT = '/public/assets/avatar/NV1.webp';
-
-  function readActive(){
-    try{
-      const uid = NINI.store.get(KEY_ACTIVE, null);
-      const accs = NINI.store.get(KEY_ACCS, {});
-      return (uid && accs && accs[uid]) ? accs[uid] : null;
-    }catch(_){ return null; }
+  function setSeasonClass(season) {
+    const all = ['home','spring','summer','autumn','winter'];
+    const s = all.includes(season) ? season : 'spring';
+    document.body.classList.remove(...all);
+    document.body.classList.add(s);
   }
 
-  function make(tag, attrs={}, children){
-    const el = document.createElement(tag);
-    for (const k in attrs){
-      const v = attrs[k];
-      if (k==='class') el.className = v;
-      else if (k==='style') Object.assign(el.style, v);
-      else if (k.startsWith('on') && typeof v==='function') el.addEventListener(k.slice(2), v);
-      else el.setAttribute(k, v);
-    }
-    if (children!=null){
-      (Array.isArray(children)?children:[children]).forEach(c=>{
-        if (c==null) return;
-        el.appendChild(typeof c==='string'? document.createTextNode(c): c);
-      });
-    }
-    return el;
+  function detectSeasonFromUrl() {
+    const p = location.pathname.replace(/\/+$/,'');
+    if (p === '' || p === '/') return 'home';
+    if (/\/spring$/.test(p))  return 'spring';
+    if (/\/summer$/.test(p))  return 'summer';
+    if (/\/autumn$/.test(p))  return 'autumn';
+    if (/\/winter$/.test(p))  return 'winter';
+    return localStorage.getItem(KEY_SEASON) || 'spring';
   }
 
-  // ---- build modal auth (3 tabs) ----
-  function buildAuthModal(){
-    const backdrop = make('div',{class:'nh__modal-backdrop'});
-    const modal = make('div',{class:'nh__modal'});
+  function mount(selector, opts = {}) {
+    const root = document.querySelector(selector);
+    if (!root) return;
 
-    const tabs = make('div',{class:'nh__tabs'});
-    const tabLogin = make('button',{class:'nh__tab is-active'},'Đăng nhập');
-    const tabSignup= make('button',{class:'nh__tab'},'Đăng ký');
-    const tabForgot= make('button',{class:'nh__tab'},'Quên mật khẩu');
-    tabs.append(tabLogin, tabSignup, tabForgot);
+    // 1) quyết định mùa
+    let season = (opts.season === 'auto')
+      ? detectSeasonFromUrl()
+      : (opts.season || localStorage.getItem(KEY_SEASON) || 'spring');
 
-    const pLogin = make('div',{class:'nh__panel is-active'},[
-      make('div',{class:'nh__row'},[make('label',{},'Email'), make('input',{type:'email',id:'nh_email_login',placeholder:'you@example.com'})]),
-      make('div',{class:'nh__row'},[make('label',{},'Mật khẩu'), make('input',{type:'password',id:'nh_pass_login',placeholder:'••••••••'})]),
-      make('div',{style:{display:'flex',gap:'8px'}},[
-        make('button',{class:'nh__btn',onclick:doEmailLogin},'Đăng nhập'),
-        make('button',{class:'nh__btn',onclick:doGoogle},'Đăng nhập với Google')
-      ])
-    ]);
+    setSeasonClass(season);
 
-    const pSignup = make('div',{class:'nh__panel'},[
-      make('div',{class:'nh__row'},[make('label',{},'Email'), make('input',{type:'email',id:'nh_email_sign',placeholder:'you@example.com'})]),
-      make('div',{class:'nh__row'},[make('label',{},'Mật khẩu'), make('input',{type:'password',id:'nh_pass_sign',placeholder:'Ít nhất 8 ký tự'})]),
-      make('button',{class:'nh__btn',onclick:doSignUp},'Đăng ký')
-    ]);
+    // 2) render header
+    root.innerHTML = `
+      <div class="nini-header glass">
+        <div class="brand">
+          <a class="logo" href="/">NiNi</a>
+          <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
+        </div>
+        <nav class="tabs">
+          <button data-s="home">Home</button>
+          <button data-s="spring">Spring</button>
+          <button data-s="summer">Summer</button>
+          <button data-s="autumn">Autumn</button>
+          <button data-s="winter">Winter</button>
+        </nav>
+        <div class="user-slot" id="niniUserSlot"></div>
+      </div>
+    `;
 
-    const pForgot = make('div',{class:'nh__panel'},[
-      make('div',{class:'nh__row'},[make('label',{},'Email'), make('input',{type:'email',id:'nh_email_forgot',placeholder:'you@example.com'})]),
-      make('button',{class:'nh__btn',onclick:doReset},'Gửi link đặt lại mật khẩu')
-    ]);
-
-    modal.append(tabs,pLogin,pSignup,pForgot);
-    document.body.append(backdrop, modal);
-
-    function sw(t){
-      [tabLogin,tabSignup,tabForgot].forEach(b=>b.classList.remove('is-active'));
-      [pLogin,pSignup,pForgot].forEach(p=>p.classList.remove('is-active'));
-      if(t==='login'){ tabLogin.classList.add('is-active'); pLogin.classList.add('is-active'); }
-      if(t==='sign') { tabSignup.classList.add('is-active'); pSignup.classList.add('is-active'); }
-      if(t==='forgot'){ tabForgot.classList.add('is-active'); pForgot.classList.add('is-active'); }
-    }
-    tabLogin.onclick=()=>sw('login');
-    tabSignup.onclick=()=>sw('sign');
-    tabForgot.onclick=()=>sw('forgot');
-
-    function open(){ backdrop.style.display='block'; modal.style.display='block'; }
-    function close(){ backdrop.style.display='none'; modal.style.display='none'; }
-    backdrop.addEventListener('click', close);
-
-    // ---- wire FB (nini-fb.js) ----
-    async function doEmailLogin(){
-      try{
-        const email = document.getElementById('nh_email_login').value.trim();
-        const pass  = document.getElementById('nh_pass_login').value;
-        await NINI.fb.signInEmail(email, pass);
-        close(); NINI.header.refresh();
-      }catch(e){ alert('Đăng nhập lỗi: '+e.message); }
-    }
-    async function doGoogle(){
-      try{ await NINI.fb.signInWithGoogle(); close(); NINI.header.refresh(); }
-      catch(e){ alert('Google lỗi: '+e.message); }
-    }
-    async function doSignUp(){
-      try{
-        const email = document.getElementById('nh_email_sign').value.trim();
-        const pass  = document.getElementById('nh_pass_sign').value;
-        await NINI.fb.signUpEmail(email, pass);
-        alert('Đăng ký xong. Hãy xác nhận email nếu được yêu cầu.'); 
-        sw('login');
-      }catch(e){ alert('Đăng ký lỗi: '+e.message); }
-    }
-    async function doReset(){
-      try{
-        const email = document.getElementById('nh_email_forgot').value.trim();
-        await NINI.fb.sendReset(email);
-        alert('Đã gửi link đặt lại mật khẩu.');
-        sw('login');
-      }catch(e){ alert('Không gửi được: '+e.message); }
-    }
-
-    return {open,close};
-  }
-
-  // ---- build header ----
-  function buildHeader(opts={}){
-    const bar = make('header',{class:'nh__bar'});
-    const brand = make('a',{class:'nh__brand',href:'/#home','aria-label':'NiNi — Funny'},[
-      make('img',{src:'/public/assets/icons/logo_text.webp',alt:'NiNi Funny'}),
-      make('div',{class:'nh__slogan'}, opts.slogan || 'Chơi mê ly, bứt phá tư duy')
-    ]);
-    const seasons = make('nav',{class:'nh__seasons'});
-    const chips = [
-      ['Home','/#home'],['Spring','/#spring'],['Summer','/#summer'],['Autumn','/#autumn'],['Winter','/#winter']
-    ].map(([t,href])=>{
-      const b=make('a',{class:'nh__chip',href},t); seasons.appendChild(b); return b;
+    // 3) click tab
+    const go = (s) => {
+      localStorage.setItem(KEY_SEASON, s);
+      setSeasonClass(s);
+      if (opts.routes && opts.onNavigate) {
+        const href = opts.routes[s] || '/';
+        // nếu bạn muốn chỉ đổi class không điều hướng thì comment dòng dưới
+        opts.onNavigate(href);
+      }
+    };
+    root.querySelectorAll('[data-s]').forEach(b=>{
+      b.addEventListener('click', ()=> go(b.dataset.s));
     });
 
-    const spacer = make('div',{class:'nh__spacer'});
-    const user = make('div',{class:'nh__user'});
-    const avt = make('img',{class:'nh__avatar',alt:'avatar'});
-    const email = make('div',{class:'nh__email'});
-    const btn = make('button',{class:'nh__btn'},'Đăng nhập / Đăng ký');
-
-    user.append(avt,email,btn);
-    bar.append(brand,seasons,spacer,user);
-
-    // modal
-    const modal = buildAuthModal();
-    btn.onclick = ()=> modal.open();
-    avt.onclick = ()=> location.href='/profile.html';
-
-    function refresh(){
-      const acc = readActive();
-      if(acc){
-        avt.src = acc.avatarUrl || FALLBACK_AVT;
-        email.textContent = acc.email || '';
-        btn.textContent = 'Đăng xuất';
-        btn.onclick = async ()=>{
-          try{ await NINI.fb.signOut(); }finally{ NINI.header.refresh(); }
-        };
-      }else{
-        avt.src = FALLBACK_AVT;
-        email.textContent = '';
-        btn.textContent = 'Đăng nhập / Đăng ký';
-        btn.onclick = ()=> modal.open();
+    // 4) auth slot (dựa trên nini-fb.js)
+    const applyUser = (user) => {
+      const box = root.querySelector('#niniUserSlot');
+      if (!box) return;
+      if (user) {
+        box.innerHTML = `
+          <div class="user glass">
+            <img class="ava" src="${user.photoURL || '/public/assets/avatar/N1.webp'}" alt="">
+            <span class="email">${user.email}</span>
+            <button class="btn small" id="btnLogout">Đăng xuất</button>
+          </div>`;
+        box.querySelector('#btnLogout')?.addEventListener('click', ()=> global.NINI?.fb?.logout?.());
+      } else {
+        box.innerHTML = `<button class="btn" id="btnLogin">Đăng nhập / Đăng ký</button>`;
+        box.querySelector('#btnLogin')?.addEventListener('click', ()=> global.NINI?.fb?.loginModal?.());
       }
-    }
+    };
 
-    return {el:bar, refresh};
+    // lần đầu: nếu nini-fb đã sẵn sàng
+    if (global.NINI?.fb?.getCurrentUser) applyUser(global.NINI.fb.getCurrentUser());
+    // lắng trạng thái
+    global.NINI = global.NINI || {};
+    global.NINI.__applyUser = applyUser; // cho nini-fb gọi lại
   }
 
-  // ---- public API ----
-  NINI.header = {
-    mount(target='body', opts={}){
-      const host = (typeof target==='string')? document.querySelector(target) : target;
-      if(!host) return;
-      if (this._mounted) try{ this.unmount(); }catch(_){}
-      const h = buildHeader(opts);
-      host.prepend(h.el);
-      this._mounted = h; 
-      this.refresh();
-    },
-    refresh(){ this._mounted && this._mounted.refresh(); },
-    unmount(){ if(this._mounted){ this._mounted.el.remove(); this._mounted=null; } }
-  };
-
-  // auto mount nếu trang đặt data-header
-  document.addEventListener('DOMContentLoaded', ()=>{
-    const t = document.querySelector('[data-nini-header]') || document.body;
-    NINI.header.mount(t);
-  });
-
+  // expose
+  global.NINI = global.NINI || {};
+  global.NINI.header = { mount };
 })(window);
+</script>
 
+<style>
+/* header tối giản — dùng chung */
+.nini-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:16px;margin:8px auto;max-width:1100px}
+.nini-header .brand{display:flex;align-items:baseline;gap:10px;font-weight:700}
+.nini-header .brand .logo{font-weight:900;text-decoration:none}
+.nini-header .tabs{display:flex;gap:8px}
+.nini-header .tabs button{border:0;padding:8px 12px;border-radius:999px;cursor:pointer}
+.nini-header .user-slot .user{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:999px}
+.nini-header .user-slot .ava{width:28px;height:28px;object-fit:cover;border-radius:50%}
+.btn{border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
+.btn.small{padding:6px 10px;font-size:12px}
+.glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+</style>

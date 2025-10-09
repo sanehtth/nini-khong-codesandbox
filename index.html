@@ -51,15 +51,15 @@
 
   <!-- ===== Viewport ===== -->
   <main class="viewport">
-    <section class="frame" id="frame">
+    <section class="frame" id="frame" aria-label="Khung hiển thị">
       <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
          
-    </section>
-
-    
+  
+  <!-- nạp game vào .stage (hoặc <canvas>) -->
+  <div class="stage" id="gameRoot"></div>
+</section> 
   </main>
    
-
   <!-- ===== Modal đăng nhập (dùng lại auth.js hiện có của bạn) ===== -->
   <div id="authModal" class="modal" aria-hidden="true">
     <div class="modal__backdrop" data-close></div>
@@ -146,6 +146,7 @@
 </footer>
 </body>
 </html>
+
 
 
 

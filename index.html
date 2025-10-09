@@ -18,11 +18,12 @@
   <!-- Header mount point -->
   <div id="nini__header"></div>
 
-  <!-- Khung chính 16:9 nếu cần -->
+  <!-- Khung 16:9 (nếu cần nội dung trung tâm) -->
   <div id="frame" class="stage">
     <!-- nội dung trang -->
   </div>
 
+  <!-- Footer chips -->
   <footer class="footer-bar">
     <nav class="footer-nav">
       <a class="chip" href="/#about">Giới thiệu</a>
@@ -32,16 +33,15 @@
     </nav>
   </footer>
 
-  <!-- 1) Header (NON-module) — đảm bảo path TỒN TẠI -->
+  <!-- 1) Header (NON-module) — cần đúng path -->
   <script defer src="/public/js/nini-header.js"></script>
 
-  <!-- 2) Firebase auth helpers (MODULE) -->
+  <!-- 2) Firebase/auth helpers (MODULE) -->
   <script type="module" src="/public/js/nini-fb.js"></script>
 
   <!-- 3) Khởi động header sau khi DOM sẵn sàng -->
   <script>
   window.addEventListener('DOMContentLoaded', () => {
-    // Nếu bạn muốn tự động đổi mùa theo URL:
     const routes = {
       home:   '/',
       spring: '/spring',
@@ -50,21 +50,18 @@
       winter: '/winter',
       admin:  '/admin/index.html'
     };
-    // Mặc định mùa:
     const defaultSeason = 'spring';
 
     if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
       NINI.header.mount('nini__header', {
         routes,
         defaultSeason,
-        // bật modal đăng nhập 3 tab tích hợp trong header
-        showLoginTabs: true
+        showLoginTabs: true  // bật modal đăng nhập 3 tab
       });
     } else {
-      console.warn('NINI.header chưa tải. Kiểm tra 404 hoặc path của nini-header.js');
+      console.warn('NINI.header chưa tải. Kiểm tra 404 hoặc path của /public/js/nini-header.js');
     }
   });
   </script>
 </body>
 </html>
-

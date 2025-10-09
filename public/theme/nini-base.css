@@ -1,3 +1,43 @@
+/* ===== Global Background (default + seasons) ===== */
+:root{
+  /* Nền mặc định cho toàn site */
+  --bg-url: url('/public/assets/bg/nini_home.webp');
+
+  /* (tuỳ chọn) overlay glass & mực chữ đã có, giữ nguyên nếu bạn đã khai báo */
+  --glass-bg: rgba(255,255,255,.14);
+  --glass-brd: rgba(255,255,255,.35);
+  --ink: #1c2024;
+}
+
+/* 4 mùa: gắn bằng class .home/.spring/.summer/.autumn/.winter trên <body>
+   hoặc dùng data-season="spring" nếu bạn thích. */
+body.home, body[data-season="home"]     { --bg-url: url('/public/assets/bg/nini_home.webp'); }
+body.spring, body[data-season="spring"] { --bg-url: url('/public/assets/bg/nini_spring.webp'); }
+body.summer, body[data-season="summer"] { --bg-url: url('/public/assets/bg/nini_summer.webp'); }
+body.autumn, body[data-season="autumn"] { --bg-url: url('/public/assets/bg/nini_autumn.webp'); }
+body.winter, body[data-season="winter"] { --bg-url: url('/public/assets/bg/nini_winter.webp'); }
+
+/* Áp dụng nền cho toàn bộ trang */
+html, body { height: 100%; }
+body{
+  min-height: 100svh;
+  color: var(--ink);
+  background:
+    /* màu nền fallback */
+    #0b1f13
+    /* ảnh nền theo biến */
+    var(--bg-url)
+    center / cover
+    /* iOS kỵ fixed → disable trên mobile bên dưới */
+    fixed
+    no-repeat;
+}
+
+/* iOS/Mobile tối ưu: tránh jank do background-attachment: fixed */
+@media (max-width: 1024px){
+  body{ background-attachment: scroll; }
+}
+
 /* ========== NiNi Base (lite) — public pages only ========== */
 /* Reset cực gọn */
 *,*::before,*::after{box-sizing:border-box}
@@ -99,4 +139,5 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
   border-radius:12px;padding:8px;text-align:center}
 .avatar-card img{width:64px;height:64px;border-radius:12px;display:block;margin:0 auto 6px}
 .avatar-card .btn{font-size:12px;padding:6px 8px}
+
 

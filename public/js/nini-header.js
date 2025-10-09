@@ -1,5 +1,4 @@
 <!-- /public/js/nini-header.js -->
-<script>
 (() => {
   const KEY_SEASON = 'NINI_SEASON';
   const SEASONS = ['home', 'spring', 'summer', 'autumn', 'winter'];
@@ -156,4 +155,4 @@
   style.textContent = css;
   document.head.appendChild(style);
 })();
-</script>
+

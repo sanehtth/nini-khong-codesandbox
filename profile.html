@@ -2,327 +2,287 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <base href="/" />
-  <title>NiNi — Hồ sơ và thành tích</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Hồ sơ & Thành tích</title>
 
-  <!-- CSS chung đã gom -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css">
+  <!-- Favicon + Theme base (dùng chung toàn site) -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <link rel="stylesheet" href="/theme/nini-base.css?v=25" />
+
+  <!-- Chỉ riêng trang: 1 nhúm CSS nhỏ, bám theo biến của nini-base -->
+  <style>
+    .page { width:min(1180px,94vw); margin:16px auto 80px; }
+    .grid-2 { display:grid; gap:12px; grid-template-columns: 2fr 1.2fr; }
+    @media (max-width: 980px){ .grid-2 { grid-template-columns: 1fr; } }
+
+    .profile__head { display:flex; gap:12px; align-items:center; }
+    .avatar { width:72px; height:72px; border-radius:50%; object-fit:cover;
+              border:2px solid var(--glass-brd); box-shadow:0 0 0 3px rgba(255,255,255,.14) inset; }
+    .avatar-lg { width:128px; height:128px; border-radius:50%; object-fit:cover; }
+
+    .form { display:grid; gap:10px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .row > label { width:160px; color:var(--muted); }
+    .row > .field { flex:1; min-width:220px; }
+    .row .btn { white-space:nowrap; }
+
+    .footer-chips { display:flex; gap:10px; justify-content:center; margin-top:18px; }
+  </style>
 </head>
 
-<!-- Đặt background qua CSS variable để mọi trang dùng 1 file nền -->
-<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-
-  <!-- ===== Header chung ===== -->
+<body data-page="profile" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <!-- Header dùng chung (logo + slogan + tabs + auth) -->
   <header class="site-header">
-    <a class="brand" href="#/home" aria-label="NiNi — Funny">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
 
-    <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
-      <button class="tab is-active" data-season="home">Home</button>
-      <button class="tab" data-season="spring">Spring</button>
-      <button class="tab" data-season="summer">Summer</button>
-      <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab" data-season="winter">Winter</button>
+    <nav class="tabs" aria-label="Chọn mùa">
+      <a class="tab" href="/#home">Home</a>
+      <a class="tab" href="/#spring">Spring</a>
+      <a class="tab" href="/#summer">Summer</a>
+      <a class="tab" href="/#autumn">Autumn</a>
+      <a class="tab" href="/#winter">Winter</a>
     </nav>
 
-    <!-- Auth controls -->
     <div class="auth-area">
-      <!-- CHƯA login -->
-      <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
-
-      <!-- ĐÃ login: avatar mở hồ sơ -->
-      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
-        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản"
-             onerror="this.src='/public/assets/avatar/NV1.webp'">
+      <!-- avatar + logout (được `nini-header.js` tự áp UI khi đăng nhập) -->
+      <a id="btnAvatar" class="avatar-btn" href="/profile.html" style="display:none" title="Hồ sơ">
+        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản" />
       </a>
-
-      <!-- ĐÃ login: Đăng xuất -->
-      <button id="btnLogout" class="auth-btn" data-show="in" style="display:none">
+      <button id="btnLogout" class="auth-btn" data-role="btn-logout" data-show="in" style="display:none">
         Đăng xuất <span class="who"></span>
       </button>
-
-      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+      <button id="authBtn" class="auth-btn" data-role="btn-login" data-show="out">Đăng nhập / Đăng ký</button>
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/index.html" rel="noopener">Admin</a>
     </div>
   </header>
 
-<link rel="stylesheet" href="/public/theme/nini-base.css">
-<link rel="stylesheet" href="/public/theme/profile.css">
+  <!-- Khung trang -->
+  <main class="page">
+    <div class="grid-2">
+      <!-- Panel thông tin cá nhân -->
+      <section class="panel-glass">
+        <h2>Thông tin cá nhân</h2>
 
-<main class="profile-wrap">
-  <!-- ===== Cột trái: Hồ sơ ===== -->
-  <section class="card-glass">
-    <h2 class="card-title">Thông tin cá nhân</h2>
-
-    <!-- Avatar + hành động -->
-    <div class="avatar-row">
-      <img id="avatarPreview" class="avatar" src="/public/assets/avatar/NV1.webp" alt="">
-      <div class="avatar-actions">
-        <label class="btn solid">
-          Tải ảnh mới
-          <input id="avatarFile" type="file" accept="image/*" hidden>
-        </label>
-        <button id="btnAvatarReset" class="btn ghost" type="button">Về mặc định</button>
-      </div>
-    </div>
-<section class="panel-sub">
-  <div class="subhead">Chọn avatar có sẵn</div>
-  <div id="presetAvts" class="avatar-grid"></div>
-</section>
-
-    <!-- Form 2 cột -->
-    <div class="form-grid" style="margin-top:14px">
-      <div class="input-row">
-        <label>Email</label>
-        <input id="pf_email" class="input" type="email" placeholder="— sẽ tự điền —" disabled>
-      </div>
-
-      <div class="input-row">
-        <label>Tên hiển thị</label>
-        <input id="pf_display" class="input" type="text" placeholder="Bé NiNi">
-      </div>
-
-      <div class="input-row">
-        <label>Giới tính</label>
-        <select id="pf_gender" class="input">
-          <option value="">— Chọn —</option>
-          <option value="F">Bé gái</option>
-          <option value="M">Bé trai</option>
-          <option value="O">Khác</option>
-        </select>
-      </div>
-
-      <div class="input-row">
-        <label>Ngày sinh</label>
-        <input id="pf_dob" class="input" type="text" inputmode="numeric" placeholder="dd / mm / yyyy">
-      </div>
-
-      <div class="input-row">
-        <label>Tên phụ huynh (tuỳ chọn)</label>
-        <input id="pf_parent" class="input" type="text" placeholder="Tên phụ huynh">
-      </div>
-
-      <div class="input-row">
-        <label>Tỉnh/Thành</label>
-        <input id="pf_city" class="input" type="text" placeholder="Hà Nội / TPHCM ...">
-      </div>
-
-      <div class="input-row" style="grid-column:1/-1">
-        <label>Số điện thoại (xác thực OTP)</label>
-        <div class="otp-row">
-          <input id="pf_phone" class="input" type="tel" placeholder="09xxxxxxxx">
-          <button id="btnSendOtp" class="btn solid" type="button">Gửi OTP</button>
-          <input id="pf_otp" class="input" type="text" inputmode="numeric" maxlength="6" placeholder="Mã 6 số">
+        <div class="profile__head" style="margin:8px 0 14px">
+          <img id="pfAvatar" class="avatar" src="/public/assets/avatar/NV1.webp" alt="">
+          <div class="row">
+            <button id="btnPick" class="btn sm">Tải ảnh mới</button>
+            <button id="btnDefault" class="btn sm gray">Về mặc định</button>
+            <input id="pickFile" type="file" accept="image/*" hidden>
+          </div>
         </div>
-      </div>
 
-      <div class="input-row" style="grid-column:1/-1">
-        <label>Lớp/Khối</label>
-        <input id="pf_grade" class="input" type="text" placeholder="Lớp 2, Lớp 3...">
-      </div>
+        <div class="form">
+          <div class="row">
+            <label>Email</label>
+            <input id="pfEmail" class="input underline field" type="email" disabled>
+          </div>
+
+          <div class="row">
+            <label>Tên hiển thị</label>
+            <input id="pfName" class="input underline field" placeholder="Bé NiNi">
+          </div>
+
+          <div class="row">
+            <label>Ngày sinh</label>
+            <input id="pfBirth" class="input underline field" type="date">
+          </div>
+
+          <div class="row">
+            <label>Tỉnh/Thành</label>
+            <input id="pfCity" class="input underline field" placeholder="Hà Nội / TP.HCM ...">
+          </div>
+
+          <div class="row">
+            <label>Lớp/Khối</label>
+            <input id="pfGrade" class="input underline field" placeholder="Lớp 2, Lớp 3...">
+          </div>
+
+          <div class="row">
+            <label>Phụ huynh (tùy chọn)</label>
+            <input id="pfParent" class="input underline field" placeholder="Tên phụ huynh">
+          </div>
+
+          <div class="row">
+            <label>Số điện thoại</label>
+            <input id="pfPhone" class="input underline field" placeholder="09xxxxxxxx">
+            <button id="btnOTP" class="btn sm">Gửi OTP</button>
+            <input id="pfOTP" class="input underline" style="width:92px" maxlength="6" placeholder="Mã 6 số">
+          </div>
+
+          <div class="row">
+            <button id="btnSave" class="btn">Lưu hồ sơ</button>
+            <button id="btnPwd" class="btn gray">Đổi / Thêm mật khẩu</button>
+          </div>
+        </div>
+
+        <div id="recaptcha-container" style="min-height:1px"></div>
+      </section>
+
+      <!-- Panel thành tích -->
+      <section class="panel-glass">
+        <h2>Thành tích</h2>
+        <div class="row"><label>XP</label><div class="field"><span id="stXP">0</span></div></div>
+        <div class="row"><label>Xu</label><div class="field"><span id="stCoin">0</span></div></div>
+        <div class="row">
+          <label>Rương</label>
+          <div class="field">
+            <span id="stChest">0</span>
+            <button id="btnSync" class="btn sm gray">Đồng bộ lại</button>
+          </div>
+        </div>
+        <p class="muted" style="margin-top:8px">Rương mở cho XP/Xu ngẫu nhiên (local & cloud). Bạn có thể đồng bộ với tài khoản trò chơi.</p>
+      </section>
     </div>
 
-    <div class="row" style="margin-top:10px">
-      <button id="btnSave" class="btn solid" type="button">Lưu hồ sơ</button>
-      <a class="btn ghost" href="/profile.html#change-password">Đổi / Thêm mật khẩu</a>
+    <!-- Footer chips dùng chung -->
+    <div class="footer-chips">
+      <a class="chip" href="/#intro">Giới thiệu</a>
+      <a class="chip" href="/#rules">Luật chơi</a>
+      <a class="chip" href="/#forum">Diễn đàn</a>
+      <a class="chip" href="/#feedback">Góp ý</a>
     </div>
-  </section>
+  </main>
 
-  <!-- ===== Cột phải: Thành tích ===== -->
-  <aside class="card-glass">
-    <h2 class="card-title">Thành tích</h2>
-    <div class="input-row"><label>XP</label><div class="muted" id="stat_xp">0</div></div>
-    <div class="input-row"><label>Xu</label><div class="muted" id="stat_coin">0</div></div>
-
-    <div class="input-row" style="margin-top:10px">
-      <label>Rương</label>
-      <div class="muted">0 — Rương mở cho XP/Xu ngẫu nhiên.</div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <button id="btnSync" class="btn" type="button">Đồng bộ lại</button>
-    </div>
-  </aside>
-</main>
-
-
-  <!-- Logic: dùng fb.js gộp -->
-  <script type="module">
-  import {
-    initFirebase, onAuth, readUser, saveUser,
-    EmailAuthProvider, reauthenticateWithCredential, updatePassword,
-    ensureRecaptcha, sendPhoneOTP, getAuthInst, signOut
-  } from "/public/js/nini-fb.js"; // <-- đường dẫn module Firebase của bạn
-
-  // 1) Khởi tạo Firebase (nếu dùng ENV, khai báo window.NINI_FIREBASE_CONFIG trước đó)
-  initFirebase();
-
-  // Helpers
-  const $ = (s, r=document)=>r.querySelector(s);
-  const LS_ACCOUNTS="NINI_ACCOUNTS_V3", LS_ACTIVE="NINI_ACTIVE_USER_V3";
-
-  const readLocal = ()=>{
-    try{
-      const accs=JSON.parse(localStorage.getItem(LS_ACCOUNTS)||"{}");
-      const act =JSON.parse(localStorage.getItem(LS_ACTIVE)||"null");
-      return (act && accs[act]) ? {uid:act, profile:accs[act]} : null;
-    }catch{return null;}
-  };
-  const writeLocal=(uid,profile)=>{
-    const accs={}; accs[uid]=profile;
-    localStorage.setItem(LS_ACCOUNTS,JSON.stringify(accs));
-    localStorage.setItem(LS_ACTIVE,JSON.stringify(uid));
-    window.dispatchEvent(new Event("nini:profilechange"));
-  };
-  const toast=(msg,ok=true)=>{
-    const t=document.createElement('div');
-    t.textContent=msg;
-    t.style.cssText="position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:12px;z-index:9999;backdrop-filter:blur(6px);background:rgba(255,255,255,.22);border:1px solid rgba(17,24,39,.14);color:"+(ok?"#0f5132":"#7f1d1d");
-    document.body.appendChild(t); setTimeout(()=>t.remove(),2400);
-  };
-
-  // 2) Hiển thị KPI đơn giản
-  const renderKPI = (pf)=>{
-    $("#stat_xp").textContent   = (pf.xp|0);
-    $("#stat_coin").textContent = (pf.coins|0);
-  };
-
-  // 3) Nạp & hợp nhất dữ liệu cloud/local
-  const refreshAll = async (uid)=>{
-    const cloud = await readUser(uid);
-    const local = readLocal();
-    const base  = { name:"Player", coins:0, xp:0, chests:0, avatarUrl:"/public/assets/avatar/NV1.webp", createdAt:Date.now() };
-    const merged = { ...(local?.profile||base), ...(cloud||{}) };
-    writeLocal(uid, merged);
-    renderKPI(merged);
-    // avatar preview nếu có
-    const ap = $("#avatarPreview"); if (ap) ap.src = merged.avatarUrl || ap.src;
-    return merged;
-  };
-
-  // 4) Lưu hồ sơ
-  const saveProfile = async (uid)=>{
-    const data = {
-      email:   $("#pf_email")?.value.trim(),
-      name:    $("#pf_display")?.value.trim() || null,
-      gender:  $("#pf_gender")?.value || null,
-      dob:     $("#pf_dob")?.value || null,
-      guardian:$("#pf_parent")?.value.trim() || null,
-      phone:   $("#pf_phone")?.value.trim() || null,
-      city:    $("#pf_city")?.value.trim() || null,
-      grade:   $("#pf_grade")?.value.trim() || null,
-    };
-    try{
-      await saveUser(uid, data, true);
-      const cur = readLocal();
-      if (cur && cur.uid===uid){ cur.profile={...cur.profile, ...data}; writeLocal(uid, cur.profile); }
-      toast("Lưu hồ sơ thành công", true);
-    }catch(e){
-      toast("Không lưu được hồ sơ", false);
-    }
-  };
-
-  // 5) Đổi mật khẩu (không dùng global firebase.*)
-  const changePassword = async ()=>{
-    const cur = $("#pw_current")?.value, pw1=$("#pw_new")?.value, pw2=$("#pw_confirm")?.value;
-    const note = $("#pwNote"); if (note) { note.textContent=""; note.className="note"; }
-    if (!pw1 || pw1.length<8){ note && (note.textContent="Mật khẩu mới ≥ 8 ký tự."); return; }
-    if (pw1!==pw2){ note && (note.textContent="Mật khẩu mới không khớp."); return; }
-    try{
-      const auth = getAuthInst();
-      const user = auth.currentUser;
-      const email = $("#pf_email")?.value.trim();
-      if (email && cur){
-        const cred = EmailAuthProvider.credential(email, cur);
-        await reauthenticateWithCredential(user, cred);
-      }
-      await updatePassword(user, pw1);
-      if (note){ note.textContent="Đổi mật khẩu thành công."; note.className="note ok"; }
-      ["pw_current","pw_new","pw_confirm"].forEach(id=>{ const x=$("#"+id); if(x) x.value=""; });
-    }catch(e){
-      if (note){ note.textContent="Không thể cập nhật: "+(e?.code||e?.message||""); note.className="note bad"; }
-    }
-  };
-
-  // 6) Bắt sự kiện nút / form theo HTML hiện có
-  $("#btnSave")?.addEventListener("click", async ()=>{
-    const auth = getAuthInst(); const u=auth.currentUser; if(!u) return toast("Vui lòng đăng nhập",false);
-    await saveProfile(u.uid);
-  });
-  $("#btnSync")?.addEventListener("click", async ()=>{
-    const auth = getAuthInst(); const u=auth.currentUser; if(!u) return;
-    await refreshAll(u.uid); toast("Đồng bộ xong.", true);
-  });
-  $("#btnChangePw")?.addEventListener("click", changePassword);
-
-  // OTP
-  let confirmationResult = null;
-  $("#btnSendOtp")?.addEventListener("click", async ()=>{
-    const phone = $("#pf_phone")?.value.trim(); if(!phone) return toast("Nhập số điện thoại",false);
-    try{
-      ensureRecaptcha("recaptcha-container");
-      confirmationResult = await sendPhoneOTP(phone, "recaptcha-container");
-      toast("Đã gửi OTP.", true);
-    }catch{ toast("Gửi OTP thất bại", false); }
-  });
-  $("#btnVerifyOtp")?.addEventListener("click", async ()=>{
-    const code = $("#pf_otp")?.value.trim(); if(!confirmationResult||!code) return toast("Thiếu mã.",false);
-    try{ await confirmationResult.confirm(code); toast("Xác thực số điện thoại thành công!",true); }
-    catch{ toast("Mã OTP sai/hết hạn.", false); }
-  });
-
-  // Logout (nếu có nút)
-  $("#btnLogout")?.addEventListener("click", async ()=>{
-    try{ await signOut(getAuthInst()); }catch{}
-    localStorage.setItem("NINI_AUTH_LOGGED_IN","0");
-    localStorage.removeItem(LS_ACCOUNTS); localStorage.removeItem(LS_ACTIVE);
-    location.replace("/");
-  });
-
-  // 7) Guard + nạp form
-  onAuth(async (user)=>{
-    if(!user){ location.replace("/"); return; }
-    $("#pf_email").value   = user.email || user.phoneNumber || "";
-    const merged = await refreshAll(user.uid);
-    $("#pf_display").value = merged?.name || user.displayName || "";
-    $("#pf_gender").value  = merged?.gender || "";
-    $("#pf_dob").value     = merged?.dob || "";
-    $("#pf_parent").value  = merged?.guardian || "";
-    $("#pf_phone").value   = user.phoneNumber || merged?.phone || "";
-    $("#pf_city").value    = merged?.city || "";
-    $("#pf_grade").value   = merged?.grade || "";
-  });
-</script>
-
-  <!-- Firebase SDK gốc để dùng firebase.auth() phía trên (nhẹ) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
-  <!-- ===== Scripts: CHỈ các file cần thiết ===== -->
-  <script src="/public/js/nini-utils.js"></script>
-  <script src="/public/js/nini-header.js" defer></script>
-
-  <!-- Hiệu ứng (tuỳ chọn) + logic trang chủ hiện có của bạn -->
+  <!-- Scripts dùng chung -->
   <script src="/public/js/effects.js?v=3" defer></script>
-  <script src="/public/js/app.js?v=14" defer></script>
+  <script src="/public/js/nini-header.js?v=3" defer></script>
+  <script src="/public/js/nini-utils.js?v=3" defer></script>
 
-  <!-- Xử lý đăng nhập (module Firebase) hiện có -->
-  <script type="module" src="/public/js/auth.js?v=3"></script>
-  <footer class="site-footer">
-  <nav class="footer-nav">
-    <a class="chip" href="/about.html">Giới thiệu</a>
-    <a class="chip" href="/rules.html">Luật chơi</a>
-    <a class="chip" href="/forum.html">Diễn đàn</a>
-    <a class="chip" href="/feedback.html">Góp ý</a>
-  </nav>
-</footer>
+  <!-- Trang profile: module import Firebase helper (file fb.js của bạn) -->
+  <!-- Nếu file của bạn tên 'nini-fb.js' thì đổi đường dẫn phía dưới cho đúng. -->
+  <script type="module">
+    import {
+      initFirebase, getServices, onAuth, logout,
+      ensureRecaptcha, sendPhoneOTP, confirmPhoneOTP,
+      readUser, saveUser,
+      EmailAuthProvider, reauthenticateWithCredential, updatePassword
+    } from "/public/js/fb.js";
+
+    // Khởi tạo + lấy service (app/auth/db) – chỉ đọc, không chạm UI header
+    initFirebase(); const { auth } = getServices(); // :contentReference[oaicite:0]{index=0}
+
+    const $ = sel => document.querySelector(sel);
+
+    // ----- DOM refs
+    const pfAvatar = $("#pfAvatar");
+    const pfEmail  = $("#pfEmail");
+    const pfName   = $("#pfName");
+    const pfBirth  = $("#pfBirth");
+    const pfCity   = $("#pfCity");
+    const pfGrade  = $("#pfGrade");
+    const pfParent = $("#pfParent");
+    const pfPhone  = $("#pfPhone");
+    const pfOTP    = $("#pfOTP");
+
+    const stXP     = $("#stXP");
+    const stCoin   = $("#stCoin");
+    const stChest  = $("#stChest");
+
+    // ----- Ảnh đại diện
+    const pickFile   = $("#pickFile");
+    $("#btnPick").onclick = () => pickFile.click();
+    pickFile.onchange = e => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => { pfAvatar.src = reader.result; };
+      reader.readAsDataURL(f); // Lưu base64 vào Firestore (nhẹ thì ok, về sau bạn có thể chuyển qua Storage)
+    };
+    $("#btnDefault").onclick = () => { pfAvatar.src = "/public/assets/avatar/NV1.webp"; };
+
+    // ----- OTP Phone
+    let _confirmation = null;
+    $("#btnOTP").onclick = async () => {
+      const phone = pfPhone.value.trim();
+      if (!phone) { alert("Nhập số điện thoại trước nhé!"); return; }
+      try {
+        ensureRecaptcha("recaptcha-container"); // tạo nếu chưa có
+        _confirmation = await sendPhoneOTP(phone, "recaptcha-container"); // :contentReference[oaicite:1]{index=1}
+        alert("Đã gửi OTP, kiểm tra tin nhắn nhé!");
+      } catch (e) {
+        alert("Gửi OTP lỗi: " + e.message);
+      }
+    };
+
+    // ----- Save hồ sơ
+    $("#btnSave").onclick = async () => {
+      const u = auth.currentUser;
+      if (!u) { alert("Bạn chưa đăng nhập."); return; }
+
+      // Nếu có nhập mã OTP, thử xác nhận (tùy chọn)
+      const code = pfOTP.value.trim();
+      if (_confirmation && code.length === 6) {
+        try {
+          await confirmPhoneOTP(_confirmation, code); // xác minh xong là tài khoản đã “trusted phone”
+        } catch (e) { alert("OTP sai hoặc hết hạn: " + e.message); return; }
+      }
+
+      const data = {
+        email: u.email,
+        displayName: pfName.value.trim(),
+        birthday: pfBirth.value || null,
+        city: pfCity.value.trim(),
+        grade: pfGrade.value.trim(),
+        parentName: pfParent.value.trim(),
+        phone: pfPhone.value.trim(),
+        avatarUrl: pfAvatar.src,
+      };
+      try {
+        await saveUser(u.uid, data); // :contentReference[oaicite:2]{index=2}
+        alert("Đã lưu hồ sơ!");
+      } catch (e) {
+        alert("Lỗi lưu hồ sơ: " + e.message);
+      }
+    };
+
+    // ----- Đổi / thêm mật khẩu cơ bản (email user)
+    $("#btnPwd").onclick = async () => {
+      const u = auth.currentUser;
+      if (!u || !u.email) { alert("Bạn cần đăng nhập bằng email để đổi mật khẩu."); return; }
+      const oldPwd = prompt("Nhập mật khẩu hiện tại (để xác thực):");
+      if (!oldPwd) return;
+      const newPwd = prompt("Nhập mật khẩu mới (>= 8 ký tự):");
+      if (!newPwd || newPwd.length < 8) { alert("Mật khẩu mới quá ngắn."); return; }
+      try {
+        const cred = EmailAuthProvider.credential(u.email, oldPwd);
+        await reauthenticateWithCredential(u, cred);
+        await updatePassword(u, newPwd);
+        alert("Đổi mật khẩu thành công.");
+      } catch (e) {
+        alert("Lỗi đổi mật khẩu: " + e.message);
+      }
+    };
+
+    // ----- Đồng bộ “thành tích” (mock: đọc về sau từ cloud/game)
+    $("#btnSync").onclick = async () => {
+      alert("Tính năng đồng bộ đang được chuẩn bị.");
+    };
+
+    // ----- Nạp dữ liệu khi đăng nhập
+    onAuth(async (u) => {                    // :contentReference[oaicite:3]{index=3}
+      if (!u) { location.href = "/#home"; return; }
+      pfEmail.value = u.email || "";
+      try {
+        const data = await readUser(u.uid) || {};
+        pfName.value   = data.displayName || "";
+        pfBirth.value  = data.birthday    || "";
+        pfCity.value   = data.city        || "";
+        pfGrade.value  = data.grade       || "";
+        pfParent.value = data.parentName  || "";
+        pfPhone.value  = data.phone       || "";
+        pfAvatar.src   = data.avatarUrl   || "/public/assets/avatar/NV1.webp";
+
+        stXP.textContent    = data.xp ?? 0;
+        stCoin.textContent  = data.coin ?? 0;
+        stChest.textContent = data.chest ?? 0;
+      } catch (e) {
+        console.warn("Load profile fail:", e);
+      }
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-

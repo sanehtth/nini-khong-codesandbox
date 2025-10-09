@@ -5,7 +5,7 @@
   --bg-url: url('/public/assets/bg/nini_home.webp');
   /* Theme tokens */
   --ink:#1c2024; --ink-dim:#6b7b8c;
-  --glass-bg: rgba(255,255,255,.14);
+  --glass-bg: rgba(255,255,255,.04);
   --glass-brd: rgba(255,255,255,.35);
   --shadow: 0 10px 30px rgba(47,110,63,.25);
   --line:#fff; --line-weak: rgba(255,255,255,.55);
@@ -227,6 +227,7 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
   background: var(--glass-bg);
   border:1px solid var(--glass-brd);
 }
+
 
 
 

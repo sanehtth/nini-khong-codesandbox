@@ -5,170 +5,69 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- 1) CSS nền tảng dùng chung cho toàn site -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css?v=20241008-02" />
+  <!-- Base style gọn (đã có header, frame 16:9, chips, glass…) -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 
-  <!-- 2) Nạp util (tạo biến NINI toàn cục) rồi đến header -->
-  <script src="/public/js/nini-utils.js?v=20241008-02" defer></script>
-  <script src="/public/js/nini-header.js?v=20241008-02" defer></script>
-
-  <!-- 3) (Tuỳ chọn) Theme override từ Netlify Functions -->
-  <script>
-  (function(){
-    const KEY='NINI_THEME_CACHE_V1', ENDPOINT='/.netlify/functions/theme';
-    function inject(css){ let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent = css;
+  <!-- (Tuỳ chọn) thay hình nền chung ở biến CSS root -->
+  <style>
+    :root{
+      --bg-url: url('/public/assets/bg/nini_home.webp');   /* nền mặc định */
+      /* nếu muốn mỗi mùa khác nhau, header sẽ set class .spring/.summer… vào <body>  */
     }
-    try{
-      const now=Date.now()/1000|0, cache=JSON.parse(localStorage.getItem(KEY)||'null');
-      if(cache && (now-cache.ts)<3600) inject(cache.css);
-      fetch(ENDPOINT,{cache:'no-store'}).then(r=>r.text()).then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts:now, css})); }
-      }).catch(()=>{});
-    }catch(_){}
-  })();
-  </script>
+  </style>
 </head>
-  <!-- ===== Header chung ===== -->
-  <header class="site-header">
-    <a class="brand" href="#/home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </a>
 
-    <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
-      <button class="tab is-active" data-season="home">Home</button>
-      <button class="tab" data-season="spring">Spring</button>
-      <button class="tab" data-season="summer">Summer</button>
-      <button class="tab" data-season="autumn">Autumn</button>
-      <button class="tab" data-season="winter">Winter</button>
-    </nav>
+<body class="page-home">
+  <!-- ============ HEADER ============ -->
+  <!-- Không phải tự viết HTML cho header; file nini-header.js sẽ render vào đây -->
+  <header id="nini__header"></header>
 
-    <!-- Auth controls -->
-    <div class="auth-area">
-      <!-- CHƯA login -->
-      <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
-
-      <!-- ĐÃ login: avatar mở hồ sơ -->
-      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
-        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản"
-             onerror="this.src='/public/assets/avatar/NV1.webp'">
-      </a>
-
-      <!-- ĐÃ login: Đăng xuất -->
-      <button id="btnLogout" class="auth-btn" data-show="in" style="display:none">
-        Đăng xuất <span class="who"></span>
-      </button>
-
-      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
-    </div>
-  </header>
-
-  <!-- ===== Viewport ===== -->
-  <main class="viewport">
-    <section class="frame" id="frame" aria-label="Khung hiển thị">
-      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-         
-  
-  <!-- nạp game vào .stage (hoặc <canvas>) -->
-  <div class="stage" id="gameRoot"></div>
-</section> 
-  </main>
-   
-  <!-- ===== Modal đăng nhập (dùng lại auth.js hiện có của bạn) ===== -->
-  <div id="authModal" class="modal" aria-hidden="true">
-    <div class="modal__backdrop" data-close></div>
-    <section class="modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <header class="modal__head">
-        <h3 id="authTitle" class="modal__title">
-          <img src="/public/assets/icons/logonini.webp" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
-          Đăng nhập / Đăng ký
-        </h3>
-        <button class="modal__close" data-close aria-label="Đóng">✕</button>
-      </header>
-
-      <nav id="authTabs" class="tabs-line">
-        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-        <button class="tab-line" data-auth="signup">Đăng ký mới</button>
-        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
-      </nav>
-
-      <!-- Login -->
-      <form class="form is-active" data-pane="login" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com"
-                 autocomplete="email" autocapitalize="off" spellcheck="false">
-        </div>
-        <div class="row">
-          <label>Mật khẩu</label>
-          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••"
-                 autocomplete="current-password">
-        </div>
-        <div class="row">
-          <button id="btnEmailLogin"  class="btn solid"  type="button">Đăng nhập</button>
-          <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập với Google</button>
-          <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
-        </div>
-        <p id="loginNote" class="note"></p>
-      </form>
-
-      <!-- Signup -->
-      <form class="form" data-pane="signup" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com"
-                 autocomplete="email" autocapitalize="off" spellcheck="false">
-        </div>
-        <div class="row">
-          <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
-        </div>
-        <p id="signupNote" class="note"></p>
-      </form>
-
-      <!-- Reset password -->
-      <form class="form" data-pane="reset" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com"
-                 autocomplete="email" autocapitalize="off" spellcheck="false">
-        </div>
-        <div class="row">
-          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
-        </div>
-        <p id="forgotNote" class="note"></p>
-      </form>
+  <!-- ============ MAIN ============ -->
+  <main class="page-hero">
+    <!-- Khung 16:9: chỉ cần #frame; mọi thứ bên trong tự căn giữa, cắt theo 16:9 -->
+    <section id="frame" aria-label="NiNi stage">
+      <!-- linh vật / ảnh / canvas đặt vào khung -->
+      <img class="nini" alt="NiNi" src="/public/assets/mascot/nini_wave.webp" />
+      <!-- Ví dụ nếu sau này dùng canvas/game: 
+           <canvas class="nini"></canvas> hoặc <video class="nini" autoplay muted loop></video> -->
     </section>
-  </div>
 
-  <!-- ===== Scripts: CHỈ các file cần thiết ===== -->
-  <script src="/public/js/nini-utils.js"></script>
-  <script src="/public/js/nini-header.js" defer></script>
+    <!-- Thanh chip footer ngắn gọn (tuỳ chọn) -->
+    <footer class="footer-nav">
+      <a class="chip" href="/#about">Giới thiệu</a>
+      <a class="chip" href="/#rules">Luật chơi</a>
+      <a class="chip" href="/forum.html">Diễn đàn</a>
+      <a class="chip" href="/#feedback">Góp ý</a>
+    </footer>
+  </main>
 
-  <!-- Hiệu ứng (tuỳ chọn) + logic trang chủ hiện có của bạn -->
-  <script src="/public/js/effects.js?v=3" defer></script>
-  <script src="/public/js/app.js?v=14" defer></script>
+  <!-- ============ SCRIPTS ============ -->
+  <!-- Utils (DOM helpers, store, qs…) -->
+  <script src="/public/js/nini-utils.js" defer></script>
+  <!-- Firebase + auth helpers (không auto-redirect sang /login) -->
+  <script src="/public/js/nini-fb.js" defer></script>
+  <!-- Header mới: vẽ logo + slogan + 4 mùa + avatar tròn + menu đăng nhập dạng modal 3 tab -->
+  <script src="/public/theme/nini-header.js" defer></script>
 
-  <!-- Xử lý đăng nhập (module Firebase) hiện có -->
-  <script type="module" src="/public/js/auth.js?v=3"></script>
-  <footer class="site-footer">
-  <nav class="footer-nav">
-    <a class="chip" href="/about.html">Giới thiệu</a>
-    <a class="chip" href="/rules.html">Luật chơi</a>
-    <a class="chip" href="/forum.html">Diễn đàn</a>
-    <a class="chip" href="/feedback.html">Góp ý</a>
-  </nav>
-</footer>
+  <script>
+    // Khởi tạo header gọn:
+    // - auto tải brand từ localStorage nếu có (logo/slogan)
+    // - hiện avatar tròn nhỏ trên header khi đã đăng nhập
+    // - modal đăng nhập 3 tab (Đăng nhập / ĐK mới / Quên mật khẩu)
+    // - đổi mùa => gắn class .spring/.summer/.autumn/.winter lên body
+    document.addEventListener('DOMContentLoaded', () => {
+      NINI.header.mount('#nini__header', {
+        showSeasons: true,
+        routes: { home: '/#home', spring: '/#spring', summer: '/#summer', autumn: '/#autumn', winter: '/#winter', admin: '/admin/index.html' },
+        onSeasonChange: (season) => {
+          document.body.classList.remove('spring','summer','autumn','winter');
+          if (season) document.body.classList.add(season);
+        }
+      });
+
+      // ví dụ: bạn muốn mặc định hiện mùa “spring”
+      // document.body.classList.add('spring');
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

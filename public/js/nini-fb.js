@@ -1,73 +1,129 @@
-﻿// /public/js/nini-fb.js
-// Module ESM – NHÚNG với: <script type="module" src="/public/js/nini-fb.js"></script>
+/**
+ * nini-fb.js (MODULE)
+ * - Firebase Auth (Google popup)
+ * - Expose API ra window.NINI.fb để code khác dùng
+ * - Tự lắng nghe onAuthStateChanged và phát sự kiện + callback
+ *
+ * LƯU Ý: File này là "type=module". Dùng CDN của Firebase để chạy trên site tĩnh.
+ */
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider,
-  setPersistence, browserLocalPersistence, signOut
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// !!! THAY bằng config của project bạn (Firebase console → Project settings):
-const firebaseConfig = {
-  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-  authDomain: "nini-8f3d4.firebaseapp.com",
-  projectId: "nini-8f3d4",
-  storageBucket: "nini-8f3d4.firebasestorage.app",
-  messagingSenderId: "991701821645",
-  appId: "1:991701821645:web:fb21c357562c6c801da184",
+/* -----------------------------------------------------
+   1) Firebase config — THAY BẰNG CỦA BẠN
+   Bạn có thể gán sẵn window.__NINI_FB_CONFIG ở HTML
+   rồi khỏi sửa trong file: const firebaseConfig = window.__NINI_FB_CONFIG || {...}
+----------------------------------------------------- */
+const firebaseConfig = window.__NINI_FB_CONFIG || {
+  apiKey:       "PASTE_YOUR_API_KEY",
+  authDomain:   "PASTE_YOUR_AUTH_DOMAIN",
+  projectId:    "PASTE_YOUR_PROJECT_ID",
+  appId:        "PASTE_YOUR_APP_ID",
+  // (các field khác nếu bạn có: storageBucket, messagingSenderId, measurementId…)
 };
 
-let app, auth, _inited = false;
+/* -----------------------------------------------------
+   2) Khởi tạo lười
+----------------------------------------------------- */
+let _app, _auth, _provider, _inited = false;
+const _listeners = new Set();          // các callback onAuth
+let _lastUser = null;                   // cache user hiện tại
 
-async function init() {
-  if (_inited) return auth;
-  app  = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  await setPersistence(auth, browserLocalPersistence); // giữ đăng nhập
-  _inited = true;
-  return auth;
-}
+function _initOnce() {
+  if (_inited) return;
+  _app = initializeApp(firebaseConfig);
+  _auth = getAuth(_app);
 
-async function getCurrentUser() {
-  await init();
-  return auth.currentUser || new Promise(resolve => {
-    const off = onAuthStateChanged(auth, u => { off(); resolve(u || null); });
+  // Lưu session vào localStorage để lần sau vẫn giữ đăng nhập
+  setPersistence(_auth, browserLocalPersistence).catch(console.warn);
+
+  _provider = new GoogleAuthProvider();
+  _provider.setCustomParameters({ prompt: "select_account" });
+
+  // Lắng nghe đổi trạng thái auth
+  onAuthStateChanged(_auth, (user) => {
+    _lastUser = user || null;
+
+    // Phát sự kiện DOM để ai cần có thể bắt (tuỳ chọn)
+    window.dispatchEvent(new CustomEvent("nini:auth", { detail: { user: _lastUser }}));
+
+    // Gọi các callback đã đăng ký qua NINI.fb.onAuth()
+    for (const cb of _listeners) {
+      try { cb(_lastUser); } catch(e) { console.error(e); }
+    }
   });
+
+  _inited = true;
+  console.info("[nini-fb] initialized");
 }
 
-function onAuthChange(cb) {
-  init().then(() => onAuthStateChanged(auth, u => cb(u || null)));
-}
-
-async function loginModal() {
-  // Bản đơn giản: đăng nhập Google popup.
-  // Bạn có thể thay bằng email/OTP/modal riêng nếu muốn.
-  await init();
-  const provider = new GoogleAuthProvider();
+/* -----------------------------------------------------
+   3) API tiện dụng
+----------------------------------------------------- */
+async function signInGoogle() {
+  _initOnce();
   try {
-    await signInWithPopup(auth, provider);
+    const cred = await signInWithPopup(_auth, _provider);
+    return cred.user;
   } catch (err) {
-    console.warn('Login error:', err?.message || err);
-    alert('Đăng nhập không thành công. Vui lòng thử lại!');
+    // Trình duyệt chặn popup thường ném lỗi ở đây
+    console.error("[nini-fb] signInGoogle error:", err);
+    throw err;
   }
 }
 
-async function logout() {
-  await init();
+async function signOutUser() {
+  _initOnce();
   try {
-    await signOut(auth);
+    await signOut(_auth);
   } catch (err) {
-    console.warn('Logout error:', err?.message || err);
+    console.error("[nini-fb] signOut error:", err);
+    throw err;
   }
 }
 
-// Gắn vào global cho header gọi: NINI.fb.*
-globalThis.NINI = globalThis.NINI || {};
-globalThis.NINI.fb = {
-  init,
+function getCurrentUser() {
+  _initOnce();
+  return _auth.currentUser || _lastUser || null;
+}
+
+/**
+ * Đăng ký callback khi trạng thái đăng nhập thay đổi.
+ * Trả về hàm hủy đăng ký.
+ */
+function onAuth(cb) {
+  _initOnce();
+  if (typeof cb === "function") {
+    _listeners.add(cb);
+    // gọi ngay lần đầu với user hiện tại (nếu đã có)
+    try { cb(getCurrentUser()); } catch(e) {}
+    return () => _listeners.delete(cb);
+  }
+  return () => {};
+}
+
+/* -----------------------------------------------------
+   4) Expose ra global
+----------------------------------------------------- */
+window.NINI = window.NINI || {};
+window.NINI.fb = {
+  // Khởi tạo thủ công (nếu muốn) — thường không cần gọi
+  initApp: _initOnce,
+
+  // Auth helpers
+  signInGoogle,
+  signOut:       signOutUser,
   getCurrentUser,
-  onAuthChange,
-  loginModal,
-  logout,
+  onAuth,
 };
 
+console.info("[nini-fb] loaded");

@@ -1,103 +1,54 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Funny</title>
 
-  <!-- Favicon: tránh 404 -->
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-
-  <!-- CSS nền + theme -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css" />
-
-  <!-- (tuỳ chọn) override theme từ Netlify function -->
-  <script defer src="/public/js/theme-boot.js"></script>
+  <!-- CSS theme gọn đã thống nhất -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css"/>
 </head>
 <body>
-  <!-- Header mount point -->
+  <!-- Header mount -->
   <div id="nini__header"></div>
 
-  <!-- Khung 16:9 (nếu cần nội dung trung tâm) -->
+  <!-- Khung nội dung 16:9 (nếu dùng) -->
   <div id="frame" class="stage">
-    <!-- nội dung trang -->
+    <!-- nội dung trang: để trống (sau này gắn game/shop...) -->
   </div>
 
   <!-- Footer chips -->
   <footer class="footer-bar">
     <nav class="footer-nav">
-      <a class="chip" href="/#about">Giới thiệu</a>
+      <a class="chip" href="/about">Giới thiệu</a>
       <a class="chip" href="/rules.html">Luật chơi</a>
       <a class="chip" href="/forum/">Diễn đàn</a>
       <a class="chip" href="/feedback.html">Góp ý</a>
     </nav>
   </footer>
 
-  <!-- 1) Header (NON-module) — cần đúng path -->
+  <!-- Header (NON-module) -->
   <script src="/public/js/nini-header.js"></script>
-
-  <!-- 2) Firebase/auth helpers (MODULE) -->
+  <!-- Firebase auth helpers (MODULE) -->
   <script type="module" src="/public/js/nini-fb.js"></script>
 
-  <!-- 3) Khởi động header sau khi DOM sẵn sàng -->
- <script>
-    (function () {
-      // --- Suy ra "mùa" từ URL
-      const path = location.pathname.replace(/\/+$/, '') || '/';
-      const known = { '/spring':'spring', '/summer':'summer', '/autumn':'autumn', '/winter':'winter' };
-      let currentSeason =
-        known[path] ||
-        localStorage.getItem('NINI_LAST_SEASON') ||
-        'spring';
-
-      // Gắn season vào body
-      document.body.classList.add(currentSeason);
-
-      // --- Khai báo routes điều hướng
-      const routes = {
-        home:   '/home',
-        spring: '/spring',
-        summer: '/summer',
-        autumn: '/autumn',
-        winter: '/winter',
-        admin:  '/admin/index.html'
-      };
-
-      // --- Mount header
-      if (window.NINI && window.NINI.header && typeof NINI.header.mount === 'function') {
-        NINI.header.mount('nini__header', {
-          routes,
-          defaultSeason: currentSeason,
-
-          // Khi user bấm đổi mùa trên header
-          onSeasonChange: (season) => {
-            // cập nhật class body + nhớ lại
-            ['spring','summer','autumn','winter'].forEach(c => document.body.classList.remove(c));
-            document.body.classList.add(season);
-            localStorage.setItem('NINI_LAST_SEASON', season);
-          },
-
-          // Điều hướng khi click (nếu header dùng JS thay vì <a href>)
-          onNavigate: (path) => {
-            if (path) location.href = path;
-          }
-        });
-      }
-
-      // --- Đồng bộ trạng thái đăng nhập vào header
-      // nini-fb.js nên phát sự kiện 'nini:authchange' {detail: {user}}
-      document.addEventListener('nini:authchange', (e) => {
-        const user = e.detail && e.detail.user ? e.detail.user : null;
-        // nếu nini-header.js có hàm setUser thì gọi, còn không thì header tự nghe store
-        if (window.NINI && NINI.header && typeof NINI.header.setUser === 'function') {
-          NINI.header.setUser(user);
-        }
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      // mount 1 nơi duy nhất
+      NINI.header.mount('#nini__header', {
+        season: 'auto', // để header tự nhận từ URL/localStorage
+        routes: {
+          home:'/home',
+          spring:'/spring',
+          summer:'/summer',
+          autumn:'/autumn',
+          winter:'/winter',
+          profile:'/profile',
+          admin:'/admin/'
+        },
+        onNavigate: (href) => location.href = href
       });
-    })();
+    });
   </script>
 </body>
 </html>
-
-
-
-

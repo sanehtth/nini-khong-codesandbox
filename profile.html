@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
   <!-- ES module: gắn window.NINI.fb và cung cấp loginModal -->
   <script type="module" src="/public/js/nini-fb.mjs"></script>
-
+  <!-- Scripts -->
+  <script src="/public/js/nini-header.js"></script>
   <style>
     .header-wrap { display:flex; justify-content:center; }
 
@@ -119,8 +120,7 @@
     </nav>
   </footer>
 
-  <!-- Scripts -->
-  <script src="/public/js/nini-header.js"></script>
+  
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       NINI.header.mount('#nini__header', {
@@ -155,5 +155,6 @@
   </script>
 </body>
 </html>
+
 
 

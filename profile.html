@@ -3,32 +3,50 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Hồ sơ & Thành tích</title>
-
+  <base href="/" />
+  <title>NiNi — Hồ sơ và thành tích</title>
   <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/public/css/nini-base.css?v=1" />
-  <script src="/public/js/theme-boot.js" defer></script>
 
-  <style>
-    .page-wrap{ width:min(1100px, 94vw); margin:18px auto 32px; display:grid; gap:16px; grid-template-columns: 1.2fr .8fr; }
-    @media (max-width: 920px){ .page-wrap{ grid-template-columns: 1fr; } }
-    .avatar{ width:96px; height:96px; border-radius:50%; border:1px solid rgba(17,24,39,.15); object-fit:cover; background:#fff }
-    .grid-2{ display:grid; grid-template-columns: 140px 1fr; gap:14px; align-items:start }
-    .fld{ display:grid; grid-template-columns: 180px 1fr; gap:10px; margin:8px 0 }
-    .pw-card{ margin-top:14px }
-  </style>
+  <!-- CSS chung đã gom -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css">
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <!-- Header dùng chung -->
+
+<!-- Đặt background qua CSS variable để mọi trang dùng 1 file nền -->
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+
+  <!-- ===== Header chung ===== -->
   <header class="site-header">
-    <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+    <a class="brand" href="#/home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
 
-    <div class="spacer"></div>
-    <a class="btn" href="/">↩ Về trang chủ</a>
-    <a class="btn" id="signoutBtn">Đăng xuất</a>
+    <nav class="tabs" id="seasonTabs" aria-label="Chọn mùa">
+      <button class="tab is-active" data-season="home">Home</button>
+      <button class="tab" data-season="spring">Spring</button>
+      <button class="tab" data-season="summer">Summer</button>
+      <button class="tab" data-season="autumn">Autumn</button>
+      <button class="tab" data-season="winter">Winter</button>
+    </nav>
+
+    <!-- Auth controls -->
+    <div class="auth-area">
+      <!-- CHƯA login -->
+      <button id="authBtn" class="auth-btn" data-show="out">Đăng nhập / Đăng ký</button>
+
+      <!-- ĐÃ login: avatar mở hồ sơ -->
+      <a id="btnAvatar" class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
+        <img id="avatarImg" src="/public/assets/avatar/NV1.webp" alt="Tài khoản"
+             onerror="this.src='/public/assets/avatar/NV1.webp'">
+      </a>
+
+      <!-- ĐÃ login: Đăng xuất -->
+      <button id="btnLogout" class="auth-btn" data-show="in" style="display:none">
+        Đăng xuất <span class="who"></span>
+      </button>
+
+      <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+    </div>
   </header>
 
 <link rel="stylesheet" href="/public/theme/nini-base.css">
@@ -287,4 +305,5 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </body>
 </html>
+
 

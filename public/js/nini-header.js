@@ -1,4 +1,4 @@
-/* public/theme/nini-header.js */
+/* public/js/nini-header.js */
 ;(function (global){
   const NINI = global.NINI || (global.NINI = {});
   const U = NINI || {};
@@ -187,3 +187,4 @@
   });
 
 })(window);
+

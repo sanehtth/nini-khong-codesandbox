@@ -7,6 +7,8 @@
 
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
+  <!-- ES module: gắn window.NINI.fb và cung cấp loginModal -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
 
   <style>
     .header-wrap { display:flex; justify-content:center; }
@@ -118,8 +120,6 @@
   </footer>
 
   <!-- Scripts -->
-  <script type="module" src="/public/js/nini-fb.js"></script>
-
   <script src="/public/js/nini-header.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -155,4 +155,5 @@
   </script>
 </body>
 </html>
+
 

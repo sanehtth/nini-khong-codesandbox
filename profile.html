@@ -1,110 +1,56 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Profile</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NiNi — Hồ sơ</title>
 
-  <!-- Favicon: tránh 404 -->
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-
-  <!-- CSS nền + theme -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css" />
-
-  <!-- (tuỳ chọn) override theme từ Netlify function -->
-  <script defer src="/public/js/theme-boot.js"></script>
+  <link rel="stylesheet" href="/public/theme/nini-base.css"/>
 </head>
 <body>
-  <!-- Header dùng chung -->
+  <!-- Header -->
   <div id="nini__header"></div>
 
-  <main class="page-hero">
-    <!-- KHÔNG dùng #frame cho trang form -->
-    <form action="thongtin" class="panel-glass wrap-page" aria-label="Hồ sơ cá nhân">
-      <div class="grid grid-2">
-        <div>
-          <img id="avatarImg" class="avatar" src="/public/assets/avatar/NV1.webp" alt="avatar" />
-          <div class="row">
-            <button id="btnUpload" class="btn small">Tải ảnh mới</button>
-            <button id="btnDefault" class="btn small">Về mặc định</button>
-          </div>
-        </div>
+  <!-- Form hồ sơ -->
+  <main class="container">
+    <!-- avatar + nút “Tải ảnh mới”, “Về mặc định” ... -->
+    <!-- các field email, tên hiển thị, ngày sinh, tỉnh thành... -->
+    <!-- Giữ nguyên nội dung form hiện đang chạy tốt của bạn -->
+    <div id="profile-root">
+      <!-- put your current profile form here (không đổi id/name của input) -->
+    </div>
+  </main>
 
-        <div>
-          <label>Email <input id="email" class="input" readonly></label>
-          <label>Tên hiển thị <input id="displayName" class="input" placeholder="Bé NiNi"></label>
-          <label>Ngày sinh <input id="dob" class="input" type="date"></label>
-          <label>Tỉnh/Thành <input id="city" class="input" placeholder="Hà Nội / TPHCM ..."></label>
-          <label>Lớp/Khối <input id="grade" class="input" placeholder="Lớp 2, Lớp 3..."></label>
-          <label>Tên phụ huynh (tuỳ chọn) <input id="parentName" class="input"></label>
-          <label>Số điện thoại <input id="phone" class="input" placeholder="09xxxxxxxx"></label>
-
-          <div class="row">
-            <button id="btnSave" class="btn">Lưu hồ sơ</button>
-            <button id="btnSetPass" class="btn gray">Đổi / Thêm mật khẩu</button>
-          </div>
-        </div>
-      </div>
-    </form>
-      <form action="thanhtich" class="panel" style="margin-top:16px">
-        <h2>Thành tích</h2>
-        <div class="row"><span>XP:</span><span id="statXp">0</span></div>
-        <div class="row"><span>Xu:</span><span id="statCoin">0</span></div>
-        <button id="btnSync" class="btn small">Đồng bộ lại</button>
-      </form>
-    
-
-    <!-- Footer chips đồng bộ toàn site -->
-     <!-- Footer chips -->
   <footer class="footer-bar">
     <nav class="footer-nav">
-      <a class="chip" href="/#about">Giới thiệu</a>
+      <a class="chip" href="/about">Giới thiệu</a>
       <a class="chip" href="/rules.html">Luật chơi</a>
       <a class="chip" href="/forum/">Diễn đàn</a>
       <a class="chip" href="/feedback.html">Góp ý</a>
     </nav>
   </footer>
-  </main>
 
-  <!-- Modal Auth (3 tab) -->
-  <div id="authModal" aria-hidden="true"></div>
-
-  <!-- JS: utils + header (non-module) -->
-  <script defer src="/public/js/nini-utils.js"></script>
-  <script defer src="/public/js/nini-header.js"></script>
-
-  <!-- JS: auth + app (module) -->
+  <script src="/public/js/nini-header.js"></script>
   <script type="module" src="/public/js/nini-fb.js"></script>
-  <script defer src="/public/js/ui-auth.js"></script>
-  <script defer src="/public/js/app.js"></script>
-
   <script>
-    // Mount header trên profile để avatar/email đồng nhất
     window.addEventListener('DOMContentLoaded', () => {
-      if (window.NINI?.header?.mount) {
-        NINI.header.mount('nini__header', {
-          routes: {
-            home:   '/',
-            spring: '/spring',
-            summer: '/summer',
-            autumn: '/autumn',
-            winter: '/winter',
-            admin:  '/admin/index.html'
-          },
-          defaultSeason: 'spring',
-          showLoginTabs: true
-        });
-      }
+      NINI.header.mount('#nini__header', {
+        season: 'auto',
+        routes: {
+          home:'/home',
+          spring:'/spring',
+          summer:'/summer',
+          autumn:'/autumn',
+          winter:'/winter',
+          profile:'/profile',
+          admin:'/admin/'
+        },
+        onNavigate: (href) => location.href = href
+      });
 
-      // Nếu chưa login -> mở modal, KHÔNG redirect sang /login
-      const logged = localStorage.getItem('NINI_AUTH_LOGGED_IN') === '1';
-      if (!logged) {
-        document.getElementById('authBtn')?.click();
-      }
+      // ví dụ: khi nini-fb đổi trạng thái, nó sẽ gọi NINI.__applyUser(user)
+      // trong trang profile bạn vẫn dùng logic đã có để bind dữ liệu user vào form
     });
   </script>
 </body>
 </html>
-
-
-

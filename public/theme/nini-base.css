@@ -227,6 +227,63 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
   background: var(--glass-bg);
   border:1px solid var(--glass-brd);
 }
+/* --- Header (glass) căn giữa & nổi trên cùng --- */
+.nini-header{
+  position: sticky;        /* dính trên */
+  top: 8px;
+  z-index: 1000;           /* cao hơn #frame mờ */
+  display: flex;
+  justify-content: center; /* thanh header vào giữa */
+}
+
+.nini-header .glass{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: min(1100px, 96vw);      /* gọn trong viewport */
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--glass-brd);
+  background: var(--glass-bg);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;          /* cho phép click */
+}
+
+.nini-header .brand{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nini-header .tabs{
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;       /* cụm Home/Spring/Summer… vào giữa */
+}
+
+.nini-header .user-slot{
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.nini-header .btn{
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-brd);
+  background: var(--glass-bg);
+}
+.nini-header .btn:hover{ filter: brightness(1.05); }
+
+/* Đảm bảo lớp mờ nội dung không đè header */
+#frame{ position: relative; z-index: 1; }
+/* header z-index cao hơn (#frame là 1, header là 1000) */
+
 
 
 

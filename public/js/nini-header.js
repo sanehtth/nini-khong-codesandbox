@@ -92,7 +92,7 @@
   global.NINI.header = { mount };
 })(window);
 
-<style>
+
 /* header tối giản — dùng chung */
 .nini-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:16px;margin:8px auto;max-width:1100px}
 .nini-header .brand{display:flex;align-items:baseline;gap:10px;font-weight:700}
@@ -104,6 +104,7 @@
 .btn{border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
 .btn.small{padding:6px 10px;font-size:12px}
 .glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
-</style>
+
+
 
 

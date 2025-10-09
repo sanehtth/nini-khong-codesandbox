@@ -73,13 +73,14 @@
     });
   })();
 })();
-<script>
-  /* gan chuong trinh vao frame */
+/* <script>
+   gan chuong trinh vao frame 
   (function(){
     window.NINI = window.NINI || {};
     NINI.stageFocusOn  = () => document.body.classList.add('focus-stage');
     NINI.stageFocusOff = () => document.body.classList.remove('focus-stage');
     // Ví dụ: NINI.stageFocusOn() khi vào game, NINI.stageFocusOff() khi thoát.
-  })();
+  })(); */
 </script>
+
 

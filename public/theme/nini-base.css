@@ -198,5 +198,17 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 .body-veil, .body-veil::before, .body-veil::after {
   pointer-events: none !important;
 }
+/* header tối giản — dùng chung */
+.nini-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:16px;margin:8px auto;max-width:1100px}
+.nini-header .brand{display:flex;align-items:baseline;gap:10px;font-weight:700}
+.nini-header .brand .logo{font-weight:900;text-decoration:none}
+.nini-header .tabs{display:flex;gap:8px}
+.nini-header .tabs button{border:0;padding:8px 12px;border-radius:999px;cursor:pointer}
+.nini-header .user-slot .user{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:999px}
+.nini-header .user-slot .ava{width:28px;height:28px;object-fit:cover;border-radius:50%}
+.btn{border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
+.btn.small{padding:6px 10px;font-size:12px}
+.glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+
 
 

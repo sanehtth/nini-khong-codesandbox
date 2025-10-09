@@ -61,10 +61,7 @@
         <a class="logo" href="#/home" aria-label="NiNi home">
           <img class="logo-main" src="${brand.logo}" alt="" />
         </a>
-        <a class="logo-small" href="#/home" aria-label="NiNi">
-          <img class="logo-small-img" src="${brand.logoSmall}" alt="" />
-        </a>
-        <span class="slogan">${brand.sloganText || ''}</span>
+          <span class="slogan">${brand.sloganText || ''}</span>
       </div>
     `;
 
@@ -93,7 +90,6 @@
     // brand config (đã dùng đường dẫn bạn cung cấp)
     const brand = Object.assign({
       logo: '/public/assets/icons/logo_text.webp',
-      logoSmall: '/public/assets/icons/logonini.webp',
       sloganText: 'Chơi mê ly, bứt phá tư duy'
     }, (opts.brand || {}));
 
@@ -166,4 +162,5 @@
   style.textContent = css;
   document.head.appendChild(style);
 })();
+
 

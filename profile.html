@@ -31,127 +31,101 @@
     <a class="btn" id="signoutBtn">Đăng xuất</a>
   </header>
 
-  <main class="page-hero bg-cover">
-    <div class="page-wrap">
-      <!-- THÔNG TIN CÁ NHÂN -->
-      <section class="panel-glass">
-        <header class="glass-head">
-          <h2>Thông tin cá nhân</h2>
-          <div class="meta" id="authHint">Đang kiểm tra đăng nhập…</div>
-        </header>
+<link rel="stylesheet" href="/public/theme/nini-base.css">
+<link rel="stylesheet" href="/public/theme/profile.css">
 
-        <div class="wrap">
-          <div class="grid-2">
-            <div>
-              <img id="pf_avatar_img" class="avatar" src="/public/assets/avatar/NV1.webp" alt="Avatar" />
-            </div>
-            <div>
-              <div class="muted">Avatar hiện tại. Sau này bạn có thể mở “Cửa hàng avatar” để đổi.</div>
-            </div>
-          </div>
+<main class="profile-wrap">
+  <!-- ===== Cột trái: Hồ sơ ===== -->
+  <section class="card-glass">
+    <h2 class="card-title">Thông tin cá nhân</h2>
 
-          <form id="profileForm" autocomplete="on" class="stack">
-            <div class="fld">
-              <span>Email</span>
-              <input class="input underline" type="email" id="pf_email" readonly placeholder="— sẽ tự điền —" />
-            </div>
-
-            <div class="fld">
-              <span>Tên hiển thị</span>
-              <input class="input underline" type="text" id="pf_displayName" placeholder="Bé NiNi" />
-            </div>
-
-            <div class="fld">
-              <span>Giới tính</span>
-              <select class="input underline" id="pf_gender">
-                <option value="">— Chọn —</option>
-                <option value="male">Nam</option>
-                <option value="female">Nữ</option>
-                <option value="other">Khác</option>
-              </select>
-            </div>
-
-            <div class="fld">
-              <span>Ngày sinh</span>
-              <input class="input underline" type="date" id="pf_dob" />
-            </div>
-
-            <div class="fld">
-              <span>Phụ huynh</span>
-              <input class="input underline" type="text" id="pf_guardian" placeholder="Tên phụ huynh (tuỳ chọn)" />
-            </div>
-
-            <div class="fld">
-              <span>Số điện thoại</span>
-              <div class="row">
-                <input class="input underline" type="tel" id="pf_phone" inputmode="tel" placeholder="09xxxxxxxx" style="flex:1; min-width:220px" />
-                <button class="btn ghost" type="button" id="btnSendOtp">Gửi OTP</button>
-                <input class="input underline" type="text" id="otp_code" inputmode="numeric" placeholder="Mã 6 số" style="width:140px" />
-                <button class="btn" type="button" id="btnVerifyOtp">Xác thực</button>
-              </div>
-            </div>
-
-            <div class="fld">
-              <span>Tỉnh/Thành</span>
-              <input class="input underline" type="text" id="pf_city" placeholder="Hà Nội / TP.HCM ..." />
-            </div>
-
-            <div class="fld">
-              <span>Lớp/Khối</span>
-              <input class="input underline" type="text" id="pf_grade" placeholder="Lớp 2, Lớp 3..." />
-            </div>
-
-            <div class="row">
-              <button class="btn" type="submit">Lưu hồ sơ</button>
-              <a class="btn ghost" href="/">Về trang chủ</a>
-              <span id="saveNote" class="note" hidden></span>
-            </div>
-          </form>
-
-          <!-- Đổi mật khẩu -->
-          <section class="pw-card panel-glass">
-            <div class="wrap">
-              <h3>Đổi mật khẩu</h3>
-              <div class="muted">Áp dụng cho Email/Password. Nếu đăng nhập Google, có thể <strong>thêm</strong> mật khẩu.</div>
-              <div class="row">
-                <input class="input underline" type="password" id="pw_current" placeholder="Mật khẩu hiện tại (nếu đã có)" />
-                <input class="input underline" type="password" id="pw_new" placeholder="Mật khẩu mới (≥ 8 ký tự)" />
-                <input class="input underline" type="password" id="pw_confirm" placeholder="Nhập lại mật khẩu mới" />
-                <button class="btn" id="btnChangePw" type="button">Đổi / Thêm mật khẩu</button>
-              </div>
-              <div id="pwNote" class="note"></div>
-            </div>
-          </section>
-
-          <!-- Recaptcha (ẩn) cho OTP -->
-          <div id="recaptcha-container" style="height:0; overflow:hidden"></div>
-        </div>
-      </section>
-
-      <!-- THÀNH TÍCH -->
-      <section class="panel-glass">
-        <header class="glass-head">
-          <h2>Thành tích</h2>
-          <div class="meta">Theo dõi tiến trình học & phần thưởng</div>
-        </header>
-
-        <div class="wrap">
-          <div class="kpi">
-            <div class="tile"><h3>XP</h3><div class="val" id="valXP">0</div><div class="bar"><i id="barXP" style="width:0%"></i></div></div>
-            <div class="tile"><h3>Xu</h3><div class="val" id="valCoins">0</div><div class="bar"><i id="barCoins" style="width:0%"></i></div></div>
-            <div class="tile"><h3>Rương</h3><div class="val"><span id="valChests">0</span> 📦</div><div class="muted">Rương mở cho XP/Xu ngẫu nhiên</div></div>
-          </div>
-
-          <div class="row">
-            <button class="btn" id="btnOpenChest" disabled>🎁 Mở 1 rương</button>
-            <button class="btn ghost" id="btnRefresh">↻ Đồng bộ lại</button>
-            <span class="note">Đồng bộ với tài khoản trò chơi (local & cloud).</span>
-          </div>
-          <div class="row"><span class="pill-ghost" id="lastReward">Chưa có phần thưởng nào.</span></div>
-        </div>
-      </section>
+    <!-- Avatar + hành động -->
+    <div class="avatar-row">
+      <img id="avatarPreview" class="avatar" src="/public/assets/avatar/NV1.webp" alt="">
+      <div class="avatar-actions">
+        <label class="btn solid">
+          Tải ảnh mới
+          <input id="avatarFile" type="file" accept="image/*" hidden>
+        </label>
+        <button id="btnAvatarReset" class="btn ghost" type="button">Về mặc định</button>
+      </div>
     </div>
-  </main>
+
+    <!-- Form 2 cột -->
+    <div class="form-grid" style="margin-top:14px">
+      <div class="input-row">
+        <label>Email</label>
+        <input id="pf_email" class="input" type="email" placeholder="— sẽ tự điền —" disabled>
+      </div>
+
+      <div class="input-row">
+        <label>Tên hiển thị</label>
+        <input id="pf_display" class="input" type="text" placeholder="Bé NiNi">
+      </div>
+
+      <div class="input-row">
+        <label>Giới tính</label>
+        <select id="pf_gender" class="input">
+          <option value="">— Chọn —</option>
+          <option value="F">Bé gái</option>
+          <option value="M">Bé trai</option>
+          <option value="O">Khác</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label>Ngày sinh</label>
+        <input id="pf_dob" class="input" type="text" inputmode="numeric" placeholder="dd / mm / yyyy">
+      </div>
+
+      <div class="input-row">
+        <label>Tên phụ huynh (tuỳ chọn)</label>
+        <input id="pf_parent" class="input" type="text" placeholder="Tên phụ huynh">
+      </div>
+
+      <div class="input-row">
+        <label>Tỉnh/Thành</label>
+        <input id="pf_city" class="input" type="text" placeholder="Hà Nội / TPHCM ...">
+      </div>
+
+      <div class="input-row" style="grid-column:1/-1">
+        <label>Số điện thoại (xác thực OTP)</label>
+        <div class="otp-row">
+          <input id="pf_phone" class="input" type="tel" placeholder="09xxxxxxxx">
+          <button id="btnSendOtp" class="btn solid" type="button">Gửi OTP</button>
+          <input id="pf_otp" class="input" type="text" inputmode="numeric" maxlength="6" placeholder="Mã 6 số">
+        </div>
+      </div>
+
+      <div class="input-row" style="grid-column:1/-1">
+        <label>Lớp/Khối</label>
+        <input id="pf_grade" class="input" type="text" placeholder="Lớp 2, Lớp 3...">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <button id="btnSave" class="btn solid" type="button">Lưu hồ sơ</button>
+      <a class="btn ghost" href="/profile.html#change-password">Đổi / Thêm mật khẩu</a>
+    </div>
+  </section>
+
+  <!-- ===== Cột phải: Thành tích ===== -->
+  <aside class="card-glass">
+    <h2 class="card-title">Thành tích</h2>
+    <div class="input-row"><label>XP</label><div class="muted" id="stat_xp">0</div></div>
+    <div class="input-row"><label>Xu</label><div class="muted" id="stat_coin">0</div></div>
+
+    <div class="input-row" style="margin-top:10px">
+      <label>Rương</label>
+      <div class="muted">0 — Rương mở cho XP/Xu ngẫu nhiên.</div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button id="btnSync" class="btn" type="button">Đồng bộ lại</button>
+    </div>
+  </aside>
+</main>
+
 
   <!-- Logic: dùng fb.js gộp -->
   <script type="module">
@@ -313,3 +287,4 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </body>
 </html>
+

@@ -46,6 +46,11 @@ export function getServices() {
   if (!app) initFirebase();
   return { app, auth, db };
 }
+// thêm vào dưới getServices()
+export function getAuthInst(){ if(!auth) initFirebase(); return auth; }
+
+// bên dưới, giữ nguyên logout(), và export raw signOut nếu bạn muốn gọi trực tiếp
+export { signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* ---------- AUTH cơ bản ---------- */
 export function onAuth(handler) {
@@ -126,3 +131,4 @@ export {
   reauthenticateWithPopup,
   updatePassword,
 };
+

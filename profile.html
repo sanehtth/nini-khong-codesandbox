@@ -3,18 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Hồ sơ</title>
+  <title>NiNi — Profile</title>
 
-  <!-- Chỉ nạp base CSS mới -->
+  <!-- Favicon: tránh 404 -->
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+
+  <!-- CSS nền + theme -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
 
-  <!-- (tuỳ chọn) Brand/theme runtime -->
-  <script>
-    (function(){ try{
-      const b = JSON.parse(localStorage.getItem('NINI_THEME_BRAND')||'{}');
-      if (b.css) { const s=document.createElement('style'); s.textContent=b.css; document.head.appendChild(s); }
-    }catch(_){}})();
-  </script>
+  <!-- (tuỳ chọn) override theme từ Netlify function -->
+  <script defer src="/public/js/theme-boot.js"></script>
 </head>
 <body>
   <main class="page-hero">
@@ -88,4 +86,5 @@
   </script>
 </body>
 </html>
+
 

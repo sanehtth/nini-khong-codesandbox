@@ -70,7 +70,7 @@
       if (user) {
         box.innerHTML = `
           <div class="user glass">
-            <img class="ava" src="${user.photoURL || '/public/assets/avatar/N1.webp'}" alt="">
+            <img class="ava" src="${user.photoURL || '/public/assets/avatar/NV1.webp'}" alt="">
             <span class="email">${user.email}</span>
             <button class="btn small" id="btnLogout">Đăng xuất</button>
           </div>`;
@@ -107,3 +107,4 @@
 .btn.small{padding:6px 10px;font-size:12px}
 .glass{backdrop-filter:blur(6px);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
 </style>
+

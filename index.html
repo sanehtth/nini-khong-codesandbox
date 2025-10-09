@@ -5,42 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Theme chính -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
-
-  <!-- Favicon / Logo nhỏ (đã có file SVG) -->
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
 
-  <!-- Sửa nhanh header & tầng lớp -->
   <style>
-    /* Header đặt giữa, luôn nổi trên khung mờ */
+    /* ===== Layout helpers ===== */
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 12px; }
     .nini-header { position: relative; z-index: 50; }
-    .nini-header .glass {
-      max-width: 1120px;
-      margin: 10px auto 0;
-    }
-    /* Đảm bảo khung nội dung không đè lên header */
+    .nini-header .glass { margin-top: 10px; }
     #frame.stage { position: relative; z-index: 1; }
 
-    /* Chip footer bo tròn, căn giữa toàn cục */
     .footer-bar { max-width: 1120px; margin: 12px auto 24px; }
-
-    /* Logo nhỏ góc trái (nếu bạn muốn dùng) */
-    .brand__icon {
-      display:inline-flex; align-items:center; gap:8px;
-      font-weight:700;
-    }
+    .brand__icon { display:inline-flex; align-items:center; gap:8px; font-weight:700; }
     .brand__icon img { height:20px; width:auto; display:block; }
   </style>
 </head>
-<body class="home">
-  <!-- Slot cho Header -->
-  <div id="nini__header"></div>
+<body class="spring">
+  <!-- Header slot -->
+  <div id="nini__header" class="container"></div>
 
-  <!-- Khung 16:9 (nội dung trung tâm) -->
-  <div id="frame" class="stage">
+  <!-- Khung trung tâm 16:9 -->
+  <div id="frame" class="stage container">
     <main class="nini-main">
-      <!-- tùy chọn: để trống, sau này nhóc NiNi đi qua lại / game, shop… -->
+      <!-- Để trống: sau này NiNi sẽ “đi lại / trò chuyện” ở đây -->
     </main>
   </div>
 
@@ -54,13 +41,12 @@
     </nav>
   </footer>
 
-  <!-- Header NON-module -->
+  <!-- Header non-module -->
   <script src="/public/js/nini-header.js"></script>
-  <!-- Firebase/Auth (MODULE) – file của bạn đã gộp global NINI.fb rồi -->
+  <!-- Auth / Firebase (module) -->
   <script type="module" src="/public/js/nini-fb.js"></script>
 
   <script>
-    // Routes theo mùa (đi qua hash) + trang admin nếu cần
     const routes = {
       home:   '#/home',
       spring: '#/spring',
@@ -70,7 +56,6 @@
       admin:  '/admin/index.html'
     };
 
-    // Đồng bộ class mùa trên body
     function applySeasonFromHash() {
       const seasons = ['home','spring','summer','autumn','winter'];
       const cur = (location.hash || '#/spring').replace('#/','');
@@ -78,27 +63,41 @@
       document.body.classList.add(cur);
     }
 
+    // bảo đảm bấm "Đăng nhập" luôn có tác dụng, kể cả khi auth chưa sẵn sàng
+    function ensureLoginWires() {
+      const btn = document.querySelector('.nini-header .user-slot button[data-action="login"]');
+      if (!btn) return;
+      btn.onclick = () => {
+        if (window.NINI && NINI.fb && typeof NINI.fb.loginModal === 'function') {
+          NINI.fb.loginModal();
+        } else {
+          // chưa sẵn sàng -> retry ngắn
+          setTimeout(ensureLoginWires, 120);
+        }
+      };
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      // Mount header chung
       if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
         NINI.header.mount('#nini__header', {
           routes,
-          // Logo trái dùng webp chữ; icon nhỏ tab dùng svg (nếu muốn)
           brandHTML: `
             <a class="brand__icon" href="#/home" aria-label="NiNi Funny">
               <img src="/public/assets/icons/logonini.svg" alt="">
               <img src="/public/assets/icons/logo_text.webp" alt="NiNi">
             </a>
           `,
-          // Khi click mùa
           onSeasonChange: () => applySeasonFromHash()
         });
       }
-      // Áp class lần đầu & mỗi lần đổi hash
+
       applySeasonFromHash();
       window.addEventListener('hashchange', applySeasonFromHash);
+
+      // Khi auth ready hoặc sau mount, đảm bảo dây nút login
+      ensureLoginWires();
+      document.addEventListener('ni:authready', ensureLoginWires);
     });
   </script>
 </body>
 </html>
-

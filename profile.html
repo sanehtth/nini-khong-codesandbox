@@ -1,57 +1,160 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Hồ sơ</title>
 
-  <link rel="stylesheet" href="/public/theme/nini-base.css"/>
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+
+  <style>
+    .nini-header { position: relative; z-index: 50; }
+    .nini-header .glass { max-width: 1120px; margin: 10px auto 0; }
+    #frame.stage { position: relative; z-index: 1; }
+
+    .profile-card {
+      max-width: 1120px; margin: 16px auto 36px;
+      padding: 18px 16px; border-radius: 14px;
+      border: 1px solid var(--glass-brd);
+      background: var(--glass-bg);
+      backdrop-filter: blur(6px);
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+    }
+    .avatar-card {
+      display: grid; grid-template-rows: auto auto; gap: 10px;
+      text-align: center;
+      border-radius: 12px; padding: 10px;
+      border: 1px solid var(--glass-brd);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(4px);
+    }
+    .avatar-card img {
+      width: 120px; height: 120px; border-radius: 50%;
+      object-fit: cover; display:block; margin: 8px auto;
+      border: 1px solid rgba(255,255,255,.22);
+    }
+    .form-rows { display: grid; gap: 10px; }
+    .row { display: grid; grid-template-columns: 160px 1fr; gap: 10px; align-items: center; }
+    .row label { opacity:.85; font-weight: 600; }
+    .row input, .row select {
+      height: 34px; border-radius: 8px; padding: 0 10px; border: 1px solid var(--glass-brd);
+      background: rgba(255,255,255,.06); color: var(--fg);
+    }
+
+    .footer-bar { max-width: 1120px; margin: 12px auto 24px; }
+    @media (max-width: 840px) {
+      .profile-grid { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-<body>
+<body class="spring">
   <!-- Header -->
   <div id="nini__header"></div>
 
-  <!-- Form hồ sơ -->
-  <main class="container">
-    <!-- avatar + nút “Tải ảnh mới”, “Về mặc định” ... -->
-    <!-- các field email, tên hiển thị, ngày sinh, tỉnh thành... -->
-    <!-- Giữ nguyên nội dung form hiện đang chạy tốt của bạn -->
-    <div id="profile-root">
-      <!-- put your current profile form here (không đổi id/name của input) -->
-    </div>
-  </main>
+  <!-- Nội dung hồ sơ -->
+  <div id="frame" class="stage">
+    <section class="profile-card">
+      <div class="profile-grid">
+        <aside class="avatar-card">
+          <img id="pfAvatar" src="/public/assets/avatar/NV1.webp" alt="avatar" />
+          <div>
+            <button id="btnUpload" class="btn">Tải ảnh mới</button>
+            <button id="btnDefault" class="btn">Về mặc định</button>
+          </div>
+        </aside>
 
+        <div class="form-rows">
+          <div class="row"><label>Email</label><input id="pfEmail" disabled></div>
+          <div class="row"><label>Tên hiển thị</label><input id="pfName" placeholder="Bé NiNi"></div>
+          <div class="row"><label>Ngày sinh</label><input id="pfDob" placeholder="dd/mm/yyyy"></div>
+          <div class="row"><label>Tỉnh/Thành</label><input id="pfCity" placeholder="Hà Nội / TPHCM ..."></div>
+          <div class="row"><label>Lớp/Khối</label><input id="pfClass" placeholder="Lớp 2, Lớp 3..."></div>
+          <div class="row"><label>Phụ huynh (tùy chọn)</label><input id="pfParent"></div>
+          <div class="row"><label>Số điện thoại</label><input id="pfPhone" placeholder="09xxxxxxx"></div>
+
+          <div class="row">
+            <span></span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <button id="btnSave" class="btn">Lưu hồ sơ</button>
+              <button id="btnPwd" class="btn">Đổi / Thêm mật khẩu</button>
+              <button id="btnSync" class="btn">Đồng bộ lại</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer chips -->
   <footer class="footer-bar">
-    <nav class="footer-nav">
-      <a class="chip" href="/about">Giới thiệu</a>
+    <nav class="chips">
+      <a class="chip" href="/about.html">Giới thiệu</a>
       <a class="chip" href="/rules.html">Luật chơi</a>
-      <a class="chip" href="/forum/">Diễn đàn</a>
+      <a class="chip" href="/forum.html">Diễn đàn</a>
       <a class="chip" href="/feedback.html">Góp ý</a>
     </nav>
   </footer>
 
-  <script src="/public/js/nini-header.js" defer ></script>
+  <!-- Header non-module -->
+  <script src="/public/js/nini-header.js"></script>
+  <!-- Firebase/Auth (module) -->
   <script type="module" src="/public/js/nini-fb.js"></script>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      NINI.header.mount('#nini__header', {
-        season: 'auto',
-        routes: {
-          home:'/home',
-          spring:'/spring',
-          summer:'/summer',
-          autumn:'/autumn',
-          winter:'/winter',
-          profile:'/profile',
-          admin:'/admin/'
-        },
-        onNavigate: (href) => location.href = href
-      });
 
-      // ví dụ: khi nini-fb đổi trạng thái, nó sẽ gọi NINI.__applyUser(user)
-      // trong trang profile bạn vẫn dùng logic đã có để bind dữ liệu user vào form
+  <script>
+    const routes = {
+      home:   '#/home',
+      spring: '#/spring',
+      summer: '#/summer',
+      autumn: '#/autumn',
+      winter: '#/winter',
+      admin:  '/admin/index.html'
+    };
+
+    function applySeasonFromHash() {
+      const seasons = ['home','spring','summer','autumn','winter'];
+      const cur = (location.hash || '#/spring').replace('#/','');
+      seasons.forEach(s => document.body.classList.remove(s));
+      document.body.classList.add(cur);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mount header
+      if (window.NINI && NINI.header && typeof NINI.header.mount === 'function') {
+        NINI.header.mount('#nini__header', {
+          routes,
+          brandHTML: `
+            <a class="brand__icon" href="#/home" aria-label="NiNi Funny">
+              <img src="/public/assets/icons/logonini.svg" alt="">
+              <img src="/public/assets/icons/logo_text.webp" alt="NiNi">
+            </a>
+          `,
+          onSeasonChange: () => applySeasonFromHash()
+        });
+      }
+      applySeasonFromHash();
+      window.addEventListener('hashchange', applySeasonFromHash);
+
+      // ====== Hồ sơ (đơn giản hóa demo, dùng NINI.fb nếu đã login) ======
+      function bindUser(u) {
+        const $ = (id) => document.getElementById(id);
+        if (!u) return;
+        $('pfEmail').value = u.email || '';
+        $('pfName').value  = u.displayName || '';
+        if (u.photoURL) document.getElementById('pfAvatar').src = u.photoURL;
+      }
+
+      // Nếu NINI.fb đã expose global
+      if (window.NINI && NINI.fb && NINI.fb.getCurrentUser) {
+        bindUser(NINI.fb.getCurrentUser());
+        document.addEventListener('ni:authchange', (e) => bindUser(e.detail));
+      }
     });
   </script>
 </body>
 </html>
-

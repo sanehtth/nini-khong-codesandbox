@@ -189,7 +189,7 @@ function mountHeader(containerSel, opts = {}) {
     </nav>
 
     <div class="nini-user" id="niniUser">
-      <img class="avatar" src="/public/assets/avatar/NV1.webp" alt="">
+      <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
       <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
     </div>
   `;
@@ -214,14 +214,14 @@ function mountHeader(containerSel, opts = {}) {
   function renderUser(u){
     if (!u) {
       userBox.innerHTML = `
-        <img class="avatar" src="/public/assets/avatar/NV1.webp" alt="">
+        <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
         <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
       `;
       userBox.querySelector('#btnAuthOpen').onclick = () => modal.open('login');
       return;
     }
     const email = u.email || '';
-    const photo = u.photoURL || '/public/assets/avatar/NV1.webp';
+    const photo = u.photoURL || '/public/assets/avatar/NV.webp';
     userBox.innerHTML = `
       <img class="avatar" src="${photo}" alt="avatar">
       <span>${email}</span>
@@ -241,4 +241,5 @@ function mountHeader(containerSel, opts = {}) {
    ========== */
 window.NINI = window.NINI || {};
 window.NINI.header = { mount: mountHeader };
+
 

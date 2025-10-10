@@ -16,7 +16,7 @@ import {
 
 // ---- init ----
 const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
-   apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
   projectId: "nini-8f3d4",
   storageBucket: "nini-8f3d4.firebasestorage.app",
@@ -123,4 +123,5 @@ const NINI = {
 };
 
 export default NINI;
+
 

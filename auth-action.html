@@ -3,33 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Auth action</title>
+  <title>NiNi — Xử lý hành động</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
 </head>
-<body class="spring">
-  <div class="stage">
-    <div class="glass" style="padding:24px; text-align:center;">
-      <h2>Đang xử lý yêu cầu…</h2>
-      <p>Vui lòng đợi trong giây lát.</p>
-    </div>
-  </div>
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <!-- Header gọn -->
+  <header class="site-header">
+    <a class="brand" href="/#home" aria-label="NiNi — Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
+    </a>
+    <div class="spacer"></div>
+    <a class="btn" href="/">↩ Trang chủ</a>
+  </header>
+
+  <main class="page-hero">
+    <section class="panel">
+      <h2>Đang xử lý…</h2>
+      <p class="muted" id="msg">Vui lòng chờ trong giây lát.</p>
+    </section>
+  </main>
 
   <script>
     (function () {
-      const qs = new URLSearchParams(location.search);
-      const mode = (qs.get('mode') || '').toLowerCase();
-      const keep = '?' + qs.toString();
+      const p = new URLSearchParams(location.search);
+      const mode = (p.get('mode') || '').toLowerCase();     // 'resetPassword' | 'verifyEmail' | ...
+      const oob  = p.get('oobCode') || '';
+      const cont = p.get('continueUrl') || '/';
 
-      switch (mode) {
-        case 'resetpassword':
-          location.replace('/reset-password.html' + keep);
-          break;
-        case 'verifyemail':
-          location.replace('/verify-email.html' + keep);
-          break;
-        default:
-          location.replace('/#home');
+      const msg = document.getElementById('msg');
+      if (!mode || !oob) {
+        msg.textContent = 'Thiếu tham số mode hoặc oobCode trong liên kết.';
+        return;
       }
+
+      // Quy ước: cả hai hành động đều về trang chuyên dụng theo CSS mới.
+      if (mode === 'resetpassword') {
+        // chuyển tới UI đặt lại mật khẩu
+        location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}&continueUrl=${encodeURIComponent(cont)}`);
+        return;
+      }
+
+      if (mode === 'verifyemail') {
+        // chuyển tới UI xác minh
+        location.replace(`/verify-email.html?oobCode=${encodeURIComponent(oob)}&continueUrl=${encodeURIComponent(cont)}`);
+        return;
+      }
+
+      msg.textContent = 'Loại hành động không được hỗ trợ: ' + mode;
     })();
   </script>
 </body>

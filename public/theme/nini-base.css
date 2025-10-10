@@ -1,87 +1,162 @@
-/* ===== NiNi HEADER ===== */
-.nini-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px;
-  height: 56px;
-  padding: 6px 10px;
-  pointer-events: none;    /* để nội dung trang vẫn scroll, các child tự bật click */
-}
-.nini-header > * { pointer-events: auto; }
+/* ===== Global Background (default + seasons) ===== */
+:root{
+  /* Nền mặc định cho toàn site */
+  --bg-url: url('/public/assets/bg/nini_home.webp');
 
-.nini-header .brand {
-  position: absolute; left: 16px; top: 6px; height: 44px;
-  display: flex; align-items: center; gap: 8px;
-}
-.nini-header .brand img.logo { height: 34px; width: auto; display: block; }
-.nini-header .brand span.slogan {
-  font-weight: 700; color: #f8f5de; text-shadow: 0 1px 3px rgba(0,0,0,.35);
+  /* (tuỳ chọn) overlay glass & mực chữ đã có, giữ nguyên nếu bạn đã khai báo */
+  --glass-bg: rgba(255,255,255,.14);
+  --glass-brd: rgba(255,255,255,.35);
+  --ink: #1c2024;
 }
 
-.nini-header .tabs {
-  display: flex; gap: 8px; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.2);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 999px;
-  padding: 6px 10px;
-}
-.nini-header .tabs button {
-  border: 0; outline: 0; cursor: pointer;
-  padding: 6px 14px; border-radius: 999px;
-  background: rgba(255,255,255,.35);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.45);
-  transition: transform .12s ease;
-  font-weight: 600;
-}
-.nini-header .tabs button:hover { transform: translateY(-1px); }
+/* 4 mùa: gắn bằng class .home/.spring/.summer/.autumn/.winter trên <body>
+   hoặc dùng data-season="spring" nếu bạn thích. */
+body.home, body[data-season="home"]     { --bg-url: url('/public/assets/bg/nini_home.webp'); }
+body.spring, body[data-season="spring"] { --bg-url: url('/public/assets/bg/nini_spring.webp'); }
+body.summer, body[data-season="summer"] { --bg-url: url('/public/assets/bg/nini_summer.webp'); }
+body.autumn, body[data-season="autumn"] { --bg-url: url('/public/assets/bg/nini_autumn.webp'); }
+body.winter, body[data-season="winter"] { --bg-url: url('/public/assets/bg/nini_winter.webp'); }
 
-.nini-header .userbox {
-  position: absolute; right: 16px; top: 6px;
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.2); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.35); border-radius: 999px;
-  padding: 6px 10px;
+/* Áp dụng nền cho toàn bộ trang */
+html, body { height: 100%; }
+body{
+  min-height: 100svh;
+  color: var(--ink);
+  background:
+    /* màu nền fallback */
+    #0b1f13
+    /* ảnh nền theo biến */
+    var(--bg-url)
+    center / cover
+    /* iOS kỵ fixed → disable trên mobile bên dưới */
+    fixed
+    no-repeat;
 }
-.nini-header .userbox img.avatar {
-  width: 28px; height: 28px; border-radius: 999px; object-fit: cover;
-  border: 2px solid rgba(255,255,255,.8); background: #fff;
-}
-.nini-header .userbox .email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.3); }
-.nini-header .btn { border: 0; outline: 0; cursor: pointer; padding: 6px 10px; border-radius: 999px; font-weight: 700; }
-.nini-header .btn-primary { background: rgba(255,255,255,.35); box-shadow: inset 0 0 0 1px rgba(255,255,255,.5); }
 
-/* ===== Auth modal ===== */
-#nini-auth { display: none; position: fixed; inset: 0; z-index: 1000; }
-#nini-auth.open { display: block; }
-#nini-auth::before {
-  content: ""; position: absolute; inset: 0;
-  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+/* iOS/Mobile tối ưu: tránh jank do background-attachment: fixed */
+@media (max-width: 1024px){
+  body{ background-attachment: scroll; }
 }
-#nini-auth .panel {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-  width: min(520px, 92vw);
-  background: rgba(255,255,255,.25); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,.45); border-radius: 16px;
-  padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.3);
+
+/* ========== NiNi Base (lite) — public pages only ========== */
+/* Reset cực gọn */
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body,h1,h2,h3,h4,p,figure,blockquote,dl,dd{margin:0}
+img,svg,video,canvas{display:block;max-width:100%}
+button,input,select,textarea{font:inherit}
+:focus{outline:none}
+
+/* Tokens */
+:root{
+  --bg-url: url('/public/assets/bg/nini_home.webp');
+  --ink:#1c2024; --ink-dim:#6b7b8c;
+  --glass-bg: rgba(255,255,255,.14);
+  --glass-brd: rgba(255,255,255,.35);
+  --shadow: 0 10px 30px rgba(47,110,63,.25);
+  --line:#fff; --line-weak: rgba(255,255,255,.55);
+  --r:18px; --sp:12px;
 }
-#nini-auth .tabs {
-  display: flex; gap: 8px; margin-bottom: 12px; justify-content: center;
+
+/* Canvas */
+body{
+  min-height:100svh;
+  color:var(--ink);
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,Noto Sans,Liberation Sans,sans-serif;
+  background:#0b1f13 var(--bg-url) center/cover fixed no-repeat;
 }
-#nini-auth .tabs button { padding: 8px 12px; border-radius: 999px; border: 0; cursor: pointer; background: rgba(255,255,255,.6); font-weight: 700; }
-#nini-auth .tabs button.active { background: rgba(255,255,255,.9); }
-#nini-auth [data-view] { display: none; }
-#nini-auth [data-view].active { display: block; }
-#nini-auth .row { display: grid; gap: 8px; margin: 12px 0; }
-#nini-auth input[type="email"],
-#nini-auth input[type="password"],
-#nini-auth input[type="text"] {
-  width: 100%; height: 38px; padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.55);
-  background: rgba(255,255,255,.85);
+
+/* Helpers */
+.muted{color:var(--ink-dim);font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ===== Header (glass) ===== */
+.site-header{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;gap:16px;
+  width:min(1180px,94vw);margin:14px auto;padding:10px 14px;
+  background:var(--glass-bg);border:1px solid var(--glass-brd);
+  backdrop-filter:blur(10px);border-radius:var(--r);box-shadow:var(--shadow);
 }
-#nini-auth .actions { display: flex; gap: 8px; justify-content: flex-end; }
-#nini-auth .btn { padding: 8px 12px; border-radius: 999px; border: 0; cursor: pointer; font-weight: 700; }
-#nini-auth .btn-primary { background: rgba(255,255,255,.85); }
-#nini-auth .close { position: absolute; right: 12px; bottom: 12px; border: 0; background: rgba(255,255,255,.85); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand__logo{height:34px}
+.brand__slogan{
+  font-weight:700;letter-spacing:.2px;
+  background:linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:hue 10s linear infinite;
+}
+@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.tab{
+  appearance:none;border:1px solid var(--glass-brd);background:var(--glass-bg);
+  color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;backdrop-filter:blur(8px)
+}
+.tab.is-active{box-shadow:0 0 0 2px rgba(47,110,63,.25);border-color:#fff}
+
+/* ===== Inputs “1 gạch dưới trắng” ===== */
+.input,input,select,textarea{
+  width:100%;padding:8px 10px;color:var(--ink);
+  background:transparent;border:0;border-bottom:2px solid var(--line-weak)
+}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.55)}
+input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
+
+/* ===== Hero 16:9 Stage (game / NiNi) =====
+   - Chỉ cần đặt <div id="frame"> và nhét canvas/ảnh/video .stage vào trong.
+   - Nếu muốn chỉ hiển thị NiNi, cứ đặt <img class="nini"> vào giữa khung. */
+/* ===== Hero Stage (Game / NiNi canvas) ===== */
+#frame, .stage{
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(1180px, 94vw);
+  margin: 16px auto;
+  border-radius: var(--radius, 18px);
+  overflow: hidden;
+  border: 1px solid var(--glass-brd);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: 10px 30px 80px rgba(0,0,0,.20), inset 0 0 1px rgba(255,255,255,.15);
+}
+
+/* 16:9 */
+#frame::before, .stage::before { content:""; display:block; padding-top:56.25%; }
+@supports (aspect-ratio: 16/9){
+  #frame::before, .stage::before { display:none; }
+  #frame, .stage { aspect-ratio: 16/9; }
+}
+
+/* Nội dung full khung */
+#frame > img, #frame > canvas, #frame > video,
+.stage > img, .stage > canvas, .stage > video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; /* hoặc contain nếu bạn muốn NiNi không cắt khung */
+}
+
+/* NiNi mascot (tuỳ chọn) */
+.nini{width:clamp(160px,18vw,260px);height:auto}
+
+/* ===== Footer 4 nút ===== */
+.footer-bar{
+  width:min(1180px,94vw); margin:16px auto 24px; padding:12px;
+  background:var(--glass-bg); border:1px solid var(--glass-brd);
+  border-radius:var(--r); backdrop-filter:blur(10px)
+}
+.footer-nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.chip{
+  display:inline-block;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--glass-brd);background:var(--glass-bg);
+  color:var(--ink);text-decoration:none;user-select:none
+}
+.chip:is(:hover,:focus){filter:brightness(1.06)}
+
+.avatar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:10px}
+.avatar-card{background:rgba(255,255,255,.06);border:1px solid var(--glass-brd);
+  border-radius:12px;padding:8px;text-align:center}
+.avatar-card img{width:64px;height:64px;border-radius:12px;display:block;margin:0 auto 6px}
+.avatar-card .btn{font-size:12px;padding:6px 8px}
+
+

@@ -24,7 +24,7 @@ export function mountHeader(target, opts = {}) {
       <div class="auth-area">
         <button class="auth-btn" data-role="btn-login" data-show="out">Đăng nhập / Đăng ký</button>
         <a class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
-          <img class="avatar-img" src="/public/assets/avatar/NV1.webp" alt="Tài khoản">
+          <img class="avatar-img" src="/public/assets/avatar/NV.webp" alt="Tài khoản">
         </a>
         <button class="auth-btn" data-role="btn-logout" data-show="in" style="display:none">Đăng xuất</button>
         <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
@@ -55,4 +55,5 @@ export function mountHeader(target, opts = {}) {
 
   // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
 }
+
 

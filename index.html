@@ -5,56 +5,88 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon -->
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
-
-  <!-- Base theme (nền 4 mùa, khung 16:9, glass, footer…) -->
+  <!-- CSS nền + layout (giữ nguyên theo project của bạn) -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
-  <!-- ES module: gắn window.NINI.fb và cung cấp loginModal -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
-  <!-- Header UI (non-module) -->
-  <script src="/public/js/nini-header.js"></script>
-  <style>
-    /* Căn giữa header container + footer chips (đè nhẹ lên base) */
-    .header-wrap { display:flex; justify-content:center; }
-    .footer-bar   { display:flex; justify-content:center; }
-  </style>
+  <!-- (tuỳ chọn) nếu bạn có theme boot riêng -->
+  <script defer src="/public/js/theme-boot.js"></script>
 </head>
-<body class="home"><!-- class sẽ được header đồng bộ theo hash -->
+<body>
+  <!-- Mùa mặc định để có hình nền (sẽ bị thay bằng hash bên dưới) -->
+  <div class="spring"></div>
 
-  <!-- Header dùng chung -->
-  <div class="header-wrap">
-    <div id="nini__header"></div>
-  </div>
+  <!-- ====== Header mount point ====== -->
+  <div id="nini_header"></div>
 
-  <!-- Khung 16:9 cho nội dung trung tâm (game / shop / canvas…) -->
+  <!-- ====== Khung nội dung 16:9 (tuỳ bạn dùng) ====== -->
   <div id="frame" class="stage">
-    <!-- Nội dung trang chủ để trống để khung đẹp & nhẹ -->
+    <!-- Nội dung trang chủ (nếu có), giờ mình để trống -->
   </div>
 
-  <!-- Footer chips -->
+  <!-- ====== Footer chips (giữ như cũ) ====== -->
   <footer class="footer-bar">
-    <nav class="chips">
+    <nav class="footer-nav">
       <a class="chip" href="#/about">Giới thiệu</a>
-      <a class="chip" href="/rules.html">Luật chơi</a>
-      <a class="chip" href="/forum.html">Diễn đàn</a>
-      <a class="chip" href="/feedback.html">Góp ý</a>
+      <a class="chip" href="#/rules.html">Luật chơi</a>
+      <a class="chip" href="#/forum">Diễn đàn</a>
+      <a class="chip" href="#/feedback.html">Góp ý</a>
     </nav>
   </footer>
 
-  <!-- Scripts -->
+  <!-- ====== Firebase + Header (ESM) ====== -->
+  <script type="module" src="/public/js/nini-fb.js"></script>
+  <script type="module" src="/public/js/nini-header.js"></script>
+
+  <!-- ====== Router cực nhẹ để đổi mùa + gắn header ====== -->
   <script>
-    // Khởi động header
-    document.addEventListener('DOMContentLoaded', () => {
-      // Mount header. Có thể truyền brand nếu muốn override.
-      NINI.header.mount('#nini__header', {
-        brand: {
-          logo: '/public/assets/icons/logo_text.webp',
-          sloganText: 'Chơi mê ly, bứt phá tư duy'
-        }
+    (function () {
+      const KEY_SEASON = 'nini.season';
+      const routes = {
+        home   : '#/home',
+        spring : '#/spring',
+        summer : '#/summer',
+        autumn : '#/autumn',
+        winter : '#/winter'
+      };
+
+      // gắn header vào #nini_header
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.NINI && NINI.header) NINI.header.mount('#nini_header');
+
+        // click avatar -> vào hồ sơ
+        document.addEventListener('click', (e) => {
+          const ava = e.target.closest('.nini-user .avatar');
+          if (ava) window.location.href = '/profile.html';
+        });
+
+        // bật route hiện tại
+        applyRouteFromHash();
       });
-      // Nếu mở thẳng /#/xxx thì header tự đồng bộ class của body.
-    });
+
+      window.addEventListener('hashchange', applyRouteFromHash);
+
+      function applyRouteFromHash() {
+        const hash = location.hash || routes.home;
+        let season = 'spring';
+        if (hash.includes('/home'))   season = localStorage.getItem(KEY_SEASON) || 'spring';
+        if (hash.includes('/spring')) season = 'spring';
+        if (hash.includes('/summer')) season = 'summer';
+        if (hash.includes('/autumn')) season = 'autumn';
+        if (hash.includes('/winter')) season = 'winter';
+
+        // ghi lại để trang home biết mùa cuối cùng
+        localStorage.setItem(KEY_SEASON, season);
+
+        // set class cho body để đổi nền
+        document.body.classList.remove('spring','summer','autumn','winter');
+        document.body.classList.add(season);
+
+        // tick active nút mùa ở header (nếu muốn)
+        requestAnimationFrame(() => {
+          const tabs = document.querySelectorAll('.nini-tabs button');
+          tabs.forEach(b => b.classList.toggle('active', (b.dataset.s === season) || (b.dataset.s==='home' && hash.includes('/home'))));
+        });
+      }
+    })();
   </script>
 </body>
 </html>

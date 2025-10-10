@@ -65,12 +65,27 @@ async function registerEmailPass(email, password, displayName = '') {
 }
 
 async function resetPassword(email) {
-  // URL quay về sau khi reset xong
-  await sendPasswordResetEmail(auth, email, {
-    url: 'https://nini-funny.com/#/home',
-    handleCodeInApp: false,
+  // Gửi reset qua “mail pro” thay vì Firebase
+  const res = await fetch('/api/send-reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      origin: location.origin,
+      continueUrl: location.origin + '/#/home',
+      reason: 'user-forgot'
+    })
   });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || 'Gửi email đặt lại mật khẩu thất bại');
+  }
+
+  // có thể return payload nếu server cần
+  return res.json().catch(() => ({}));
 }
+
 
 async function logout() {
   await signOut(auth);
@@ -97,3 +112,4 @@ window.NINI.fb = {
   onUserChanged,
   getCurrentUser,
 };
+

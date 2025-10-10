@@ -9,66 +9,35 @@
   <link rel="icon" type="image/svg+xml" href="/public/assets/icons/logonini.svg" />
 
   <!-- Theme mới -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css" />
-</head>
-<body class="spring"><!-- có thể để trống; script sẽ tự set theo season -->
+ <link rel="stylesheet" href="/public/theme/nini-base.css">
 
-  <!-- Header mount point -->
+<!-- (Tuỳ chọn) cấu hình Firebase – đặt trước nini-fb.js -->
+<script src="/public/js/nini-config.js"></script>
+<script src="/public/js/nini-fb.js"></script>
+
+<!-- Header + modal -->
+<script src="/public/js/nini-header.js"></script>
+
+<body class="spring">
   <div id="nini__header"></div>
 
-  <!-- Khung 16:9 (nếu cần nội dung trung tâm) -->
-  <div id="frame" class="stage">
-    <main class="page">
-      <!-- Vùng nội dung chính của trang chủ -->
-      <div class="glass page-body">
-        <!-- Đặt nội dung (trò chơi/ảnh giới thiệu…) ở đây -->
-      </div>
-    </main>
-  </div>
-
-  <!-- Footer chips (giữa) -->
-  <footer class="footer-bar">
-    <nav class="chips" aria-label="Liên kết nhanh">
-      <a class="chip" href="/about.html">Giới thiệu</a>
-      <a class="chip" href="/rules.html">Luật chơi</a>
-      <a class="chip" href="/forum.html">Diễn đàn</a>
-      <a class="chip" href="/feedback.html">Góp ý</a>
-    </nav>
-  </footer>
-
-  <!-- ===== JS: NON-MODULE (PHẢI theo thứ tự này) ===== -->
-  <!-- Firebase helper + API mail pro của bạn -->
-  <script src="/public/js/nini-config.js"></script>
-  <script src="/public/js/nini-fb.js"></script>
-
-
-  <!-- Header (dùng NINI.fb bên trên) -->
-  <script src="/public/js/nini-header.js"></script>
+  <!-- khung nội dung trang -->
+  <main class="stage">
+    <!-- … -->
+  </main>
 
   <script>
-    // Mount header sau khi DOM sẵn sàng
-    document.addEventListener('DOMContentLoaded', () => {
-      // Bạn có thể để 'auto' để tự đổi hình nền/mùa theo header
-      const routes = {
-        home:   '/#/home',
-        spring: '/#/spring',
-        summer: '/#/summer',
-        autumn: '/#/autumn',
-        winter: '/#/winter',
-        admin:  '/admin/index.html',
-        profile:'/profile.html'
-      };
-
-      // mount header
-      window.NINI?.header?.mount?.('#nini__header', {
-        defaultSeason: 'auto',
-        routes,
-        // onSeasonChange: (s) => console.log('season:', s)
-      });
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if (window.NINI?.header) {
+        NINI.header.mount('#nini__header', {
+          routes:{home:'#/home', spring:'#/spring', summer:'#/summer', autumn:'#/autumn', winter:'#/winter', admin:'/admin/index.html'},
+          defaultSeason:'spring'
+        });
+      }
     });
   </script>
-
-  <noscript>Vui lòng bật JavaScript để dùng trang NiNi-funny.</noscript>
 </body>
+
 </html>
+
 

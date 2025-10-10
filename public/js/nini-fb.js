@@ -1,145 +1,168 @@
-/* public/js/nini-fb.js  —  Non-module build (attach to window.NINI.fb) */
-/* eslint-disable */
+/* nini-fb.js — NON-MODULE build (attach to window.NINI.fb)
+ * Yêu cầu: đã nạp Firebase web SDK (compat) trước đó.
+ */
+
 (function () {
-  // ---- Firebase core (giữ nguyên SDK bạn đang dùng) ----
-  // Giả sử bạn đã load SDK firebase-app, firebase-auth ở index/profile
-  const {
-    initializeApp,
-  } = window.firebase || {};
-  const {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    onAuthStateChanged,
-    signOut,
-  } = (window.firebase && window.firebase.auth) || {};
+  'use strict';
 
-  // ---- Khởi tạo app/auth (dùng config của bạn) ----
-  // Nếu bạn đang init ở nơi khác rồi thì bỏ duplicate:
-  const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
-     apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-  authDomain: "nini-8f3d4.firebaseapp.com",
-  projectId: "nini-8f3d4",
-  storageBucket: "nini-8f3d4.firebasestorage.app",
-  messagingSenderId: "991701821645",
-  appId: "1:991701821645:web:fb21c357562c6c801da184",
-  };
-  const app = (window.__NINI_APP__) || initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  window.__NINI_APP__ = app;
+  var W = window;
+  var NINI = W.NINI = W.NINI || {};
+  var FBNS = NINI.fb = NINI.fb || {};
 
-  // ---- Helper: chọn base API cho mail pro (Netlify/Vercel/Custom) ----
-  function apiBase() {
-    // Thứ tự ưu tiên:
-    // 1) /.netlify/functions   2) /api
-    return {
-      sendReset: '/.netlify/functions/send-reset',
-      sendVerify: '/.netlify/functions/send-verification-email',
-      fallbackReset: '/api/send-reset',
-      fallbackVerify: '/api/send-verification-email',
-    };
+  // --- Internal state ---
+  var _app = null;
+  var _auth = null;
+  var _currentUser = null;
+  var _ready = false;
+  var _subs = []; // onUserChanged subscribers
+
+  // ---------- Utilities ----------
+  function noop() {}
+  function onceDomReady(cb) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', cb, { once: true });
+    } else cb();
   }
 
-  async function postJSON(url, payload) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload || {})
+  // call API helper (for mail pro). If fail → throw to caller.
+  function callApi(path, payload, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var to = setTimeout(function () {
+        reject(new Error('API timeout'));
+      }, timeoutMs || 10000);
+
+      fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload || {})
+      })
+        .then(function (r) {
+          clearTimeout(to);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json().catch(function(){ return {}; });
+        })
+        .then(resolve)
+        .catch(reject);
     });
-    if (!res.ok) {
-      let msg = 'Request failed';
-      try { msg = (await res.json()).message || msg; } catch(e) {}
-      throw new Error(msg);
-    }
-    try { return await res.json(); } catch(e) { return {}; }
   }
 
-  // ---- Auth helpers (giữ nguyên behaviour) ----
-  async function loginGoogle() {
-    const provider = new GoogleAuthProvider();
-    const cred = await signInWithPopup(auth, provider);
-    return cred.user;
-  }
-
-  async function loginEmailPass(email, password) {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    return cred.user;
-  }
-
-  async function registerEmailPass(email, password, displayName = '') {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(cred.user, { displayName });
-    }
-    return cred.user;
-  }
-
-  // === CHỈNH QUAN TRỌNG: dùng MAIL PRO thay vì Firebase cho email ===
-
-  // 1) Quên mật khẩu -> gọi hàm serverless gửi email reset (mail pro)
-  async function resetPassword(email) {
-    const base = apiBase();
-    const payload = {
-      email,
-      origin: location.origin,
-      // Sau khi người dùng đặt xong mật khẩu -> quay về đâu
-      continueUrl: location.origin + '/#/home',
-      reason: 'user-forgot',
-    };
-
-    // Thử Netlify functions trước
+  function dispatchReady() {
+    _ready = true;
     try {
-      return await postJSON(base.sendReset, payload);
-    } catch (e) {
-      // fallback /api
-      return await postJSON(base.fallbackReset, payload);
+      var ev = new CustomEvent('nini:fb:ready');
+      window.dispatchEvent(ev);
+    } catch (_) {}
+  }
+
+  function notifySubs(u) {
+    for (var i = 0; i < _subs.length; i++) {
+      try { _subs[i](u); } catch (e) { console.error(e); }
     }
   }
 
-  // 2) Gửi email verify qua mail pro
-  async function sendEmailVerification(email) {
-    const base = apiBase();
-    const payload = {
-      email,
-      origin: location.origin,
-      // Sau khi verify xong -> tự động set pass mặc định + send reset link (logic do serverless lo)
-      continueUrl: location.origin + '/#/home',
-    };
+  // ---------- Firebase bootstrap ----------
+  function initIfNeeded() {
+    if (_auth) return;
+
+    var cfg =
+      W.__NINI_FIREBASE_CONFIG__ ||
+      W._NINI_FIREBASE_CONFIG__ ||
+      W.NINI_FIREBASE_CONFIG || null;
+
+    if (!W.firebase || !cfg) {
+      console.warn('[nini-fb] Firebase SDK or config missing.');
+      // vẫn expose API rỗng để không crash
+      dispatchReady();
+      return;
+    }
 
     try {
-      return await postJSON(base.sendVerify, payload);
+      _app = (W.firebase.apps && W.firebase.apps.length)
+        ? W.firebase.app()
+        : W.firebase.initializeApp(cfg);
+
+      _auth = W.firebase.auth();
+      // onAuthStateChanged
+      _auth.onAuthStateChanged(function (user) {
+        _currentUser = user;
+        notifySubs(user);
+      });
+
+      dispatchReady();
     } catch (e) {
-      return await postJSON(base.fallbackVerify, payload);
+      console.error('[nini-fb] init error:', e);
+      dispatchReady();
     }
   }
 
-  async function logout() {
-    await signOut(auth);
-  }
-
-  function onUserChanged(cb) {
-    return onAuthStateChanged(auth, (u) => cb ? cb(u || null) : null);
-  }
-
-  // ---- Expose ra window.NINI.fb ----
-  const api = {
-    // sign-in / sign-up
-    loginGoogle,
-    loginEmailPass,
-    registerEmailPass,
-    // mail-pro flows
-    resetPassword,             // <-- dùng MAIL PRO
-    sendEmailVerification,     // <-- dùng MAIL PRO
-    // session
-    logout,
-    onUserChanged,
-    // để các nơi khác có thể truy cập auth app nếu cần
-    _auth: auth,
-    _app: app,
+  // ---------- Public API ----------
+  FBNS.onUserChanged = function (cb) {
+    if (typeof cb === 'function') {
+      _subs.push(cb);
+      // replay hiện trạng
+      try { cb(_currentUser); } catch (e) {}
+    }
   };
 
-  (window.NINI = window.NINI || {}).fb = api;
+  FBNS.getCurrentUser = function () { return _currentUser; };
+
+  FBNS.loginGoogle = function () {
+    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
+    var provider = new W.firebase.auth.GoogleAuthProvider();
+    return _auth.signInWithPopup(provider).then(function (cred) { return cred.user; });
+  };
+
+  FBNS.loginEmailPass = function (email, password) {
+    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
+    return _auth.signInWithEmailAndPassword(email, password).then(function (cred) { return cred.user; });
+  };
+
+  FBNS.registerEmailPass = function (email, password, displayName) {
+    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
+    return _auth.createUserWithEmailAndPassword(email, password).then(function (cred) {
+      if (displayName) {
+        return cred.user.updateProfile({ displayName: displayName }).then(function () { return cred.user; });
+      }
+      return cred.user;
+    });
+  };
+
+  FBNS.logout = function () {
+    if (!_auth || !W.firebase) return Promise.resolve();
+    return _auth.signOut();
+  };
+
+  // Gửi reset qua mail pro; nếu lỗi → fallback về Firebase
+  FBNS.resetPassword = function (email) {
+    // 1) mail pro
+    return callApi('/netlify/functions/send-reset', { email: email })
+      .catch(function () {
+        // 2) fallback Firebase
+        if (!_auth || !W.firebase) throw new Error('Auth not ready');
+        return _auth.sendPasswordResetEmail(email, {
+          url: (location.origin + '/#/home'),
+          handleCodeInApp: false
+        });
+      });
+  };
+
+  // Gửi email verify qua mail pro; nếu lỗi → fallback Firebase
+  FBNS.sendVerificationEmail = function () {
+    var u = _currentUser;
+    if (!u) return Promise.reject(new Error('Not logged in'));
+
+    return callApi('/netlify/functions/send-verification-email', { email: u.email })
+      .catch(function () {
+        if (!u || !u.sendEmailVerification) throw new Error('No verify method');
+        return u.sendEmailVerification({
+          url: (location.origin + '/auth-action.html?mode=verifyEmail&continueUrl=' + encodeURIComponent(location.href))
+        });
+      });
+  };
+
+  // Cho header kiểm tra đã sẵn sàng chưa
+  FBNS.ready = function () { return _ready; };
+
+  // Init asap (sau DOM để tránh race với config)
+  onceDomReady(initIfNeeded);
 })();

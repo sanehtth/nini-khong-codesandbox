@@ -1,149 +1,75 @@
 <!doctype html>
 <html lang="vi">
-<script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
-
-  function inject(css){
-    try{
-      let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NiNi — Auth Action</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=21">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Xử lý liên kết</title>
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header class="site-header">
-    <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </a>
-  </header>
+<body class="spring">
+  <!-- Header chung -->
+  <div id="nini__header"></div>
 
-  <main class="page-hero bg-cover">
-    <section class="panel-glass">
-    <h3 class="title">Đang xử lý liên kết…</h3>
-      <p id="msg" class="note"></p>
-      <div class="row" id="actions" style="display:none">
-        <button id="btnSendReset" class="btn">Gửi email đặt mật khẩu</button>
-        <a class="btn" href="/index.html">Về trang chủ</a>
+  <!-- Khung 16:9 -->
+  <div id="frame" class="stage">
+    <main class="glass-box" style="max-width:920px;margin:auto">
+      <h1>Xử lý liên kết</h1>
+      <p id="status">Đang kiểm tra liên kết…</p>
+      <div class="footer-nav" style="margin-top:16px">
+        <a class="chip" href="/#home">Về trang chủ</a>
+        <a class="chip" href="/profile.html">Hồ sơ</a>
       </div>
+    </main>
+  </div>
 
-    </section>
-  </main>
+  <!-- Header (NON-module) -->
+  <script src="/public/js/nini-header.js"></script>
 
+  <!-- Firebase client + xử lý action -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, applyActionCode, checkActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { auth } from "/public/js/nini-fb.js";
+  import { applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184",
-    };
+  const q     = new URLSearchParams(location.search);
+  const mode  = q.get("mode");
+  const oob   = q.get("oobCode");
+  const email = q.get("email") || "";
+  const next  = q.get("next");
+  const statusEl = document.querySelector("#status");
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const $ = (id)=>document.getElementById(id);
-    const msg = $("msg");
-    const actions = $("actions");
-    const btnSendReset = $("btnSendReset");
-
-    const sp = new URLSearchParams(location.search);
-    const mode    = sp.get("mode");
-    const oobCode = sp.get("oobCode");
-
-    async function sendReset(email){
-      const res = await fetch("/.netlify/functions/send-reset", {
-        method:"POST", headers:{ "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      if (!res.ok) throw new Error(await res.text());
-    }
-
-    (async () => {
-      if (!mode || !oobCode) {
-        msg.textContent = "Thiếu tham số liên kết."; msg.className = "note bad"; return;
-      }
-
-      // Nếu là đặt lại mật khẩu → chuyển luôn qua trang reset
-      if (mode === "resetPassword") {
-        location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oobCode)}`);
+  (async () => {
+    try {
+      if (!mode || !oob) {
+        statusEl.textContent = "Liên kết không hợp lệ.";
         return;
       }
 
       if (mode === "verifyEmail") {
-        try {
-          // Lấy email từ oobCode (để gửi reset nếu người dùng muốn)
-          let emailFromCode = null;
-          try {
-            const info = await checkActionCode(auth, oobCode);
-            emailFromCode = info?.data?.email || null;
-          } catch {}
-
-          await applyActionCode(auth, oobCode);
-          msg.textContent = "✅ Email đã được xác minh. Bạn có thể đặt mật khẩu để đăng nhập bằng email & mật khẩu.";
-          msg.className = "note ok";
-          actions.style.display = "";
-
-          btnSendReset.onclick = async () => {
-            try{
-              if (!emailFromCode) { msg.textContent = "Không tìm thấy email. Hãy mở trang Đăng nhập và dùng Quên mật khẩu."; msg.className="note bad"; return; }
-              btnSendReset.disabled = true;
-              msg.textContent = "Đang gửi email đặt mật khẩu…"; msg.className = "note";
-              await sendReset(emailFromCode);
-              msg.textContent = "Đã gửi email đặt mật khẩu. Vui lòng kiểm tra hộp thư."; msg.className = "note ok";
-            }catch(e){
-              msg.textContent = "Không gửi được email đặt mật khẩu."; msg.className = "note bad";
-            }finally{ btnSendReset.disabled = false; }
-          };
-        } catch (e) {
-          msg.textContent = "Liên kết xác minh không hợp lệ hoặc đã hết hạn."; msg.className = "note bad";
+        statusEl.textContent = "Đang xác minh email…";
+        await applyActionCode(auth, oob);
+        // Nếu bạn dùng flow xác minh xong rồi chuyển qua reset mật khẩu:
+        if (next === "reset") {
+          const em = email ? `&email=${encodeURIComponent(email)}` : "";
+          location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}${em}`);
+          return;
         }
+        statusEl.textContent = "Xác minh email thành công. Bạn có thể đăng nhập.";
         return;
       }
 
-      msg.textContent = "Liên kết không được hỗ trợ."; msg.className = "note bad";
-    })();
-  </script>
-   <script>
-(function applyBrandEverywhere(){
-  const BRAND_KEY='NINI_THEME_BRAND';
-  try {
-    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
-    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
-    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
-    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
-  } catch {}
-})();
+      if (mode === "resetPassword") {
+        const em = email ? `&email=${encodeURIComponent(email)}` : "";
+        location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}${em}`);
+        return;
+      }
+
+      statusEl.textContent = "Liên kết không hợp lệ hoặc đã hết hạn.";
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Không thể xử lý liên kết. Vui lòng thử lại.";
+    }
+  })();
 </script>
+
 </body>
 </html>
-
-
-

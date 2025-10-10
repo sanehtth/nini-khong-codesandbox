@@ -1,178 +1,95 @@
-/* nini-fb.js — NON-MODULE build (attach to window.NINI.fb)
- * Yêu cầu: đã nạp Firebase web SDK (compat) trước đó.
- */
+<!-- /public/js/nini-fb.js -->
+<script>
+(function (w) {
+  const state = { ready: false, subs: [] };
+  function onReady(cb) { state.ready ? cb() : state.subs.push(cb); }
+  function emitReady() { state.ready = true; state.subs.splice(0).forEach(cb => cb()); }
 
-(function () {
-  'use strict';
-
-  var W = window;
-  var NINI = W.NINI = W.NINI || {};
-  var FBNS = NINI.fb = NINI.fb || {};
-
-  // --- Internal state ---
-  var _app = null;
-  var _auth = null;
-  var _currentUser = null;
-  var _ready = false;
-  var _subs = []; // onUserChanged subscribers
-
-  // ---- init ----
-const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
-  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-  authDomain: "nini-8f3d4.firebaseapp.com",
-  projectId: "nini-8f3d4",
-  storageBucket: "nini-8f3d4.firebasestorage.app",
-  messagingSenderId: "991701821645",
-  appId: "1:991701821645:web:fb21c357562c6c801da184",
-};
-  // ---------- Utilities ----------
-  function noop() {}
-  function onceDomReady(cb) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', cb, { once: true });
-    } else cb();
-  }
-
-  // call API helper (for mail pro). If fail → throw to caller.
-  function callApi(path, payload, timeoutMs) {
-    return new Promise(function (resolve, reject) {
-      var to = setTimeout(function () {
-        reject(new Error('API timeout'));
-      }, timeoutMs || 10000);
-
-      fetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload || {})
-      })
-        .then(function (r) {
-          clearTimeout(to);
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json().catch(function(){ return {}; });
-        })
-        .then(resolve)
-        .catch(reject);
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
     });
   }
 
-  function dispatchReady() {
-    _ready = true;
-    try {
-      var ev = new CustomEvent('nini:fb:ready');
-      window.dispatchEvent(ev);
-    } catch (_) {}
-  }
-
-  function notifySubs(u) {
-    for (var i = 0; i < _subs.length; i++) {
-      try { _subs[i](u); } catch (e) { console.error(e); }
+  async function ensureSDK() {
+    if (!(w.firebase && w.firebase.auth)) {
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js');
     }
   }
 
-  // ---------- Firebase bootstrap ----------
-  function initIfNeeded() {
-    if (_auth) return;
+  // Tuỳ chọn: cấu hình dự phòng đóng cứng ngay trong file
+  const FALLBACK_CFG = null; // { apiKey:'...', authDomain:'...', ... }
 
-    var cfg =
-      W.__NINI_FIREBASE_CONFIG__ ||
-      W._NINI_FIREBASE_CONFIG__ ||
-      W.NINI_FIREBASE_CONFIG || null;
+  function getCfg() {
+    return (
+      w.__NINI_FIREBASE_CONFIG__ ||
+      w._NINI_FIREBASE_CONFIG__ ||
+      w.NINI_FIREBASE_CONFIG ||
+      FALLBACK_CFG
+    );
+  }
 
-    if (!W.firebase || !cfg) {
-      console.warn('[nini-fb] Firebase SDK or config missing.');
-      // vẫn expose API rỗng để không crash
-      dispatchReady();
-      return;
-    }
-
+  async function init() {
     try {
-      _app = (W.firebase.apps && W.firebase.apps.length)
-        ? W.firebase.app()
-        : W.firebase.initializeApp(cfg);
+      await ensureSDK();
 
-      _auth = W.firebase.auth();
-      // onAuthStateChanged
-      _auth.onAuthStateChanged(function (user) {
-        _currentUser = user;
-        notifySubs(user);
-      });
+      const cfg = getCfg();
+      if (!cfg) {
+        console.error('[nini-fb] Firebase SDK or config missing.');
+        return; // không emit => header có thể chờ
+      }
 
-      dispatchReady();
+      // Singleton app/auth
+      const app = w.__NINI_APP__ || (w.__NINI_APP__ = w.firebase.initializeApp(cfg));
+      const auth = w.firebase.auth(app);
+
+      w.NINI = w.NINI || {};
+      w.NINI.fb = {
+        auth,
+        ready: onReady,
+        onAuthStateChanged: (cb) => auth.onAuthStateChanged(cb),
+
+        // Đăng nhập/đăng ký
+        loginGoogle() {
+          const p = new w.firebase.auth.GoogleAuthProvider();
+          return auth.signInWithPopup(p);
+        },
+        loginEmail(email, password) {
+          return auth.signInWithEmailAndPassword(email, password);
+        },
+        registerEmail(email, password, displayName = '') {
+          return auth.createUserWithEmailAndPassword(email, password).then(cred => {
+            if (displayName) return cred.user.updateProfile({ displayName }).then(() => cred);
+            return cred;
+          });
+        },
+        logout() { return auth.signOut(); },
+
+        // Mail pro (Netlify Functions) – đổi path nếu bạn đặt khác
+        sendReset(email) {
+          return fetch('/.netlify/functions/send-reset', {
+            method: 'POST', headers: {'content-type':'application/json'},
+            body: JSON.stringify({ email })
+          }).then(r => r.json());
+        },
+        sendVerify(email) {
+          return fetch('/.netlify/functions/send-verification-email', {
+            method: 'POST', headers: {'content-type':'application/json'},
+            body: JSON.stringify({ email })
+          }).then(r => r.json());
+        }
+      };
+
+      // Bắn ready
+      emitReady();
     } catch (e) {
       console.error('[nini-fb] init error:', e);
-      dispatchReady();
     }
   }
 
-  // ---------- Public API ----------
-  FBNS.onUserChanged = function (cb) {
-    if (typeof cb === 'function') {
-      _subs.push(cb);
-      // replay hiện trạng
-      try { cb(_currentUser); } catch (e) {}
-    }
-  };
-
-  FBNS.getCurrentUser = function () { return _currentUser; };
-
-  FBNS.loginGoogle = function () {
-    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
-    var provider = new W.firebase.auth.GoogleAuthProvider();
-    return _auth.signInWithPopup(provider).then(function (cred) { return cred.user; });
-  };
-
-  FBNS.loginEmailPass = function (email, password) {
-    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
-    return _auth.signInWithEmailAndPassword(email, password).then(function (cred) { return cred.user; });
-  };
-
-  FBNS.registerEmailPass = function (email, password, displayName) {
-    if (!_auth || !W.firebase) return Promise.reject(new Error('Auth not ready'));
-    return _auth.createUserWithEmailAndPassword(email, password).then(function (cred) {
-      if (displayName) {
-        return cred.user.updateProfile({ displayName: displayName }).then(function () { return cred.user; });
-      }
-      return cred.user;
-    });
-  };
-
-  FBNS.logout = function () {
-    if (!_auth || !W.firebase) return Promise.resolve();
-    return _auth.signOut();
-  };
-
-  // Gửi reset qua mail pro; nếu lỗi → fallback về Firebase
-  FBNS.resetPassword = function (email) {
-    // 1) mail pro
-    return callApi('/netlify/functions/send-reset', { email: email })
-      .catch(function () {
-        // 2) fallback Firebase
-        if (!_auth || !W.firebase) throw new Error('Auth not ready');
-        return _auth.sendPasswordResetEmail(email, {
-          url: (location.origin + '/#/home'),
-          handleCodeInApp: false
-        });
-      });
-  };
-
-  // Gửi email verify qua mail pro; nếu lỗi → fallback Firebase
-  FBNS.sendVerificationEmail = function () {
-    var u = _currentUser;
-    if (!u) return Promise.reject(new Error('Not logged in'));
-
-    return callApi('/netlify/functions/send-verification-email', { email: u.email })
-      .catch(function () {
-        if (!u || !u.sendEmailVerification) throw new Error('No verify method');
-        return u.sendEmailVerification({
-          url: (location.origin + '/auth-action.html?mode=verifyEmail&continueUrl=' + encodeURIComponent(location.href))
-        });
-      });
-  };
-
-  // Cho header kiểm tra đã sẵn sàng chưa
-  FBNS.ready = function () { return _ready; };
-
-  // Init asap (sau DOM để tránh race với config)
-  onceDomReady(initIfNeeded);
-})();
-
+  init();
+})(window);
+</script>

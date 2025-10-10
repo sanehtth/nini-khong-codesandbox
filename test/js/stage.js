@@ -1,27 +1,18 @@
-﻿<script>
-/*!
- * Stage helper — hiện tại chỉ để dành hook nhẹ (ví dụ tự add class theo mùa).
- * Bạn có thể bỏ file này nếu chưa cần JS cho stage.
- */
-(function (W) {
-  function seasonFromHash() {
-    const h = (location.hash || '').toLowerCase();
-    if (h.includes('spring')) return 'spring';
-    if (h.includes('summer')) return 'summer';
-    if (h.includes('autumn')) return 'autumn';
-    if (h.includes('winter')) return 'winter';
-    return 'home';
+(() => {
+  function mountStage(root) {
+    const el = typeof root === 'string' ? document.querySelector(root) : root;
+    el.innerHTML = `
+      <section class="glass">
+        <h1>Chào mừng đến với NiNi — Funny</h1>
+        <p>Dùng thanh trên để chuyển mùa, đăng nhập/đăng ký, hoặc đặt lại mật khẩu.</p>
+      </section>
+      <nav class="soft-tabs">
+        <a href="#about">Giới thiệu</a>
+        <a href="#rules">Luật chơi</a>
+        <a href="#forum">Diễn đàn</a>
+        <a href="#feedback">Góp ý</a>
+      </nav>
+    `;
   }
-
-  function applySeasonClass() {
-    const s = seasonFromHash();
-    document.documentElement.dataset.season = s; // ví dụ: [data-season="spring"] bạn tùy style thêm
-  }
-
-  W.addEventListener('hashchange', applySeasonClass);
-  applySeasonClass();
-
-  W.NINI = W.NINI || {};
-  W.NINI.stage = { applySeasonClass };
-})(window);
-</script>
+  NINI.mount.stage = mountStage;
+})();

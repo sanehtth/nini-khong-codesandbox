@@ -1,4 +1,4 @@
-// /public/js/nini-fb.js  (ESM)
+// /public/js/nini-fb.js  (type="module")
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import {
   getAuth,
@@ -6,10 +6,15 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-// !!! ĐIỀN CẤU HÌNH DỰ ÁN CỦA BẠN
+/* ==========
+   CẤU HÌNH FIREBASE
+   ========== */
 const firebaseConfig = {
  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
@@ -17,25 +22,54 @@ const firebaseConfig = {
   storageBucket: "nini-8f3d4.firebasestorage.app",
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184",
+  // (các field khác nếu có)
 };
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const google = new GoogleAuthProvider();
 
-// --- helpers ---
+/* ==========
+   HELPERS
+   ========== */
 function mapAuthError(err) {
-  const c = err?.code || '';
-  if (c.includes('user-not-found')) return 'Email chưa được đăng ký.';
-  if (c.includes('invalid-email'))  return 'Email không hợp lệ.';
-  if (c.includes('too-many-requests')) return 'Bạn thử quá nhiều lần, thử lại sau.';
+  const code = err?.code || '';
+  if (code.includes('email-already-in-use')) return 'Email này đã được đăng ký.';
+  if (code.includes('invalid-email'))        return 'Email không hợp lệ.';
+  if (code.includes('weak-password'))        return 'Mật khẩu quá yếu (>= 6 ký tự).';
+  if (code.includes('user-not-found'))       return 'Email chưa được đăng ký.';
+  if (code.includes('wrong-password'))       return 'Mật khẩu không đúng.';
+  if (code.includes('too-many-requests'))    return 'Bạn thao tác quá nhiều, thử lại sau.';
   return err?.message || String(err);
 }
 
-// --- APIs bạn dùng ở header ---
+/* ==========
+   API EXPOSE
+   ========== */
 async function loginGoogle() {
   const cred = await signInWithPopup(auth, google);
   return cred.user;
+}
+
+async function loginEmailPass(email, password) {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
+
+async function registerEmailPass(email, password, displayName = '') {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(cred.user, { displayName });
+  }
+  return cred.user;
+}
+
+async function resetPassword(email) {
+  // URL quay về sau khi reset xong
+  await sendPasswordResetEmail(auth, email, {
+    url: 'https://nini-funny.com/#/home',
+    handleCodeInApp: false,
+  });
 }
 
 async function logout() {
@@ -50,21 +84,16 @@ function getCurrentUser() {
   return auth.currentUser || null;
 }
 
-async function resetPassword(email) {
-  // Gửi mail reset thật
-  await sendPasswordResetEmail(auth, email, {
-    url: 'https://nini-funny.com/#/home',   // trang quay lại sau khi reset xong
-    handleCodeInApp: false                  // để Firebase gửi link trực tiếp
-  });
-}
-
-// Expose cho window (để header gọi)
+/* ==========
+   GẮN LÊN WINDOW
+   ========== */
 window.NINI = window.NINI || {};
 window.NINI.fb = {
   loginGoogle,
+  loginEmailPass,
+  registerEmailPass,
+  resetPassword,
   logout,
   onUserChanged,
   getCurrentUser,
-  resetPassword,
 };
-

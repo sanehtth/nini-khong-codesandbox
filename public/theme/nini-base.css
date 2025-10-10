@@ -284,6 +284,96 @@ input:focus,select:focus,textarea:focus{border-bottom-color:var(--line)}
 #frame{ position: relative; z-index: 1; }
 /* header z-index cao hơn (#frame là 1, header là 1000) */
 
+/* ===== NiNi Auth Modal (base) ===== */
+#nini-auth,
+.nini-auth { /* chọn theo id hoặc class đều được để “bắt” modal hiện có */
+  position: fixed;
+  inset: 0;
+  display: none;               /* ẨN mặc định */
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Khi mở */
+#nini-auth.open,
+.nini-auth.open {
+  display: flex;               /* HIỆN khi có .open */
+}
+
+/* Backdrop */
+#nini-auth::before,
+.nini-auth::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(3px);
+}
+
+/* Khung nổi */
+#nini-auth .panel,
+.nini-auth .panel {
+  position: relative;
+  z-index: 1;
+  width: min(520px, calc(100% - 32px));
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+
+/* Tabs nút trên đầu modal */
+#nini-auth .tabs,
+.nini-auth .tabs {
+  display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+}
+
+#nini-auth .tabs button,
+.nini-auth .tabs button {
+  padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.08); cursor: pointer;
+}
+
+#nini-auth .tabs button.active,
+.nini-auth .tabs button.active {
+  background: rgba(255,255,255,.2);
+  border-color: rgba(255,255,255,.45);
+}
+
+/* Form rows */
+#nini-auth .row,
+.nini-auth .row { margin: 10px 0; }
+
+#nini-auth input[type="email"],
+#nini-auth input[type="password"],
+.nini-auth input[type="email"],
+.nini-auth input[type="password"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+
+/* Ẩn tất cả view, chỉ hiện view đang active */
+#nini-auth [data-view],
+.nini-auth [data-view] { display: none; }
+
+#nini-auth [data-view].active,
+.nini-auth [data-view].active { display: block; }
+
+/* Nút đóng ở góc */
+#nini-auth .close,
+.nini-auth .close {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,.4); color: #fff; border: 0; border-radius: 8px;
+  padding: 6px 8px; cursor: pointer;
+}
+
 
 
 

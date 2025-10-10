@@ -3,172 +3,28 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Admin</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-  <link rel="stylesheet" href="/styles.css?v=admin-base" />
-  <style>
-    /* ===== Nền mặc định (đồng bộ toàn site) ===== */
-    :root{ --bg-url: url('/public/assets/bg/nini_home.webp'); }
-    body{
-      min-height:100vh;
-      color:#1c2024;
-      background: #0b1f10 var(--bg-url) center/cover fixed no-repeat;
-    }
-    /* lớp phủ nhẹ để chữ rõ hơn */
-    body::before{
-      content:""; position:fixed; inset:0; pointer-events:none;
-      background: radial-gradient(ellipse at 50% 15%, rgba(255,255,255,.12), transparent 45%) ,
-                  linear-gradient(to bottom, rgba(255,255,255,.10), transparent 50%);
-      z-index:-1;
-    }
-
-    :root{
-      --glass-bg: rgba(255,255,255,.16);
-      --glass-brd: rgba(255,255,255,.35);
-      --shadow: 0 12px 30px rgba(47,110,63,.28);
-      --ink:#1c2024; --muted:#6b7b8c;
-      --radius:18px;
-      --green:#2f6e3f; --green-2:#21512d;
-    }
-
-    /* ===== Header giống trang index ===== */
-    .site-header{
-      width:min(1180px,94vw); margin:14px auto 10px;
-      display:flex; align-items:center; gap:14px;
-      backdrop-filter: blur(10px);
-      background: var(--glass-bg);
-      border:1px solid var(--glass-brd);
-      border-radius:14px; padding:10px 14px;
-      box-shadow: var(--shadow);
-    }
-    .brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-    .brand__logo{height:34px;width:auto}
-    .brand__slogan{
-      font-weight:800; letter-spacing:.2px;
-      background: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-      animation:hue 10s linear infinite;
-      user-select:none;
-    }
-    @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
-    .spacer{flex:1}
-
-    .btn{
-      appearance:none; border:1px solid var(--glass-brd);
-      background: var(--glass-bg); color:var(--ink);
-      border-radius:999px; padding:8px 14px; cursor:pointer;
-      box-shadow: 0 4px 10px rgba(47,110,63,.18);
-      transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease;
-      backdrop-filter: blur(8px);
-    }
-    .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(47,110,63,.32); border-color:#fff }
-    .btn.small{ padding:6px 10px; }
-    .btn.solid{ background:#2f6e3f; color:#fff; border-color:#2f6e3f }
-
-    .shell{width:min(1180px,94vw); margin:16px auto 80px}
-
-    .admin-tabs{ display:flex; gap:10px; flex-wrap:wrap; }
-    .admin-tab{
-      border:1px solid var(--glass-brd);
-      background: var(--glass-bg);
-      border-radius:999px; padding:8px 14px; cursor:pointer;
-      backdrop-filter: blur(8px);
-    }
-    .admin-tab.is-active{
-      box-shadow: 0 0 0 2px rgba(47,110,63,.25), 0 10px 26px rgba(47,110,63,.35);
-      border-color:#fff;
-    }
-
-    .glass-card{
-      background: var(--glass-bg);
-      border:1px solid var(--glass-brd);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      margin-top:14px;
-    }
-    .glass-head{ padding:12px 14px; border-bottom:1px solid var(--glass-brd) }
-
-    .panel{ display:none } .panel.is-current{ display:block }
-
-    .toolbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:14px }
-
-    /* Bảng */
-    .table-wrap{ overflow:auto; border-radius: 0 0 var(--radius) var(--radius); }
-    table{ width:100%; border-collapse: collapse; color:var(--ink); }
-    thead tr{ background: rgba(255,255,255,.25); }
-    th,td{ padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.25); text-align:left }
-    tbody tr:hover{ background: rgba(255,255,255,.08) }
-
-    .input{
-      background:transparent; border:0; outline:none; color:var(--ink);
-      border-bottom:2px solid rgba(255,255,255,.55);
-      padding:6px 4px; min-width: 220px;
-    }
-    .input:focus{ border-bottom-color:#9fc5b0; box-shadow: 0 4px 0 -2px rgba(47,110,63,.25) inset; }
-    .muted{ color:var(--muted); font-size:13px }
-
-    /* ===== Theme editor ===== */
-    .editor-wrap{
-      display:grid; grid-template-columns: 1fr 280px; gap:12px;
-      padding:0 12px 14px 12px;
-    }
-    #themeEditor{
-      width:100%; min-height: 58vh;
-      font: 12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-      color:#0d1a10; background:rgba(255,255,255,.22);
-      border:1px solid var(--glass-brd); border-radius:12px; padding:12px;
-      outline:none; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
-      backdrop-filter: blur(6px);
-      white-space: pre; overflow:auto;
-    }
-    .hint{
-      background:rgba(255,255,255,.18);
-      border:1px solid var(--glass-brd); border-radius:12px;
-      padding:12px; font-size:13px; color:var(--ink);
-      height:fit-content;
-    }
-
-    /* Back-to-home link look */
-    .link{ text-decoration:none; color:var(--green-2); font-weight:700 }
-  </style>
+  <title>NiNi — Admin Dashboard</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 </head>
-<body>
-  <!-- Header -->
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-      <div class="brand__slogan"><span>Chơi</span> <span>mê lý</span>, <span>bứt phá</span> <span>tư duy</span></div>
+      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
     <div class="spacer"></div>
-    <a class="btn" href="/" rel="noopener">↘ Về trang chủ</a>
+    <a class="btn" href="/">↩ Trang chủ</a>
     <button id="btnLogout" class="btn">Đăng xuất</button>
   </header>
 
-  <main class="shell">
-    <!-- Tabs -->
-    <!-- Tabs admin -->
-<nav class="admin-tabs" id="adminTabs" aria-label="Admin sections">
-  <button class="admin-tab is-active" data-tab="scores">Bảng điểm (theo ngày)</button>
-  <button class="admin-tab" data-tab="queue">Hàng đợi cục bộ</button>
-  <button class="admin-tab" data-tab="reports">Báo cáo ngày</button>
-  <button class="admin-tab" data-tab="theme">Chỉnh style</button>
-
-  <!-- Các tool mở trang riêng -->
-  <a class="admin-tab" href="/admin/storybook.html" style="text-decoration:none">Tạo Storybook</a>
-  <a class="admin-tab" href="/admin/avatar.html" style="text-decoration:none">Tạo Avatar JSON</a>
-</nav>
-
-
-    <!-- Panel: Scores -->
-    <section id="p-scores" class="panel is-current glass-card" aria-labelledby="tab-scores">
-      <div class="glass-head">
-        <div class="muted">Chọn ngày ➜ tải dữ liệu (đọc từ Function của bạn).</div>
-      </div>
-      <div class="toolbar">
-        <input id="pickDate" type="date" class="input" />
-        <button id="btnLoad" class="btn small">Tải dữ liệu</button>
-        <button id="btnCsv"  class="btn small">Tải CSV</button>
+  <main class="page-hero">
+    <section class="panel">
+      <h2>Bảng điểm (theo ngày)</h2>
+      <div class="row">
+        <input id="pickDate" type="date" class="input underline"/>
+        <button id="btnLoad" class="btn">Tải dữ liệu</button>
+        <button id="btnCsv"  class="btn">Tải CSV</button>
         <span id="stat" class="muted"></span>
       </div>
       <div class="table-wrap">
@@ -189,175 +45,49 @@
         </table>
       </div>
     </section>
-
-    <!-- Panel: Queue -->
-    <section id="p-queue" class="panel glass-card">
-      <div class="glass-head"><strong>Hàng đợi cục bộ</strong></div>
-      <div class="toolbar">
-        <span class="muted">Khu vực này bạn có thể gắn lại <code>queue.js</code> của bạn.</span>
-      </div>
-    </section>
-
-    <!-- Panel: Reports -->
-    <section id="p-reports" class="panel glass-card">
-      <div class="glass-head"><strong>Báo cáo ngày</strong></div>
-      <div class="toolbar">
-        <span class="muted">Gọi Function <code>daily-rollup</code> của bạn nếu đã triển khai.</span>
-      </div>
-    </section>
-
-    <!-- Panel: Theme Editor -->
-    <section id="p-theme" class="panel glass-card">
-      <div class="glass-head"><strong>🎨 Chỉnh style (Theme CSS)</strong></div>
-      <div class="toolbar">
-        <button id="btnThemeLoad" class="btn small">Tải style hiện tại</button>
-        <button id="btnThemeSave" class="btn small solid">Lưu style</button>
-        <button id="btnThemeReset" class="btn small">Mẫu mặc định</button>
-        <button id="btnThemeDownload" class="btn small">Tải .css</button>
-        <span id="themeStat" class="muted"></span>
-      </div>
-      <div class="editor-wrap">
-        <textarea id="themeEditor" spellcheck="false"></textarea>
-        <aside class="hint">
-          <p><strong>Hướng dẫn nhanh</strong></p>
-          <ol>
-            <li>Nhấn <em>Tải style hiện tại</em> để lấy CSS đang chạy.</li>
-            <li>Chỉnh sửa trong ô bên trái → <em>Lưu style</em>.<br/>
-                Lần đầu lưu sẽ hỏi <code>Theme Token</code> (đặt ở Netlify env <code>THEME_TOKEN</code>).</li>
-            <li>Nhấn <em>Tải .css</em> để tải về file dự phòng.</li>
-          </ol>
-          <p class="muted">Token được lưu ở trình duyệt (localStorage) dưới khoá <code>NINI_THEME_TOKEN</code>. Bạn có thể xoá để nhập lại.</p>
-          <hr/>
-          <p><strong>Mẹo:</strong> Bạn có thể thêm/ghi đè các biến:</p>
-          <pre style="white-space:pre-wrap;font-size:12px">
-:root{
-  --bg-url: url('/public/assets/bg/nini_home.webp');
-  --glass: rgba(255,255,255,.16);
-  --brand-gradient: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-}
-          </pre>
-        </aside>
-      </div>
-    </section>
-    <!-- BRAND: Logo & Slogan -->
-<section class="glass-card" style="margin-top:12px">
-  <div class="glass-head"><strong>Logo &amp; Slogan</strong></div>
-  <div class="toolbar" id="brandToolbar">
-    <input id="brandLogoMain"  class="input" placeholder="Logo lớn (header) URL" style="min-width:340px">
-    <input id="brandLogoSmall" class="input" placeholder="Logo nhỏ (tiêu đề/modal) URL" style="min-width:280px">
-    <input id="brandSlogan"    class="input" placeholder="Slogan (góc trái)">
-    <button id="btnSaveBrand"  class="btn small">Lưu brand</button>
-    <button id="btnResetBrand" class="btn small">Mặc định</button>
-  </div>
-</section>
-<script>
-  // ===== Brand settings (logo/slogan) =====
-  const BRAND_KEY = 'NINI_THEME_BRAND';
-  const DEFAULT_BRAND = {
-    logoMain:  '/public/assets/icons/logo_text.webp',
-    logoSmall: '/public/assets/icons/logonini.webp',
-    slogan:    'Chơi mê ly, bứt phá tư duy'
-  };
-
-  const $B = s => document.getElementById(s);
-  const inpMain  = $B('brandLogoMain');
-  const inpSmall = $B('brandLogoSmall');
-  const inpSlog  = $B('brandSlogan');
-
-  function loadBrand() {
-    let b = DEFAULT_BRAND;
-    try { b = { ...DEFAULT_BRAND, ...(JSON.parse(localStorage.getItem(BRAND_KEY)||'{}')) }; } catch {}
-    inpMain.value  = b.logoMain;
-    inpSmall.value = b.logoSmall;
-    inpSlog.value  = b.slogan;
-    applyBrandToPage(b);
-  }
-  function saveBrand() {
-    const b = {
-      logoMain:  inpMain.value.trim()  || DEFAULT_BRAND.logoMain,
-      logoSmall: inpSmall.value.trim() || DEFAULT_BRAND.logoSmall,
-      slogan:    inpSlog.value.trim()  || DEFAULT_BRAND.slogan
-    };
-    localStorage.setItem(BRAND_KEY, JSON.stringify(b));
-    applyBrandToPage(b);
-    alert('Đã lưu brand.');
-  }
-  function resetBrand() {
-    localStorage.removeItem(BRAND_KEY);
-    loadBrand();
-    alert('Đã về mặc định.');
-  }
-  function applyBrandToPage(b) {
-    // Logo lớn ở header
-    document.querySelectorAll('.brand__logo').forEach(img => { if (b.logoMain)  img.src = b.logoMain; });
-    // Logo nhỏ trong tiêu đề/modal... -> nhớ gắn class="brand__logo--small" cho ảnh nhỏ
-    document.querySelectorAll('.brand__logo--small').forEach(img => { if (b.logoSmall) img.src = b.logoSmall; });
-    // Slogan văn bản
-    document.querySelectorAll('.brand__slogan').forEach(el => { if (b.slogan) el.textContent = b.slogan; });
-  }
-
-  $B('btnSaveBrand').onclick  = saveBrand;
-  $B('btnResetBrand').onclick = resetBrand;
-  loadBrand();
-</script>
   </main>
 
-
   <script>
-    /* =======================
-       0) Guard phiên đăng nhập admin
-    ======================= */
-    const ADMIN_AUTH_API = "/.netlify/functions/admin-auth";
+    // Guard phiên
     (async () => {
       try{
-        const r = await fetch(`${ADMIN_AUTH_API}/check`, { credentials: "include" });
+        const r = await fetch("/.netlify/functions/admin-auth/check", { credentials: "include" });
         const j = await r.json().catch(()=>({}));
-        if (!j || !j.ok) location.href = "/admin/login.html";
+        if (!j || !j.ok) location.replace("/admin/login.html");
       }catch(_){
-        location.href = "/admin/login.html";
+        location.replace("/admin/login.html");
       }
     })();
+
+    // Logout
     document.getElementById("btnLogout").onclick = async () => {
-      try{ await fetch(`${ADMIN_AUTH_API}/logout`, { method:"POST", credentials:"include" }); }catch(_){}
-      location.href = "/admin/login.html";
+      try{ await fetch("/.netlify/functions/admin-auth/logout", { method:"POST", credentials:"include" }); }catch(_){}
+      location.replace("/admin/login.html");
     };
 
-    /* =======================
-       1) Tabs
-    ======================= */
-    const tabsNav = document.getElementById("adminTabs");
-    tabsNav.addEventListener("click", (e)=>{
-      const b = e.target.closest(".admin-tab"); if (!b || b.tagName === "A") return;
-      document.querySelectorAll(".admin-tab").forEach(x=>x.classList.toggle("is-active", x===b));
-      const key = b.dataset.tab;
-      document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("is-current", p.id === `p-${key}`));
-    });
-
-    /* =======================
-       2) Bảng điểm demo
-    ======================= */
+    // Bảng điểm (mẫu)
     const $ = s => document.querySelector(s);
     const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
     const today = new Date().toISOString().slice(0,10); pick.value = today;
-    $("#btnLoad").onclick = loadScores; $("#btnCsv").onclick = downloadCsv;
-    let rows = []; loadScores();
 
-    async function loadScores(){
+    $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
+    let rows = [];
+
+    async function load(){
       stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
       try{
         const d = pick.value || today;
-        // Đổi endpoint này sang function thật của bạn
         const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || "Lỗi");
         rows = j.events || [];
         stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
-        renderRows(rows);
+        render(rows);
       }catch(e){
         stat.textContent = "Không tải được dữ liệu.";
       }
     }
-    function renderRows(list){
+    function render(list){
       grid.innerHTML = list.map(e=>{
         const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
         return `<tr>
@@ -391,120 +121,8 @@
       setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
     }
 
-    /* =======================
-       3) Theme editor (GET/POST Function)
-    ======================= */
-    const THEME_API = "/.netlify/functions/theme";
-    const THEME_TOKEN_KEY = "NINI_THEME_TOKEN";
-    const ed = document.getElementById("themeEditor");
-    const tStat = document.getElementById("themeStat");
-    const btnThemeLoad = document.getElementById("btnThemeLoad");
-    const btnThemeSave = document.getElementById("btnThemeSave");
-    const btnThemeReset = document.getElementById("btnThemeReset");
-    const btnThemeDownload = document.getElementById("btnThemeDownload");
-
-    const THEME_TEMPLATE = `/* ===== NiNi — Theme CSS (mẫu) ===== */
-:root{
-  /* Ảnh nền mặc định cho tất cả trang */
-  --bg-url: url('/public/assets/bg/nini_home.webp');
-
-  /* Kính mờ */
-  --glass-1: rgba(255,255,255,.12);
-  --glass-2: rgba(255,255,255,.16);
-  --glass-brd: rgba(255,255,255,.35);
-
-  /* Màu văn bản */
-  --ink: #1c2024;
-  --muted: #6b7b8c;
-
-  /* Gradient slogan */
-  --brand-gradient: linear-gradient(90deg,#F5D36B,#47A768,#8a5a2b);
-}
-
-/* BG chung */
-body{
-  background: #0b1f10 var(--bg-url) center/cover fixed no-repeat;
-}
-
-/* Header + thẻ glass */
-.site-header, .card, .modal__panel, .shelf-card, .reader__panel{
-  backdrop-filter: blur(10px);
-  background: var(--glass-2);
-  border:1px solid var(--glass-brd);
-}
-
-/* Slogan gradient */
-.brand__slogan{ background: var(--brand-gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
-
-/* Nút */
-.btn.solid{ background:#2f6e3f; color:#fff; border-color:#2f6e3f }
-`;
-
-    btnThemeReset.onclick = () => {
-      ed.value = THEME_TEMPLATE;
-      tStat.textContent = "Đã nạp mẫu mặc định (chưa lưu).";
-    };
-
-    btnThemeLoad.onclick = async () => {
-      tStat.textContent = "Đang tải CSS…";
-      try{
-        const r = await fetch(`${THEME_API}?t=${Date.now()}`, { method:"GET" });
-        if(!r.ok){ throw new Error(r.status); }
-        const css = await r.text();
-        ed.value = css || THEME_TEMPLATE;
-        tStat.textContent = "Đã tải style hiện tại.";
-      }catch(e){
-        ed.value = THEME_TEMPLATE;
-        tStat.textContent = "Không tải được style hiện tại — đã nạp mẫu mặc định.";
-      }
-    };
-
-    btnThemeSave.onclick = async () => {
-      let token = localStorage.getItem(THEME_TOKEN_KEY);
-      if (!token){
-        token = prompt("Nhập Theme Token (THEME_TOKEN trong Netlify):") || "";
-        if (!token.trim()){ tStat.textContent = "Huỷ lưu — thiếu token."; return; }
-        localStorage.setItem(THEME_TOKEN_KEY, token);
-      }
-      tStat.textContent = "Đang lưu…";
-      try{
-        const r = await fetch(THEME_API, {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "Authorization":"Bearer " + token
-          },
-          body: JSON.stringify({ css: ed.value })
-        });
-        const ok = r.ok;
-        const j = await r.json().catch(()=>({}));
-        if (!ok || !j?.ok) throw new Error(j?.error || "Save failed");
-        tStat.textContent = "Đã lưu style!";
-      }catch(e){
-        tStat.textContent = "Lưu thất bại: " + (e?.message||"");
-        // Cho phép nhập lại token khi lỗi 401
-        if (String(e).includes("401") || String(e).toLowerCase().includes("unauthorized")){
-          localStorage.removeItem(THEME_TOKEN_KEY);
-        }
-      }
-    };
-
-    btnThemeDownload.onclick = () => {
-      const blob = new Blob([ed.value||""], { type:"text/css;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `nini-theme.css`;
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-    };
-
-    // Nạp mẫu ban đầu
-    ed.value = THEME_TEMPLATE;
+    // tự tải lần đầu
+    load();
   </script>
 </body>
 </html>
-
-
-
-
-

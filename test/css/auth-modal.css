@@ -1,0 +1,8 @@
+﻿.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50}
+.auth-card{width:min(420px,90vw);background:#fff;border-radius:16px;border:1px solid var(--glass-bd);padding:14px}
+.auth-tabs{display:flex;gap:8px;margin-bottom:12px}
+.auth-tabs button{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-bd);background:#f9f9f9;cursor:pointer}
+.auth-tabs .active{background:#fff;}
+.auth-body{display:grid;gap:8px}
+.auth-body input{padding:8px;border:1px solid #ddd;border-radius:10px}
+.auth-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}

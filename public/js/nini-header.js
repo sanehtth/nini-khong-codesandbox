@@ -27,7 +27,7 @@
         </nav>
 
         <div class="userbox" id="niniUserBox">
-          <img class="avatar" id="niniAvatar" src="/public/assets/avatar/NNI.webp" alt="avatar">
+          <img class="avatar" id="niniAvatar" src="/public/assets/avatar/NV.webp" alt="avatar">
           <span class="email" id="niniEmail"></span>
           <button class="btn btn-primary" id="btnAuthOpen" data-open-auth="login">Đăng nhập / Đăng ký</button>
           <button class="btn btn-primary" id="btnLogout" style="display:none">Đăng xuất</button>
@@ -209,3 +209,4 @@
 
   W.NINI.header = { mount };
 })();
+

@@ -1,42 +1,62 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Xác minh email</title>
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
-  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1"/>
+  <link rel="stylesheet" href="/public/theme/nini-base.css">
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header id="nini-header"></header>
+<body class="spring">
+  <div id="mini__header"></div>
 
-  <main class="page-hero">
-    <section class="panel-glass center-sm">
+  <div class="stage">
+    <div class="glass" id="box" style="max-width:720px">
       <h2>Xác minh email</h2>
-      <p id="msg" class="note">Đang kiểm tra…</p>
-      <div class="row">
-        <a class="btn" href="/">Về trang chủ</a>
-        <a class="btn btn-ghost" href="/profile.html">Hồ sơ</a>
+      <p id="status">Đang xác minh email của bạn…</p>
+      <div style="margin-top:16px">
+        <a class="btn" href="/#/home">Về trang chủ</a>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <footer class="site-footer">
-    <nav class="footer-nav">
-      <a href="/#rules" class="chip">Luật chơi</a>
-      <a href="/#forum" class="chip">Diễn đàn</a>
-      <a href="/#feedback" class="chip">Góp ý</a>
-      <a href="/" class="chip">Trang chủ</a>
-    </nav>
-  </footer>
+  <script type="module">
+    import { NINI } from '/public/js/nini-fb.mjs';
 
-  <script type="module" src="/public/js/nini-header.js"></script>
-  <script>
-    const q = new URLSearchParams(location.search);
-    const ok = q.get("status")==="ok";
-    document.querySelector("#msg").textContent = ok
-      ? "Xác minh email thành công! Bạn có thể đăng nhập và sử dụng đầy đủ tính năng."
-      : "Không thể xác minh email. Liên kết có thể đã hết hạn.";
+    const qs = new URLSearchParams(location.search);
+    const oobCode = qs.get('oobCode');
+    const continueUrl = qs.get('continueUrl');
+
+    const $status = document.querySelector('#status');
+
+    async function run() {
+      if (!oobCode) {
+        $status.textContent = 'Thiếu mã xác minh (oobCode).';
+        return;
+      }
+      try {
+        // 1) Áp dụng action xác minh email (Firebase client)
+        await NINI.fb.applyActionCode(oobCode);
+
+        // 2) Gửi mail đặt lại mật khẩu bằng SMTP pro (send-reset.js)
+        //    Backend có thể lấy email từ token/session hoặc query nếu cần.
+        await fetch('/api/send-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            // Nếu server cần origin/continueUrl để tạo link đẹp
+            origin: location.origin,
+            continueUrl: continueUrl || location.origin + '/#/home',
+            reason: 'verify-to-reset' // chỉ tag để log cho rõ
+          })
+        });
+
+        $status.textContent = 'Xác minh thành công. Chúng tôi đã gửi email để bạn đặt mật khẩu.';
+      } catch (err) {
+        console.error(err);
+        $status.textContent = 'Xác minh thất bại: ' + (err?.message || 'Lỗi không xác định');
+      }
+    }
+    run();
   </script>
 </body>
 </html>

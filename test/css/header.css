@@ -1,83 +1,10 @@
-﻿/* ===== Header (độc lập, không đè global) ===== */
-.c-header {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  max-width: 1200px;
-  margin: 10px auto 8px;
-  padding: 8px 12px;
-  border-radius: 16px;
-  background: rgba(255,255,255,.7);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 8px 30px rgba(0,0,0,.08);
-}
+.nini-header{max-width:1100px;margin:12px auto;display:flex;align-items:center;gap:16px}
+.nini-header .brand{display:flex;align-items:center;gap:10px}
+.nini-header .logo{height:32px}
+.nini-header .slogan{opacity:.8}
 
-.c-header .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  color: #243b53; /* var(--ink) nếu có */
-}
+.nini-header .tabs{display:flex;gap:8px;margin-left:auto;margin-right:12px}
+.nini-header .tabs button{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-bd);background:#fff;cursor:pointer}
 
-.c-header .brand img {
-  height: 22px;
-  width: auto;
-}
-
-.c-header .tabs {
-  display: flex; gap: 8px; flex-wrap: wrap;
-}
-
-.c-header .tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 32px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,.08);
-  background: rgba(255,255,255,.65);
-  text-decoration: none;
-  color: #243b53;
-  cursor: pointer;
-  backdrop-filter: blur(2px);
-  transition: transform .08s ease, filter .08s ease, background .2s ease;
-}
-
-.c-header .tab:hover,
-.c-header .tab:focus {
-  filter: brightness(1.06);
-}
-
-.c-header .tab.is-active {
-  color: #fff;
-  background: linear-gradient(180deg,#79c2ff 0%,#2ea0ff 100%);
-  border-color: rgba(0,0,0,.0);
-}
-
-.c-header .user {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.c-header .user .avatar {
-  height: 28px; width: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.c-header .user .email {
-  font-size: 13px; color: #243b53; opacity: .9;
-}
-
-.c-header .user .btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 28px; padding: 0 12px;
-  border-radius: 999px; border: 1px solid rgba(0,0,0,.08);
-  background: #fff; cursor: pointer;
-}
+.nini-header .userbox{display:flex;align-items:center;gap:8px}
+.nini-header .userbox .avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}

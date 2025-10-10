@@ -1,5 +1,4 @@
 <!-- /public/js/nini-fb.js -->
-<script>
 (function (w) {
   const state = { ready: false, subs: [] };
   function onReady(cb) { state.ready ? cb() : state.subs.push(cb); }
@@ -92,4 +91,3 @@
 
   init();
 })(window);
-</script>

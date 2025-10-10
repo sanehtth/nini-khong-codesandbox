@@ -10,7 +10,15 @@
   var D = document;
   var NINI = W.NINI = W.NINI || {};
   var API  = NINI.fb || {}; // có thể chưa sẵn sàng ngay
-
+// ---- init ----
+const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
+  apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184",
+};
   // ---------- DOM helpers ----------
   function $(sel, root){ return (root||D).querySelector(sel); }
   function on(el, ev, cb){ el && el.addEventListener(ev, cb); }
@@ -196,3 +204,4 @@
   };
 
 })();
+

@@ -16,10 +16,12 @@ import {
 
 // ---- init ----
 const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_APP_ID",
+   apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184",
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -121,3 +123,4 @@ const NINI = {
 };
 
 export default NINI;
+

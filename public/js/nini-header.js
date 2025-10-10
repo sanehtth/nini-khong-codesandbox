@@ -1,245 +1,198 @@
-// /public/js/nini-header.js  (type="module")
-// YÊU CẦU: /public/js/nini-fb.js đã được load trước (type="module")
+/* nini-header.js — NON-MODULE
+ * Header + modal 3 tab (Đăng nhập / Đăng ký / Quên mật khẩu)
+ * Phụ thuộc: window.NINI.fb (từ nini-fb.js)
+ */
 
-/* ==========
-   RENDER HEADER
-   ========== */
-const HEADER_CSS = `
-.nini-header { position:relative; display:flex; align-items:center; gap:16px;
-  padding:10px 14px; border-radius:14px; background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.18); backdrop-filter:blur(8px);
-}
-.nini-brand { display:flex; align-items:center; gap:10px; font-weight:700; }
-.nini-brand img { height:22px; width:auto; display:block; }
-.nini-tabs { display:flex; gap:8px; margin-left:8px; }
-.nini-tabs button { padding:6px 12px; border-radius:18px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.1); color:#fff; cursor:pointer; }
-.nini-tabs button.active { background:rgba(255,255,255,.22); }
-.nini-user { margin-left:auto; display:flex; align-items:center; gap:8px; }
-.nini-user .avatar { width:28px; height:28px; border-radius:50%; object-fit:cover; }
-.nini-user .btn { padding:6px 10px; border-radius:18px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.1); color:#fff; cursor:pointer; }
+(function () {
+  'use strict';
 
-/* modal */
-.nini-mask { position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-  background:rgba(0,0,0,.4); z-index:9999; }
-.nini-mask.show { display:flex; }
-.nini-modal { width:min(520px, 92vw); border-radius:14px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.08); backdrop-filter:blur(8px); padding:16px; color:#fff;
-}
-.nini-modal .tabs { display:flex; gap:8px; margin-bottom:12px; }
-.nini-modal .tabs button { padding:6px 10px; border-radius:14px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.1); color:#fff; cursor:pointer; }
-.nini-modal .tabs button.active { background:rgba(255,255,255,.22); }
-.nini-modal .row { display:flex; gap:8px; margin:10px 0; }
-.nini-modal input { flex:1; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.1); color:#fff; }
-.nini-modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
-.nini-modal .actions button { padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.1); color:#fff; cursor:pointer; }
-`;
+  var W = window;
+  var D = document;
+  var NINI = W.NINI = W.NINI || {};
+  var API  = NINI.fb || {}; // có thể chưa sẵn sàng ngay
 
-function injectCss() {
-  if (document.getElementById('nini-header-css')) return;
-  const s = document.createElement('style');
-  s.id = 'nini-header-css';
-  s.textContent = HEADER_CSS;
-  document.head.appendChild(s);
-}
-
-function html(strings, ...vals) {
-  return strings.reduce((o, s, i) => o + s + (vals[i] ?? ''), '');
-}
-
-/* ==========
-   MODAL LOGIN / REGISTER / FORGOT
-   ========== */
-function buildAuthModal() {
-  const wrap = document.createElement('div');
-  wrap.className = 'nini-mask';
-  wrap.innerHTML = html`
-    <div class="nini-modal">
-      <div class="tabs">
-        <button id="tabLogin"   class="active">Đăng nhập</button>
-        <button id="tabSignup">Đăng ký</button>
-        <button id="tabForgot">Quên mật khẩu</button>
-      </div>
-
-      <div id="paneLogin">
-        <div class="row"><input id="loginEmail" type="email" placeholder="you@example.com"></div>
-        <div class="row"><input id="loginPass"  type="password" placeholder="Mật khẩu"></div>
-        <div class="actions">
-          <button id="btnLoginGoogle">Đăng nhập với Google</button>
-          <button id="btnLogin">Đăng nhập</button>
-          <button id="btnClose1">Đóng</button>
-        </div>
-      </div>
-
-      <div id="paneSignup" style="display:none">
-        <div class="row"><input id="signupName"  type="text" placeholder="Tên hiển thị (tuỳ chọn)"></div>
-        <div class="row"><input id="signupEmail" type="email" placeholder="you@example.com"></div>
-        <div class="row"><input id="signupPass"  type="password" placeholder="Mật khẩu (>=6 ký tự)"></div>
-        <div class="actions">
-          <button id="btnSignup">Đăng ký</button>
-          <button id="btnClose2">Đóng</button>
-        </div>
-      </div>
-
-      <div id="paneForgot" style="display:none">
-        <div class="row"><input id="forgotEmail" type="email" placeholder="Email đã đăng ký"></div>
-        <div class="actions">
-          <button id="btnSendReset">Gửi link đặt lại</button>
-          <button id="btnClose3">Đóng</button>
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(wrap);
-
-  // tab switching
-  const tabLogin  = wrap.querySelector('#tabLogin');
-  const tabSignup = wrap.querySelector('#tabSignup');
-  const tabForgot = wrap.querySelector('#tabForgot');
-  const paneLogin  = wrap.querySelector('#paneLogin');
-  const paneSignup = wrap.querySelector('#paneSignup');
-  const paneForgot = wrap.querySelector('#paneForgot');
-  function show(tab) {
-    [tabLogin,tabSignup,tabForgot].forEach(b=>b.classList.remove('active'));
-    paneLogin.style.display = paneSignup.style.display = paneForgot.style.display = 'none';
-    if (tab==='login')   { tabLogin.classList.add('active');  paneLogin.style.display='block'; }
-    if (tab==='signup')  { tabSignup.classList.add('active'); paneSignup.style.display='block'; }
-    if (tab==='forgot')  { tabForgot.classList.add('active'); paneForgot.style.display='block'; }
+  // ---------- DOM helpers ----------
+  function $(sel, root){ return (root||D).querySelector(sel); }
+  function on(el, ev, cb){ el && el.addEventListener(ev, cb); }
+  function addBodySeason(s){
+    var body = D.body;
+    ['spring','summer','autumn','winter','home'].forEach(function(c){ body.classList.remove(c); });
+    if (s && s!=='auto') body.classList.add(s);
   }
-  tabLogin.onclick  = () => show('login');
-  tabSignup.onclick = () => show('signup');
-  tabForgot.onclick = () => show('forgot');
 
-  // close buttons
-  wrap.querySelector('#btnClose1').onclick =
-  wrap.querySelector('#btnClose2').onclick =
-  wrap.querySelector('#btnClose3').onclick = () => wrap.classList.remove('show');
+  // ---------- Modal (login/register/forgot) ----------
+  function ensureModal() {
+    if ($('#niniAuthModal')) return $('#niniAuthModal');
 
-  // actions
-  wrap.querySelector('#btnLoginGoogle').onclick = async () => {
-    try {
-      await NINI.fb.loginGoogle();
-      wrap.classList.remove('show');
-      alert('Đăng nhập thành công!');
-    } catch (e) { alert('Lỗi: ' + (e?.message || e)); }
-  };
+    var wrap = D.createElement('div');
+    wrap.id = 'niniAuthModal';
+    wrap.className = 'modal is-hidden';
+    wrap.innerHTML = [
+      '<div class="modal__backdrop"></div>',
+      '<div class="modal__dialog glass">',
+      '  <div class="tabs">',
+      '    <button class="tab is-active" data-tab="login">Đăng nhập</button>',
+      '    <button class="tab" data-tab="register">Đăng ký</button>',
+      '    <button class="tab" data-tab="forgot">Quên mật khẩu</button>',
+      '  </div>',
+      '  <div class="tabpanes">',
+      '    <section class="pane is-active" data-pane="login">',
+      '      <label>Email<input id="lgEmail" type="email" placeholder="you@example.com"/></label>',
+      '      <label>Mật khẩu<input id="lgPass" type="password" placeholder="••••••••"/></label>',
+      '      <div class="row"><button id="btnLogin" class="btn">OK</button><button class="btn btn--ghost" id="btnClose1">Đóng</button></div>',
+      '    </section>',
+      '    <section class="pane" data-pane="register">',
+      '      <label>Email<input id="rgEmail" type="email" placeholder="you@example.com"/></label>',
+      '      <label>Mật khẩu<input id="rgPass" type="password" placeholder="Tối thiểu 6 ký tự"/></label>',
+      '      <label>Tên hiển thị<input id="rgName" type="text" placeholder="Bé NiNi"/></label>',
+      '      <div class="row"><button id="btnRegister" class="btn">Tạo tài khoản</button><button class="btn btn--ghost" id="btnClose2">Đóng</button></div>',
+      '    </section>',
+      '    <section class="pane" data-pane="forgot">',
+      '      <label>Email<input id="fgEmail" type="email" placeholder="you@example.com"/></label>',
+      '      <div class="row"><button id="btnForgot" class="btn">Gửi link đặt lại</button><button class="btn btn--ghost" id="btnClose3">Đóng</button></div>',
+      '    </section>',
+      '  </div>',
+      '</div>'
+    ].join('');
+    D.body.appendChild(wrap);
 
-  wrap.querySelector('#btnLogin').onclick = async () => {
-    const email = wrap.querySelector('#loginEmail').value.trim();
-    const pass  = wrap.querySelector('#loginPass').value;
-    if (!email || !pass) { alert('Nhập email và mật khẩu.'); return; }
-    try {
-      await NINI.fb.loginEmailPass(email, pass);
-      wrap.classList.remove('show');
-    } catch (e) { alert('Không đăng nhập được: ' + (e?.message || e)); }
-  };
+    // Tab switching
+    var tabs = wrap.querySelectorAll('.tab');
+    tabs.forEach(function(t){
+      on(t,'click',function(){
+        tabs.forEach(function(x){ x.classList.remove('is-active'); });
+        t.classList.add('is-active');
 
-  wrap.querySelector('#btnSignup').onclick = async () => {
-    const name  = wrap.querySelector('#signupName').value.trim();
-    const email = wrap.querySelector('#signupEmail').value.trim();
-    const pass  = wrap.querySelector('#signupPass').value;
-    if (!email || !pass) { alert('Nhập email và mật khẩu.'); return; }
-    try {
-      await NINI.fb.registerEmailPass(email, pass, name);
-      wrap.classList.remove('show');
-      alert('Đăng ký thành công. Bạn đã đăng nhập!');
-    } catch (e) { alert('Không đăng ký được: ' + (e?.message || e)); }
-  };
+        var paneName = t.getAttribute('data-tab');
+        wrap.querySelectorAll('.pane').forEach(function(p){
+          p.classList.toggle('is-active', p.getAttribute('data-pane')===paneName);
+        });
+      });
+    });
 
-  wrap.querySelector('#btnSendReset').onclick = async () => {
-    const email = wrap.querySelector('#forgotEmail').value.trim();
-    if (!email) { alert('Nhập email đã đăng ký.'); return; }
-    try {
-      await NINI.fb.resetPassword(email);
-      alert('Đã gửi link đặt lại mật khẩu tới: ' + email);
-    } catch (e) { alert('Không gửi được email: ' + (e?.message || e)); }
-  };
+    // Close actions
+    on(wrap.querySelector('.modal__backdrop'),'click', function(){ hideModal(); });
+    on($('#btnClose1',wrap),'click', function(){ hideModal(); });
+    on($('#btnClose2',wrap),'click', function(){ hideModal(); });
+    on($('#btnClose3',wrap),'click', function(){ hideModal(); });
 
-  return {
-    open(tab='login'){ show(tab); wrap.classList.add('show'); },
-    close(){ wrap.classList.remove('show'); },
-  };
-}
+    // Buttons
+    on($('#btnLogin',wrap),'click', function(){
+      var email = $('#lgEmail',wrap).value.trim();
+      var pass  = $('#lgPass',wrap).value;
+      if (!email || !pass) return alert('Nhập email và mật khẩu');
+      NINI.fb.loginEmailPass(email, pass)
+        .then(function(){ hideModal(); })
+        .catch(function(e){ alert('Đăng nhập lỗi: ' + (e && e.message || e)); });
+    });
 
-/* ==========
-   MOUNT HEADER
-   ========== */
-function mountHeader(containerSel, opts = {}) {
-  injectCss();
-  const el = document.querySelector(containerSel) || document.body;
-  const header = document.createElement('div');
-  header.className = 'nini-header';
-  header.innerHTML = html`
-    <div class="nini-brand">
-      <img src="/public/assets/icons/logo_text.webp" alt="NiNi">
-      <span>Chơi mê ly, bứt phá tư duy</span>
-    </div>
+    on($('#btnRegister',wrap),'click', function(){
+      var email = $('#rgEmail',wrap).value.trim();
+      var pass  = $('#rgPass',wrap).value;
+      var name  = $('#rgName',wrap).value.trim();
+      if (!email || !pass) return alert('Nhập email và mật khẩu');
+      NINI.fb.registerEmailPass(email, pass, name)
+        .then(function(){ hideModal(); })
+        .catch(function(e){ alert('Đăng ký lỗi: ' + (e && e.message || e)); });
+    });
 
-    <nav class="nini-tabs" id="niniTabs">
-      <button data-s="home">Home</button>
-      <button data-s="spring">Spring</button>
-      <button data-s="summer">Summer</button>
-      <button data-s="autumn">Autumn</button>
-      <button data-s="winter">Winter</button>
-    </nav>
+    on($('#btnForgot',wrap),'click', function(){
+      var email = $('#fgEmail',wrap).value.trim();
+      if (!email) return alert('Nhập email');
+      NINI.fb.resetPassword(email)
+        .then(function(){ alert('Đã gửi liên kết đặt lại mật khẩu.'); hideModal(); })
+        .catch(function(e){ alert('Không gửi được email: ' + (e && e.message || e)); });
+    });
 
-    <div class="nini-user" id="niniUser">
-      <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
-      <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
-    </div>
-  `;
-  el.prepend(header);
+    return wrap;
+  }
 
-  // season navigation
-  const tabs = header.querySelector('#niniTabs');
-  tabs.addEventListener('click', (ev) => {
-    const b = ev.target.closest('button'); if (!b) return;
-    const s = b.dataset.s;
-    const map = {home:'#/home', spring:'#/spring', summer:'#/summer', autumn:'#/autumn', winter:'#/winter'};
-    const href = map[s] || '#/home';
-    window.location.hash = href.substring(1);
-  });
+  function showModal() { ensureModal().classList.remove('is-hidden'); }
+  function hideModal() { ensureModal().classList.add('is-hidden'); }
 
-  // modal
-  const modal = buildAuthModal();
-  header.querySelector('#btnAuthOpen').onclick = () => modal.open('login');
+  // ---------- Header render ----------
+  function renderHeader(opts) {
+    var root = $(opts.selector);
+    if (!root) return;
 
-  // user slot update
-  const userBox = header.querySelector('#niniUser');
-  function renderUser(u){
-    if (!u) {
-      userBox.innerHTML = `
-        <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
-        <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
-      `;
-      userBox.querySelector('#btnAuthOpen').onclick = () => modal.open('login');
-      return;
+    var html = [
+      '<div class="nini-header glass">',
+      '  <div class="brand">',
+      '    <a class="logo" href="/"><img src="/public/assets/icons/logo_text.webp" alt="NiNi"/></a>',
+      '    <span class="slogan">Chơi mê ly, bứt phá tư duy</span>',
+      '  </div>',
+      '  <nav class="tabs">',
+      '    <button data-season="home">Home</button>',
+      '    <button data-season="spring">Spring</button>',
+      '    <button data-season="summer">Summer</button>',
+      '    <button data-season="autumn">Autumn</button>',
+      '    <button data-season="winter">Winter</button>',
+      '  </nav>',
+      '  <div class="user-slot" id="niniUserSlot">',
+      '    <button class="btn" id="btnLoginOpen">Đăng nhập / Đăng ký</button>',
+      '  </div>',
+      '</div>'
+    ].join('');
+
+    root.innerHTML = html;
+
+    // Season switching
+    root.querySelectorAll('[data-season]').forEach(function(b){
+      on(b,'click', function(){
+        var s = b.getAttribute('data-season');
+        addBodySeason(s);
+        if (opts.onSeasonChange) { try { opts.onSeasonChange(s); } catch(e){} }
+        // optional routes
+        if (opts.routes && opts.routes[s]) location.href = opts.routes[s];
+      });
+    });
+
+    // open auth modal
+    on($('#btnLoginOpen',root),'click', function(){ showModal(); });
+
+    // subscribe user changes
+    function paintUser(u){
+      var slot = $('#niniUserSlot', root);
+      if (!slot) return;
+      if (!u) {
+        slot.innerHTML = '<button class="btn" id="btnLoginOpen">Đăng nhập / Đăng ký</button>';
+        on($('#btnLoginOpen',root),'click', function(){ showModal(); });
+      } else {
+        var email = (u.email || '').replace(/</g,'&lt;');
+        var photo = u.photoURL || '/public/assets/avatar/NV.webp';
+        slot.innerHTML = [
+          '<img class="avatar avatar--sm" src="', photo, '" alt="avatar"/>',
+          '<span class="email">', email, '</span>',
+          '<a class="btn btn--ghost" href="/profile.html" id="btnProfile">Hồ sơ</a>',
+          '<button class="btn" id="btnLogout">Đăng xuất</button>'
+        ].join('');
+        on($('#btnLogout',root),'click', function(){
+          NINI.fb.logout().catch(function(e){ alert('Không đăng xuất được: ' + (e && e.message || e)); });
+        });
+      }
     }
-    const email = u.email || '';
-    const photo = u.photoURL || '/public/assets/avatar/NV.webp';
-    userBox.innerHTML = `
-      <img class="avatar" src="${photo}" alt="avatar">
-      <span>${email}</span>
-      <button class="btn" id="btnLogout">Đăng xuất</button>
-    `;
-    userBox.querySelector('#btnLogout').onclick = async () => {
-      try { await NINI.fb.logout(); } catch(e){ alert('Không đăng xuất được: '+(e?.message||e)); }
-    };
+
+    // Nếu fb chưa sẵn, chờ sự kiện; nếu đã sẵn, subscribe luôn.
+    if (W.NINI && W.NINI.fb && typeof W.NINI.fb.onUserChanged === 'function') {
+      W.NINI.fb.onUserChanged(paintUser);
+    } else {
+      W.addEventListener('nini:fb:ready', function(){
+        W.NINI && W.NINI.fb && W.NINI.fb.onUserChanged && W.NINI.fb.onUserChanged(paintUser);
+      }, { once: true });
+    }
+
+    // default season/apply
+    var def = (opts.defaultSeason || 'auto');
+    if (def !== 'auto') addBodySeason(def);
   }
 
-  // subscribe auth change
-  NINI.fb.onUserChanged(renderUser);
-}
+  // ---------- Public API ----------
+  NINI.header = {
+    mount: function (selector, opts) {
+      opts = opts || {};
+      opts.selector = selector;
+      renderHeader(opts);
+    }
+  };
 
-/* ==========
-   EXPORT API (để trang gọi)
-   ========== */
-window.NINI = window.NINI || {};
-window.NINI.header = { mount: mountHeader };
-
-
+})();

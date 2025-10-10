@@ -196,5 +196,56 @@
   };
 
 })();
+// ==== Mini modal controller (fallback) ====
+(function () {
+  const $ = (sel, root = document) => root.querySelector(sel);
+
+  const modalEl = document.getElementById('nini-auth') || document.querySelector('.nini-auth');
+  if (!modalEl) return; // không có modal thì bỏ qua
+
+  function show(view = 'login') {
+    // bật modal
+    modalEl.classList.add('open');
+
+    // bật đúng view
+    modalEl.querySelectorAll('[data-view]').forEach(v => v.classList.remove('active'));
+    const page = modalEl.querySelector(`[data-view="${view}"]`);
+    if (page) page.classList.add('active');
+
+    // cập nhật tab
+    modalEl.querySelectorAll('.tabs button').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.to === view);
+    });
+  }
+
+  function close() {
+    modalEl.classList.remove('open');
+  }
+
+  // expose cho header đã render có thể gọi
+  window.NINI = window.NINI || {};
+  window.NINI.authModal = { show, close };
+
+  // Đăng ký các nút trong header (nếu header render data-attribute)
+  document.addEventListener('click', (e) => {
+    // Mở modal theo view
+    const btn = e.target.closest('[data-open-auth]');
+    if (btn) {
+      show(btn.dataset.openAuth || 'login');
+    }
+
+    // Chuyển tab trong modal
+    const tab = e.target.closest('.tabs button[data-to]');
+    if (tab && modalEl.contains(tab)) {
+      show(tab.dataset.to);
+    }
+
+    // Nút đóng
+    if (e.target.closest('[data-auth="close"]')) {
+      close();
+    }
+  });
+})();
+
 
 

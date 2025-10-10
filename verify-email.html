@@ -1,97 +1,42 @@
 <!doctype html>
 <html lang="vi">
-  <script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
-
-  function inject(css){
-    try{
-      let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NiNi — Xác minh tài khoản</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=21">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NiNi — Xác minh email</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
+  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1"/>
 </head>
 <body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header class="site-header">
-    <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </a>
-  </header>
+  <header id="nini-header"></header>
 
-  <main class="page-hero bg-cover">
-    <section class="panel-glass">
-       <h3 class="modal__title">
-        <img src="/public/assets/icons/logonini.webp" alt="" class="modal__logo" />
-        Xác minh email
-      </h3>
-
-      <p id="msg" class="note">Đang xác minh, vui lòng đợi…</p>
-      <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
-        <a class="btn" href="/#home">Về trang chủ</a>
+  <main class="page-hero">
+    <section class="panel-glass center-sm">
+      <h2>Xác minh email</h2>
+      <p id="msg" class="note">Đang kiểm tra…</p>
+      <div class="row">
+        <a class="btn" href="/">Về trang chủ</a>
+        <a class="btn btn-ghost" href="/profile.html">Hồ sơ</a>
       </div>
-
     </section>
   </main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <footer class="site-footer">
+    <nav class="footer-nav">
+      <a href="/#rules" class="chip">Luật chơi</a>
+      <a href="/#forum" class="chip">Diễn đàn</a>
+      <a href="/#feedback" class="chip">Góp ý</a>
+      <a href="/" class="chip">Trang chủ</a>
+    </nav>
+  </footer>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const msg = document.getElementById("msg");
-    const setNote = (t, ok=true)=>{ msg.textContent=t||""; msg.style.color = ok ? "#0f5132" : "#7f1d1d"; };
-
-    const sp = new URLSearchParams(location.search);
-    const mode = sp.get("mode");      // phải là verifyEmail
-    const oob  = sp.get("oobCode");
-    const cont = sp.get("continueUrl") || "/#home";
-
-    if (mode !== "verifyEmail" || !oob) {
-      setNote("Liên kết xác minh không hợp lệ.", false);
-    } else {
-      try {
-        await applyActionCode(auth, oob);
-        setNote("Xác minh email thành công! Bạn có thể đăng nhập.", true);
-        setTimeout(()=> location.href = cont, 1200);
-      } catch (e) {
-        setNote(e?.code || e?.message || "Mã xác minh không hợp lệ hoặc đã hết hạn.", false);
-      }
-    }
+  <script type="module" src="/public/js/nini-header.js"></script>
+  <script>
+    const q = new URLSearchParams(location.search);
+    const ok = q.get("status")==="ok";
+    document.querySelector("#msg").textContent = ok
+      ? "Xác minh email thành công! Bạn có thể đăng nhập và sử dụng đầy đủ tính năng."
+      : "Không thể xác minh email. Liên kết có thể đã hết hạn.";
   </script>
 </body>
 </html>
-

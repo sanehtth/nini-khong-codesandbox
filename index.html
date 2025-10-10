@@ -2,174 +2,40 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Funny</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Funny (Clean)</title>
 
-  <!-- Base theme gọn dùng chung -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1" />
-
-  <!-- Favicon / Logo thanh địa chỉ -->
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
-  <link rel="alternate icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
-
-  <style>
-    /* (tuỳ chọn) override rất nhỏ cho trang home */
-    :root{
-      --bg-url: url('/public/assets/bg/nini_home.webp');
-      --shell-max: 1180px;
-    }
-    /* Giữ stage 16:9 nằm giữa */
-    .stage-16x9 {
-      aspect-ratio: 16/9;
-      width: min(100%, var(--shell-max));
-      margin: 14px auto 18px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.55);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.12);
-      position: relative;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-    }
-    .stage-16x9 .nini {
-      width: min(40%, 380px);
-      height: auto;
-      user-select: none;
-      pointer-events: none;
-      filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
-    }
-    /* Footer chips: đưa 4 nút xuống dưới, căn giữa */
-    .footer-chips {
-      position: sticky; bottom: 10px;
-      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
-      padding: 8px 10px;
-      width: min(100%, var(--shell-max));
-      margin: 0 auto 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.55);
-      border: 1px solid rgba(0,0,0,.06);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 12px 36px rgba(0,0,0,.1);
-    }
-    .chip {
-      appearance: none; border: 1px solid rgba(0,0,0,.08);
-      background: rgba(255,255,255,.8);
-      border-radius: 999px; padding: 8px 14px; cursor: pointer;
-    }
-    .chip.is-active { background: #2ea0ff; color: #fff; border-color: transparent; }
-  </style>
+  <!-- CSS mới, tách nhỏ -->
+  <link rel="stylesheet" href="./test/css/base.css" />
+  <link rel="stylesheet" href="./test/css/header.css" />
+  <link rel="stylesheet" href="./test/css/stage.css" />
+  <link rel="stylesheet" href="./test/css/footer.css" />
+  <link rel="stylesheet" href="./test/css/auth-modal.css" />
 </head>
-<body style="--bg-url: url('/public/assets/bg/nini_home.webp')">
-  <!-- ========== HEADER (mount bởi nini-header.js) ========== -->
-  <header id="appHeader"></header>
+<body>
+  <!-- Vị trí mount -->
+  <header id="nini_header"></header>
+  <main id="nini_stage" class="stage"></main>
+  <footer id="nini_footer"></footer>
 
-  <!-- ========== MAIN / STAGE 16:9 (chỉ chú Nhím ở giữa) ========== -->
-  <main>
-    <section class="stage-16x9" id="mainStage" aria-label="Khung 16:9">
-      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
-    </section>
-  </main>
+  <!-- Core + từng phần (KHÔNG dùng code cũ) -->
+  <script src="./test/js/core.js"></script>
+  <script src="./test/js/api-adapter.mock.js"></script> <!-- test UI, chưa gọi mail -->
+  <!-- Khi nào nối mail-pro thì đổi dòng trên thành: -->
+  <!-- <script src="./test/js/api-adapter.mail.js"></script> -->
 
-  <!-- ========== FOOTER: 4 NÚT ==========
-       Chỉ là UI: bạn có thể gán hành vi nếu cần (mở modal, đổi nội dung, v.v.) -->
-  <footer>
-    <nav class="footer-chips" id="footerChips" aria-label="Liên kết nhanh">
-      <button class="chip is-active" data-section="intro">Giới thiệu</button>
-      <button class="chip" data-section="rules">Luật chơi</button>
-      <button class="chip" data-section="forum">Diễn đàn</button>
-      <button class="chip" data-section="feedback">Góp ý</button>
-    </nav>
-  </footer>
+  <script src="./test/js/header.js"></script>
+  <script src="./test/js/stage.js"></script>
+  <script src="./test/js/footer.js"></script>
+  <script src="./test/js/auth-modal.js"></script>
 
-  <!-- ========== AUTH MODAL (đặt cuối body cho tiện quản lý) ========== -->
-  <div id="authModal" class="nini-modal" aria-hidden="true">
-    <div class="nini-modal__backdrop" data-close></div>
-    <section class="nini-modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-      <header class="nini-modal__head">
-        <h3 id="authTitle" class="nini-modal__title">
-          <img src="/public/assets/icons/logonini.svg" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
-          Đăng nhập / Đăng ký
-        </h3>
-        <button class="nini-modal__close" data-close aria-label="Đóng">✕</button>
-      </header>
-
-      <nav class="tabs-line" id="authTabs">
-        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
-        <button class="tab-line" data-auth="signup">Đăng ký</button>
-        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
-      </nav>
-
-      <!-- Login -->
-      <form class="nini-form is-active" data-pane="login" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row">
-          <label>Mật khẩu</label>
-          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
-        </div>
-        <div class="row">
-          <button id="btnEmailLogin"  class="btn solid"  type="button">Đăng nhập</button>
-          <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập Google</button>
-          <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
-        </div>
-        <p id="loginNote" class="note"></p>
-      </form>
-
-      <!-- Signup -->
-      <form class="nini-form" data-pane="signup" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row">
-          <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
-        </div>
-        <p id="signupNote" class="note"></p>
-      </form>
-
-      <!-- Reset -->
-      <form class="nini-form" data-pane="reset" onsubmit="return false;">
-        <div class="row">
-          <label>Email</label>
-          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="row">
-          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
-        </div>
-        <p id="forgotNote" class="note"></p>
-      </form>
-    </section>
-  </div>
-
-  <!-- ========== JS CHUNG ========== -->
-  <!-- Config Firebase + hàm auth dùng chung -->
-  <script type="module" src="/public/js/nini-config.js"></script>
-  <script type="module" src="/public/js/nini-fb.js"></script>
-
-  <!-- Header mount + router mùa -->
-  <script type="module" src="/public/js/nini-header.js"></script>
-
-  <!-- Khởi động: mount header + chân chips + modal -->
-  <script type="module">
-  import { mountHeader } from '/public/js/nini-header.js';
-  mountHeader('#appHeader', {
-    showSeasons: false,      // << chỉ logo+slogan+auth+admin
-    defaultRoute: 'home'
-  });
-
-  // Footer chips (nếu bạn đang đặt 4 nút *Giới thiệu/Luật/Diễn đàn/Góp ý* ở footer)
-  const chips = document.querySelectorAll('#footerChips .chip');
-  chips.forEach(ch => ch.addEventListener('click', () => {
-    chips.forEach(x => x.classList.toggle('is-active', x === ch));
-    // nếu muốn gắn hành vi, ví dụ:
-    // window.NINI.openIntro(), openRules(), …
-  }));
-
+  <script>
+    // Mount tuần tự
+    NINI.onReady(() => {
+      NINI.mount.header('#nini_header', { tabs: ['home','spring','summer','autumn','winter'] });
+      NINI.mount.stage('#nini_stage');
+      NINI.mount.footer('#nini_footer');
+    });
+  </script>
 </body>
 </html>
-
-
-

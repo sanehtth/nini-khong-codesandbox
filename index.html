@@ -154,39 +154,21 @@
 
   <!-- Khởi động: mount header + chân chips + modal -->
   <script type="module">
-    // 1) Mount header (logo + slogan + 5 nút mùa + avatar + admin)
-    import { mountHeader } from '/public/js/nini-header.js';
-    mountHeader('#appHeader', {
-      routes: ['home','spring','summer','autumn','winter'],   // 5 nút
-      defaultRoute: 'home'
-    });
+  import { mountHeader } from '/public/js/nini-header.js';
+  mountHeader('#appHeader', {
+    showSeasons: false,      // << chỉ logo+slogan+auth+admin
+    defaultRoute: 'home'
+  });
 
-    // 2) Footer chips – chỉ toggle active (tuỳ bạn gán hành vi khác)
-    const chips = document.querySelectorAll('#footerChips .chip');
-    chips.forEach(ch => ch.addEventListener('click', () => {
-      chips.forEach(x => x.classList.toggle('is-active', x === ch));
-      // ví dụ: mở modal góp ý / forum… nếu sau này cần
-    }));
+  // Footer chips (nếu bạn đang đặt 4 nút *Giới thiệu/Luật/Diễn đàn/Góp ý* ở footer)
+  const chips = document.querySelectorAll('#footerChips .chip');
+  chips.forEach(ch => ch.addEventListener('click', () => {
+    chips.forEach(x => x.classList.toggle('is-active', x === ch));
+    // nếu muốn gắn hành vi, ví dụ:
+    // window.NINI.openIntro(), openRules(), …
+  }));
+</script>
 
-    // 3) Auth modal hành vi cơ bản
-    const modal = document.getElementById('authModal');
-    const tabs  = modal.querySelectorAll('#authTabs .tab-line');
-    const panes = modal.querySelectorAll('.nini-form');
-
-    function switchAuth(which){
-      tabs.forEach(t => t.classList.toggle('is-active', t.dataset.auth===which));
-      panes.forEach(p => p.classList.toggle('is-active', p.dataset.pane===which));
-    }
-    tabs.forEach(t => t.addEventListener('click', () => switchAuth(t.dataset.auth)));
-    modal.addEventListener('click', e => {
-      if (e.target.matches('[data-close]') || e.target.classList.contains('nini-modal__backdrop')){
-        modal.setAttribute('aria-hidden','true');
-      }
-    });
-
-    // Cho header gọi mở modal:
-    window.NINI = window.NINI || {};
-    window.NINI.openAuth = (tab='login') => { switchAuth(tab); modal.setAttribute('aria-hidden','false'); };
-  </script>
 </body>
 </html>
+

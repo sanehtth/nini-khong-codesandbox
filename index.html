@@ -2,42 +2,58 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Favicon: tránh 404, dùng luôn logo svg của bạn -->
-  <link rel="icon" type="image/svg+xml" href="/public/assets/icons/logonini.svg" />
+  <!-- Base theme (đã có các lớp .spring/.summer/.autumn/.winter + modal) -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 
-  <!-- Theme mới -->
- <link rel="stylesheet" href="/public/theme/nini-base.css">
-
-<!-- (Tuỳ chọn) cấu hình Firebase – đặt trước nini-fb.js -->
-<script src="/public/js/nini-config.js"></script>
-<script src="/public/js/nini-fb.js"></script>
-
-<!-- Header + modal -->
-<script src="/public/js/nini-header.js"></script>
+  <!-- (Tuỳ chọn) Cấu hình Firebase – nếu bạn đã inject nơi khác thì bỏ khối này -->
+ <script src="/public/js/nini-config.js"></script>
+  <!-- SDK non-module của bạn, cần expose window.NINI.fb.* (login/register/reset/logout/onUserChanged) -->
+  <script src="/public/js/nini-fb.js"></script>
+  <!-- Header + Auth modal (non-module) -->
+  <script src="/public/js/nini-header.js"></script>
+</head>
 
 <body class="spring">
+  <!-- Header sẽ mount vào đây -->
   <div id="nini__header"></div>
 
-  <!-- khung nội dung trang -->
-  <main class="stage">
-    <!-- … -->
+  <!-- Nội dung trang -->
+  <main class="stage" aria-label="main">
+    <!-- Ví dụ khung mờ (tuỳ bạn thay bằng nội dung thật) -->
+    <section class="glass" style="min-height: 52vh; border-radius: 16px; margin: 18px auto; max-width: 1100px; padding: 18px;">
+      <h1 style="margin:0 0 8px 0;">Chào mừng đến với NiNi — Funny</h1>
+      <p>Hãy dùng thanh trên cùng để chuyển mùa, đăng nhập/đăng ký, hoặc đặt lại mật khẩu.</p>
+    </section>
+
+    <!-- dãy chip dưới (ví dụ) -->
+    <nav class="tabs" style="margin: 0 auto 40px; justify-content:center; max-width: 980px;">
+      <a class="btn" href="#/about"   style="text-decoration:none;">Giới thiệu</a>
+      <a class="btn" href="/public/tools/rules.html" style="text-decoration:none;">Luật chơi</a>
+      <a class="btn" href="/public/tools/forum.html" style="text-decoration:none;">Diễn đàn</a>
+      <a class="btn" href="/public/tools/feedback.html" style="text-decoration:none;">Góp ý</a>
+    </nav>
   </main>
 
   <script>
-    document.addEventListener('DOMContentLoaded', ()=>{
-      if (window.NINI?.header) {
+    // Mount header + modal (chỉ cần gọi 1 lần)
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.NINI && window.NINI.header) {
         NINI.header.mount('#nini__header', {
-          routes:{home:'#/home', spring:'#/spring', summer:'#/summer', autumn:'#/autumn', winter:'#/winter', admin:'/admin/index.html'},
-          defaultSeason:'spring'
+          routes: {
+            home:   '#/home',
+            spring: '#/spring',
+            summer: '#/summer',
+            autumn: '#/autumn',
+            winter: '#/winter',
+            admin:  '/admin/index.html'
+          },
+          defaultSeason: 'spring'
         });
       }
     });
   </script>
 </body>
-
 </html>
-
-

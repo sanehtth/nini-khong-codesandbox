@@ -2,128 +2,139 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Hồ sơ</title>
 
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/public/assets/icons/logonini.svg" />
+
+  <!-- Theme mới -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
-  <script defer src="/public/js/theme-boot.js"></script>
 </head>
 <body class="spring">
-  <!-- Header -->
-  <div id="nini_header"></div>
 
-  <!-- Nội dung hồ sơ -->
-  <main class="glass-card-container">
-    <section class="profile two-col">
-      <!-- Trái: avatar + form -->
-      <div class="card profile-left">
-        <div class="row avatar-row">
-          <img id="pfAvatar" class="avatar-xl" src="/public/assets/avatar/NINI.webp" alt="avatar" />
-          <div class="btns">
-            <button class="btn" id="btnUpload">Tải ảnh mới</button>
-            <button class="btn" id="btnDefault">Về mặc định</button>
+  <!-- Header mount point -->
+  <div id="nini__header"></div>
+
+  <!-- Khung nội dung -->
+  <div id="frame" class="stage">
+    <main class="page">
+      <section class="glass page-body">
+        <!-- Khối hồ sơ -->
+        <div class="profile">
+          <aside class="profile__avatar">
+            <img id="avatar" src="/public/assets/avatar/NV.webp" alt="avatar" class="avatar" />
+            <div class="profile__avatar-actions">
+              <button id="btnUpload" class="btn">Tải ảnh mới</button>
+              <button id="btnReset" class="btn" title="Về mặc định">Về mặc định</button>
+            </div>
+          </aside>
+
+          <div class="profile__form">
+            <label>Email
+              <input id="fEmail" type="email" placeholder="you@example.com" disabled />
+            </label>
+            <label>Tên hiển thị
+              <input id="fDisplay" type="text" placeholder="Bé NiNi" />
+            </label>
+            <label>Ngày sinh
+              <input id="fDob" type="text" placeholder="dd/mm/yyyy" />
+            </label>
+            <label>Tỉnh/Thành
+              <input id="fCity" type="text" placeholder="Hà Nội / TPHCM ..." />
+            </label>
+            <label>Lớp/Khối
+              <input id="fClass" type="text" placeholder="Lớp 2, Lớp 3..." />
+            </label>
+            <label>Phụ huynh (tuỳ chọn)
+              <input id="fParent" type="text" placeholder="Tên phụ huynh" />
+            </label>
+            <label>Số điện thoại
+              <input id="fPhone" type="text" placeholder="09xxxxxxx" />
+            </label>
+
+            <div class="profile__actions">
+              <button id="btnSave" class="btn">Lưu hồ sơ</button>
+              <button id="btnPwd" class="btn">Đổi / Thêm mật khẩu</button>
+              <button id="btnSync" class="btn">Đồng bộ lại</button>
+            </div>
           </div>
+
+          <!-- Thành tích (bên phải) -->
+          <aside class="profile__stats glass">
+            <h3>Thành tích</h3>
+            <div class="stats">
+              <div class="stat"><span class="label">XP</span><span id="statXp">0</span></div>
+              <div class="stat"><span class="label">Xu</span><span id="statCoin">0</span></div>
+            </div>
+            <div class="row">
+              <button id="btnSyncCloud" class="btn">Đồng bộ lại</button>
+            </div>
+          </aside>
         </div>
+      </section>
+    </main>
+  </div>
 
-        <div class="form">
-          <label>Email</label>
-          <input id="pfEmail" type="email" placeholder="you@example.com" disabled />
-
-          <label>Tên hiển thị</label>
-          <input id="pfDisplayName" type="text" placeholder="Bé NiNi" />
-
-          <label>Ngày sinh</label>
-          <input id="pfDob" type="text" placeholder="dd/mm/yyyy" />
-
-          <label>Tỉnh/Thành</label>
-          <input id="pfCity" type="text" placeholder="Hà Nội / TPHCM ..." />
-
-          <label>Lớp/Khối</label>
-          <input id="pfGrade" type="text" placeholder="Lớp 2, Lớp 3..." />
-
-          <label>Phụ huynh (tuỳ chọn)</label>
-          <input id="pfParent" type="text" placeholder="Tên phụ huynh" />
-
-          <label>Số điện thoại</label>
-          <input id="pfPhone" type="text" placeholder="09xxxxxxx" />
-
-          <div class="row actions">
-            <button class="btn" id="btnSave">Lưu hồ sơ</button>
-            <button class="btn" id="btnPwd">Đổi / Thêm mật khẩu</button>
-            <button class="btn" id="btnSync">Đồng bộ lại</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phải: Thành tích -->
-      <aside class="card profile-right">
-        <h3>Thành tích</h3>
-        <div class="stat"><b>XP</b><span id="pfXp">0</span></div>
-        <div class="stat"><b>Xu</b><span id="pfCoin">0</span></div>
-
-        <p class="hint">
-          Rương mở cho XP/Xu ngẫu nhiên (local & cloud).
-          Bạn có thể đồng bộ với tài khoản trò chơi.
-        </p>
-
-        <button class="btn" id="btnCloudSync">Đồng bộ lại</button>
-      </aside>
-    </section>
-  </main>
-
+  <!-- Footer chips -->
   <footer class="footer-bar">
-    <nav class="footer-nav">
-      <a class="chip" href="#/about">Giới thiệu</a>
-      <a class="chip" href="#/rules.html">Luật chơi</a>
-      <a class="chip" href="#/forum">Diễn đàn</a>
-      <a class="chip" href="#/feedback.html">Góp ý</a>
+    <nav class="chips" aria-label="Liên kết nhanh">
+      <a class="chip" href="/about.html">Giới thiệu</a>
+      <a class="chip" href="/rules.html">Luật chơi</a>
+      <a class="chip" href="/forum.html">Diễn đàn</a>
+      <a class="chip" href="/feedback.html">Góp ý</a>
     </nav>
   </footer>
 
-  <!-- Firebase + Header -->
-  <script type="module" src="/public/js/nini-fb.js"></script>
-  <script type="module" src="/public/js/nini-header.js"></script>
+  <!-- ===== JS theo thứ tự ===== -->
+  <script src="/public/js/nini-fb.js"></script>
+  <script src="/public/js/nini-header.js"></script>
 
-  <!-- Hook hồ sơ (đọc user từ Firebase) -->
   <script>
-    (function () {
-      const KEY_SEASON = 'nini.season';
+    // Mount header
+    document.addEventListener('DOMContentLoaded', () => {
+      const routes = {
+        home:   '/#/home',
+        spring: '/#/spring',
+        summer: '/#/summer',
+        autumn: '/#/autumn',
+        winter: '/#/winter',
+        admin:  '/admin/index.html',
+        profile:'/profile.html'
+      };
 
-      document.addEventListener('DOMContentLoaded', () => {
-        if (window.NINI && NINI.header) NINI.header.mount('#nini_header');
-
-        // giữ nền theo mùa đã chọn ở trang ngoài
-        const season = localStorage.getItem(KEY_SEASON) || 'spring';
-        document.body.classList.remove('spring','summer','autumn','winter');
-        document.body.classList.add(season);
-
-        // nạp user
-        if (NINI?.fb) {
-          NINI.fb.onUserChanged(user => {
-            if (!user) {
-              // chưa đăng nhập => mở modal
-              alert('Bạn cần đăng nhập để chỉnh sửa hồ sơ.');
-              const open = () => document.querySelector('#btnAuthOpen')?.click();
-              setTimeout(open, 50);
-              return;
-            }
-            fillUser(user);
-          });
-        }
-
-        // sự kiện giả lập lưu/sync
-        document.getElementById('btnSave').onclick = () => alert('Đã lưu hồ sơ (mock).');
-        document.getElementById('btnPwd').onclick  = () => alert('Tính năng đổi mật khẩu có thể dùng trong tab "Quên mật khẩu" để đặt lại.');
-        document.getElementById('btnSync').onclick = () => alert('Đã đồng bộ (mock).');
-        document.getElementById('btnCloudSync').onclick = () => alert('Đã đồng bộ cloud (mock).');
+      window.NINI?.header?.mount?.('#nini__header', {
+        defaultSeason: 'auto',
+        routes
       });
+    });
 
-      function fillUser(u) {
-        document.getElementById('pfEmail').value       = u.email || '';
-        document.getElementById('pfDisplayName').value = u.displayName || 'Bé NiNi';
-        document.getElementById('pfAvatar').src        = u.photoURL || '/public/assets/avatar/NINI.webp';
+    // ===== Demo binding dữ liệu hồ sơ (đợi fb sẵn sàng) =====
+    function bindProfile(u) {
+      // u có thể null nếu chưa đăng nhập
+      document.getElementById('fEmail').value = u?.email || '';
+      document.getElementById('fDisplay').value = u?.displayName || '';
+      // Tuỳ bạn load thêm hồ sơ từ DB → fill vào các field còn lại
+    }
+
+    // Lắng nghe trạng thái đăng nhập: dùng event fb ready + subscribe
+    (function waitAndSub() {
+      if (window.NINI?.fb?.onUserChanged) {
+        window.NINI.fb.onUserChanged(bindProfile);
+      } else {
+        window.addEventListener('nini:fb:ready', () => {
+          window.NINI?.fb?.onUserChanged?.(bindProfile);
+        }, { once: true });
       }
     })();
+
+    // Actions (ví dụ)
+    document.getElementById('btnPwd').addEventListener('click', () => {
+      // mở modal đổi mật khẩu từ header
+      document.querySelector('[data-tab="login"]')?.click?.(); // nếu bạn có kích hoạt modal từ header
+    });
   </script>
+
+  <noscript>Vui lòng bật JavaScript để dùng trang NiNi-funny.</noscript>
 </body>
 </html>

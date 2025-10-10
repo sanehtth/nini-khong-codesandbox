@@ -1,4 +1,4 @@
-// /public/js/nini-header.js
+// /test/js/nini-header.js
 export function mountHeader(target, opts = {}) {
   const {
     routes = ['home','spring','summer','autumn','winter'],
@@ -55,5 +55,6 @@ export function mountHeader(target, opts = {}) {
 
   // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
 }
+
 
 

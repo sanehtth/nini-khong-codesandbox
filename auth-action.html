@@ -3,73 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Xử lý liên kết</title>
-  <link rel="stylesheet" href="/public/theme/nini-base.css" />
+  <title>NiNi — Xử lý liên kết xác thực</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1" />
 </head>
-<body class="spring">
-  <!-- Header chung -->
-  <div id="nini__header"></div>
+<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <header id="nini-header"></header>
 
-  <!-- Khung 16:9 -->
-  <div id="frame" class="stage">
-    <main class="glass-box" style="max-width:920px;margin:auto">
-      <h1>Xử lý liên kết</h1>
-      <p id="status">Đang kiểm tra liên kết…</p>
-      <div class="footer-nav" style="margin-top:16px">
-        <a class="chip" href="/#home">Về trang chủ</a>
-        <a class="chip" href="/profile.html">Hồ sơ</a>
-      </div>
-    </main>
-  </div>
+  <main class="page-hero">
+    <section class="panel-glass center-sm">
+      <h2>Đang xử lý…</h2>
+      <p id="status" class="note">Vui lòng chờ trong giây lát.</p>
+    </section>
+  </main>
 
-  <!-- Header (NON-module) -->
-  <script src="/public/js/nini-header.js"></script>
+  <footer class="site-footer">
+    <nav class="footer-nav">
+      <a href="/#rules"   class="chip">Luật chơi</a>
+      <a href="/#forum"   class="chip">Diễn đàn</a>
+      <a href="/#feedback" class="chip">Góp ý</a>
+      <a href="/"          class="chip">Trang chủ</a>
+    </nav>
+  </footer>
 
-  <!-- Firebase client + xử lý action -->
+  <script type="module" src="/public/js/nini-header.js"></script>
+
   <script type="module">
-  import { auth } from "/public/js/nini-fb.js";
-  import { applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { auth } from "/public/js/nini-fb.js";
+    import { applyActionCode } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-  const q     = new URLSearchParams(location.search);
-  const mode  = q.get("mode");
-  const oob   = q.get("oobCode");
-  const email = q.get("email") || "";
-  const next  = q.get("next");
-  const statusEl = document.querySelector("#status");
+    const q = new URLSearchParams(location.search);
+    const mode  = q.get("mode");
+    const oob   = q.get("oobCode");
+    const email = q.get("email") || "";
+    const next  = q.get("next");
+    const statusEl = document.querySelector("#status");
 
-  (async () => {
-    try {
-      if (!mode || !oob) {
-        statusEl.textContent = "Liên kết không hợp lệ.";
-        return;
-      }
+    (async () => {
+      try {
+        if (!mode || !oob) { statusEl.textContent = "Liên kết không hợp lệ."; return; }
 
-      if (mode === "verifyEmail") {
-        statusEl.textContent = "Đang xác minh email…";
-        await applyActionCode(auth, oob);
-        // Nếu bạn dùng flow xác minh xong rồi chuyển qua reset mật khẩu:
-        if (next === "reset") {
+        if (mode === "verifyEmail") {
+          statusEl.textContent = "Đang xác minh email…";
+          await applyActionCode(auth, oob);
+          // nếu muốn chuyển ngay qua reset (tùy flow):
+          if (next === "reset") {
+            const em = email ? `&email=${encodeURIComponent(email)}` : "";
+            location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}${em}`);
+            return;
+          }
+          location.replace(`/verify-email.html?status=ok${email ? `&email=${encodeURIComponent(email)}` : ""}`);
+          return;
+        }
+
+        if (mode === "resetPassword") {
           const em = email ? `&email=${encodeURIComponent(email)}` : "";
           location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}${em}`);
           return;
         }
-        statusEl.textContent = "Xác minh email thành công. Bạn có thể đăng nhập.";
-        return;
+
+        statusEl.textContent = "Liên kết không hợp lệ hoặc đã hết hạn.";
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Không thể xử lý liên kết. Vui lòng thử lại.";
       }
-
-      if (mode === "resetPassword") {
-        const em = email ? `&email=${encodeURIComponent(email)}` : "";
-        location.replace(`/reset-password.html?oobCode=${encodeURIComponent(oob)}${em}`);
-        return;
-      }
-
-      statusEl.textContent = "Liên kết không hợp lệ hoặc đã hết hạn.";
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Không thể xử lý liên kết. Vui lòng thử lại.";
-    }
-  })();
-</script>
-
+    })();
+  </script>
 </body>
 </html>

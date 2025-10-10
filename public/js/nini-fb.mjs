@@ -1,109 +1,123 @@
-// /public/js/nini-fb.mjs
-// ES module – gắn window.NINI.fb + modal 3 tab (Đăng nhập/Đăng ký/Quên mật khẩu)
-// Mock login bằng localStorage để test UI; khi cần bạn thay bằng Firebase Auth.
+/* public/js/nini-fb.mjs — ESM build (export default) */
+/* eslint-disable */
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const NS = (window.NINI ||= {});
-const listeners = new Set();
-const KEY = "nini_user";
+// ---- init ----
+const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  appId: "YOUR_APP_ID",
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-// ---------- state helpers ----------
-function getCurrentUser() {
-  try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch { return null; }
+// ---- helpers ----
+function apiBase() {
+  return {
+    sendReset: '/.netlify/functions/send-reset',
+    sendVerify: '/.netlify/functions/send-verification-email',
+    fallbackReset: '/api/send-reset',
+    fallbackVerify: '/api/send-verification-email',
+  };
 }
-function setCurrentUser(u) {
-  if (!u) localStorage.removeItem(KEY);
-  else localStorage.setItem(KEY, JSON.stringify(u));
-  listeners.forEach(fn => { try { fn(getCurrentUser()); } catch {} });
+
+async function postJSON(url, payload) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload || {})
+  });
+  if (!res.ok) {
+    let msg = 'Request failed';
+    try { msg = (await res.json()).message || msg; } catch(e) {}
+    throw new Error(msg);
+  }
+  try { return await res.json(); } catch(e) { return {}; }
 }
 
-// ---------- public API ----------
-const fb = {
-  async getCurrentUser() { return getCurrentUser(); },
-  onAuthChange(fn) { listeners.add(fn); return () => listeners.delete(fn); },
-  async logout() { setCurrentUser(null); },
+// ---- auth flows ----
+export async function loginGoogle() {
+  const provider = new GoogleAuthProvider();
+  const cred = await signInWithPopup(auth, provider);
+  return cred.user;
+}
 
-  // Mở modal đăng nhập dạng 3 tab
-  async loginModal() {
-    // inject CSS 1 lần
-    if (!document.getElementById("nini-login-css")) {
-      const css = document.createElement("style");
-      css.id = "nini-login-css";
-      css.textContent = `
-        .nini-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:9999}
-        .nini-modal{width:min(560px,92vw);border-radius:16px;background:var(--glass-bg,#ffffff0f);border:1px solid var(--glass-brd,#ffffff3a);backdrop-filter:blur(8px);padding:16px}
-        .nini-tabs{display:flex;gap:8px;margin-bottom:12px}
-        .nini-tab{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);cursor:pointer}
-        .nini-tab.active{background:rgba(255,255,255,.18)}
-        .nini-form{display:grid;gap:10px}
-        .nini-input{height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);padding:0 12px;color:inherit}
-        .nini-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
-        .chip{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--glass-brd,#ffffff3a);background:rgba(255,255,255,.08);cursor:pointer;user-select:none}
-      `;
-      document.head.appendChild(css);
-    }
+export async function loginEmailPass(email, password) {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+}
 
-    // backdrop
-    const wrap = document.createElement("div");
-    wrap.className = "nini-modal-backdrop";
-    wrap.addEventListener("click", e => { if (e.target === wrap) wrap.remove(); });
+export async function registerEmailPass(email, password, displayName = '') {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(cred.user, { displayName });
+  }
+  return cred.user;
+}
 
-    // modal
-    const box = document.createElement("div");
-    box.className = "nini-modal";
-    wrap.appendChild(box);
+// === email dùng mail pro ===
+export async function resetPassword(email) {
+  const base = apiBase();
+  const payload = {
+    email,
+    origin: location.origin,
+    continueUrl: location.origin + '/#/home',
+    reason: 'user-forgot',
+  };
+  try {
+    return await postJSON(base.sendReset, payload);
+  } catch {
+    return await postJSON(base.fallbackReset, payload);
+  }
+}
 
-    box.innerHTML = `
-      <div class="nini-tabs">
-        <button class="nini-tab active" data-t="login">Đăng nhập</button>
-        <button class="nini-tab" data-t="signup">Đăng ký</button>
-        <button class="nini-tab" data-t="reset">Quên mật khẩu</button>
-      </div>
-      <div class="nini-body"></div>
-      <div class="nini-actions">
-        <button class="chip" id="niniClose">Đóng</button>
-        <button class="chip" id="niniOK">OK</button>
-      </div>
-    `;
+export async function sendEmailVerification(email) {
+  const base = apiBase();
+  const payload = {
+    email,
+    origin: location.origin,
+    continueUrl: location.origin + '/#/home',
+  };
+  try {
+    return await postJSON(base.sendVerify, payload);
+  } catch {
+    return await postJSON(base.fallbackVerify, payload);
+  }
+}
 
-    const body = box.querySelector(".nini-body");
-    const btnOK = box.querySelector("#niniOK");
-    box.querySelector("#niniClose").onclick = () => wrap.remove();
+export async function logout() {
+  await signOut(auth);
+}
 
-    function render(which="login") {
-      box.querySelectorAll(".nini-tab").forEach(b => b.classList.toggle("active", b.dataset.t===which));
-      if (which === "reset") {
-        body.innerHTML = `
-          <div class="nini-form">
-            <input class="nini-input" id="email" type="email" placeholder="you@example.com"/>
-          </div>`;
-        btnOK.onclick = () => { alert("Đã gửi liên kết đặt lại mật khẩu (mock)."); wrap.remove(); };
-      } else {
-        body.innerHTML = `
-          <div class="nini-form">
-            <input class="nini-input" id="email" type="email" placeholder="you@example.com"/>
-            <input class="nini-input" id="pwd" type="password" placeholder="Mật khẩu"/>
-          </div>`;
-        btnOK.onclick = () => {
-          const email = body.querySelector("#email").value.trim();
-          if (!email) { alert("Nhập email"); return; }
-          // MOCK: coi như login/signup ok
-          setCurrentUser({ email, photoURL: "/public/assets/avatar/NV1.webp" });
-          wrap.remove();
-        };
-      }
-    }
-    box.querySelectorAll(".nini-tab").forEach(b => b.onclick = () => render(b.dataset.t));
-    render("login");
+export function onUserChanged(cb) {
+  return onAuthStateChanged(auth, (u) => cb ? cb(u || null) : null);
+}
 
-    document.body.appendChild(wrap);
+const NINI = {
+  fb: {
+    loginGoogle,
+    loginEmailPass,
+    registerEmailPass,
+    resetPassword,
+    sendEmailVerification,
+    logout,
+    onUserChanged,
+    _auth: auth,
+    _app: app,
   }
 };
 
-// gắn lên namespace dùng chung
-NS.fb = fb;
-
-// Gọi ngay 1 lần để phát state hiện tại (nếu có)
-setTimeout(() => listeners.forEach(fn => fn(getCurrentUser())), 0);
-
-// (tùy chọn) export để dev có thể import nếu muốn
-export default fb;
+export default NINI;

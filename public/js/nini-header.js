@@ -78,7 +78,7 @@
         $btnOut.style.display = '';
       } else {
         $email.textContent = '';
-        $avatar.src = '/public/assets/avatar/NNI.webp';
+        $avatar.src = '/public/assets/avatar/NV.webp';
         $btnOpen.style.display = '';
         $btnOut.style.display = 'none';
       }
@@ -209,4 +209,5 @@
 
   W.NINI.header = { mount };
 })();
+
 

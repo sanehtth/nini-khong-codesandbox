@@ -2,141 +2,142 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Hồ sơ</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/public/assets/icons/logonini.svg" />
-
-  <!-- Theme mới -->
+  <!-- Base theme -->
   <link rel="stylesheet" href="/public/theme/nini-base.css" />
-</head>
-<body class="spring">
 
-  <!-- Header mount point -->
+  <!-- (Tuỳ chọn) Cấu hình Firebase – nếu bạn đã inject nơi khác thì bỏ khối này -->
+ <script src="/public/js/nini-config.js"></script>
+  <!-- SDK non-module của bạn, cần expose window.NINI.fb.* -->
+  <script src="/public/js/nini-fb.js"></script>
+  <!-- Header + Auth modal -->
+  <script src="/public/js/nini-header.js"></script>
+</head>
+
+<body class="spring">
+  <!-- Header -->
   <div id="nini__header"></div>
 
-  <!-- Khung nội dung -->
-  <div id="frame" class="stage">
-    <main class="page">
-      <section class="glass page-body">
-        <!-- Khối hồ sơ -->
-        <div class="profile">
-          <aside class="profile__avatar">
-            <img id="avatar" src="/public/assets/avatar/NV.webp" alt="avatar" class="avatar" />
-            <div class="profile__avatar-actions">
-              <button id="btnUpload" class="btn">Tải ảnh mới</button>
-              <button id="btnReset" class="btn" title="Về mặc định">Về mặc định</button>
-            </div>
-          </aside>
+  <!-- Nội dung hồ sơ -->
+  <main class="stage" aria-label="profile">
+    <section class="glass" style="border-radius:16px; margin:18px auto; padding:18px; max-width:1100px;">
+      <h1 style="margin:0 0 14px 0;">Hồ sơ NiNi</h1>
 
-          <div class="profile__form">
-            <label>Email
-              <input id="fEmail" type="email" placeholder="you@example.com" disabled />
-            </label>
-            <label>Tên hiển thị
-              <input id="fDisplay" type="text" placeholder="Bé NiNi" />
-            </label>
-            <label>Ngày sinh
-              <input id="fDob" type="text" placeholder="dd/mm/yyyy" />
-            </label>
-            <label>Tỉnh/Thành
-              <input id="fCity" type="text" placeholder="Hà Nội / TPHCM ..." />
-            </label>
-            <label>Lớp/Khối
-              <input id="fClass" type="text" placeholder="Lớp 2, Lớp 3..." />
-            </label>
-            <label>Phụ huynh (tuỳ chọn)
-              <input id="fParent" type="text" placeholder="Tên phụ huynh" />
-            </label>
-            <label>Số điện thoại
-              <input id="fPhone" type="text" placeholder="09xxxxxxx" />
-            </label>
-
-            <div class="profile__actions">
-              <button id="btnSave" class="btn">Lưu hồ sơ</button>
-              <button id="btnPwd" class="btn">Đổi / Thêm mật khẩu</button>
-              <button id="btnSync" class="btn">Đồng bộ lại</button>
+      <!-- Lưới 2 cột: Avatar + Form -->
+      <div style="display:grid; grid-template-columns: 260px 1fr; gap:16px;">
+        <!-- Avatar -->
+        <aside class="glass" style="border-radius:12px; padding:16px;">
+          <div style="display:grid; gap:10px; justify-items:center;">
+            <img id="pfAvatar" src="/public/assets/avatar/NNI.webp" alt="avatar" style="width:120px;height:120px;border-radius:999px;object-fit:cover;border:3px solid rgba(255,255,255,.8);" />
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+              <button id="btnUpload" class="btn btn-primary">Tải ảnh mới</button>
+              <button id="btnResetAva" class="btn">Về mặc định</button>
             </div>
           </div>
+        </aside>
 
-          <!-- Thành tích (bên phải) -->
-          <aside class="profile__stats glass">
-            <h3>Thành tích</h3>
-            <div class="stats">
-              <div class="stat"><span class="label">XP</span><span id="statXp">0</span></div>
-              <div class="stat"><span class="label">Xu</span><span id="statCoin">0</span></div>
-            </div>
-            <div class="row">
-              <button id="btnSyncCloud" class="btn">Đồng bộ lại</button>
-            </div>
-          </aside>
-        </div>
-      </section>
-    </main>
-  </div>
+        <!-- Form -->
+        <section class="glass" style="border-radius:12px; padding:16px;">
+          <div class="row" style="display:grid; gap:10px;">
+            <label>Email
+              <input id="pfEmail" type="email" placeholder="you@example.com" disabled />
+            </label>
 
-  <!-- Footer chips -->
-  <footer class="footer-bar">
-    <nav class="chips" aria-label="Liên kết nhanh">
-      <a class="chip" href="/about.html">Giới thiệu</a>
-      <a class="chip" href="/rules.html">Luật chơi</a>
-      <a class="chip" href="/forum.html">Diễn đàn</a>
-      <a class="chip" href="/feedback.html">Góp ý</a>
+            <label>Tên hiển thị
+              <input id="pfName" type="text" placeholder="Bé NiNi" />
+            </label>
+
+            <label>Ngày sinh
+              <input id="pfDob" type="text" placeholder="dd/mm/yyyy" />
+            </label>
+
+            <label>Tỉnh/Thành
+              <input id="pfCity" type="text" placeholder="Hà Nội / TPHCM …" />
+            </label>
+
+            <label>Lớp/Khối
+              <input id="pfGrade" type="text" placeholder="Lớp 2, Lớp 3…" />
+            </label>
+
+            <label>Phụ huynh (tuỳ chọn)
+              <input id="pfParent" type="text" placeholder="Tên phụ huynh" />
+            </label>
+
+            <label>Số điện thoại
+              <input id="pfPhone" type="text" placeholder="09xxxxxxx" />
+            </label>
+          </div>
+
+          <div class="actions" style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+            <button id="btnSave" class="btn btn-primary">Lưu hồ sơ</button>
+            <button id="btnChangePass" class="btn">Đổi / Thêm mật khẩu</button>
+            <button id="btnSync" class="btn">Đồng bộ lại</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- dãy chip dưới (ví dụ) -->
+    <nav class="tabs" style="margin: 0 auto 40px; justify-content:center; max-width: 980px;">
+      <a class="btn" href="#/about"   style="text-decoration:none;">Giới thiệu</a>
+      <a class="btn" href="/public/tools/rules.html" style="text-decoration:none;">Luật chơi</a>
+      <a class="btn" href="/public/tools/forum.html" style="text-decoration:none;">Diễn đàn</a>
+      <a class="btn" href="/public/tools/feedback.html" style="text-decoration:none;">Góp ý</a>
     </nav>
-  </footer>
-
-  <!-- ===== JS theo thứ tự ===== -->
-  <script src="/public/js/nini-config.js"></script>
-  <script src="/public/js/nini-fb.js"></script>
-  <script src="/public/js/nini-header.js"></script>
+  </main>
 
   <script>
     // Mount header
-    document.addEventListener('DOMContentLoaded', () => {
-      const routes = {
-        home:   '/#/home',
-        spring: '/#/spring',
-        summer: '/#/summer',
-        autumn: '/#/autumn',
-        winter: '/#/winter',
-        admin:  '/admin/index.html',
-        profile:'/profile.html'
-      };
-
-      window.NINI?.header?.mount?.('#nini__header', {
-        defaultSeason: 'auto',
-        routes
-      });
-    });
-
-    // ===== Demo binding dữ liệu hồ sơ (đợi fb sẵn sàng) =====
-    function bindProfile(u) {
-      // u có thể null nếu chưa đăng nhập
-      document.getElementById('fEmail').value = u?.email || '';
-      document.getElementById('fDisplay').value = u?.displayName || '';
-      // Tuỳ bạn load thêm hồ sơ từ DB → fill vào các field còn lại
-    }
-
-    // Lắng nghe trạng thái đăng nhập: dùng event fb ready + subscribe
-    (function waitAndSub() {
-      if (window.NINI?.fb?.onUserChanged) {
-        window.NINI.fb.onUserChanged(bindProfile);
-      } else {
-        window.addEventListener('nini:fb:ready', () => {
-          window.NINI?.fb?.onUserChanged?.(bindProfile);
-        }, { once: true });
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.NINI && window.NINI.header) {
+        NINI.header.mount('#nini__header', {
+          routes: {
+            home:   '#/home',
+            spring: '#/spring',
+            summer: '#/summer',
+            autumn: '#/autumn',
+            winter: '#/winter',
+            admin:  '/admin/index.html'
+          },
+          defaultSeason: 'spring'
+        });
       }
-    })();
 
-    // Actions (ví dụ)
-    document.getElementById('btnPwd').addEventListener('click', () => {
-      // mở modal đổi mật khẩu từ header
-      document.querySelector('[data-tab="login"]')?.click?.(); // nếu bạn có kích hoạt modal từ header
+      // =======================
+      // Bind dữ liệu hồ sơ mẫu
+      // (Bạn map sang API thật của bạn nếu đã có)
+      // =======================
+      const FB = window.NINI && window.NINI.fb;
+      if (!FB || !FB.onUserChanged) return;
+
+      FB.onUserChanged(function (u) {
+        // nếu chưa đăng nhập thì mở modal
+        if (!u) {
+          if (window.NINI?.authModal) NINI.authModal.show('login');
+          return;
+        }
+        // apply UI
+        document.getElementById('pfEmail').value  = u.email || '';
+        document.getElementById('pfName').value   = (u.displayName || 'Bé NiNi');
+        document.getElementById('pfAvatar').src   = u.photoURL || '/public/assets/avatar/NNI.webp';
+      });
+
+      // các nút (chỉ là ví dụ – tuỳ bạn nối vào backend)
+      document.getElementById('btnSave').onclick = () => alert('Đã lưu (demo). Hãy map sang API lưu hồ sơ thực tế của bạn.');
+      document.getElementById('btnChangePass').onclick = () => {
+        const email = (document.getElementById('pfEmail').value || '').trim();
+        if (!email) return alert('Chưa có email người dùng.');
+        if (!window.NINI?.fb?.resetPassword) return alert('Thiếu FB API: resetPassword');
+        window.NINI.fb.resetPassword(email).then(()=>alert('Đã gửi mail đặt lại mật khẩu.')).catch(e=>alert(e?.message||e));
+      };
+      document.getElementById('btnSync').onclick = () => alert('Đã đồng bộ (demo).');
+      document.getElementById('btnUpload').onclick = () => alert('Tải ảnh (demo).');
+      document.getElementById('btnResetAva').onclick = () => {
+        document.getElementById('pfAvatar').src = '/public/assets/avatar/NNI.webp';
+      };
     });
   </script>
-
-  <noscript>Vui lòng bật JavaScript để dùng trang NiNi-funny.</noscript>
 </body>
 </html>
-

@@ -1,97 +1,57 @@
 <!doctype html>
 <html lang="vi">
-  <script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
-
-  function inject(css){
-    try{
-      let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NiNi — lOGIN ADMIN</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=21">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Admin Login</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
+      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
     </a>
+    <div class="spacer"></div>
+    <a class="btn" href="/">↩ Trang chủ</a>
   </header>
-<body>
-   <main class="page-hero bg-cover">
-    <section class="panel-glass">
-      <h2 style="margin:0 0 10px">NiNi — Admin</h2>
-      <p class="muted" style="margin:0 0 12px">Nhập mật khẩu admin để vào bảng điều khiển.</p>
 
+  <main class="page-hero">
+    <section class="panel">
+      <h2>Admin — Đăng nhập</h2>
       <div class="row">
-        <input id="pw" type="password" placeholder="Mật khẩu admin" autocomplete="current-password" />
-      </div>
-      <div class="row">
+        <input id="email" class="input underline" type="email" placeholder="admin@example.com" autocomplete="email" />
+        <input id="password" class="input underline" type="password" placeholder="Mật khẩu" autocomplete="current-password" />
         <button id="btnLogin" class="btn">Đăng nhập</button>
-        <a class="btn" href="/">↘ Về trang chủ</a>
       </div>
-      <div id="msg" class="err" hidden>Sai mật khẩu. Vui lòng thử lại.</div>
+      <p id="note" class="note"></p>
     </section>
   </main>
 
   <script>
-    const API = "/.netlify/functions/admin-auth";
-
-    // NOTE: nếu đã có phiên -> chuyển thẳng vào /admin/index.html
-    (async () => {
+    const $ = s => document.querySelector(s);
+    const note = $("#note");
+    $("#btnLogin").addEventListener("click", async () => {
+      const email = $("#email").value.trim();
+      const password = $("#password").value;
+      if (!email || !password) { note.textContent="Nhập email & mật khẩu."; note.className="note bad"; return; }
+      note.textContent = "Đang đăng nhập…"; note.className = "note";
       try{
-        const r = await fetch(`${API}/check`, { credentials: "include" });
-        const j = await r.json().catch(_=>({}));
-        if (j && j.ok) location.href = "/admin/index.html";
-      }catch(_){}
-    })();
-
-    document.getElementById("btnLogin").onclick = async () => {
-      const pw = document.getElementById("pw").value.trim();
-      const msg = document.getElementById("msg");
-      msg.hidden = true;
-
-      try{
-        const r = await fetch(`${API}/login`, {
-          method:"POST",
-          headers:{"content-type":"application/json"},
-          body: JSON.stringify({ password: pw }),
-          credentials: "include"
+        const r = await fetch("/.netlify/functions/admin-auth/login", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ email, password })
         });
-        if (!r.ok) throw new Error("bad");
-        const j = await r.json();
-        if (!j.ok) throw new Error("bad");
-        location.href = "/admin/index.html";
-      }catch(_){
-        msg.hidden = false;
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok || !j.ok) throw new Error(j.error || "Sai thông tin");
+        location.replace("/admin/index.html");
+      }catch(e){
+        note.textContent = "Không thể đăng nhập: " + (e.message || e);
+        note.className = "note bad";
       }
-    };
+    });
   </script>
 </body>
 </html>
-<!-- --------------- HẾT FILE login.html --------------- -->
-
-

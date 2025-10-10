@@ -1,96 +1,56 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>NiNi — Khôi phục tài khoản</title>
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
-  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Quên mật khẩu</title>
+  <link rel="stylesheet" href="/public/theme/nini-base.css">
 </head>
-<body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header id="nini-header"></header>
+<body class="spring">
+  <div id="mini__header"></div>
 
-  <main class="page-hero">
-    <section class="panel-glass center-sm">
-      <h2>Khôi phục tài khoản</h2>
-      <p class="note">Nhập email để nhận liên kết đặt lại mật khẩu hoặc xác minh email.</p>
-
-      <form class="form" onsubmit="return false;">
-        <div class="fld">
-          <span>Email</span>
-          <input id="email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false"/>
-        </div>
+  <div class="stage">
+    <div class="glass" style="max-width:720px">
+      <h2>Quên mật khẩu</h2>
+      <form id="form" class="form">
+        <label>Email</label>
+        <input id="email" type="email" required placeholder="you@example.com" />
         <div class="row">
-          <button id="btnReset" class="btn">Gửi link đặt lại mật khẩu</button>
-          <button id="btnVerify" class="btn btn-ghost">Gửi email xác minh</button>
+          <button id="btn" class="btn" type="submit">Gửi email đặt lại</button>
+          <a class="btn ghost" href="/#/home">Về trang chủ</a>
         </div>
-        <p id="note" class="note"></p>
+        <p id="msg" class="muted" style="margin-top:8px"></p>
       </form>
-    </section>
-  </main>
+    </div>
+  </div>
 
-  <footer class="site-footer">
-    <nav class="footer-nav">
-      <a href="/#rules" class="chip">Luật chơi</a>
-      <a href="/#forum" class="chip">Diễn đàn</a>
-      <a href="/#feedback" class="chip">Góp ý</a>
-      <a href="/" class="chip">Trang chủ</a>
-    </nav>
-  </footer>
+  <script>
+    const form  = document.querySelector('#form');
+    const email = document.querySelector('#email');
+    const btn   = document.querySelector('#btn');
+    const msg   = document.querySelector('#msg');
 
-  <script type="module" src="/public/js/nini-header.js"></script>
-  <script type="module">
-    import "/public/js/nini-fb.js"; // đảm bảo Firebase init sẵn (dù trang này chỉ gọi Function)
-
-    const email = document.querySelector("#email");
-    const note  = document.querySelector("#note");
-    const btnR  = document.querySelector("#btnReset");
-    const btnV  = document.querySelector("#btnVerify");
-
-    const RESET_API = "/.netlify/functions/send-reset";
-    const VERIFY_API= "/.netlify/functions/send-verification-email";
-
-    function setLoading(on) {
-      btnR.disabled = btnV.disabled = !!on;
-      note.textContent = on ? "Đang gửi…" : "";
-    }
-
-    btnR.addEventListener("click", async () => {
-      const em = email.value.trim();
-      if (!em) { note.textContent = "Nhập email trước nhé."; return; }
-      setLoading(true);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = '';
+      const value = email.value.trim();
+      if (!value) { msg.textContent = 'Vui lòng nhập email.'; return; }
+      btn.disabled = true;
       try {
-        const r = await fetch(RESET_API, {
-          method: "POST",
-          headers: { "content-type":"application/json" },
-          body: JSON.stringify({ email: em })
+        const res = await fetch('/api/send-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: value, origin: location.origin })
         });
-        const j = await r.json().catch(()=> ({}));
-        if (!r.ok || j.error) throw new Error(j.error || "Send fail");
-        note.textContent = "Đã gửi email đặt lại mật khẩu.";
-      } catch (e) {
-        console.error(e);
-        note.textContent = "Không gửi được. Vui lòng thử lại.";
-      } finally { setLoading(false); }
-    });
-
-    btnV.addEventListener("click", async () => {
-      const em = email.value.trim();
-      if (!em) { note.textContent = "Nhập email trước nhé."; return; }
-      setLoading(true);
-      try {
-        const r = await fetch(VERIFY_API, {
-          method: "POST",
-          headers: { "content-type":"application/json" },
-          body: JSON.stringify({ email: em })
-        });
-        const j = await r.json().catch(()=> ({}));
-        if (!r.ok || j.error) throw new Error(j.error || "Send fail");
-        note.textContent = "Đã gửi email xác minh.";
-      } catch (e) {
-        console.error(e);
-        note.textContent = "Không gửi được. Vui lòng thử lại.";
-      } finally { setLoading(false); }
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(data.message || 'Gửi mail thất bại');
+        msg.textContent = 'Đã gửi email đặt lại mật khẩu (SMTP pro). Vui lòng kiểm tra hộp thư.';
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Không gửi được mail: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
     });
   </script>
 </body>

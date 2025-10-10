@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const modal = document.createElement('div');
   modal.className = 'auth-modal hidden';
   modal.innerHTML = `
@@ -40,7 +40,7 @@
     }
   }
 
-  // Tab click
+  // Đổi tab
   modal.querySelectorAll('.auth-tabs [data-mode]').forEach(b=>{
     b.onclick = () => {
       modal.querySelectorAll('.auth-tabs button').forEach(x=>x.classList.remove('active'));
@@ -68,8 +68,18 @@
     } catch (e) { alert(e.message || e); }
   };
 
+  // Đóng: nút, bấm nền, phím ESC + “phòng hờ” inline style
   modal.querySelector('#authClose').onclick = close;
-  function close(){ modal.classList.add('hidden'); }
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  function close(){
+    modal.classList.add('hidden');
+    // fallback nếu .hidden bị override
+    modal.style.display = 'none';
+    // bỏ inline sau 1 tick để lần sau vẫn dùng class
+    setTimeout(()=> modal.style.removeProperty('display'), 0);
+  }
 
   // Mở modal từ header
   NINI.on('auth:open', ({mode: m}) => {
@@ -77,5 +87,7 @@
     modal.querySelectorAll('.auth-tabs button').forEach(x=>x.classList.toggle('active', x.dataset.mode===mode));
     renderBody();
     modal.classList.remove('hidden');
+    // clear mọi fallback ẩn
+    modal.style.removeProperty('display');
   });
 })();

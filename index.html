@@ -2,59 +2,191 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny</title>
 
-  <!-- Base theme (đã có các lớp .spring/.summer/.autumn/.winter + modal) -->
-  <link rel="stylesheet" href="/public/theme/nini-base.css" />
-  <link rel="icon" type="image/webp" href="/public/assets/icons/logonini.webp" />  
-  <!-- (Tuỳ chọn) Cấu hình Firebase – nếu bạn đã inject nơi khác thì bỏ khối này -->
- <script src="/public/js/nini-config.js"></script>
-  <!-- SDK non-module của bạn, cần expose window.NINI.fb.* (login/register/reset/logout/onUserChanged) -->
-  <script src="/public/js/nini-fb.js"></script>
-  <!-- Header + Auth modal (non-module) -->
-  <script src="/public/js/nini-header.js"></script>
+  <!-- Base theme gọn dùng chung -->
+  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1" />
+
+  <!-- Favicon / Logo thanh địa chỉ -->
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+  <link rel="alternate icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+
+  <style>
+    /* (tuỳ chọn) override rất nhỏ cho trang home */
+    :root{
+      --bg-url: url('/public/assets/bg/nini_home.webp');
+      --shell-max: 1180px;
+    }
+    /* Giữ stage 16:9 nằm giữa */
+    .stage-16x9 {
+      aspect-ratio: 16/9;
+      width: min(100%, var(--shell-max));
+      margin: 14px auto 18px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.55);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.12);
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .stage-16x9 .nini {
+      width: min(40%, 380px);
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
+    }
+    /* Footer chips: đưa 4 nút xuống dưới, căn giữa */
+    .footer-chips {
+      position: sticky; bottom: 10px;
+      display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+      padding: 8px 10px;
+      width: min(100%, var(--shell-max));
+      margin: 0 auto 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(0,0,0,.06);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 36px rgba(0,0,0,.1);
+    }
+    .chip {
+      appearance: none; border: 1px solid rgba(0,0,0,.08);
+      background: rgba(255,255,255,.8);
+      border-radius: 999px; padding: 8px 14px; cursor: pointer;
+    }
+    .chip.is-active { background: #2ea0ff; color: #fff; border-color: transparent; }
+  </style>
 </head>
+<body style="--bg-url: url('/public/assets/bg/nini_home.webp')">
+  <!-- ========== HEADER (mount bởi nini-header.js) ========== -->
+  <header id="appHeader"></header>
 
-<body class="spring">
-  <!-- Header sẽ mount vào đây -->
-  <div id="nini__header"></div>
-
-  <!-- Nội dung trang -->
-  <main class="stage" aria-label="main">
-    <!-- Ví dụ khung mờ (tuỳ bạn thay bằng nội dung thật) -->
-    <section class="glass" style="min-height: 52vh; border-radius: 16px; margin: 18px auto; max-width: 1100px; padding: 18px;">
-      <h1 style="margin:0 0 8px 0;">Chào mừng đến với NiNi — Funny</h1>
-      <p>Hãy dùng thanh trên cùng để chuyển mùa, đăng nhập/đăng ký, hoặc đặt lại mật khẩu.</p>
+  <!-- ========== MAIN / STAGE 16:9 (chỉ chú Nhím ở giữa) ========== -->
+  <main>
+    <section class="stage-16x9" id="mainStage" aria-label="Khung 16:9">
+      <img class="nini" src="/public/assets/icons/nini.webp" alt="NiNi" />
     </section>
-
-    <!-- dãy chip dưới (ví dụ) -->
-    <nav class="tabs" style="margin: 0 auto 40px; justify-content:center; max-width: 980px;">
-      <a class="btn" href="#/about"   style="text-decoration:none;">Giới thiệu</a>
-      <a class="btn" href="/public/tools/rules.html" style="text-decoration:none;">Luật chơi</a>
-      <a class="btn" href="/public/tools/forum.html" style="text-decoration:none;">Diễn đàn</a>
-      <a class="btn" href="/public/tools/feedback.html" style="text-decoration:none;">Góp ý</a>
-    </nav>
   </main>
 
-  <script>
-    // Mount header + modal (chỉ cần gọi 1 lần)
-    document.addEventListener('DOMContentLoaded', function () {
-      if (window.NINI && window.NINI.header) {
-        NINI.header.mount('#nini__header', {
-          routes: {
-            home:   '#/home',
-            spring: '#/spring',
-            summer: '#/summer',
-            autumn: '#/autumn',
-            winter: '#/winter',
-            admin:  '/admin/index.html'
-          },
-          defaultSeason: 'spring'
-        });
+  <!-- ========== FOOTER: 4 NÚT ==========
+       Chỉ là UI: bạn có thể gán hành vi nếu cần (mở modal, đổi nội dung, v.v.) -->
+  <footer>
+    <nav class="footer-chips" id="footerChips" aria-label="Liên kết nhanh">
+      <button class="chip is-active" data-section="intro">Giới thiệu</button>
+      <button class="chip" data-section="rules">Luật chơi</button>
+      <button class="chip" data-section="forum">Diễn đàn</button>
+      <button class="chip" data-section="feedback">Góp ý</button>
+    </nav>
+  </footer>
+
+  <!-- ========== AUTH MODAL (đặt cuối body cho tiện quản lý) ========== -->
+  <div id="authModal" class="nini-modal" aria-hidden="true">
+    <div class="nini-modal__backdrop" data-close></div>
+    <section class="nini-modal__panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <header class="nini-modal__head">
+        <h3 id="authTitle" class="nini-modal__title">
+          <img src="/public/assets/icons/logonini.svg" alt="" style="height:22px;vertical-align:-4px;margin-right:6px">
+          Đăng nhập / Đăng ký
+        </h3>
+        <button class="nini-modal__close" data-close aria-label="Đóng">✕</button>
+      </header>
+
+      <nav class="tabs-line" id="authTabs">
+        <button class="tab-line is-active" data-auth="login">Đăng nhập</button>
+        <button class="tab-line" data-auth="signup">Đăng ký</button>
+        <button class="tab-line" data-auth="reset">Quên mật khẩu</button>
+      </nav>
+
+      <!-- Login -->
+      <form class="nini-form is-active" data-pane="login" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="loginEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row">
+          <label>Mật khẩu</label>
+          <input id="loginPassword" class="input underline" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="row">
+          <button id="btnEmailLogin"  class="btn solid"  type="button">Đăng nhập</button>
+          <button id="btnGoogleLogin" class="btn ghost" type="button">Đăng nhập Google</button>
+          <button id="btnResendVerify" class="btn ghost" type="button" style="display:none">Gửi lại email xác minh</button>
+        </div>
+        <p id="loginNote" class="note"></p>
+      </form>
+
+      <!-- Signup -->
+      <form class="nini-form" data-pane="signup" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="signupEmail" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row">
+          <button id="btnEmailSignup" class="btn solid" type="button">Gửi email xác minh</button>
+        </div>
+        <p id="signupNote" class="note"></p>
+      </form>
+
+      <!-- Reset -->
+      <form class="nini-form" data-pane="reset" onsubmit="return false;">
+        <div class="row">
+          <label>Email</label>
+          <input id="forgot_email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="row">
+          <button id="btnForgotSend" class="btn solid" type="button">Gửi link đặt lại mật khẩu</button>
+        </div>
+        <p id="forgotNote" class="note"></p>
+      </form>
+    </section>
+  </div>
+
+  <!-- ========== JS CHUNG ========== -->
+  <!-- Config Firebase + hàm auth dùng chung -->
+  <script type="module" src="/public/js/nini-config.js"></script>
+  <script type="module" src="/public/js/nini-fb.js"></script>
+
+  <!-- Header mount + router mùa -->
+  <script type="module" src="/public/js/nini-header.js"></script>
+
+  <!-- Khởi động: mount header + chân chips + modal -->
+  <script type="module">
+    // 1) Mount header (logo + slogan + 5 nút mùa + avatar + admin)
+    import { mountHeader } from '/public/js/nini-header.js';
+    mountHeader('#appHeader', {
+      routes: ['home','spring','summer','autumn','winter'],   // 5 nút
+      defaultRoute: 'home'
+    });
+
+    // 2) Footer chips – chỉ toggle active (tuỳ bạn gán hành vi khác)
+    const chips = document.querySelectorAll('#footerChips .chip');
+    chips.forEach(ch => ch.addEventListener('click', () => {
+      chips.forEach(x => x.classList.toggle('is-active', x === ch));
+      // ví dụ: mở modal góp ý / forum… nếu sau này cần
+    }));
+
+    // 3) Auth modal hành vi cơ bản
+    const modal = document.getElementById('authModal');
+    const tabs  = modal.querySelectorAll('#authTabs .tab-line');
+    const panes = modal.querySelectorAll('.nini-form');
+
+    function switchAuth(which){
+      tabs.forEach(t => t.classList.toggle('is-active', t.dataset.auth===which));
+      panes.forEach(p => p.classList.toggle('is-active', p.dataset.pane===which));
+    }
+    tabs.forEach(t => t.addEventListener('click', () => switchAuth(t.dataset.auth)));
+    modal.addEventListener('click', e => {
+      if (e.target.matches('[data-close]') || e.target.classList.contains('nini-modal__backdrop')){
+        modal.setAttribute('aria-hidden','true');
       }
     });
+
+    // Cho header gọi mở modal:
+    window.NINI = window.NINI || {};
+    window.NINI.openAuth = (tab='login') => { switchAuth(tab); modal.setAttribute('aria-hidden','false'); };
   </script>
 </body>
 </html>
-

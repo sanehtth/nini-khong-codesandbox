@@ -1,61 +1,64 @@
-// /test/js/header.js
-export function mountHeader(target, opts = {}) {
-  const {
-    routes = ['home','spring','summer','autumn','winter'],
-    defaultRoute = 'home',
-    showSeasons = true,                  // << NEW
-  } = opts;
+(() => {
+  function tpl() {
+    return `
+      <div class="nini-header">
+        <div class="brand">
+          <img class="logo" src="/public/assets/icons/logo_text.webp" alt="NiNi" />
+          <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
+        </div>
 
-  const host = document.querySelector(target);
-  if (!host) return;
+        <nav class="tabs">
+          <button data-to="home">Home</button>
+          <button data-to="spring">Spring</button>
+          <button data-to="summer">Summer</button>
+          <button data-to="autumn">Autumn</button>
+          <button data-to="winter">Winter</button>
+        </nav>
 
-  host.innerHTML = `
-    <div class="nini-header shell">
-      <a class="brand" href="#/home" aria-label="NiNi — Funny">
-        <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
-        <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-      </a>
-
-      ${showSeasons ? `
-      <nav class="season-tabs" aria-label="Chọn mùa">
-        ${routes.map((r,i)=>`<button class="season-tab${i===0?' is-active':''}" data-season="${r}">${r[0].toUpperCase()+r.slice(1)}</button>`).join('')}
-      </nav>` : ''}
-
-      <div class="auth-area">
-        <button class="auth-btn" data-role="btn-login" data-show="out">Đăng nhập / Đăng ký</button>
-        <a class="avatar-btn" data-show="in" href="/profile.html" style="display:none" title="Hồ sơ">
-          <img class="avatar-img" src="/public/assets/avatar/NV.webp" alt="Tài khoản">
-        </a>
-        <button class="auth-btn" data-role="btn-logout" data-show="in" style="display:none">Đăng xuất</button>
-        <a id="adminBtn" class="admin-link is-hidden" href="/admin/login.html" rel="noopener">Admin</a>
+        <div class="userbox" id="niniUserBox">
+          <img class="avatar" src="/public/assets/avatar/NV.webp" alt="avatar" />
+          <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
+        </div>
       </div>
-    </div>
-  `;
-
-  // nếu có tabs thì mới gán handler
-  if (showSeasons) {
-    const tabs = host.querySelectorAll('.season-tab');
-    tabs.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const s = btn.dataset.season;
-        tabs.forEach(b=>b.classList.toggle('is-active', b===btn));
-        // thông báo ra ngoài (để app 16:9 đổi nền, v.v.)
-        window.dispatchEvent(new CustomEvent('nini:season', { detail: { season: s }}));
-        const newHash = `#/${s}`;
-        if (location.hash !== newHash) history.replaceState({}, "", newHash);
-      });
-    });
-    // khởi tạo hash
-    if (!location.hash) history.replaceState({}, "", `#/${defaultRoute}`);
+    `;
   }
 
-  // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
-}
+  function mountHeader(root) {
+    const el = typeof root === 'string' ? document.querySelector(root) : root;
+    el.innerHTML = tpl();
 
+    // Điều hướng 5 tab (UI)
+    el.querySelectorAll('.tabs [data-to]').forEach(b => {
+      b.addEventListener('click', () => {
+        const key = b.dataset.to;
+        document.body.classList.remove('home','spring','summer','autumn','winter');
+        document.body.classList.add(key);
+        NINI.emit('route:change', key);
+      });
+    });
 
-  // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
-}
+    // Mở modal Auth
+    el.querySelector('#btnAuthOpen').addEventListener('click', () => {
+      NINI.emit('auth:open', { mode: 'login' });
+    });
 
+    // Khi đăng nhập xong (sau này adapter phát sự kiện)
+    NINI.on('auth:changed', (u) => {
+      const box = el.querySelector('#niniUserBox');
+      if (u) {
+        box.innerHTML = `
+          <img class="avatar" src="${u.photoURL || '/public/assets/avatar/NV.webp'}" alt="">
+          <span class="email">${u.email}</span>
+          <button class="btn" id="btnLogout">Đăng xuất</button>`;
+        box.querySelector('#btnLogout').onclick = () => NINI.api.logout?.();
+      } else {
+        box.innerHTML = `
+          <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
+          <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>`;
+        box.querySelector('#btnAuthOpen').onclick = () => NINI.emit('auth:open',{mode:'login'});
+      }
+    });
+  }
 
-
-
+  NINI.mount.header = mountHeader;
+})();

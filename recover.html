@@ -1,180 +1,97 @@
 <!doctype html>
 <html lang="vi">
-<script>
-(function(){
-  const ENDPOINT='/.netlify/functions/theme';
-  const KEY='NINI_THEME_CACHE_V1';
-  const MAX_AGE=3600; // 1h
-
-  function inject(css){
-    try{
-      let s=document.getElementById('themeOverride');
-      if(!s){ s=document.createElement('style'); s.id='themeOverride'; document.head.appendChild(s); }
-      s.textContent=css;
-    }catch(_){}
-  }
-
-  try{
-    const cache=JSON.parse(localStorage.getItem(KEY)||'null');
-    const now=Date.now()/1000|0;
-    if(cache && (now-cache.ts)<MAX_AGE){ inject(cache.css); }
-    fetch(ENDPOINT, {cache:'no-store'})
-      .then(r=>r.text())
-      .then(css=>{
-        if(css){ inject(css); localStorage.setItem(KEY, JSON.stringify({ts: now, css})); }
-      }).catch(_=>{});
-  }catch(_){}
-})();
-</script>
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NiNi — Xác nhận tài khoản</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp">
-  <link rel="stylesheet" href="/styles.css?v=21">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>NiNi — Khôi phục tài khoản</title>
+  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml"/>
+  <link rel="stylesheet" href="/public/theme/nini-base.css?v=1"/>
 </head>
 <body data-page="auth" style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header class="site-header">
-    <a class="brand" href="/#home" aria-label="NiNi — Funny">
-      <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-      <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
-    </a>
-  </header>
+  <header id="nini-header"></header>
 
-  <main class="page-hero bg-cover">
-    <section class="panel-glass">
-      <h3>Khôi phục tài khoản (dùng SĐT đã liên kết)</h3>
+  <main class="page-hero">
+    <section class="panel-glass center-sm">
+      <h2>Khôi phục tài khoản</h2>
+      <p class="note">Nhập email để nhận liên kết đặt lại mật khẩu hoặc xác minh email.</p>
 
-      <!-- Step 1: OTP -->
-      <div id="step1">
-        <div class="row">
-          <input id="phone" class="input" inputmode="tel" placeholder="Số điện thoại (09xxxxxxxx)" />
-          <button id="sendOtp" class="btn">Gửi OTP</button>
+      <form class="form" onsubmit="return false;">
+        <div class="fld">
+          <span>Email</span>
+          <input id="email" class="input underline" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false"/>
         </div>
         <div class="row">
-          <input id="otp" class="input" inputmode="numeric" placeholder="Mã OTP 6 số" />
-          <button id="confirmOtp" class="btn">Xác nhận</button>
+          <button id="btnReset" class="btn">Gửi link đặt lại mật khẩu</button>
+          <button id="btnVerify" class="btn btn-ghost">Gửi email xác minh</button>
         </div>
-        <p id="note1" class="note"></p>
-        <div id="recaptcha-login" style="height:0;overflow:hidden"></div>
-      </div>
-
-      <!-- Step 2: set email/password -->
-      <div id="step2" style="display:none">
-        <p class="ok">✅ Đã xác thực bằng SĐT. Hãy đặt <b>email</b> (nếu mất email cũ) và <b>mật khẩu</b>.</p>
-        <div class="row"><input id="newEmail" class="input" type="email" inputmode="email" placeholder="Email mới" /></div>
-        <div class="row"><input id="newPw" class="input" type="password" placeholder="Mật khẩu mới (≥ 8 ký tự)" /></div>
-        <div class="row"><button id="bindEmailPw" class="btn">Lưu email & mật khẩu</button></div>
-        <p id="note2" class="note"></p>
-      </div>
-
-      <div class="row"><a class="btn" href="/index.html">← Về trang chủ</a></div>
-
+        <p id="note" class="note"></p>
+      </form>
     </section>
   </main>
 
+  <footer class="site-footer">
+    <nav class="footer-nav">
+      <a href="/#rules" class="chip">Luật chơi</a>
+      <a href="/#forum" class="chip">Diễn đàn</a>
+      <a href="/#feedback" class="chip">Góp ý</a>
+      <a href="/" class="chip">Trang chủ</a>
+    </nav>
+  </footer>
+
+  <script type="module" src="/public/js/nini-header.js"></script>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getAuth, RecaptchaVerifier, signInWithPhoneNumber,
-      EmailAuthProvider, linkWithCredential, updateEmail, updatePassword
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import "/public/js/nini-fb.js"; // đảm bảo Firebase init sẵn (dù trang này chỉ gọi Function)
 
-    const app = initializeApp({
-      apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
-      authDomain: "nini-8f3d4.firebaseapp.com",
-      projectId: "nini-8f3d4",
-      storageBucket: "nini-8f3d4.firebasestorage.app",
-      messagingSenderId: "991701821645",
-      appId: "1:991701821645:web:fb21c357562c6c801da184"
-    });
-    const auth = getAuth(app);
-    auth.languageCode = 'vi';
+    const email = document.querySelector("#email");
+    const note  = document.querySelector("#note");
+    const btnR  = document.querySelector("#btnReset");
+    const btnV  = document.querySelector("#btnVerify");
 
-    const $ = (id)=>document.getElementById(id);
-    const note1=$('note1'), note2=$('note2'), step1=$('step1'), step2=$('step2');
+    const RESET_API = "/.netlify/functions/send-reset";
+    const VERIFY_API= "/.netlify/functions/send-verification-email";
 
-    let recaptchaLogin, loginConfirm, lastOtpAt=0;
-    function ensureRecaptcha(){
-      if (recaptchaLogin) return recaptchaLogin;
-      recaptchaLogin = new RecaptchaVerifier(auth, 'recaptcha-login', { size:'invisible' });
-      return recaptchaLogin;
+    function setLoading(on) {
+      btnR.disabled = btnV.disabled = !!on;
+      note.textContent = on ? "Đang gửi…" : "";
     }
-    function setNote(el, msg, ok=true){ el.textContent = msg || ''; el.className = 'note ' + (ok ? 'ok' : 'bad'); }
 
-    $('sendOtp').addEventListener('click', async () => {
-      const now=Date.now(); if (now - lastOtpAt < 60000){ setNote(note1,'Vui lòng đợi 60 giây rồi gửi lại.',false); return; }
-      lastOtpAt = now;
-
-      const phone = ($('phone').value || '').trim();
-      if (!phone) { setNote(note1, 'Nhập số điện thoại.', false); return; }
+    btnR.addEventListener("click", async () => {
+      const em = email.value.trim();
+      if (!em) { note.textContent = "Nhập email trước nhé."; return; }
+      setLoading(true);
       try {
-        ensureRecaptcha();
-        loginConfirm = await signInWithPhoneNumber(auth, phone, recaptchaLogin);
-        setNote(note1, 'Đã gửi OTP. Nhập mã 6 số.', true);
-      } catch (e) {
-        const code=e?.code||''; setNote(note1, code==='auth/too-many-requests' ? 'Bạn gửi quá nhiều lần. Thử lại sau.' : 'Không gửi được OTP.', false);
-      }
-    });
-
-    $('confirmOtp').addEventListener('click', async () => {
-      const code = ($('otp').value || '').trim();
-      if (!loginConfirm || !code) { setNote(note1, 'Thiếu OTP.', false); return; }
-      try {
-        const cred = await loginConfirm.confirm(code);
-        console.log('signed in by phone uid=', cred.user?.uid);
-        setNote(note1, 'Đã xác thực SĐT.', true);
-        step1.style.display = 'none'; step2.style.display = '';
-      } catch (e) {
-        setNote(note1, 'OTP sai hoặc hết hạn.', false);
-      }
-    });
-
-    $('bindEmailPw').addEventListener('click', async () => {
-      const u = auth.currentUser;
-      if (!u) { setNote(note2, 'Phiên đã hết. Vui lòng thực hiện lại OTP.', false); return; }
-
-      const email = ($('newEmail').value || '').trim();
-      const pw    = ($('newPw').value   || '').trim();
-      if (!email) { setNote(note2, 'Nhập email mới.', false); return; }
-      if (!pw || pw.length < 8) { setNote(note2, 'Mật khẩu phải ≥ 8 ký tự.', false); return; }
-
-      try {
-        // Thêm email+password nếu chưa có, nếu đã có thì cập nhật
-        const emailCred = EmailAuthProvider.credential(email, pw);
-        await linkWithCredential(u, emailCred).catch(async (e) => {
-          if (e?.code === 'auth/provider-already-linked' || e?.code === 'auth/credential-already-in-use') {
-            await updateEmail(u, email);
-            await updatePassword(u, pw);
-            return;
-          }
-          throw e;
+        const r = await fetch(RESET_API, {
+          method: "POST",
+          headers: { "content-type":"application/json" },
+          body: JSON.stringify({ email: em })
         });
-
-        setNote(note2, 'Đã cập nhật email & mật khẩu. Bạn có thể đăng nhập bằng email mới.', true);
-        setTimeout(()=> location.replace('/index.html'), 1200);
+        const j = await r.json().catch(()=> ({}));
+        if (!r.ok || j.error) throw new Error(j.error || "Send fail");
+        note.textContent = "Đã gửi email đặt lại mật khẩu.";
       } catch (e) {
-        const code = e?.code || '';
-        setNote(note2,
-          code === 'auth/invalid-email' ? 'Email không hợp lệ.' :
-          code === 'auth/email-already-in-use' ? 'Email này đã được dùng ở tài khoản khác.' :
-          'Không cập nhật được. Hãy thử lại.', false);
-      }
+        console.error(e);
+        note.textContent = "Không gửi được. Vui lòng thử lại.";
+      } finally { setLoading(false); }
+    });
+
+    btnV.addEventListener("click", async () => {
+      const em = email.value.trim();
+      if (!em) { note.textContent = "Nhập email trước nhé."; return; }
+      setLoading(true);
+      try {
+        const r = await fetch(VERIFY_API, {
+          method: "POST",
+          headers: { "content-type":"application/json" },
+          body: JSON.stringify({ email: em })
+        });
+        const j = await r.json().catch(()=> ({}));
+        if (!r.ok || j.error) throw new Error(j.error || "Send fail");
+        note.textContent = "Đã gửi email xác minh.";
+      } catch (e) {
+        console.error(e);
+        note.textContent = "Không gửi được. Vui lòng thử lại.";
+      } finally { setLoading(false); }
     });
   </script>
-   <script>
-(function applyBrandEverywhere(){
-  const BRAND_KEY='NINI_THEME_BRAND';
-  try {
-    const b = JSON.parse(localStorage.getItem(BRAND_KEY)||'{}');
-    if (b.logoMain)  document.querySelectorAll('.brand__logo').forEach(i=>i.src=b.logoMain);
-    if (b.logoSmall) document.querySelectorAll('.brand__logo--small').forEach(i=>i.src=b.logoSmall);
-    if (b.slogan)    document.querySelectorAll('.brand__slogan').forEach(e=>e.textContent=b.slogan);
-  } catch {}
-})();
-</script>
 </body>
 </html>
-
-

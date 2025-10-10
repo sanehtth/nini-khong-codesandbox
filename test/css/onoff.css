@@ -1,0 +1,25 @@
+﻿/* Ẩn/hiện chung */
+.hidden { display: none !important; }
+
+/* Layout modal cơ bản */
+#authModal { position: fixed; inset: 0; z-index: 9999; }
+#authModal .auth-backdrop {
+  position: absolute; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+}
+#authModal .auth-box {
+  min-width: 320px; max-width: 92vw;
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+  padding: 16px 18px;
+}
+#authModal .tabs { display:flex; gap:8px; margin-bottom:12px; }
+#authModal .tabs [data-auth-tab]{
+  border:1px solid #ddd; border-radius: 999px;
+  padding:6px 10px; background:#f7f7f7; cursor:pointer;
+}
+#authModal .tabs [data-auth-tab].active{ background:#ececff; border-color:#c9c9ff; }
+#authModal [data-auth="close"]{ float:right; cursor:pointer; opacity:.7; }
+#authModal form { display:block; }
+#authModal form .form-row{ margin:8px 0; }
+#authModal form input{ width:100%; height:36px; padding:0 10px; }

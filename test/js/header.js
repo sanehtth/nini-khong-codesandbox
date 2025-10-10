@@ -51,3 +51,8 @@ export function mountHeader(target, opts = {}) {
 
   // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
 }
+
+
+  // …(phần đăng nhập/đăng xuất giữ nguyên như trước của bạn)…
+}
+

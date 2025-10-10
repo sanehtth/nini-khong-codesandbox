@@ -3,17 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Đang xử lý…</title>
-  <link rel="preload" href="/public/theme/nini-base.css" as="style">
-  <link rel="stylesheet" href="/public/theme/nini-base.css">
+  <title>NiNi — Auth action</title>
+  <link rel="stylesheet" href="/public/theme/nini-base.css" />
 </head>
 <body class="spring">
-  <div id="mini__header"></div>
-
   <div class="stage">
-    <div class="glass" style="text-align:center;padding:24px">
+    <div class="glass" style="padding:24px; text-align:center;">
       <h2>Đang xử lý yêu cầu…</h2>
-      <p>Vui lòng đợi trong giây lát ⏳</p>
+      <p>Vui lòng đợi trong giây lát.</p>
     </div>
   </div>
 
@@ -21,20 +18,17 @@
     (function () {
       const qs = new URLSearchParams(location.search);
       const mode = (qs.get('mode') || '').toLowerCase();
-
-      // Giữ nguyên toàn bộ query khi chuyển trang:
-      const q = '?' + qs.toString();
+      const keep = '?' + qs.toString();
 
       switch (mode) {
         case 'resetpassword':
-          location.replace('/reset-password.html' + q);
+          location.replace('/reset-password.html' + keep);
           break;
         case 'verifyemail':
-          location.replace('/verify-email.html' + q);
+          location.replace('/verify-email.html' + keep);
           break;
         default:
-          // Trường hợp lạ → về trang chủ
-          location.replace('/#/home');
+          location.replace('/#home');
       }
     })();
   </script>

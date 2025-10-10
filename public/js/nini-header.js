@@ -79,6 +79,21 @@
     })();
     NINI.fb.onAuthChange?.(renderUser);
   }
+// ... sau khi render modal login:
+const emailInput  = document.querySelector('#niniLoginEmail');
+const btnForgot   = document.querySelector('#niniBtnForgot');
+
+btnForgot?.addEventListener('click', async () => {
+  const email = (emailInput?.value || '').trim();
+  if (!email) { alert('Nhập email đã đăng ký để nhận link đặt lại mật khẩu.'); return; }
+
+  try {
+    await NINI.fb.resetPassword(email);
+    alert('Đã gửi link đặt lại mật khẩu tới: ' + email);
+  } catch (e) {
+    alert('Không gửi được email: ' + (e?.message || e));
+  }
+});
 
   H.mount = function mount(selector, opts = {}) {
     const host = document.querySelector(selector);
@@ -108,3 +123,4 @@
     applySeasonFromHash();
   };
 })();
+

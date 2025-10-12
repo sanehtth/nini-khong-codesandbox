@@ -166,41 +166,42 @@
     N.emit && N.emit('auth:close');
   });
 
-  // ---- SUBMIT bằng delegation: không còn null dù modal render lúc nào
+ // ---- SUBMIT bằng delegation (robust): luôn lấy được email/password
 document.addEventListener('submit', (e) => {
   const f = e.target;
   if (!f.matches('#formLogin, #formSignup, #formReset')) return;
 
   e.preventDefault();
+
   const fd = new FormData(f);
+  // Fallback: nếu FormData không lấy được thì lấy trực tiếp từ input trong form đang submit
+  const pick = (name, sel) => {
+    const v1 = fd.get(name);
+    if (v1 != null && String(v1).length) return String(v1);
+    const el = f.querySelector(sel || `[name="${name}"], input[name="${name}"]`);
+    return el ? String(el.value || '') : '';
+  };
+
+  // Chuẩn hoá email/password
+  const email    = pick('email', 'input[type="email"]').trim().toLowerCase();
+  const password = pick('password', 'input[type="password"]');
+
   const N = (window.NINI = window.NINI || {});
 
   if (f.id === 'formLogin') {
-    N.emit && N.emit('auth:login', {
-      email: (fd.get('email') || '').toString().trim(),
-      password: fd.get('password')
-    });
+    N.emit && N.emit('auth:login', { email, password });
     return;
   }
-
   if (f.id === 'formSignup') {
-    N.emit && N.emit('auth:signup', {
-      email: (fd.get('email') || '').toString().trim(),
-      password: fd.get('password'),
-      confirm: fd.get('confirm')
-    });
+    const confirm = pick('confirm', 'input[name="confirm"]');
+    N.emit && N.emit('auth:signup', { email, password, confirm });
     return;
   }
-
   if (f.id === 'formReset') {
-    N.emit && N.emit('auth:reset', {
-      email: (fd.get('email') || '').toString().trim()
-    });
+    N.emit && N.emit('auth:reset', { email });
     return;
   }
 });
 
-  // tạo modal ngay để CSS áp vào
-  ensureModal();
-})();
+
 

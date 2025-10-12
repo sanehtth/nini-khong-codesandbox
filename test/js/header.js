@@ -1,53 +1,69 @@
-﻿;(() => {
-  const N = window.NINI;
+/* header.js — full */
+(function () {
+  // Giữ nguyên phần render header / nút đăng nhập của bạn ở trên (nếu có).
+  // Dưới đây là fallback điều khiển modal để không bị "kẹt".
 
-  function renderHeader(root){
-    root.innerHTML = `
-      <div class="brand">
-        <img src="/public/assets/icons/logo_text.webp" alt="NiNi" />
-        <span class="slogan">Chơi mê ly, bật phá tư duy</span>
-      </div>
-      <nav class="tabs">
-        <button data-go="home">Home</button>
-        <button data-go="spring">Spring</button>
-        <button data-go="summer">Summer</button>
-        <button data-go="autumn">Autumn</button>
-        <button data-go="winter">Winter</button>
-      </nav>
-      <div class="userbox">
-        <img class="avatar" src="/public/assets/avatar/NV.webp" alt="avatar"/>
-        <span class="email" id="miniEmail">Bạn chưa đăng nhập</span>
-        <button id="btnAuthOpen" class="btn">Đăng nhập / Đăng ký</button>
-        <button id="btnLogout"   class="btn" style="display:none">Đăng xuất</button>
-      </div>
-    `;
+  const N = (window.NINI = window.NINI || {});
+  const $ = (sel, root) => (root || document).querySelector(sel);
 
-    // điều hướng “mùa”
-    root.querySelectorAll('[data-go]').forEach(btn=>{
-      btn.addEventListener('click', () => {
-        const key = btn.getAttribute('data-go');
-        if (['spring','summer','autumn','winter'].includes(key)) {
-          N.setSeason(key);
-          location.hash = '#/' + key;
-        } else {
-          location.hash = '#/home';
-        }
-      });
-    });
+  const modalEl = () => document.getElementById('authModal');
 
-    // mở modal
-    root.querySelector('#btnAuthOpen').addEventListener('click', () => N.emit('auth:open'));
-
-    // đăng xuất (nếu có NINI.fb)
-    root.querySelector('#btnLogout').addEventListener('click', async () => {
-      if (N.fb?.logout) {
-        try { await N.fb.logout(); location.reload(); }
-        catch(e){ alert('Không đăng xuất được: ' + e.message); }
-      } else {
-        alert('Demo logout!');
-      }
-    });
+  function showModal() {
+    const m = modalEl();
+    if (!m) return;
+    m.classList.remove('hidden');
+    m.setAttribute('aria-hidden', 'false');
   }
 
-  N.mountOnce('#mini_header', renderHeader);
+  function hideModal() {
+    const m = modalEl();
+    if (!m) return;
+    m.classList.add('hidden');
+    m.setAttribute('aria-hidden', 'true');
+  }
+
+  // Bắt sự kiện từ bus (nếu nơi khác có emit)
+  if (!N._authModalWiredBus) {
+    N._authModalWiredBus = true;
+    N.on && N.on('auth:open', showModal);
+    N.on && N.on('auth:close', hideModal);
+  }
+
+  // Click nút mở (hỗ trợ cả #btnAuthOpen và data-auth="open")
+  document.addEventListener('click', (e) => {
+    const openBtn = e.target.closest('#btnAuthOpen, [data-auth="open"]');
+    if (!openBtn) return;
+    e.preventDefault();
+    showModal();
+    N.emit && N.emit('auth:open');
+  });
+
+  // Đóng khi click backdrop / nút đóng / nút OK
+  document.addEventListener('click', (e) => {
+    const m = modalEl();
+    if (!m || m.getAttribute('aria-hidden') === 'true') return;
+
+    const clickedClose = e.target.closest('[data-auth="close"]');
+    const clickedOk    = e.target.closest('#btnOk, [data-auth="ok"]');
+
+    const insideModal  = e.target.closest('#authModal');
+    const insideBox    = e.target.closest('#authModal .auth-box');
+    const clickedBackdrop = insideModal && !insideBox;
+
+    if (clickedClose || clickedOk || clickedBackdrop) {
+      e.preventDefault();
+      hideModal();
+      N.emit && N.emit('auth:close');
+    }
+  });
+
+  // ESC để đóng
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const m = modalEl();
+    if (!m || m.getAttribute('aria-hidden') === 'true') return;
+    e.preventDefault();
+    hideModal();
+    N.emit && N.emit('auth:close');
+  });
 })();

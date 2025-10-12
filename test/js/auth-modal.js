@@ -166,34 +166,41 @@
     N.emit && N.emit('auth:close');
   });
 
-  // ---- Submit forms: phát event cho code backend của bạn
-  function handleSubmit(formId, eventName, buildPayload) {
-    const form = document.getElementById(formId);
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const fd = new FormData(form);
-      const payload = buildPayload(fd);
-      N.emit && N.emit(eventName, payload); // hook vào code cũ
-      // ví dụ tạm: bạn có thể gọi API rồi close sau khi OK
-      // closeModal();
+  // ---- SUBMIT bằng delegation: không còn null dù modal render lúc nào
+document.addEventListener('submit', (e) => {
+  const f = e.target;
+  if (!f.matches('#formLogin, #formSignup, #formReset')) return;
+
+  e.preventDefault();
+  const fd = new FormData(f);
+  const N = (window.NINI = window.NINI || {});
+
+  if (f.id === 'formLogin') {
+    N.emit && N.emit('auth:login', {
+      email: (fd.get('email') || '').toString().trim(),
+      password: fd.get('password')
     });
+    return;
   }
 
-  handleSubmit('formLogin',  'auth:login', (fd) => ({
-    email: fd.get('email')?.trim(),
-    password: fd.get('password')
-  }));
+  if (f.id === 'formSignup') {
+    N.emit && N.emit('auth:signup', {
+      email: (fd.get('email') || '').toString().trim(),
+      password: fd.get('password'),
+      confirm: fd.get('confirm')
+    });
+    return;
+  }
 
-  handleSubmit('formSignup', 'auth:signup', (fd) => ({
-    email: fd.get('email')?.trim(),
-    password: fd.get('password'),
-    confirm: fd.get('confirm')
-  }));
-
-  handleSubmit('formReset',  'auth:reset', (fd) => ({
-    email: fd.get('email')?.trim()
-  }));
+  if (f.id === 'formReset') {
+    N.emit && N.emit('auth:reset', {
+      email: (fd.get('email') || '').toString().trim()
+    });
+    return;
+  }
+});
 
   // tạo modal ngay để CSS áp vào
   ensureModal();
 })();
+

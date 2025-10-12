@@ -23,3 +23,5 @@
 #authModal form { display:block; }
 #authModal form .form-row{ margin:8px 0; }
 #authModal form input{ width:100%; height:36px; padding:0 10px; }
+#authModal[aria-hidden="true"] { display: none !important; }
+

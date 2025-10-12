@@ -1,44 +1,45 @@
-/* onoff.css — full */
-/* Backdrop phủ toàn màn hình */
+/* onoff.css — modal layout & behavior */
+
+/* 1) Modal root phủ toàn màn hình */
 #authModal {
   position: fixed;
   inset: 0;
   z-index: 9999;
 }
 
-/* Ẩn hẳn khi đóng (kết hợp aria-hidden) */
+/* 2) Trạng thái ẩn: dùng song song .hidden và aria-hidden */
 #authModal.hidden,
 #authModal[aria-hidden="true"] {
   display: none !important;
 }
 
+/* 3) Backdrop mờ và canh giữa hộp nội dung */
 #authModal .auth-backdrop {
   position: absolute;
   inset: 0;
-  /* Sửa alpha: 0.45 thay vì 45 */
   background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+/* 4) Hộp nội dung */
 #authModal .auth-box {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   min-width: 320px;
   max-width: 92vw;
   background: #fff;
   border-radius: 8px;
   padding: 16px;
-  /* Sửa alpha: 0.18 thay vì 18 */
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
 }
 
-/* Nút đóng (nếu có) */
-#authModal [data-auth="close"] {
+/* 5) Nút/element có thể đóng modal */
+#authModal [data-auth="close"],
+#authModal [data-auth="ok"] {
   cursor: pointer;
 }
 
-/* Chống scroll nền khi mở (tuỳ chọn nếu bạn có thêm class vào body) */
+/* 6) Khi modal mở: chặn scroll nền (được toggle trong JS) */
 .body-auth-open {
   overflow: hidden;
 }

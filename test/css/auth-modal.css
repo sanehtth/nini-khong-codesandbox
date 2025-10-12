@@ -1,8 +1,44 @@
-﻿.auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50}
-.auth-card{width:min(420px,90vw);background:#fff;border-radius:16px;border:1px solid var(--glass-bd);padding:14px}
-.auth-tabs{display:flex;gap:8px;margin-bottom:12px}
-.auth-tabs button{padding:6px 10px;border-radius:999px;border:1px solid var(--glass-bd);background:#f9f9f9;cursor:pointer}
-.auth-tabs .active{background:#fff;}
-.auth-body{display:grid;gap:8px}
-.auth-body input{padding:8px;border:1px solid #ddd;border-radius:10px}
-.auth-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+/* auth-modal.css — full */
+
+/* Vùng modal gốc (che toàn màn hình) */
+#authModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999; /* cao hơn header */
+}
+
+/* Ẩn hoàn toàn khi đóng */
+#authModal.hidden,
+#authModal[aria-hidden="true"] {
+  display: none !important;
+}
+
+/* Backdrop xám mờ */
+#authModal .auth-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45); /* Lưu ý: alpha phải dạng 0.45 */
+}
+
+/* Hộp nội dung */
+#authModal .auth-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 320px;
+  max-width: 92vw;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+}
+
+/* Nút đóng trong box */
+#authModal [data-auth="close"],
+#authModal [data-auth="ok"] {
+  cursor: pointer;
+}
+
+/* (tuỳ chọn) khi modal mở, chặn scroll nền nếu bạn thêm class vào body */
+.body-auth-open { overflow: hidden; }

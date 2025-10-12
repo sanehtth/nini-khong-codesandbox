@@ -166,7 +166,8 @@
     N.emit && N.emit('auth:close');
   });
 
- // ---- SUBMIT bằng delegation (robust): luôn lấy được email/password
+ // ---- SUBMIT bằng delegation (robust) ----
+// ---- SUBMIT bằng delegation (robust) ----
 document.addEventListener('submit', (e) => {
   const f = e.target;
   if (!f.matches('#formLogin, #formSignup, #formReset')) return;
@@ -174,7 +175,6 @@ document.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const fd = new FormData(f);
-  // Fallback: nếu FormData không lấy được thì lấy trực tiếp từ input trong form đang submit
   const pick = (name, sel) => {
     const v1 = fd.get(name);
     if (v1 != null && String(v1).length) return String(v1);
@@ -182,26 +182,40 @@ document.addEventListener('submit', (e) => {
     return el ? String(el.value || '') : '';
   };
 
-  // Chuẩn hoá email/password
-  const email    = pick('email', 'input[type="email"]').trim().toLowerCase();
+  // Chuẩn hoá input
+  const email    = pick('email',    'input[type="email"]').trim().toLowerCase();
   const password = pick('password', 'input[type="password"]');
 
   const N = (window.NINI = window.NINI || {});
 
   if (f.id === 'formLogin') {
-    N.emit && N.emit('auth:login', { email, password });
+    N.emit && N.emit('auth:login',  { email, password });
     return;
   }
+
   if (f.id === 'formSignup') {
     const confirm = pick('confirm', 'input[name="confirm"]');
     N.emit && N.emit('auth:signup', { email, password, confirm });
     return;
   }
+
   if (f.id === 'formReset') {
-    N.emit && N.emit('auth:reset', { email });
+    N.emit && N.emit('auth:reset',  { email });
     return;
   }
-});
+}); // <-- đóng KHỐI submit delegation
 
+// (tùy chọn) Prefill từ query string khi test
+(() => {
+  const p = new URLSearchParams(location.search);
+  const em = p.get('email'); const pw = p.get('password');
+  if (!em && !pw) return;
+  const login = document.getElementById('formLogin');
+  if (!login) return;
+  if (em) login.querySelector('input[name="email"]').value    = em;
+  if (pw) login.querySelector('input[name="password"]').value = pw;
+})();
 
-
+// tạo modal ngay để CSS áp vào
+ensureModal();
+})(); // <-- NHỚ đóng IIFE của toàn file

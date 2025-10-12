@@ -64,4 +64,8 @@
 /* container user ở header (nếu muốn) */
 #nini_header .userbox { display: inline-flex; align-items: center; gap: 8px; }
 
+#authModal .msg { margin-top: 8px; font-size: 13px; }
+#authModal .msg.ok  { color: #2e7d32; }
+#authModal .msg.err { color: #b00020; }
+
 

@@ -158,24 +158,48 @@
 
   /* ---------- Handlers cho các nút trong modal ---------- */
 
-  // Đăng nhập
-  N.on && N.on("auth:login", async ({ email, password }) => {
-    try {
-      setMsg("", "");
-      setFormLoading("formLogin", true, "Đang đăng nhập...");
-      const fb = FB();
-      const loginFn = fb.loginEmailPass || fb.loginEmailPassword;
-      if (!loginFn) throw new Error("Thiếu NINI.fb.loginEmailPass/LoginEmailPassword");
-      const user = await loginFn(email, password);
-      setMsg("ok", "Đăng nhập thành công!");
-      closeModal();
-      renderUserState(user);
-    } catch (err) {
-      setMsg("err", (err && err.message) || "Đăng nhập thất bại");
-    } finally {
-      setFormLoading("formLogin", false);
+  // Đăng nhập (có fallback đọc trực tiếp từ modal nếu payload rỗng)
+N.on && N.on('auth:login', async ({ email, password }) => {
+  try {
+    // Fallback: nếu email/pw chưa có, đọc trực tiếp từ form đang hiển thị trong modal
+    const modal  = document.getElementById('authModal');
+    const active = modal ? modal.querySelector('form.active') : null;
+    const pick = (selList) => {
+      if (!active) return '';
+      const el = active.querySelector(selList);
+      return el ? String(el.value ?? el.getAttribute('value') ?? '').trim() : '';
+    };
+
+    if (!email)    email    = pick('input[type="email"], input[name="email"], input[name*="mail" i]');
+    if (!password) password = pick('input[type="password"], input[name="password"]');
+
+    email = (email || '').toLowerCase();
+
+    if (!email) {
+      setMsg('err', 'Thiếu email (UI chưa trả được giá trị).');
+      console.warn('[auth] missing email. Debug:',
+        active?.outerHTML?.slice(0, 200) || '(no active form)');
+      return;
     }
-  });
+
+    setMsg('', '');
+    setFormLoading('formLogin', true, 'Đang đăng nhập...');
+
+    const fb = (window.NINI && window.NINI.fb) || {};
+    const loginFn = fb.loginEmailPass || fb.loginEmailPassword;
+    if (!loginFn) throw new Error('Thiếu NINI.fb.loginEmailPass/LoginEmailPassword');
+
+    const user = await loginFn(email, password);
+    setMsg('ok', 'Đăng nhập thành công!');
+    closeModal();
+    renderUserState(user);
+  } catch (err) {
+    setMsg('err', (err && err.message) || 'Đăng nhập thất bại');
+  } finally {
+    setFormLoading('formLogin', false);
+  }
+});
+
 
   // Đăng ký
   N.on && N.on("auth:signup", async ({ email, password, confirm }) => {
@@ -229,3 +253,4 @@
     }
   });
 })();
+

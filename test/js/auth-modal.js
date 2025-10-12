@@ -166,44 +166,46 @@
     N.emit && N.emit('auth:close');
   });
 
- // ---- SUBMIT bằng delegation (robust) ----
-// ---- SUBMIT bằng delegation (robust) ----
+ // ---- SUBMIT: đọc trực tiếp từ input, không phụ thuộc FormData ----
 document.addEventListener('submit', (e) => {
   const f = e.target;
   if (!f.matches('#formLogin, #formSignup, #formReset')) return;
-
   e.preventDefault();
 
-  const fd = new FormData(f);
-  const pick = (name, sel) => {
-    const v1 = fd.get(name);
-    if (v1 != null && String(v1).length) return String(v1);
-    const el = f.querySelector(sel || `[name="${name}"], input[name="${name}"]`);
-    return el ? String(el.value || '') : '';
+  // Tìm input trong CHÍNH form đang submit (không lẫn tab khác)
+  const pickFromForm = (selectors) => {
+    const el = f.querySelector(selectors);
+    if (!el) return '';
+    // cố đọc cả value đang hiển thị lẫn value attribute
+    return String(el.value ?? el.getAttribute('value') ?? '').trim();
   };
 
-  // Chuẩn hoá input
-  const email    = pick('email',    'input[type="email"]').trim().toLowerCase();
-  const password = pick('password', 'input[type="password"]');
+  // Email: thử theo thứ tự -> type=email -> name=email -> name có chữ 'mail'
+  const email =
+    pickFromForm('input[type="email"]') ||
+    pickFromForm('input[name="email"]') ||
+    pickFromForm('input[name*="mail" i]');
+
+  // Password / Confirm
+  const password = pickFromForm('input[type="password"], input[name="password"]');
+  const confirm  = pickFromForm('input[name="confirm"]');
 
   const N = (window.NINI = window.NINI || {});
 
   if (f.id === 'formLogin') {
-    N.emit && N.emit('auth:login',  { email, password });
+    N.emit && N.emit('auth:login',  { email: (email || '').toLowerCase(), password });
     return;
   }
-
   if (f.id === 'formSignup') {
-    const confirm = pick('confirm', 'input[name="confirm"]');
-    N.emit && N.emit('auth:signup', { email, password, confirm });
+    N.emit && N.emit('auth:signup', { email: (email || '').toLowerCase(), password, confirm });
     return;
   }
-
   if (f.id === 'formReset') {
-    N.emit && N.emit('auth:reset',  { email });
+    N.emit && N.emit('auth:reset',  { email: (email || '').toLowerCase() });
     return;
   }
-}); // <-- đóng KHỐI submit delegation
+});
+// <-- đóng KHỐI submit delegation
 
 // (tùy chọn) Prefill từ query string khi test
 (() => {
@@ -219,3 +221,4 @@ document.addEventListener('submit', (e) => {
 // tạo modal ngay để CSS áp vào
 ensureModal();
 })(); // <-- NHỚ đóng IIFE của toàn file
+

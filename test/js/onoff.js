@@ -1,23 +1,31 @@
-﻿;(() => {
+;(() => {
   const N = window.NINI;
   const modal = () => document.getElementById('authModal');
 
-  // ESC để đóng modal
-  document.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape' && modal() && modal().getAttribute('aria-hidden')!=='true') {
-      N.emit('auth:close');
+  // ESC đóng
+  document.addEventListener('keydown', (e) => {
+    const m = modal();
+    if (e.key === 'Escape' && m && m.getAttribute('aria-hidden') !== 'true') {
+      N.emit?.('auth:close');
+      m.setAttribute('aria-hidden', 'true');
+      m.classList.add('hidden');
     }
   });
 
-  // bấm ngoài modal để đóng
-  document.addEventListener('click',(e)=>{
+  // Ủy quyền click cho các hành vi đóng
+  document.addEventListener('click', (e) => {
     const m = modal();
-    if (!m || m.getAttribute('aria-hidden')==='true') return;
-    if (e.target === m) N.emit('auth:close');
-  });
+    if (!m || m.getAttribute('aria-hidden') === 'true') return;
 
-  // nút OK demo
-  document.addEventListener('click',(e)=>{
-    if (e.target?.id === 'btnOk') alert('OK (demo)');
+    const isBackdrop = e.target.closest('.auth-backdrop');
+    const isCloseBtn = e.target.closest('[data-auth="close"]');
+    const isOkBtn    = e.target.closest('#btnOk, [data-auth="ok"]');
+
+    if (isBackdrop || isCloseBtn || isOkBtn) {
+      N.emit?.('auth:close');
+      m.setAttribute('aria-hidden', 'true');
+      m.classList.add('hidden');
+      e.preventDefault();
+    }
   });
 })();

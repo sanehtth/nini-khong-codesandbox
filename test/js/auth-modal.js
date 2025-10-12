@@ -1,93 +1,78 @@
-(() => {
-  const modal = document.createElement('div');
-  modal.className = 'auth-modal hidden';
-  modal.innerHTML = `
-    <div class="auth-card">
-      <div class="auth-tabs">
-        <button data-mode="login"  class="active">Đăng nhập</button>
-        <button data-mode="register">Đăng ký</button>
-        <button data-mode="reset">Quên mật khẩu</button>
+﻿;(() => {
+  const N = window.NINI;
+
+  function tpl(){return `
+    <div class="auth-modal__inner">
+      <div class="tabs">
+        <button data-tab="login"  class="active">Đăng nhập</button>
+        <button data-tab="register">Đăng ký</button>
+        <button data-tab="reset">Quên mật khẩu</button>
       </div>
-      <div class="auth-body"></div>
-      <div class="auth-actions">
-        <button id="authClose">Đóng</button>
-        <button id="authSubmit">OK</button>
+
+      <div class="panel login">
+        <label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"/>
+        <label>Mật khẩu</label><input id="authPass"  type="password" placeholder="*******"/>
+        <button id="btnLoginGoogle" class="wfull">Đăng nhập Google</button>
       </div>
-    </div>`;
-  document.body.appendChild(modal);
 
-  let mode = 'login';
+      <div class="panel register" hidden>
+        <label>Email</label><input id="regEmail" type="email" placeholder="you@example.com"/>
+        <label>Mật khẩu (>=6 ký tự)</label><input id="regPass" type="password"/>
+        <label>Tên hiển thị</label><input id="regName" type="text" placeholder="Bé NiNi"/>
+        <button id="btnCreate" class="wfull">Tạo tài khoản</button>
+      </div>
 
-  function renderBody() {
-    const body = modal.querySelector('.auth-body');
-    if (mode === 'login') {
-      body.innerHTML = `
-        <label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" />
-        <label>Mật khẩu</label><input id="loginPass" type="password" placeholder="Mật khẩu" />
-        <button id="loginGoogle">Đăng nhập Google</button>
-      `;
-    } else if (mode === 'register') {
-      body.innerHTML = `
-        <label>Email</label><input id="regEmail" type="email" placeholder="you@example.com" />
-        <label>Mật khẩu (>=6)</label><input id="regPass" type="password" placeholder="Mật khẩu" />
-        <label>Tên hiển thị</label><input id="regName" type="text" placeholder="Bé NiNi" />
-      `;
-    } else {
-      body.innerHTML = `
-        <label>Email</label><input id="resetEmail" type="email" placeholder="you@example.com" />
-        <small>Chúng mình sẽ gửi liên kết đặt lại mật khẩu.</small>
-      `;
-    }
-  }
+      <div class="panel reset" hidden>
+        <label>Email</label><input id="resetEmail" type="email" placeholder="you@example.com"/>
+        <button id="btnSendReset" class="wfull">Gửi link đặt lại</button>
+      </div>
 
-  // Đổi tab
-  modal.querySelectorAll('.auth-tabs [data-mode]').forEach(b=>{
-    b.onclick = () => {
-      modal.querySelectorAll('.auth-tabs button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); mode = b.dataset.mode; renderBody();
+      <div class="actions">
+        <button id="btnClose">Đóng</button>
+        <button id="btnOk">OK</button>
+      </div>
+    </div>`;}
+
+  function mount(){
+    if (document.getElementById('authModal')) return;
+    const wrap = document.createElement('div');
+    wrap.id = 'authModal';
+    wrap.className = 'auth-modal';
+    wrap.setAttribute('aria-hidden','true');
+    wrap.innerHTML = tpl();
+    document.body.appendChild(wrap);
+
+    const setTab = (name) => {
+      wrap.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+      wrap.querySelectorAll('.panel').forEach(p => p.hidden = !p.classList.contains(name));
     };
-  });
 
-  // Submit
-  modal.querySelector('#authSubmit').onclick = async () => {
-    try {
-      if (mode === 'login') {
-        const email = modal.querySelector('#loginEmail').value.trim();
-        const pass  = modal.querySelector('#loginPass').value.trim();
-        await NINI.api.login?.(email, pass);
-      } else if (mode === 'register') {
-        const email = modal.querySelector('#regEmail').value.trim();
-        const pass  = modal.querySelector('#regPass').value.trim();
-        const name  = modal.querySelector('#regName').value.trim();
-        await NINI.api.register?.(email, pass, name);
+    wrap.addEventListener('click', (e)=>{
+      if (e.target.id === 'btnClose') N.emit('auth:close');
+      const t = e.target.closest('[data-tab]');
+      if (t) setTab(t.dataset.tab);
+    });
+
+    wrap.querySelector('#btnSendReset')?.addEventListener('click', () => {
+      const email = wrap.querySelector('#resetEmail').value.trim();
+      if (!email) return alert('Nhập email');
+      if (N.fb?.sendPasswordResetEmail) {
+        N.fb.sendPasswordResetEmail(email).then(()=>alert('Đã gửi link (demo).'))
+          .catch(e=>alert(e.message));
       } else {
-        const email = modal.querySelector('#resetEmail').value.trim();
-        await NINI.api.sendReset?.(email);
+        alert('Demo: gửi reset qua server riêng của bạn.');
       }
-      close();
-    } catch (e) { alert(e.message || e); }
-  };
+    });
 
-  // Đóng: nút, bấm nền, phím ESC + “phòng hờ” inline style
-  modal.querySelector('#authClose').onclick = close;
-  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-
-  function close(){
-    modal.classList.add('hidden');
-    // fallback nếu .hidden bị override
-    modal.style.display = 'none';
-    // bỏ inline sau 1 tick để lần sau vẫn dùng class
-    setTimeout(()=> modal.style.removeProperty('display'), 0);
+    N.on('auth:open', () => {
+      wrap.removeAttribute('aria-hidden');
+      document.body.classList.add('modal-open');
+    });
+    N.on('auth:close', () => {
+      wrap.setAttribute('aria-hidden','true');
+      document.body.classList.remove('modal-open');
+    });
   }
 
-  // Mở modal từ header
-  NINI.on('auth:open', ({mode: m}) => {
-    mode = m || 'login';
-    modal.querySelectorAll('.auth-tabs button').forEach(x=>x.classList.toggle('active', x.dataset.mode===mode));
-    renderBody();
-    modal.classList.remove('hidden');
-    // clear mọi fallback ẩn
-    modal.style.removeProperty('display');
-  });
+  mount();
 })();

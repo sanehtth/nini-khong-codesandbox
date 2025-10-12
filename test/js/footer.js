@@ -1,7 +1,8 @@
-﻿(() => {
-  function mountFooter(root) {
-    const el = typeof root === 'string' ? document.querySelector(root) : root;
-    el.innerHTML = `<div class="footer glass">© NiNi — Funny</div>`;
+﻿;(() => {
+  if (!document.getElementById('mini_footer')){
+    const f = document.createElement('footer');
+    f.id = 'mini_footer';
+    f.innerHTML = `<small>© NiNi — Funny</small>`;
+    document.body.appendChild(f);
   }
-  NINI.mount.footer = mountFooter;
 })();

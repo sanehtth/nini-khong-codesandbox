@@ -1,64 +1,53 @@
-(() => {
-  function tpl() {
-    return `
-      <div class="nini-header">
-        <div class="brand">
-          <img class="logo" src="/public/assets/icons/logo_text.webp" alt="NiNi" />
-          <span class="slogan">Chơi mê ly, bứt phá tư duy</span>
-        </div>
+﻿;(() => {
+  const N = window.NINI;
 
-        <nav class="tabs">
-          <button data-to="home">Home</button>
-          <button data-to="spring">Spring</button>
-          <button data-to="summer">Summer</button>
-          <button data-to="autumn">Autumn</button>
-          <button data-to="winter">Winter</button>
-        </nav>
-
-        <div class="userbox" id="niniUserBox">
-          <img class="avatar" src="/public/assets/avatar/NV.webp" alt="avatar" />
-          <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>
-        </div>
+  function renderHeader(root){
+    root.innerHTML = `
+      <div class="brand">
+        <img src="/public/assets/icons/logo_text.webp" alt="NiNi" />
+        <span class="slogan">Chơi mê ly, bật phá tư duy</span>
+      </div>
+      <nav class="tabs">
+        <button data-go="home">Home</button>
+        <button data-go="spring">Spring</button>
+        <button data-go="summer">Summer</button>
+        <button data-go="autumn">Autumn</button>
+        <button data-go="winter">Winter</button>
+      </nav>
+      <div class="userbox">
+        <img class="avatar" src="/public/assets/avatar/NV.webp" alt="avatar"/>
+        <span class="email" id="miniEmail">Bạn chưa đăng nhập</span>
+        <button id="btnAuthOpen" class="btn">Đăng nhập / Đăng ký</button>
+        <button id="btnLogout"   class="btn" style="display:none">Đăng xuất</button>
       </div>
     `;
-  }
 
-  function mountHeader(root) {
-    const el = typeof root === 'string' ? document.querySelector(root) : root;
-    el.innerHTML = tpl();
-
-    // Điều hướng 5 tab (UI)
-    el.querySelectorAll('.tabs [data-to]').forEach(b => {
-      b.addEventListener('click', () => {
-        const key = b.dataset.to;
-        document.body.classList.remove('home','spring','summer','autumn','winter');
-        document.body.classList.add(key);
-        NINI.emit('route:change', key);
+    // điều hướng “mùa”
+    root.querySelectorAll('[data-go]').forEach(btn=>{
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-go');
+        if (['spring','summer','autumn','winter'].includes(key)) {
+          N.setSeason(key);
+          location.hash = '#/' + key;
+        } else {
+          location.hash = '#/home';
+        }
       });
     });
 
-    // Mở modal Auth
-    el.querySelector('#btnAuthOpen').addEventListener('click', () => {
-      NINI.emit('auth:open', { mode: 'login' });
-    });
+    // mở modal
+    root.querySelector('#btnAuthOpen').addEventListener('click', () => N.emit('auth:open'));
 
-    // Khi đăng nhập xong (sau này adapter phát sự kiện)
-    NINI.on('auth:changed', (u) => {
-      const box = el.querySelector('#niniUserBox');
-      if (u) {
-        box.innerHTML = `
-          <img class="avatar" src="${u.photoURL || '/public/assets/avatar/NV.webp'}" alt="">
-          <span class="email">${u.email}</span>
-          <button class="btn" id="btnLogout">Đăng xuất</button>`;
-        box.querySelector('#btnLogout').onclick = () => NINI.api.logout?.();
+    // đăng xuất (nếu có NINI.fb)
+    root.querySelector('#btnLogout').addEventListener('click', async () => {
+      if (N.fb?.logout) {
+        try { await N.fb.logout(); location.reload(); }
+        catch(e){ alert('Không đăng xuất được: ' + e.message); }
       } else {
-        box.innerHTML = `
-          <img class="avatar" src="/public/assets/avatar/NV.webp" alt="">
-          <button class="btn" id="btnAuthOpen">Đăng nhập / Đăng ký</button>`;
-        box.querySelector('#btnAuthOpen').onclick = () => NINI.emit('auth:open',{mode:'login'});
+        alert('Demo logout!');
       }
     });
   }
 
-  NINI.mount.header = mountHeader;
+  N.mountOnce('#mini_header', renderHeader);
 })();

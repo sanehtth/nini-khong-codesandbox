@@ -5,31 +5,34 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny (Clean)</title>
 
-  <!-- CSS mới, tách nhỏ -->
-  <link rel="stylesheet" href="./test/css/base.css" />
-  <link rel="stylesheet" href="./test/css/header.css" />
-  <link rel="stylesheet" href="./test/css/stage.css" />
-  <link rel="stylesheet" href="./test/css/footer.css" />
-  <link rel="stylesheet" href="./test/css/auth-modal.css" />
+  <!-- CSS -->
+<link rel="stylesheet" href="./test/css/base.css">
+<link rel="stylesheet" href="./test/css/header.css">
+<link rel="stylesheet" href="./test/css/stage.css">
+<link rel="stylesheet" href="./test/css/footer.css">
+<link rel="stylesheet" href="./test/css/auth-modal.css">
 </head>
 <body class="theme-spring"> <!-- body class đổi theo mùa -->
-  <header id="mini_header"></header>
+  <header id="nini_header"></header>
 
   <main class="stage">
     <section id="stage"></section>
     <nav id="season_bar"></nav>
   </main>
 
-  <script src="/public/js/nini-config.js"></script>
-  <script src="/public/js/nini-fb.js"></script>
-  <script src="/public/js/onoff.js" defer></script>
-  <script src="/public/js/header.js" defer></script>
-  <script src="/public/js/stage.js" defer></script>
-  /* <script src="/public/js/seasons-nav.js" defer></script> */
-  /* <script src="/public/js/app.js" defer></script> */
+  <!-- JS: config + FB trước, rồi core -> header -> stage -> modal -> onoff -> footer -->
+<script src="./public/js/nini-config.js"></script>
+<script src="./public/js/nini-fb.js"></script>
+<script src="./test/js/core.js"></script>
+<script src="./test/js/header.js" defer></script>
+<script src="./test/js/stage.js" defer></script>
+<script src="./test/js/auth-modal.js" defer></script>
+<script src="./test/js/onoff.js" defer></script>
+<script src="./test/js/footer.js" defer></script>
 </body>
 
 </html>
+
 
 
 

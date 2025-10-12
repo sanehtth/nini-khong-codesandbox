@@ -67,3 +67,28 @@
     N.emit && N.emit('auth:close');
   });
 })();
+
+/* header.js — thêm vào cuối file (hoặc sau khi render header xong) */
+(function () {
+  const N = (window.NINI = window.NINI || {});
+  if (N._wiredHeaderAuthOpen) return;
+  N._wiredHeaderAuthOpen = true;
+
+  // Bắt click vào nút/anchor mở modal trong header
+  document.addEventListener('click', (e) => {
+    const openBtn = e.target.closest('#btnAuthOpen, [data-auth="open"], [data-auth="signin"]');
+    if (!openBtn) return;
+    e.preventDefault();
+
+    // Fallback mở thẳng modal
+    const m = document.getElementById('authModal');
+    if (m) {
+      m.classList.remove('hidden');
+      m.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('body-auth-open');
+    }
+    // Và vẫn emit cho nơi khác nếu có lắng nghe
+    N.emit && N.emit('auth:open');
+  });
+})();
+

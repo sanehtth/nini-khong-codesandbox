@@ -8,3 +8,6 @@
 
 .nini-header .userbox{display:flex;align-items:center;gap:8px}
 .nini-header .userbox .avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+
+#authModal[aria-hidden="true"] { display: none !important; }
+

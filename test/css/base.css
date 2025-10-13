@@ -3,6 +3,7 @@
    - Gộp style header cơ bản + brand/slogan + avatar default
    - Toggle giao diện theo trạng thái đăng nhập (guest/auth)
    - Ẩn toàn bộ logo/brand legacy cũ để chỉ còn 1 logo duy nhất
+   - Khôi phục background trang chủ
    ======================================================================= */
 
 /* --------- Variables chung --------- */
@@ -103,11 +104,12 @@ a { color: inherit; }
 #nini_header .userbox{
   display:flex; align-items:center; gap:10px; justify-self: end;
 }
-
 #nini_header .userbox .email{
-  max-width: 220px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  opacity:.9;
+  max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  opacity:.9; padding:2px 6px; border-radius:12px;
+}
+body[data-auth="in"] #nini_header .userbox .email:hover{
+  background:#ffffff; border:1px solid var(--glass-bd);
 }
 
 /* Avatar: dùng background mặc định khi img.src = "" */
@@ -139,7 +141,24 @@ body[data-auth="in"] .auth-only { display:inline-flex !important; }
 .body-auth-open{ overflow:hidden; }     /* khi mở modal thì khóa scroll */
 
 /* =======================================================================
-   Misc
+   MISC / CHẶN LEGACY NGOÀI HEADER
    ======================================================================= */
-/* chặn các logo cũ ngoài header nếu còn sót lại ở layout cũ */
 .left-logo, .site-logo, .top-left-logo { display:none !important; }
+
+/* =======================================================================
+   BACKGROUND THEME (khôi phục)
+   ======================================================================= */
+body.home {
+  background: url("/public/assets/bg/forest-day.webp") center top / cover fixed no-repeat;
+}
+@media (max-width: 900px){
+  body.home { background-attachment: scroll; background-size: cover; }
+}
+
+/* Force hide legacy badges/logos nếu CSS khác cố đè */
+.nini-badge,
+.left-logo,
+.site-logo,
+.top-left-logo,
+.header-logo,
+.header__logo { display:none !important; }

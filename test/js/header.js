@@ -1,7 +1,12 @@
-/* header.js — safe render + auth toggle */
+/* header.js — safe render + cleanup legacy + auth toggle
+ * NOTE:
+ * - Render đúng một header vào #nini_header
+ * - Cleanup: xóa control auth cũ nằm ngoài #nini_header (ngăn trùng U/N & 2 nút Đăng xuất)
+ * - Toggle theo user: có user -> hiện avatar+nick+Đăng xuất; không user -> hiện Đăng nhập/Đăng ký
+ */
 (function () {
   const N = (window.NINI = window.NINI || {});
-  if (N._wiredHeader) return;
+  if (N._wiredHeader) return;           // NOTE: chặn render 2 lần
   N._wiredHeader = true;
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -31,8 +36,10 @@
         </nav>
 
         <div class="userbox" id="userbox">
+          <!-- trạng thái khi CHƯA đăng nhập -->
           <button id="btnAuthOpen" class="btn-auth" type="button">Đăng nhập / Đăng ký</button>
 
+          <!-- trạng thái khi ĐÃ đăng nhập -->
           <div id="userInfo" class="user-info" style="display:none">
             <button id="btnProfile" class="avatar" type="button" title="Hồ sơ"></button>
             <span class="nick" id="userNick"></span>
@@ -41,6 +48,13 @@
         </div>
       </div>
     `;
+
+    /* === CLEANUP LEGACY ===
+     * NOTE: gỡ mọi control auth cũ KHÔNG nằm trong #nini_header (ngăn 2 avatar, 2 nút Đăng xuất).
+     */
+    document.querySelectorAll('.btn-auth, .avatar, .user-info').forEach(el => {
+      if (!el.closest('#nini_header')) el.remove();
+    });
 
     // open auth modal
     $('#btnAuthOpen')?.addEventListener('click', () => {
@@ -78,12 +92,17 @@
       btnAuth && (btnAuth.style.display = 'none');
       boxUser && (boxUser.style.display = 'inline-flex');
 
-      const display = user.displayName || user.email?.split('@')[0] || 'NiNi';
+      const display = user.displayName || (user.email ? user.email.split('@')[0] : '') || 'NiNi';
       if (nick) nick.textContent = display;
 
-      const letter = display?.trim()?.[0]?.toUpperCase?.() || 'U';
+      const letter = display.trim()[0]?.toUpperCase?.() || 'U';
       if (ava) {
-        ava.style.setProperty('--ava-bg', `url("${user.photoURL || ''}")`);
+        // nếu có photoURL thì dùng, không có thì hiển thị chữ cái
+        if (user.photoURL) {
+          ava.style.setProperty('--ava-bg', `url("${user.photoURL}")`);
+        } else {
+          ava.style.removeProperty('--ava-bg');
+        }
         ava.setAttribute('data-letter', letter);
       }
     } else {
@@ -99,9 +118,13 @@
   // wire
   ready(() => {
     render();
-    // nghe user thay đổi -> toggle nút
+
+    // subscribe user change -> toggle nút
     if (N.fb?.onUserChanged) N.fb.onUserChanged(updateAuthUI);
+
     // cập nhật ngay nếu đã đăng nhập sẵn
-    if (N.fb?.currentUser) updateAuthUI(N.fb.currentUser());
+    if (N.fb?.currentUser) {
+      try { updateAuthUI(N.fb.currentUser()); } catch (e) {}
+    }
   });
 })();

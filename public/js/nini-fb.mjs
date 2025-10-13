@@ -122,11 +122,12 @@ export async function init() {
   // gắn listener user change 1 lần
   if (!N._userWatcher) {
     onAuthStateChanged(auth, (user) => {
-      N.emit('user:changed', user || null);     // phát sự kiện chung
-      N.fb?._user = user || null;               // lưu
-      if (user) console.log("[NINI] user:", user.email || user.uid);
-      else console.log("[NINI] user: signed out");
-    });
+  N.emit('user:changed', user || null);   // bắn event cho UI
+  if (!N.fb) N.fb = {};
+  N.fb._user = user || null;              // ✅ gán bình thường
+  if (user) console.log("[NINI] user:", user.email || user.uid);
+  else console.log("[NINI] user: signed out");
+});
     N._userWatcher = true;
   }
 
@@ -263,6 +264,12 @@ N.fb = Object.assign(N.fb || {}, {
   // nội bộ: giữ app/auth phục vụ debug nếu cần
   _app: () => app, _auth: () => auth
 });
+// --- Các alias để tương thích code cũ ---
+N.fb.loginEmailPass = login;              // UI cũ gọi tên này
+N.fb.loginEmailPassword = login;          // …hoặc tên này
+N.fb.sendReset = resetPassword;           // nếu UI cũ gọi sendReset()
+N.fb.makeReset = makePasswordResetLink;   // nếu UI cũ gọi makeReset()
 
 // Tự init sớm (optional). Có thể bỏ nếu muốn chủ động gọi ở ngoài.
 init().catch(err => console.error(err?.message || err));
+

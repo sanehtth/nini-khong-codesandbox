@@ -1,10 +1,3 @@
-/* =========================================================
- * header.js — Header dùng chung cho mọi trang
- * - Chỉ render 1 logo (logo_text.webp)
- * - Theo dõi trạng thái đăng nhập: set flag body[data-auth]
- * - Toggle nút guest/auth
- * - Click avatar -> profile.html
- * =======================================================*/
 (function () {
   const N = (window.NINI = window.NINI || {});
   if (N._wiredHeader) return;
@@ -16,7 +9,6 @@
       document.body.prepend(h); return h;
     })();
 
-    // HTML: chỉ dùng logo_text.webp (logo-left). KHÔNG render icon nhỏ.
     root.innerHTML = `
       <div class="nini-header-wrap">
         <a href="/#/home" class="site-brand" data-auto-slogan aria-label="NiNi">
@@ -31,16 +23,17 @@
         <div class="userbox">
           <img class="avatar" id="niniAvatar" alt="avatar">
           <span id="niniEmail" class="email"></span>
-
-          <!-- guest -->
           <button id="btnAuthOpen" class="btn-auth guest-only" type="button">Đăng nhập / Đăng ký</button>
-          <!-- authed -->
           <button id="btnLogout" class="btn-auth auth-only" type="button" data-auth="logout">Đăng xuất</button>
         </div>
       </div>
     `;
 
-    // mở modal auth
+    // dọn sạch logo/badge legacy nếu còn trong DOM
+    const kill = (s) => document.querySelectorAll(s).forEach(n => n.remove());
+    kill('.nini-badge, .left-logo, .site-logo, .top-left-logo, .header-logo, .header__logo');
+
+    // mở modal
     root.querySelector('#btnAuthOpen')?.addEventListener('click', (e) => {
       e.preventDefault();
       if (N.emit) N.emit('auth:open');
@@ -58,13 +51,13 @@
       try { await N.fb?.logout?.(); } catch {}
     });
 
-    // avatar -> profile
-    root.querySelector('#niniAvatar')?.addEventListener('click', (e) => {
+    // avatar & email -> profile
+    const goProfile = (e) => {
       e.preventDefault();
-      // chỉ đi khi đã đăng nhập
-      const authed = document.body.dataset.auth === 'in';
-      if (authed) location.href = '/profile.html';
-    });
+      if (document.body.dataset.auth === 'in') location.href = '/profile.html';
+    };
+    root.querySelector('#niniAvatar')?.addEventListener('click', goProfile);
+    root.querySelector('#niniEmail') ?.addEventListener('click', goProfile);
 
     function renderUser(u){
       const $email  = root.querySelector('#niniEmail');
@@ -72,12 +65,15 @@
 
       if (u){
         document.body.dataset.auth = 'in';
-        $email.textContent = u.displayName || u.email || '';
-        $avatar.src = u.photoURL || ''; // rỗng -> dùng avatar default từ CSS
+        const nick = (u.displayName && u.displayName.trim()) || (u.email ? u.email.split('@')[0] : '');
+        $email.textContent = nick;            // ✅ nickname thay vì email
+        $avatar.src = u.photoURL || '';       // rỗng -> dùng avatar default từ CSS
+        $email.style.cursor = 'pointer';
       } else {
         document.body.dataset.auth = 'out';
         $email.textContent = '';
-        $avatar.src = '';              // rỗng -> avatar default
+        $avatar.src = '';
+        $email.style.cursor = 'default';
       }
     }
 
@@ -86,7 +82,6 @@
   }
 
   N.header = { mount };
-
   if (document.readyState !== 'loading') mount();
   else document.addEventListener('DOMContentLoaded', () => mount());
 })();

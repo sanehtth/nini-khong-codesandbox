@@ -130,3 +130,11 @@ body.winter,body[data-season="winter"] { --bg-url: url('/public/assets/bg/nini_w
 /* message nhỏ trong auth modal */
 #authModal .msg{ margin-top:8px; font-size:13px; }
 #authModal .msg.ok{ color:var(--ok); }  #authModal .msg.err{ color:var(--err); }
+
+/* Ẩn icon nhỏ & các logo cũ nếu có */
+#nini_header .site-brand .title-logo { display:none !important; }
+#nini_header .brand,
+#nini_header .legacy-logo,
+#nini_header .nini-logo,
+.nini-badge { display:none !important; } /* nếu có badge legacy góc trái */
+

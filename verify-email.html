@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Xác nhận email</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/test/css/base.css" />
+  <!-- ========== CSS ========== -->
+  <!-- base.css đã GỘP header.css và chứa toàn bộ brand/avatar/background -->
+  <link rel="stylesheet" href="./test/css/base.css">
+  <link rel="stylesheet" href="./test/css/footer.css">
+  <!-- ========== SDK DUY NHẤT cần nạp: nini-fb.mjs (đã tự import Firebase SDK) ========== -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
 </head>
 <body>
   <header id="mini_header"></header>
@@ -14,7 +19,7 @@
     <!-- form reset/verify -->
   </main>
 
-  <script src="/public/js/nini-fb.mjs"></script>
+  
   <script src="/test/js/header.js" defer></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -23,6 +28,7 @@
   </script>
 </body>
 </html>
+
 
 
 

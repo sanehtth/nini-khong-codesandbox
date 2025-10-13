@@ -1,27 +1,25 @@
 /* =========================================================
  * header.js — Header dùng chung cho mọi trang
- * - Không hardcode URL ảnh (logo/avatar lấy từ base.css)
- * - Render 1 lần vào #nini_header (auto-mount)
- * - Mở modal auth & xử lý logout
- * - Đồng bộ trạng thái người dùng (email/avatar) qua NINI.fb.onUserChanged
+ * - Chỉ render 1 logo (logo_text.webp)
+ * - Theo dõi trạng thái đăng nhập: set flag body[data-auth]
+ * - Toggle nút guest/auth
+ * - Click avatar -> profile.html
  * =======================================================*/
 (function () {
   const N = (window.NINI = window.NINI || {});
-  if (N._wiredHeader) return;             // tránh gắn 2 lần
+  if (N._wiredHeader) return;
   N._wiredHeader = true;
 
-  // mount header vào #nini_header (hoặc tự tạo nếu thiếu)
   function mount(sel = '#nini_header') {
     const root = document.querySelector(sel) || (() => {
       const h = document.createElement('header'); h.id = 'nini_header';
       document.body.prepend(h); return h;
     })();
 
-    // HTML header tối giản: brand + nav + user box
+    // HTML: chỉ dùng logo_text.webp (logo-left). KHÔNG render icon nhỏ.
     root.innerHTML = `
       <div class="nini-header-wrap">
         <a href="/#/home" class="site-brand" data-auto-slogan aria-label="NiNi">
-          <i class="title-logo"></i>
           <i class="logo-left"></i>
         </a>
 
@@ -33,17 +31,19 @@
         <div class="userbox">
           <img class="avatar" id="niniAvatar" alt="avatar">
           <span id="niniEmail" class="email"></span>
-          <button id="btnAuthOpen" class="btn-auth" type="button">Đăng nhập / Đăng ký</button>
-          <button id="btnLogout" class="btn-auth" type="button" style="display:none" data-auth="logout">Đăng xuất</button>
+
+          <!-- guest -->
+          <button id="btnAuthOpen" class="btn-auth guest-only" type="button">Đăng nhập / Đăng ký</button>
+          <!-- authed -->
+          <button id="btnLogout" class="btn-auth auth-only" type="button" data-auth="logout">Đăng xuất</button>
         </div>
       </div>
     `;
 
-    // mở modal auth (emit để auth-modal.js/onoff.js xử lý)
+    // mở modal auth
     root.querySelector('#btnAuthOpen')?.addEventListener('click', (e) => {
       e.preventDefault();
       if (N.emit) N.emit('auth:open');
-      // fallback nếu không có event-bus: tự mở modal nếu #authModal tồn tại
       const m = document.getElementById('authModal');
       if (m) {
         m.classList.remove('hidden');
@@ -58,35 +58,35 @@
       try { await N.fb?.logout?.(); } catch {}
     });
 
-    // render trạng thái user
+    // avatar -> profile
+    root.querySelector('#niniAvatar')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      // chỉ đi khi đã đăng nhập
+      const authed = document.body.dataset.auth === 'in';
+      if (authed) location.href = '/profile.html';
+    });
+
     function renderUser(u){
       const $email  = root.querySelector('#niniEmail');
       const $avatar = root.querySelector('#niniAvatar');
-      const $open   = root.querySelector('#btnAuthOpen');
-      const $out    = root.querySelector('#btnLogout');
 
       if (u){
+        document.body.dataset.auth = 'in';
         $email.textContent = u.displayName || u.email || '';
-        $avatar.src = u.photoURL || '';    // rỗng → CSS hiện avatar default
-        $open.style.display = 'none';
-        $out.style.display  = '';
+        $avatar.src = u.photoURL || ''; // rỗng -> dùng avatar default từ CSS
       } else {
+        document.body.dataset.auth = 'out';
         $email.textContent = '';
-        $avatar.src = '';                  // rỗng → CSS hiện avatar default
-        $open.style.display = '';
-        $out.style.display  = 'none';
+        $avatar.src = '';              // rỗng -> avatar default
       }
     }
 
-    // lắng nghe thay đổi user (Firebase wrapper của bạn)
     try { N.fb?.onUserChanged && N.fb.onUserChanged(renderUser); } catch {}
     return root;
   }
 
-  // expose
   N.header = { mount };
 
-  // auto-mount khi DOM sẵn sàng
   if (document.readyState !== 'loading') mount();
   else document.addEventListener('DOMContentLoaded', () => mount());
 })();

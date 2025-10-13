@@ -1,118 +1,40 @@
-/* auth-glue.js — glue giữa modal & backend (Firebase/server)
-   - Cache/flag vào localStorage để boot UI không nhấp nháy
-   - Đồng bộ body[data-auth] + header khi user đổi
-   - Đồng bộ giữa các tab (storage event)
-   - Handlers: login / signup / reset / google / logout
-*/
+/**
+ * auth-glue.js — Kết nối modal ↔ Firebase wrapper
+ * - Bắt event NINI.emit(): auth:login | auth:signup | auth:reset | auth:google
+ * - Toggle UI header theo user (btn đăng nhập / avatar + đăng xuất)
+ * - Đóng modal sau thao tác thành công
+ *
+ * Phần header kỳ vọng (nếu có):
+ *   #btnAuthOpen  — nút mở modal
+ *   #btnLogout    — nút đăng xuất (nếu chưa có, file này sẽ tạo)
+ *   #userAvatar   — khung avatar (div/img) + #userNick (span) (nếu chưa có, file này sẽ tạo)
+ *
+ * Nếu header của bạn render khác, chỉ cần giữ **id** như trên hoặc thêm
+ * các data-attr tương đương: [data-auth="open"], [data-auth="logout"], [data-auth="avatar"], [data-auth="nick"]
+ */
+
 (function () {
   const N = (window.NINI = window.NINI || {});
   if (N._wiredAuthGlue) return;
   N._wiredAuthGlue = true;
 
-  /* ====================== STATE / CACHE ======================= */
-  const LS_AUTH = 'nini.auth';   // '1' | (null)
-  const LS_USER = 'nini.user';   // JSON {email, displayName, photoURL}
-
   const FB = () => (window.NINI && window.NINI.fb) || {};
 
-  function setBodyAuth(isIn) {
-    document.body.setAttribute('data-auth', isIn ? 'in' : 'out');
-  }
-  function saveCache(u) {
-    if (u) {
-      localStorage.setItem(LS_AUTH, '1');
-      localStorage.setItem(LS_USER, JSON.stringify({
-        email: u.email || '',
-        displayName: u.displayName || '',
-        photoURL: u.photoURL || ''
-      }));
-    } else {
-      localStorage.removeItem(LS_AUTH);
-      localStorage.removeItem(LS_USER);
-    }
-  }
-  function loadCache() {
-    if (localStorage.getItem(LS_AUTH) !== '1') return null;
-    try { return JSON.parse(localStorage.getItem(LS_USER) || 'null'); }
-    catch { return null; }
-  }
+  // ---------- Helpers ----------
+  function $(sel, root = document) { return root.querySelector(sel); }
 
-  function renderUserState(user) {
-    const loginBtn  = document.querySelector('#btnAuthOpen,[data-auth="open"]');
-    const logoutBtn = document.querySelector('#btnLogout,[data-auth="logout"]');
-    const avatarBox = document.querySelector('#userAvatar,[data-auth="avatar"]');
-
-    if (user) {
-      loginBtn && (loginBtn.style.display = 'none');
-      logoutBtn && (logoutBtn.style.display = '');
-      // nếu header.js đã render avatar riêng thì bỏ qua avatarBox
-      if (avatarBox) {
-        avatarBox.innerHTML = '';
-        if (user.photoURL) {
-          const img = new Image();
-          img.src = user.photoURL; img.alt = user.displayName || user.email || 'avatar';
-          img.style.cssText='width:28px;height:28px;border-radius:50%;object-fit:cover;';
-          avatarBox.appendChild(img);
-        } else {
-          const dot = document.createElement('div');
-          const name = (user.displayName || user.email || '').trim();
-          const ch = (name[0] || 'U').toUpperCase();
-          dot.textContent = ch;
-          dot.style.cssText='width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#ececff;color:#4b47ff;font-weight:700;';
-          avatarBox.appendChild(dot);
-        }
-        const span = document.createElement('span');
-        span.textContent = user.displayName || user.email || '';
-        span.style.fontSize = '13px';
-        avatarBox.appendChild(span);
-      }
-    } else {
-      loginBtn && (loginBtn.style.display = '');
-      logoutBtn && (logoutBtn.style.display = 'none');
-      avatarBox && (avatarBox.innerHTML = '');
-    }
-  }
-
-  /* Boot từ cache để UI đúng ngay khi mở trang */
-  const cached = loadCache();
-  setBodyAuth(!!cached);
-  renderUserState(cached);
-
-  /* Subscribe Firebase */
-  try {
-    FB().onUserChanged && FB().onUserChanged((u) => {
-      saveCache(u);
-      setBodyAuth(!!u);
-      renderUserState(u);
-      N.emit && N.emit('auth:state', !!u);
-      console.log('[NINI] user:', u ? u.email : 'signed out');
-    });
-  } catch {} 
-
-  /* Sync giữa tab */
-  window.addEventListener('storage', (e) => {
-    if (e.key === LS_AUTH || e.key === LS_USER) {
-      const u = loadCache();
-      setBodyAuth(!!u);
-      renderUserState(u);
-      N.emit && N.emit('auth:state', !!u);
-    }
-  });
-
-  /* =============== Modal helpers (message/loading/close) =============== */
   function setMsg(type, text) {
-    const wrap = document.querySelector("#authModal .auth-box");
-    if (!wrap) { if (text) alert(text); return; }
+    const wrap = $("#authModal .auth-box");
+    if (!wrap) { if (text) console.log(text); return; }
     let msg = wrap.querySelector(".msg");
     if (!msg) { msg = document.createElement("div"); msg.className = "msg"; wrap.appendChild(msg); }
     msg.className = "msg " + (type || "");
     msg.textContent = text || "";
   }
+
   function setFormLoading(formId, loading, textLoading) {
-    const form = document.getElementById(formId);
-    if (!form) return;
-    const btn = form.querySelector('button[type="submit"]');
-    if (!btn) return;
+    const f = document.getElementById(formId); if (!f) return;
+    const btn = f.querySelector('button[type="submit"]'); if (!btn) return;
     if (loading) {
       btn.dataset._text = btn.textContent;
       btn.textContent = textLoading || "Đang xử lý...";
@@ -122,102 +44,201 @@
       btn.disabled = false;
     }
   }
+
   function closeModal() {
-    const m = document.getElementById("authModal");
-    if (!m) return;
+    const m = document.getElementById("authModal"); if (!m) return;
     m.classList.add("hidden");
     m.setAttribute("aria-hidden", "true");
     document.body.classList.remove("body-auth-open");
     N.emit && N.emit("auth:close");
   }
 
-  /* ====================== Handlers modal ======================= */
-  // Đăng nhập (email+pass)
-  N.on && N.on('auth:login', async ({ email, password }) => {
-    try {
-      // fallback đọc form
-      const modal = document.getElementById('authModal');
-      const active = modal ? modal.querySelector('form.active') : null;
-      const pick = (sel) => active?.querySelector(sel)?.value?.trim() || '';
-      email = (email || pick('input[type="email"],input[name="email"],input[name*="mail" i]') || '').toLowerCase();
-      password = password || pick('input[type="password"],input[name="password"]');
-      if (!email) { setMsg('err','Thiếu email'); return; }
+  // ---------- Header DOM (tạo nếu thiếu) ----------
+  function headerParts() {
+    const root = document.getElementById("nini_header") || document;
 
-      setMsg('', ''); setFormLoading('formLogin', true, 'Đang đăng nhập...');
-      const fb = FB();
-      const loginFn = fb.loginEmailPass || fb.loginEmailPassword;
-      if (!loginFn) throw new Error('Thiếu NINI.fb.loginEmailPass/LoginEmailPassword');
+    let openBtn  = root.querySelector("#btnAuthOpen, [data-auth='open']");
+    let logoutBtn = root.querySelector("#btnLogout, [data-auth='logout']");
+    let avatarBox = root.querySelector("#userAvatar, [data-auth='avatar']");
+    let nickEl = root.querySelector("#userNick, [data-auth='nick']");
 
-      const user = await loginFn(email, password);
-      setMsg('ok','Đăng nhập thành công!'); closeModal();
-      // UI sẽ được onUserChanged bắn; vẫn set ngay để mượt
-      saveCache(user); setBodyAuth(!!user); renderUserState(user);
-    } catch (err) {
-      setMsg('err', err?.message || 'Đăng nhập thất bại');
-    } finally {
-      setFormLoading('formLogin', false);
+    // tạo thiếu thì bổ sung gọn
+    const userbox = root.querySelector(".userbox") || root;
+
+    if (!logoutBtn) {
+      logoutBtn = document.createElement("button");
+      logoutBtn.id = "btnLogout";
+      logoutBtn.setAttribute("data-auth", "logout");
+      logoutBtn.textContent = "Đăng xuất";
+      logoutBtn.style.display = "none";
+      logoutBtn.className = (openBtn && openBtn.className) || "btn-auth";
+      userbox.appendChild(logoutBtn);
     }
-  });
-
-  // Đăng ký email-only
-  N.on && N.on('auth:signup', async ({ email }) => {
-    try {
-      const f = document.getElementById('formSignup');
-      const pickEmail = () => f?.querySelector('input[type="email"],input[name="email"],input[name*="mail" i]')?.value?.trim() || '';
-      email = (email || pickEmail() || '').toLowerCase();
-      if (!email) { setMsg('err','Vui lòng nhập email.'); return; }
-
-      setMsg('', ''); setFormLoading('formSignup', true, 'Đang gửi email xác minh...');
-      const fb = FB();
-      if (!fb.registerEmailOnly) throw new Error('Thiếu NINI.fb.registerEmailOnly');
-      await fb.registerEmailOnly(email);
-      setMsg('ok','Đã gửi email xác minh. Vui lòng kiểm tra hộp thư.'); closeModal();
-    } catch (err) {
-      setMsg('err', err?.message || 'Đăng ký thất bại');
-    } finally {
-      setFormLoading('formSignup', false);
+    if (!avatarBox) {
+      avatarBox = document.createElement("div");
+      avatarBox.id = "userAvatar";
+      avatarBox.setAttribute("data-auth", "avatar");
+      avatarBox.style.display = "none";
+      avatarBox.style.alignItems = "center";
+      avatarBox.style.gap = "8px";
+      userbox.prepend(avatarBox);
     }
-  });
-
-  // Quên mật khẩu
-  N.on && N.on('auth:reset', async ({ email }) => {
-    try {
-      setMsg('', ''); setFormLoading('formReset', true, 'Đang gửi email...');
-      const fb = FB();
-      if (!fb.resetPassword) throw new Error('Thiếu NINI.fb.resetPassword');
-      await fb.resetPassword(email);
-      setMsg('ok','Đã gửi link đặt lại mật khẩu'); closeModal();
-    } catch (err) {
-      setMsg('err', err?.message || 'Gửi mail thất bại');
-    } finally {
-      setFormLoading('formReset', false);
+    if (!nickEl) {
+      nickEl = document.createElement("span");
+      nickEl.id = "userNick";
+      nickEl.setAttribute("data-auth", "nick");
+      avatarBox.appendChild(nickEl);
     }
-  });
 
-  // Google
-  N.on && N.on('auth:google', async () => {
-    try {
-      setMsg('', '');
-      const user = await (FB().loginGoogle?.());
-      setMsg('ok','Đăng nhập Google thành công!'); closeModal();
-      saveCache(user); setBodyAuth(!!user); renderUserState(user);
-    } catch (err) {
-      setMsg('err', err?.message || 'Đăng nhập Google thất bại');
+    return { root, openBtn, logoutBtn, avatarBox, nickEl };
+  }
+
+  function initialsOf(u) {
+    const name = (u?.displayName || u?.email || "").trim();
+    const parts = name.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const a = (parts[0] || "").charAt(0).toUpperCase();
+    const b = (parts[parts.length - 1] || "").charAt(0).toUpperCase();
+    return (a + b) || "U";
+  }
+
+  function renderUserState(user) {
+    const { openBtn, logoutBtn, avatarBox, nickEl } = headerParts();
+
+    if (user) {
+      document.body.setAttribute("data-auth", "in");
+      if (openBtn) openBtn.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "";
+
+      avatarBox.style.display = "inline-flex";
+      avatarBox.innerHTML = ""; // clear
+      // avatar (img/initials)
+      if (user.photoURL) {
+        const img = document.createElement("img");
+        img.src = user.photoURL;
+        img.alt = user.displayName || user.email || "avatar";
+        img.referrerPolicy = "no-referrer";
+        img.style.width = img.style.height = "28px";
+        img.style.borderRadius = "50%";
+        img.style.objectFit = "cover";
+        avatarBox.appendChild(img);
+      } else {
+        const dot = document.createElement("div");
+        dot.textContent = initialsOf(user);
+        Object.assign(dot.style, {
+          width: "28px", height: "28px", borderRadius: "50%", display: "grid",
+          placeItems: "center", background: "#ececff", color: "#4b47ff", fontWeight: "700"
+        });
+        avatarBox.appendChild(dot);
+      }
+      const span = document.createElement("span");
+      span.id = "userNick";
+      span.textContent = user.displayName || (user.email?.split("@")[0] ?? "NiNi");
+      avatarBox.appendChild(span);
+    } else {
+      document.body.setAttribute("data-auth", "out");
+      if (logoutBtn) logoutBtn.style.display = "none";
+      if (avatarBox) { avatarBox.style.display = "none"; avatarBox.innerHTML = ""; }
+      if (openBtn) openBtn.style.display = "";
     }
-  });
+  }
 
-  /* ====================== Logout (ủy quyền click) ======================= */
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#btnLogout,[data-auth="logout"]');
+  // ---------- Wire logout (ủy quyền click) ----------
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("#btnLogout, [data-auth='logout']");
     if (!btn) return;
     e.preventDefault();
     try {
       const fb = FB();
-      const fn = fb.logout || fb.signOut;
-      if (!fn) throw new Error('Thiếu NINI.fb.logout/signOut');
-      await fn();
-      saveCache(null); setBodyAuth(0); renderUserState(null);
-      N.emit && N.emit('auth:state', false);
-    } catch (err) { console.error(err); }
+      if (!fb.logout) throw new Error("Thiếu NINI.fb.logout()");
+      await fb.logout();
+      // sạch UI + cache (nếu có)
+      localStorage.removeItem("nini.auth");
+      localStorage.removeItem("nini.user");
+      renderUserState(null);
+      setMsg("ok", "Đã đăng xuất");
+    } catch (err) {
+      console.error(err);
+      setMsg("err", err?.message || "Đăng xuất thất bại");
+    }
+  });
+
+  // ---------- Subscribe user từ Firebase ----------
+  try {
+    const fb = FB();
+    fb.onUserChanged && fb.onUserChanged((u) => {
+      renderUserState(u);
+      console.log("[NINI] user:", u ? (u.email || u.uid) : "signed out");
+    });
+    // set OUT ngay lúc mới vào, sau đó listener sẽ set IN nếu có phiên thật
+    renderUserState(null);
+  } catch (e) { console.warn(e); }
+
+  // ---------- Handlers cho event từ modal ----------
+  N.on && N.on("auth:login", async ({ email, password }) => {
+    try {
+      setMsg("", "");
+      setFormLoading("formLogin", true, "Đang đăng nhập...");
+      const fb = FB();
+      const fn = fb.loginEmailPass || fb.loginEmailPassword;
+      if (!fn) throw new Error("Thiếu NINI.fb.loginEmailPass()");
+      const user = await fn(String(email || "").toLowerCase(), password || "");
+      setMsg("ok", "Đăng nhập thành công!");
+      closeModal();
+      renderUserState(user);
+    } catch (err) {
+      console.error(err);
+      setMsg("err", err?.message || "Đăng nhập thất bại");
+    } finally {
+      setFormLoading("formLogin", false);
+    }
+  });
+
+  N.on && N.on("auth:signup", async ({ email }) => {
+    try {
+      setMsg("", "");
+      setFormLoading("formSignup", true, "Đang gửi email xác minh...");
+      const fb = FB();
+      if (!fb.registerEmailOnly) throw new Error("Thiếu NINI.fb.registerEmailOnly()");
+      await fb.registerEmailOnly(String(email || "").toLowerCase());
+      setMsg("ok", "Đã gửi email xác minh. Vui lòng kiểm tra hộp thư.");
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      setMsg("err", err?.message || "Đăng ký thất bại");
+    } finally {
+      setFormLoading("formSignup", false);
+    }
+  });
+
+  N.on && N.on("auth:reset", async ({ email }) => {
+    try {
+      setMsg("", "");
+      setFormLoading("formReset", true, "Đang gửi email...");
+      const fb = FB();
+      if (!fb.resetPassword) throw new Error("Thiếu NINI.fb.resetPassword()");
+      await fb.resetPassword(String(email || "").toLowerCase());
+      setMsg("ok", "Đã gửi link đặt lại mật khẩu. Vui lòng kiểm tra email.");
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      setMsg("err", err?.message || "Gửi mail thất bại");
+    } finally {
+      setFormLoading("formReset", false);
+    }
+  });
+
+  N.on && N.on("auth:google", async () => {
+    try {
+      setMsg("", "");
+      const fb = FB();
+      if (!fb.loginGoogle) throw new Error("Thiếu NINI.fb.loginGoogle()");
+      const user = await fb.loginGoogle();
+      setMsg("ok", "Đăng nhập Google thành công!");
+      closeModal();
+      renderUserState(user);
+    } catch (err) {
+      console.error(err);
+      setMsg("err", err?.message || "Đăng nhập Google thất bại");
+    }
   });
 })();

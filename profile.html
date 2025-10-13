@@ -7,9 +7,9 @@
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
 
   <!-- chỉ cần base.css vì đã gộp header + tokens + glass -->
-  <link rel="stylesheet" href="/test/css/base.css" />
-  <link rel="stylesheet" href="/test/css/auth-modal.css" />
-  <link rel="stylesheet" href="/test/css/footer.css" />
+  <link rel="stylesheet" href="./test/css/base.css" />
+  <link rel="stylesheet" href="./test/css/auth-modal.css" />
+  <link rel="stylesheet" href="./test/css/footer.css" />
 
   <style>
     /* ---- profile-only (gọn, reuse tokens từ base) ---- */
@@ -105,8 +105,8 @@
   </main>
 
   <!-- JS: config + fb + core + header + modal + onoff + footer -->
-  <script src="/public/js/nini-config.js"></script>
-  <script src="/public/js/nini-fb.js"></script>
+  <!-- ========== SDK DUY NHẤT cần nạp: nini-fb.mjs (đã tự import Firebase SDK) ========== -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
 
   <script src="/test/js/core.js"></script>
   <script src="/test/js/header.js" defer></script>
@@ -177,3 +177,4 @@
   </script>
 </body>
 </html>
+

@@ -12,6 +12,10 @@
  * Nếu header của bạn render khác, chỉ cần giữ **id** như trên hoặc thêm
  * các data-attr tương đương: [data-auth="open"], [data-auth="logout"], [data-auth="avatar"], [data-auth="nick"]
  */
+// Cleanup mọi control auth KHÔNG nằm trong #nini_header
+document.querySelectorAll('.btn-auth, .avatar, .user-info').forEach(el => {
+  if (!el.closest('#nini_header')) el.remove();
+});
 
 (function () {
   const N = (window.NINI = window.NINI || {});
@@ -242,3 +246,4 @@
     }
   });
 })();
+

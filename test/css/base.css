@@ -324,4 +324,23 @@ input[type="tel"], input[type="number"], textarea, select{
   color:#f6d35c; border-color:#f6d35c;
 }
 
+/* Move soft-tabs visually under the glass card (no HTML change) */
+.stage { position: relative; }
+.stage > .glass { position: relative; margin-bottom: 56px; }
+.stage > .glass .soft-tabs{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -42px;               /* nằm dưới đáy khung */
+}
+.soft-tabs .chip{                /* giữ style chip bạn đã chốt */
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:6px 10px; border-radius:999px;
+  color:#fff; border:1px solid var(--glass-bd);
+  background: rgba(255,255,255,.10);
+}
+.soft-tabs .chip.is-active{
+  background: var(--btn-active-bg); border-color: transparent;
+}
+
 

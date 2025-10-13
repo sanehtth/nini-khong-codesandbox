@@ -305,3 +305,23 @@ input[type="tel"], input[type="number"], textarea, select{
 }
 .chip.is-active{ background: var(--btn-active-bg); border-color: transparent; }
 
+/* Header readable on photo bg */
+#nini_header .nini-header-wrap{
+  background: rgba(0,0,0,.22);          /* glass tối nhẹ để tăng tương phản */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: 14px;
+  padding: 6px 10px;
+}
+#nini_header, #nini_header .nav-link, #nini_header .email{
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.55);  /* lưu chữ trắng vẫn rõ */
+}
+#nini_header .btn-auth{
+  color:#fff; border-color: rgba(255,255,255,.7);
+}
+#nini_header .btn-auth:hover{
+  color:#f6d35c; border-color:#f6d35c;
+}
+
+

@@ -24,27 +24,31 @@ const firebaseConfig = window.__NINI_FIREBASE_CONFIG__ || {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-/* endpoints gửi mail qua server (mail pro) */
-function apiBase() {
-  return {
-    sendReset: "/.netlify/functions/send-reset",
-    sendVerify: "/.netlify/functions/send-verification-email",
-    fallbackReset: "/api/send-reset",
-    fallbackVerify: "/api/send-verification-email",
-  };
-}
+// ===== Mail Pro endpoints (không cần nini-config.js) =====
+// Mặc định: Netlify Functions. Có thể override bằng window.NINI_MAIL_ENDPOINTS
+const MAIL = Object.assign({
+  reset:  "/.netlify/functions/send-reset",
+  verify: "/.netlify/functions/send-verification-email",
+  make:   "/.netlify/functions/make-reset-link",
+  // 2 lựa chọn tuỳ hạ tầng (nếu chuyển qua Vercel/Cloudflare, chỉ cần override 1 chỗ này):
+  // reset:  "/api/send-reset",
+  // verify: "/api/send-verification-email",
+  // make:   "/api/make-reset-link",
+}, (window.NINI_MAIL_ENDPOINTS || {}));
+
 async function postJSON(url, payload) {
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload || {}),
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload||{})
   });
+  const text = await res.text();
+  let data; try { data = JSON.parse(text); } catch {}
   if (!res.ok) {
-    let msg = "Request failed";
-    try { msg = (await res.json()).message || msg; } catch {}
-    throw new Error(msg);
+    const msg = (data && (data.message || data.error)) || text || `HTTP ${res.status}`;
+    throw new Error(`HTTP ${res.status} at ${url}: ${msg}`);
   }
-  try { return await res.json(); } catch { return {}; }
+  return data || {};
 }
 
 /* ====== API ====== */
@@ -190,3 +194,4 @@ export async function makePasswordResetLink(email) {
   try { return await postJSON(base.makeReset, payload); }
   catch { return await postJSON(base.makeReset2, payload); }
 }
+

@@ -6,36 +6,40 @@
   <title>Hồ sơ | NiNi — Funny</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
 
-  <!-- chỉ cần base.css vì đã gộp header + tokens + glass -->
-  <link rel="stylesheet" href="./test/css/base.css" />
-  <link rel="stylesheet" href="./test/css/auth-modal.css" />
-  <link rel="stylesheet" href="./test/css/footer.css" />
+  <link rel="stylesheet" href="/test/css/base.css" />
+  <link rel="stylesheet" href="/test/css/auth-modal.css" />
+  <link rel="stylesheet" href="/test/css/footer.css" />
 
   <style>
-    /* ---- profile-only (gọn, reuse tokens từ base) ---- */
     .wrap { max-width: 980px; margin: 24px auto 0; padding: 0 12px; }
-    .card { border: 1px solid var(--glass-bd); background: var(--glass-1);
-            -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-            border-radius: 16px; padding: 16px; }
+    .card.glass{
+      border: 1px solid var(--glass-bd); background: var(--glass-1);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      border-radius: 16px; padding: 16px;
+    }
     .grid { display: grid; grid-template-columns: 240px 1fr; gap: 16px; }
     @media (max-width: 768px){ .grid{ grid-template-columns: 1fr; } }
 
     .avatarBox { display:flex; flex-direction:column; align-items:center; gap:10px; }
     .avatarBox img{ width: 160px; height:160px; object-fit:cover; border-radius:50%;
-                    border: 1px solid var(--glass-bd); background: var(--avatar-default-url) center/cover no-repeat; }
+                    border: 1px solid var(--glass-bd);
+                    background: url('/public/assets/avatar/NV.webp') center/cover no-repeat; }
 
     .form .row{ display:grid; grid-template-columns: 160px 1fr; gap:10px; align-items:center; }
     .form .row + .row{ margin-top:10px; }
     .form label{ color:#fff; opacity:.9; }
 
-    /* dùng token textbox line đã chốt */
-    .form input{ composes: input; } /* nếu build không hỗ trợ, dùng lại rule .input trong base.css */
-    .form input{
+    /* input trên nền kính (giống index) */
+    .glass input, .glass textarea, .glass select{
       background: transparent; color: #fff; border: none;
       border-bottom: 1px solid var(--line); padding: 8px 2px 6px; border-radius:0;
+      outline: none; width: 100%; transition: border-color .2s ease, box-shadow .2s ease;
     }
-    .form input:hover{ border-bottom-color: var(--line-hover); }
-    .form input:focus{ border-bottom-color: var(--line-focus); box-shadow: 0 2px 0 0 var(--line-focus); }
+    .glass input::placeholder, .glass textarea::placeholder{ color: rgba(255,255,255,.75); }
+    .glass input:hover, .glass textarea:hover, .glass select:hover{ border-bottom-color: var(--line-hover); }
+    .glass input:focus, .glass textarea:focus, .glass select:focus{
+      border-bottom-color: var(--line-focus); box-shadow: 0 2px 0 0 var(--line-focus);
+    }
 
     .actions{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
     .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
@@ -46,14 +50,14 @@
   </style>
 </head>
 
-<body>
+<body class="theme-spring home">
   <!-- Header -->
   <header id="nini_header"></header>
 
   <main class="wrap">
     <h1 style="text-align:center;margin:8px 0 18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)">Hồ sơ</h1>
 
-    <section class="card">
+    <section class="card glass">
       <div class="grid">
         <!-- Cột trái: avatar -->
         <div class="avatarBox">
@@ -102,11 +106,14 @@
         </div>
       </div>
     </section>
+
+    <!-- Footer -->
+    <footer id="nini_footer"></footer>
   </main>
 
-  <!-- JS: config + fb + core + header + modal + onoff + footer -->
-  <!-- ========== SDK DUY NHẤT cần nạp: nini-fb.mjs (đã tự import Firebase SDK) ========== -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
+  <!-- JS: config + fb + core + header + modal + onoff + glue + footer -->
+  <script src="/public/js/nini-config.js"></script>
+  <script src="/public/js/nini-fb.js"></script>
 
   <script src="/test/js/core.js"></script>
   <script src="/test/js/header.js" defer></script>
@@ -115,7 +122,7 @@
   <script src="/test/js/auth-glue.js" defer></script>
   <script src="/test/js/footer.js" defer></script>
 
-  <!-- Trang profile – ghim vào FB auth -->
+  <!-- Page logic -->
   <script>
   (function(){
     const N = window.NINI || {};
@@ -127,7 +134,6 @@
       $('#pfAvatar').src  = u?.photoURL || '';
     }
 
-    // mở modal nếu chưa đăng nhập
     function needLogin(){
       if (N.emit) N.emit('auth:open');
       const m = document.getElementById('authModal');
@@ -138,43 +144,35 @@
       }
     }
 
+    // Subscribe user
     if (N.fb?.onUserChanged){
       N.fb.onUserChanged(u => { u ? fill(u) : needLogin(); });
     }
 
-    // Lưu hiển thị
+    // Actions
     $('#btnSave').addEventListener('click', async ()=>{
       const name = $('#pfName').value.trim();
       if (!name) return alert('Nhập tên hiển thị');
-      if (!N.fb?.updateProfile) return alert('FB API chưa sẵn.');
-      try{ await N.fb.updateProfile({ displayName:name }); alert('Đã lưu hồ sơ.'); }
+      try{ await N.fb?.updateProfile?.({ displayName:name }); alert('Đã lưu hồ sơ.'); }
       catch(e){ alert(e.message); }
     });
 
-    // Đổi / Thêm mật khẩu → gửi mail reset
     $('#btnChangePass').addEventListener('click', async ()=>{
       const email = $('#pfEmail').value.trim();
       if (!email) return alert('Chưa có email người dùng.');
-      if (!N.fb?.sendPasswordResetEmail) return alert('FB API chưa sẵn.');
-      try{ await N.fb.sendPasswordResetEmail(email); alert('Đã gửi email đặt lại mật khẩu.'); }
+      try{ await N.fb?.sendPasswordResetEmail?.(email); alert('Đã gửi email đặt lại mật khẩu.'); }
       catch(e){ alert(e.message); }
     });
 
-    // Đồng bộ
     $('#btnSync').addEventListener('click', ()=>location.reload());
 
-    // Avatar (demo preview)
+    // Avatar preview (demo)
     $('#btnUpload').addEventListener('click', ()=>{
-      const f = $('#pfUpload');
-      if (!f.files || !f.files[0]) return alert('Chọn ảnh trước đã nhé!');
-      const url = URL.createObjectURL(f.files[0]);
-      $('#pfAvatar').src = url;
+      const f = $('#pfUpload'); if (!f.files || !f.files[0]) return alert('Chọn ảnh trước đã nhé!');
+      const url = URL.createObjectURL(f.files[0]); $('#pfAvatar').src = url;
     });
-    $('#btnResetAva').addEventListener('click', ()=>{
-      $('#pfAvatar').src = '';
-    });
+    $('#btnResetAva').addEventListener('click', ()=>{ $('#pfAvatar').src = ''; });
   })();
   </script>
 </body>
 </html>
-

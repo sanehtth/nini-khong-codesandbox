@@ -1,104 +1,132 @@
 /* =========================================================
- * NiNi — Base UI (ONE FILE ONLY)
- * - Chỉ cần import file này cho mọi trang.
- * - ĐÃ GỘP: header.css + các tiện ích chung.
+ * NiNi — Base CSS (đã gộp header.css)
+ * 1) Tokens & reset
+ * 2) Layout chung (.stage, .glass, .soft-tabs, .footer, .btn, .hidden)
+ * 3) Background theo mùa (HOME/SPRING/SUMMER/AUTUMN/WINTER)
+ * 4) Brand + Avatar default (single source of truth)
+ * 5) Header layout (gộp từ header.css)
+ * 6) Auth-action & message utilities
  * =======================================================*/
 
-/* ---------- 1) Màu & nền kính (theme cơ bản) ---------- */
+/* ---------- 1) TOKENS + RESET ---------- */
 :root{
-  --ink:#223;                     /* màu chữ chính */
-  --glass:#ffffffaa;              /* nền kính */
-  --glass-bd:#ffffff55;           /* viền kính */
-  --pill:#f5f5f5cc;               /* nền pill / chip */
+  --ink:#233;                 /* màu chữ chính */
+  --glass:#ffffffaa;          /* nền kính mờ */
+  --glass-bd:#ffffff55;       /* viền kính */
+  --pill:#b5f55cc9;           /* màu accent pill (tuỳ chọn) */
 
-  /* Brand & Avatar: SINGLE SOURCE OF TRUTH */
+  /* trạng thái (dùng cho message/label) */
+  --ok: #2e7d32;
+  --err:#b00020;
+  --muted:#667085;
+
+  /* brand & avatar (1 chỗ cấu hình duy nhất) */
   --brand-logo-left-url: url("/public/assets/icons/logo_text.webp");
   --brand-logo-left-w: 164px; --brand-logo-left-h: 36px;
 
   --brand-title-logo-url: url("/public/assets/icons/logonini.svg");
-  --brand-title-logo-w: 28px;  --brand-title-logo-h: 28px;
+  --brand-title-logo-w: 28px; --brand-title-logo-h: 28px;
 
   --brand-slogan: "chơi mê ly, bức phá tư duy";
   --brand-slogan-color:#667085; --brand-slogan-size:13px;
 
-  --avatar-default-url: url("/public/assets/avatar/NV.webp");
+  --avatar-default-url: url("/public/assets/avatar/NV.webp"); /* avatar fallback */
 
-  /* BG theo mùa (mặc định = home); có thể override bằng class body */
-  --bg-url: url('/public/assets/bg/nini_home.webp');
-
-  /* trạng thái dùng chung */
-  --ok:#2e7d32; --err:#b00020; --muted:#667085;
+  /* card & shadow */
   --card-bg:#fff; --card-bd:#e5e7eb; --shadow:0 6px 20px rgba(0,0,0,.06);
 }
 
-/* ---------- 2) Reset nhẹ + font ---------- */
-*{ box-sizing:border-box; }
+/* reset gọn */
+*,*::before,*::after{ box-sizing:border-box; }
 html,body{ margin:0; padding:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink); }
-html,body{ height:100%; }
 
-/* ---------- 3) Nền chung (map theo mùa qua biến --bg-url) ---------- */
+/* ---------- 2) LAYOUT CHUNG ---------- */
+.stage{ max-width:1100px; margin:18px auto; padding:12px; }
+
+.glass{
+  background: var(--glass);
+  backdrop-filter: blur(8px);
+  border:1px solid var(--glass-bd);
+  border-radius:16px;
+  padding:18px;
+}
+
+.soft-tabs{ display:flex; gap:8px; justify-content:center; margin:14px 0 2px; }
+.soft-tabs .tab{
+  display:inline-block; padding:8px 12px; border-radius:999px;
+  background:var(--pill); text-decoration:none; color:var(--ink);
+}
+.footer{ max-width:1100px; margin:24px auto; padding:12px; text-align:center; opacity:.8; }
+
+button.btn{ padding:6px 10px; border-radius:999px; border:1px solid var(--glass-bd); background:#fff; cursor:pointer; }
+.hidden{ display:none; }
+.auth-modal.hidden{ display:none; }
+
+/* ---------- 3) BACKGROUND THEO MÙA ---------- */
+/* default */
+:root{ --bg-url: url('/public/assets/bg/nini_home.webp'); }
 body{
   background: #0b1f13 var(--bg-url) center/cover fixed no-repeat;
 }
 @media (max-width:1024px){ body{ background-attachment:scroll; } }
 
-/* Map mùa nhanh (có thể gán class cho <body>) */
-body.home  { --bg-url:url('/public/assets/bg/nini_home.webp'); }
-body.spring{ --bg-url:url('/public/assets/bg/nini_spring.webp'); }
-body.summer{ --bg-url:url('/public/assets/bg/nini_summer.webp'); }
-body.autumn{ --bg-url:url('/public/assets/bg/nini_autumn.webp'); }
-body.winter{ --bg-url:url('/public/assets/bg/nini_winter.webp'); }
+/* map theo mùa */
+body.home,  body[data-season="home"]   { --bg-url: url('/public/assets/bg/nini_home.webp'); }
+body.spring,body[data-season="spring"] { --bg-url: url('/public/assets/bg/nini_spring.webp'); }
+body.summer,body[data-season="summer"] { --bg-url: url('/public/assets/bg/nini_summer.webp'); }
+body.autumn,body[data-season="autumn"] { --bg-url: url('/public/assets/bg/nini_autumn.webp'); }
+body.winter,body[data-season="winter"] { --bg-url: url('/public/assets/bg/nini_winter.webp'); }
 
-/* ---------- 4) Khung chính + kính + tab mềm ---------- */
-.stage{ max-width:1100px; margin:18px auto; padding:12px; }
-.glass{
-  background:var(--glass); backdrop-filter:blur(8px);
-  border:1px solid var(--glass-bd); border-radius:16px; padding:18px;
-}
-.soft-tabs{ display:flex; gap:8px; justify-content:center; margin:14px 0 8px; }
-.soft-tabs a,
-.soft-tabs button{
-  display:inline-block; padding:8px 12px; border-radius:999px;
-  background:var(--pill); border:1px solid #fff; text-decoration:none; color:var(--ink);
-}
-
-/* ---------- 5) Footer cơ bản ---------- */
-.footer{ max-width:1100px; margin:24px auto; padding:12px; text-align:center; opacity:.8; }
-
-/* ---------- 6) Nút dùng chung ---------- */
-button.btn{
-  padding:6px 10px; border-radius:999px;
-  border:1px solid var(--glass-bd); background:#fff; cursor:pointer;
-}
-.btn-sm{ padding:4px 10px; border-radius:999px; border:1px solid var(--glass-bd); background:#fff; cursor:pointer; }
-
-/* ---------- 7) Utilities ---------- */
-.hidden{ display:none; }
-.auth-modal.hidden{ display:none; } /* giữ tương thích cũ */
-.center-page{ min-height:calc(100dvh - 120px); display:flex; align-items:center; justify-content:center; }
-
-/* ---------- 8) Card chung (auth-action, notice, …) ---------- */
-.card{
-  max-width:720px; margin:24px auto; padding:16px 20px;
-  background:var(--card-bg); border:1px solid var(--card-bd); border-radius:12px; box-shadow:var(--shadow);
-}
-.muted{ color:var(--muted); } .ok{ color:var(--ok); } .err{ color:var(--err); }
-.link{ display:inline-block; margin-top:8px; }
-
-/* =========================================================
- *  HEADER (đÃ GỘP TỪ header.css)
- *  - Không hardcode URL ảnh trong JS; ảnh lấy từ biến CSS (ở trên).
- * =======================================================*/
-#nini_header{ padding:10px 16px; }
-#nini_header .nini-header-wrap{
-  display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
-}
-
-/* Brand group */
-.site-brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; }
+/* ---------- 4) BRAND & AVATAR (single source of truth) ---------- */
+/* block brand dùng trong header/footer */
+.site-brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
 .site-brand .title-logo{
   width:var(--brand-title-logo-w); height:var(--brand-title-logo-h);
   background: var(--brand-title-logo-url) center/contain no-repeat;
+  flex:0 0 auto;
 }
 .site-brand .logo-left{
-  width:
+  width:var(--brand-logo-left-w); height:var(--brand-logo-left-h);
+  background: var(--brand-logo-left-url) left/contain no-repeat;
+  flex:0 0 auto;
+}
+.site-brand .slogan{ color:var(--brand-slogan-color); font-size:var(--brand-slogan-size); }
+.site-brand[data-auto-slogan]::after{
+  content:var(--brand-slogan);
+  color:var(--brand-slogan-color);
+  font-size:var(--brand-slogan-size);
+  margin-left:6px;
+}
+
+/* userbox + avatar fallback bằng CSS (JS chỉ gán src khi có ảnh user) */
+.userbox{ display:inline-flex; align-items:center; gap:8px; }
+.userbox img.avatar{
+  width:28px; height:28px; border-radius:50%; object-fit:cover;
+  background: var(--avatar-default-url) center/cover no-repeat;
+}
+
+/* ---------- 5) HEADER (gộp từ header.css) ---------- */
+#nini_header{ padding:10px 16px; }
+#nini_header .nini-header-wrap{
+  display:grid;
+  grid-template-columns: 1fr auto auto;
+  gap:12px; align-items:center;
+}
+#nini_header .nav{ display:flex; gap:10px; }
+#nini_header .nav-link{ text-decoration:none; color:inherit; }
+#nini_header .userbox{ text-align:right; }
+#nini_header .btn-auth{ padding:6px 10px; cursor:pointer; }
+
+/* ---------- 6) AUTH-ACTION & STATUS UTILITIES ---------- */
+.card{
+  max-width:720px; margin:24px auto; padding:16px 20px;
+  background:var(--card-bg); border:1px solid var(--card-bd);
+  border-radius:12px; box-shadow:var(--shadow);
+}
+.muted{ color:var(--muted); } .ok{ color:var(--ok); } .err{ color:var(--err); }
+.link{ display:inline-block; margin-top:8px; }
+.center-page{ min-height:calc(100dvh - 120px); display:flex; align-items:center; justify-content:center; }
+
+/* message nhỏ trong auth modal */
+#authModal .msg{ margin-top:8px; font-size:13px; }
+#authModal .msg.ok{ color:var(--ok); }  #authModal .msg.err{ color:var(--err); }

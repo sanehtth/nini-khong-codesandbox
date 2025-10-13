@@ -33,11 +33,12 @@ import {
 // ======= CONFIG =======
 const FIREBASE_CONFIG =
   (window.__NINI_FIREBASE_CONFIG__) || {
-    // Nếu bạn đã embed SDK thật vào file này, điền ở đây:
-    // apiKey: "xxx",
-    // authDomain: "xxx.firebaseapp.com",
-    // projectId: "xxx",
-    // appId: "1:xxx:web:yyy",
+apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
+  authDomain: "nini-8f3d4.firebaseapp.com",
+  projectId: "nini-8f3d4",
+  storageBucket: "nini-8f3d4.firebasestorage.app",
+  messagingSenderId: "991701821645",
+  appId: "1:991701821645:web:fb21c357562c6c801da184",
   };
 
 const MAIL = Object.assign(
@@ -156,3 +157,4 @@ export {
   registerEmailOnly,
   resetPassword,
 };
+

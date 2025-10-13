@@ -94,18 +94,37 @@
   }
 
   // ============ Header state (tuỳ chọn) ============
-  function renderUserState(user) {
-    // Ẩn/hiện các control trong header (nếu bạn đã gắn ID/attr như header.js)
-    const loginBtn  = document.getElementById("btnAuthOpen") || document.querySelector('[data-auth="open"]');
-    const userInfo  = document.getElementById("userInfo")    || document.querySelector('[data-auth="avatar"]')?.parentElement;
-    if (user) {
-      if (loginBtn) loginBtn.style.display = "none";
-      if (userInfo) userInfo.style.display = "inline-flex";
-    } else {
-      if (userInfo) userInfo.style.display = "none";
-      if (loginBtn) loginBtn.style.display = "inline-flex";
+ function renderUserState(user) {
+  // Chỉ thao tác đúng trong #nini_header
+  const header = document.getElementById('nini_header');
+  if (!header) return;
+  const btnAuth = header.querySelector('#btnAuthOpen, [data-auth="open"]');
+  const userInfo = header.querySelector('#userInfo, [data-auth="avatar"]')?.parentElement || header.querySelector('#userInfo');
+
+  // Đảm bảo trạng thái mặc định an toàn
+  if (btnAuth) btnAuth.hidden = !!user;
+  if (userInfo) userInfo.hidden = !user;
+
+  // Cập nhật nickname/avatar nếu có
+  const nick = header.querySelector('#userNick');
+  const ava  = header.querySelector('#btnProfile, .avatar');
+  if (user) {
+    const display = user.displayName || (user.email ? user.email.split('@')[0] : '') || 'NiNi';
+    if (nick) nick.textContent = display;
+    if (ava) {
+      if (user.photoURL) ava.style.setProperty('--ava-bg', `url("${user.photoURL}")`);
+      else ava.style.removeProperty('--ava-bg');
+      ava.setAttribute('data-letter', (display[0] || 'U').toUpperCase());
+    }
+  } else {
+    if (nick) nick.textContent = '';
+    if (ava) {
+      ava.style.removeProperty('--ava-bg');
+      ava.setAttribute('data-letter', 'U');
     }
   }
+}
+
 
   // ============ Lấy FB API ============
   const FB = () => (window.NINI && window.NINI.fb) || {};
@@ -217,3 +236,4 @@
     });
   });
 })();
+

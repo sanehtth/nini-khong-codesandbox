@@ -201,25 +201,37 @@ N.on && N.on('auth:login', async ({ email, password }) => {
 });
 
 
-  // Đăng ký
-  N.on && N.on("auth:signup", async ({ email, password, confirm }) => {
-    try {
-      if (password !== confirm) { setMsg("err", "Mật khẩu nhập lại không khớp."); return; }
-      setMsg("", "");
-      setFormLoading("formSignup", true, "Đang tạo tài khoản...");
-      const fb = FB();
-      if (!fb.registerEmailPass) throw new Error("Thiếu NINI.fb.registerEmailPass");
-      const user = await fb.registerEmailPass(email, password);
-      if (fb.sendEmailVerification) { try { await fb.sendEmailVerification(email); } catch (e) {} }
-      setMsg("ok", "Tạo tài khoản thành công. Vui lòng kiểm tra email để xác minh.");
-      closeModal();
-      renderUserState(user);
-    } catch (err) {
-      setMsg("err", (err && err.message) || "Đăng ký thất bại");
-    } finally {
-      setFormLoading("formSignup", false);
-    }
-  });
+ // Đăng ký (email-only): tạo user tạm + gửi mail xác minh (mail pro)
+N.on && N.on('auth:signup', async ({ email /* password, confirm (bỏ) */ }) => {
+  try {
+    // fallback đọc trực tiếp từ form nếu payload trống
+    const pickFromSignup = () => {
+      const m = document.getElementById('authModal');
+      const f = m && m.querySelector('#formSignup');
+      if (!f) return '';
+      const el = f.querySelector('input[type="email"], input[name="email"], input[name*="mail" i]');
+      return el ? String(el.value || '').trim() : '';
+    };
+    if (!email) email = pickFromSignup();
+    email = (email || '').toLowerCase();
+    if (!email) { setMsg('err', 'Vui lòng nhập email.'); return; }
+
+    setMsg('', '');
+    setFormLoading('formSignup', true, 'Đang gửi email xác minh...');
+
+    const fb = (window.NINI && window.NINI.fb) || {};
+    if (!fb.registerEmailOnly) throw new Error('Thiếu NINI.fb.registerEmailOnly');
+
+    await fb.registerEmailOnly(email); // tạo user tạm + gửi verify (mail pro)
+    setMsg('ok', 'Đã gửi email xác minh. Vui lòng kiểm tra hộp thư và làm theo hướng dẫn.');
+    closeModal();
+  } catch (err) {
+    setMsg('err', (err && err.message) || 'Đăng ký thất bại');
+  } finally {
+    setFormLoading('formSignup', false);
+  }
+});
+
 
   // Quên mật khẩu
   N.on && N.on("auth:reset", async ({ email }) => {
@@ -253,4 +265,5 @@ N.on && N.on('auth:login', async ({ email, password }) => {
     }
   });
 })();
+
 

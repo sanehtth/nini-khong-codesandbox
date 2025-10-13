@@ -1,9 +1,9 @@
 /* =======================================================================
-   NiNi — base.css (clean)
+   NiNi — base.css (CLEAN)
    - Gộp style header cơ bản + brand/slogan + avatar default
    - Toggle giao diện theo trạng thái đăng nhập (guest/auth)
-   - Ẩn toàn bộ logo/brand legacy cũ để chỉ còn 1 logo duy nhất
-   - Khôi phục background trang chủ
+   - Ẩn logo/brand/auth legacy để chỉ còn 1 header
+   - Khôi phục background + theme “glass”
    ======================================================================= */
 
 /* --------- Variables chung --------- */
@@ -16,7 +16,7 @@
 
   /* brand (paths chuẩn) */
   --brand-logo-left-url: url("/public/assets/icons/logo_text.webp");
-  --brand-slogan: "chơi mê ly, bức phá tư duy";
+  --brand-slogan: "chơi mê ly, bứt phá tư duy";
   --brand-slogan-color: #fff;
   --brand-slogan-size: 12.5px;
   --brand-logo-left-w: 112px;
@@ -24,378 +24,196 @@
 
   /* avatar default */
   --avatar-default-url: url("/public/assets/avatar/NV.webp");
-}
 
-/* --------- Reset nhẹ --------- */
-* { box-sizing: border-box; }
-html, body { margin:0; padding:0; color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
-a { color: inherit; }
-
-/* --------- Stage wrapper (khung nội dung trung tâm) --------- */
-.stage{ max-width:1100px; margin:18px auto; padding:12px; }
-.stage > .glass{
-  background: var(--glass);
-  backdrop-filter: blur(6px);
-  border:1px solid var(--glass-bd);
-  border-radius:16px;
-  padding:18px;
-}
-
-/* --------- Soft-tabs (chip nhỏ) --------- */
-.soft-tabs{ display:flex; gap:8px; justify-content:center; margin:14px 0 0; }
-.soft-tabs .chip{
-  display:inline-block; padding:8px 12px;
-  border-radius:9999px; border:1px solid var(--glass-bd);
-  background:#fff; text-decoration:none; color:var(--ink);
-}
-
-/* --------- Footer (simple) --------- */
-.footer{ max-width:1100px; margin:24px auto; padding:12px; text-align:center; opacity:.8; }
-
-/* =======================================================================
-   HEADER
-   ======================================================================= */
-
-#nini_header{ padding:10px 16px; }
-#nini_header .nini-header-wrap{
-  display:grid;
-  grid-template-columns: 1fr auto auto; /* brand | nav | userbox */
-  gap:12px;
-  align-items:center;
-}
-
-/* ẨN HOÀN TOÀN CÁC LOGO/BRAND LEGACY (nếu còn trong DOM) */
-#nini_header .site-brand .title-logo{ display:none !important; }
-#nini_header .brand,
-#nini_header .legacy-logo,
-#nini_header .nini-logo,
-.nini-badge,               /* badge góc trái nếu có */
-.logo-small,               /* icon nhỏ nếu có */
-.header-logo,              /* legacy common names */
-.header__logo{ display:none !important; }
-
-/* Brand: chỉ còn 1 logo (logo_text.webp) + slogan */
-.site-brand{
-  display:inline-flex; align-items:center; gap:10px;
-  text-decoration:none; color:inherit;
-}
-.site-brand .logo-left{
-  width:var(--brand-logo-left-w);
-  height:var(--brand-logo-left-h);
-  background: var(--brand-logo-left-url) left/contain no-repeat;
-  flex:0 0 auto;
-}
-.site-brand[data-auto-slogan]::after{
-  content:var(--brand-slogan);
-  color:var(--brand-slogan-color);
-  font-size:var(--brand-slogan-size);
-  margin-left:6px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.45);
-}
-
-/* Nav phải gọn, không gạch chân */
-#nini_header .nav{ display:flex; gap:10px; }
-#nini_header .nav-link{
-  text-decoration:none; opacity:.9;
-}
-#nini_header .nav-link:hover{ opacity:1; }
-
-/* User box: avatar + email + nút auth */
-#nini_header .userbox{
-  display:flex; align-items:center; gap:10px; justify-self: end;
-}
-#nini_header .userbox .email{
-  max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  opacity:.9; padding:2px 6px; border-radius:12px;
-}
-body[data-auth="in"] #nini_header .userbox .email:hover{
-  background:#ffffff; border:1px solid var(--glass-bd);
-}
-
-/* Avatar: dùng background mặc định khi img.src = "" */
-#nini_header img.avatar{
-  width:28px; height:28px; border-radius:50%; object-fit:cover;
-  background: var(--avatar-default-url) center/cover no-repeat;
-  border:1px solid rgba(0,0,0,.05);
-  cursor:pointer;
-}
-
-/* Nút “Đăng nhập/Đăng ký” + “Đăng xuất” */
-#nini_header .btn-auth{
-  padding:6px 10px; border-radius:999px;
-  border:1px solid var(--glass-bd);
-  background:#fff; cursor:pointer;
-}
-
-/* Toggle theo trạng thái đăng nhập (set bởi header.js) */
-.guest-only { display:inline-flex; }
-.auth-only  { display:none; }
-
-body[data-auth="in"] .guest-only{ display:none !important; }
-body[data-auth="in"] .auth-only { display:inline-flex !important; }
-
-/* =======================================================================
-   OVERLAY & MODAL FLAGS (để auth-modal.css sử dụng)
-   ======================================================================= */
-.auth-modal.hidden{ display:none; }
-.body-auth-open{ overflow:hidden; }     /* khi mở modal thì khóa scroll */
-
-/* =======================================================================
-   MISC / CHẶN LEGACY NGOÀI HEADER
-   ======================================================================= */
-.left-logo, .site-logo, .top-left-logo { display:none !important; }
-
-/* =======================================================================
-   BACKGROUND THEME (khôi phục)
-   ======================================================================= */
-body.home {
-  background: url("/public/assets/bg/nini_home.webp") center top / cover fixed no-repeat;
-}
-@media (max-width: 900px){
-  body.home { background-attachment: scroll; background-size: cover; }
-}
-
-/* Force hide legacy badges/logos nếu CSS khác cố đè */
-.nini-badge,
-.left-logo,
-.site-logo,
-.top-left-logo,
-.header-logo,
-.header__logo { display:none !important; }
-
-/* =========================================================
-   THEME COMMON TOKENS
-   ======================================================= */
-:root{
-  /* Nền đã có nên mọi khối nội dung đều dùng kính (glass) */
-  --glass-1: rgba(255,255,255,.15);  /* lớp nền nhẹ */
-  --glass-2: rgba(255,255,255,.35);  /* lớp nổi hơn (message) */
-  --glass-bd: rgba(255,255,255,.45); /* viền kính */
+  /* theme glass */
+  --glass-1: rgba(255,255,255,.15);
+  --glass-2: rgba(255,255,255,.35);
+  --glass-bd-2: rgba(255,255,255,.45);
   --blur: 8px;
 
-  /* Màu dùng cho button state */
+  /* button & input */
   --btn-text: #fff;
   --btn-bd: rgba(255,255,255,.65);
-  --btn-hover: #f6d35c;  /* vàng khi hover (chữ + viền) */
-  --btn-active-bg: #2ecc71; /* xanh lá nhạt khi chọn */
+  --btn-hover: #f6d35c;        /* vàng khi hover (chữ + viền) */
+  --btn-active-bg: #2ecc71;    /* xanh lá nhạt khi chọn */
   --btn-focus: rgba(255,255,255,.75);
 
-  /* Textbox line */
   --line: rgba(255,255,255,.65);
   --line-hover: #f6d35c;
   --line-focus: #2ecc71;
 }
 
-/* =========================================================
-   KÍNH (GLASS) DÙNG CHUNG
-   ======================================================= */
-.glass{
+/* --------- Reset nhẹ --------- */
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; color:var(--ink); font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+a{ color:inherit; text-decoration:none; }
+
+/* --------- Stage & card --------- */
+.stage{ max-width:1100px; margin:18px auto; padding:12px; position:relative; }
+.stage > .glass{
   background: var(--glass-1);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--glass-bd);
-  border-radius: 16px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border:1px solid var(--glass-bd);
+  border-radius:16px;
+  padding:18px;
 }
 
-.glass-2{
-  background: var(--glass-2);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border: 1px solid var(--glass-bd);
-  border-radius: 16px;
+/* đưa soft-tabs xuống dưới card, căn giữa */
+.stage > .glass{ margin-bottom:56px; }
+.stage > .glass .soft-tabs{
+  position:absolute; left:50%; transform:translateX(-50%); bottom:-42px;
 }
-
-/* frame tổng (card/khối nội dung) */
-.frame{ padding: 16px; }
-.frame.glass, .frame.glass-2{ padding: 18px; }
-
-/* message/alert mặc định nên “nổi” hơn */
-.message{ padding: 12px 14px; border-radius: 12px; }
-.message.glass-2{ box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-
-/* Áp cho stage glass nếu muốn */
-.stage > .glass{ background: var(--glass-1); }
-
-/* =========================================================
-   BUTTON — viền trắng, chữ trắng; hover vàng; active xanh lá
-   ======================================================= */
-.btn{
-  display:inline-flex; align-items:center; justify-content:center;
-  gap:.5rem; padding:8px 14px; border-radius:999px;
-  background: transparent;
-  color: var(--btn-text);
-  border: 1px solid var(--btn-bd);
-  text-decoration:none; cursor:pointer; user-select:none;
-  transition: .2s ease;
-}
-.btn:hover{
-  color: var(--btn-hover);
-  border-color: var(--btn-hover);
-  background: rgba(255,255,255,.06);
-}
-.btn:focus-visible{
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
-  border-color: var(--btn-focus);
-}
-/* trạng thái được chọn (tab đang active, nút đang bật) */
-.btn.is-active,
-.btn[aria-current="true"],
-.btn[aria-pressed="true"]{
-  background: var(--btn-active-bg);
-  color: #fff;
-  border-color: transparent;
-}
-
-/* Nếu cần nút nhỏ/nhỏ hơn */
-.btn.sm{ padding:6px 10px; font-size:.92rem; }
-.btn.xs{ padding:4px 8px;  font-size:.85rem; }
-
-/* gợi ý áp cho các nút header đã có class */
-#nini_header .btn-auth{ composes: btn; }        /* nếu build không hỗ trợ composes, cứ để .btn-auth kế thừa .btn */
-#nini_header .btn-auth{
+.soft-tabs{ display:flex; gap:8px; justify-content:center; }
+.soft-tabs .chip{
   display:inline-flex; align-items:center; gap:.4rem;
-  padding:6px 10px; border-radius:999px;
-  background: transparent; color:#fff; border:1px solid var(--btn-bd);
-}
-#nini_header .btn-auth:hover{ color:var(--btn-hover); border-color:var(--btn-hover); }
-
-/* =========================================================
-   TEXTBOX — trong suốt, chỉ có 1 line phía dưới
-   ======================================================= */
-.input, input[type="text"], input[type="email"], input[type="password"],
-input[type="tel"], input[type="number"], textarea, select{
-  background: transparent;
-  color: #fff;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  padding: 8px 2px 6px;
-  border-radius: 0;
-  outline: none;
-  width: 100%;
-  transition: border-color .2s ease, box-shadow .2s ease;
-}
-.input::placeholder, input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.75); }
-.input:hover, input:hover, textarea:hover, select:hover{
-  border-bottom-color: var(--line-hover);
-}
-.input:focus, input:focus, textarea:focus, select:focus{
-  border-bottom-color: var(--line-focus);
-  box-shadow: 0 2px 0 0 var(--line-focus);
-}
-
-/* Label và group gợi ý */
-.field{ display:flex; flex-direction:column; gap:6px; }
-.label{ color:#fff; opacity:.9; font-size:.92rem; }
-
-/* =========================================================
-   Tương phản cho nền kính (chữ, link)
-   ======================================================= */
-.glass, .glass-2, .frame.glass, .message.glass-2{
+  padding:6px 10px; border-radius:9999px;
+  background: rgba(255,255,255,.10);
+  border:1px solid var(--glass-bd);
   color:#fff;
 }
-.glass a, .glass-2 a{ color:#fff; text-decoration: underline; text-underline-offset: 2px; }
+.soft-tabs .chip.is-active{ background:var(--btn-active-bg); border-color:transparent; }
 
-/* Nếu cần chip/tab kiểu kính */
-.chip{
-  display:inline-flex; align-items:center; gap:.4rem;
-  padding:6px 10px; border-radius:999px;
-  color:#fff; border:1px solid var(--glass-bd);
-  background: rgba(255,255,255,.1);
-}
-.chip.is-active{ background: var(--btn-active-bg); border-color: transparent; }
+/* Footer đơn giản */
+.footer{ max-width:1100px; margin:24px auto; padding:12px; text-align:center; opacity:.9; }
 
-/* Header readable on photo bg */
+/* =======================================================================
+   HEADER (chỉ 1 phiên bản — đã loại bỏ bản trùng)
+   ======================================================================= */
+
+#nini_header{ padding:10px 16px; }
 #nini_header .nini-header-wrap{
-  background: rgba(0,0,0,.22);          /* glass tối nhẹ để tăng tương phản */
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border-radius: 14px;
-  padding: 6px 10px;
-}
-#nini_header, #nini_header .nav-link, #nini_header .email{
-  color: #fff !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,.55);  /* lưu chữ trắng vẫn rõ */
-}
-#nini_header .btn-auth{
-  color:#fff; border-color: rgba(255,255,255,.7);
-}
-#nini_header .btn-auth:hover{
-  color:#f6d35c; border-color:#f6d35c;
-}
-
-/* Move soft-tabs visually under the glass card (no HTML change) */
-.stage { position: relative; }
-.stage > .glass { position: relative; margin-bottom: 56px; }
-.stage > .glass .soft-tabs{
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -42px;               /* nằm dưới đáy khung */
-}
-.soft-tabs .chip{                /* giữ style chip bạn đã chốt */
-  display:inline-flex; align-items:center; gap:.4rem;
-  padding:6px 10px; border-radius:999px;
-  color:#fff; border:1px solid var(--glass-bd);
-  background: rgba(255,255,255,.10);
-}
-.soft-tabs .chip.is-active{
-  background: var(--btn-active-bg); border-color: transparent;
-}
-
-/* ==================== [HEADER LOOK] ==================== */
-/* NOTE: đọc được trên nền rừng, nút kính, chữ trắng */
-#nini_header .nini-header-wrap{
-  position: sticky; top: 0; z-index: 30;
-  display:grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
-  padding: 8px 12px; margin: 0 auto; max-width: 1120px;
+  position: sticky; top:0; z-index:30;
+  display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
+  max-width:1120px; margin:0 auto; padding:8px 12px;
   background: rgba(0,0,0,.22);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  border-radius: 14px;
+  border-radius:14px;
 }
 #nini_header .brand{ display:flex; align-items:center; gap:8px; font-weight:700; color:#fff; }
 #nini_header .logo{
-  width: 56px; height: 28px; display:inline-block;
+  width:56px; height:28px; display:inline-block;
   background: url('/public/assets/icons/logo_text.webp') left center/contain no-repeat;
 }
 #nini_header .slogan{ font-size:.92rem; opacity:.85; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
 #nini_header .nav{ display:flex; gap:10px; }
-#nini_header .nav-link{ color:#fff; text-decoration:none; }
-#nini_header .nav-link:hover{ color:#f6d35c; }
-#nini_header .btn-auth{
-  display:inline-flex; align-items:center; gap:.5rem; padding:8px 12px;
-  border-radius:999px; background:transparent; color:#fff;
-  border:1px solid rgba(255,255,255,.7); cursor:pointer; transition:.2s;
-}
-#nini_header .btn-auth:hover{ color:#f6d35c; border-color:#f6d35c; }
+#nini_header .nav-link{ color:#fff; }
+#nini_header .nav-link:hover{ color:var(--btn-hover); }
+
+/* user box */
+#nini_header .userbox{ display:flex; align-items:center; gap:10px; justify-self:end; }
 #nini_header .user-info{ display:inline-flex; align-items:center; gap:10px; }
+#nini_header .nick{ color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
+
+/* avatar (chữ cái hoặc ảnh) */
 #nini_header .avatar{
-  --size: 28px;
-  width: var(--size); height: var(--size); border-radius: 999px; position: relative;
-  background: var(--ava-bg, #2e7d32) center/cover no-repeat; border:1px solid rgba(255,255,255,.6);
+  --size:28px;
+  width:var(--size); height:var(--size); border-radius:999px; position:relative;
+  background: var(--ava-bg, #2e7d32) center/cover no-repeat;
+  border:1px solid rgba(255,255,255,.6); cursor:pointer;
 }
 #nini_header .avatar::after{
-  content: attr(data-letter);
+  content:attr(data-letter);
   position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   color:#fff; font-weight:700; text-shadow:0 1px 1px rgba(0,0,0,.35);
 }
-#nini_header .nick{ color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
 
-/* ==================== [KILL LEGACY AUTH OUTSIDE HEADER] ==================== */
-/* NOTE: nếu html cũ inject control auth bên ngoài #nini_header -> ẩn hết */
+/* auth buttons */
+#nini_header .btn-auth{
+  display:inline-flex; align-items:center; gap:.5rem; padding:8px 12px;
+  border-radius:999px; background:transparent; color:#fff;
+  border:1px solid var(--btn-bd); cursor:pointer; transition:.2s;
+}
+#nini_header .btn-auth:hover{ color:var(--btn-hover); border-color:var(--btn-hover); }
+
+/* Toggle theo trạng thái đăng nhập (set bởi header.js) */
+.guest-only{ display:inline-flex; }
+.auth-only { display:none; }
+body[data-auth="in"] .guest-only{ display:none !important; }
+body[data-auth="in"] .auth-only { display:inline-flex !important; }
+
+/* Ẩn toàn bộ logo/brand/auth legacy ngoài header */
+#nini_header .site-brand .title-logo{ display:none !important; }
+#nini_header .brand,.nini-badge,.logo-small,.header-logo,.header__logo{ display:inherit; }
+.left-logo,.site-logo,.top-left-logo,
 body > .btn-auth:not(#nini_header *),
 body > .avatar:not(#nini_header *),
-body > .user-info:not(#nini_header *){
+body > .user-info:not(#nini_header *),
+body > .btn-login, body > .btn-logout, body > #btnLogout,
+body > .login, body > .logout, body > .auth-controls, body > .auth-box{
   display:none !important;
 }
 
-/* ==================== [ẨN SOFT-TABS TRONG HERO/CARD] ==================== */
-/* NOTE: 4 nút đã chuyển xuống footer, ẩn bản cũ trong khung */
+/* =======================================================================
+   THEME GLASS + BUTTON + INPUT
+   ======================================================================= */
+.glass{
+  background: var(--glass-1);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border:1px solid var(--glass-bd-2);
+  border-radius:16px;
+}
+.glass-2{
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border:1px solid var(--glass-bd-2);
+  border-radius:16px;
+}
+.message{ padding:12px 14px; border-radius:12px; }
+.message.glass-2{ box-shadow:0 8px 24px rgba(0,0,0,.08); }
+
+/* button — viền trắng, chữ trắng; hover vàng; active xanh lá */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem; padding:8px 14px; border-radius:999px;
+  background:transparent; color:var(--btn-text);
+  border:1px solid var(--btn-bd); cursor:pointer; transition:.2s;
+}
+.btn:hover{ color:var(--btn-hover); border-color:var(--btn-hover); background:rgba(255,255,255,.06); }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(255,255,255,.25); border-color:var(--btn-focus); }
+.btn.is-active,[aria-current="true"],[aria-pressed="true"]{ background:var(--btn-active-bg); color:#fff; border-color:transparent; }
+.btn.sm{ padding:6px 10px; font-size:.92rem; }
+.btn.xs{ padding:4px 8px; font-size:.85rem; }
+
+/* input — trong suốt, 1 line dưới */
+.input, input[type="text"], input[type="email"], input[type="password"],
+input[type="tel"], input[type="number"], textarea, select{
+  background:transparent; color:#fff; border:none;
+  border-bottom:1px solid var(--line); padding:8px 2px 6px; border-radius:0;
+  outline:none; width:100%; transition:border-color .2s, box-shadow .2s;
+}
+.input::placeholder, input::placeholder, textarea::placeholder{ color:rgba(255,255,255,.75); }
+.input:hover, input:hover, textarea:hover, select:hover{ border-bottom-color:var(--line-hover); }
+.input:focus, input:focus, textarea:focus, select:focus{
+  border-bottom-color:var(--line-focus); box-shadow:0 2px 0 0 var(--line-focus);
+}
+.field{ display:flex; flex-direction:column; gap:6px; }
+.label{ color:#fff; opacity:.9; font-size:.92rem; }
+
+/* chữ trong các khối kính hiển thị trắng */
+.glass, .glass-2{ color:#fff; }
+.glass a, .glass-2 a{ color:#fff; text-decoration:underline; text-underline-offset:2px; }
+
+/* =======================================================================
+   BACKGROUND THEME
+   ======================================================================= */
+body.home{
+  background: url("/public/assets/bg/nini_home.webp") center top/cover fixed no-repeat;
+}
+@media (max-width:900px){
+  body.home{ background-attachment:scroll; background-size:cover; }
+}
+
+/* Ẩn hẳn soft-tabs bản cũ trong hero-card nếu từng render */
 .stage .soft-tabs,
 .stage .glass .soft-tabs,
-.card .soft-tabs{
-  display:none !important;
+.card .soft-tabs{ /* giữ bản dưới footer, ẩn bản trong hero */
+  /* nếu bạn đã chuyển xuống footer rồi thì bật dòng dưới */
+  /* display:none !important; */
 }
 
-
-
+/* Overlay / modal flags */
+.auth-modal.hidden{ display:none; }
+.body-auth-open{ overflow:hidden; }

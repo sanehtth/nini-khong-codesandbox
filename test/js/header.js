@@ -48,13 +48,20 @@
         </div>
       </div>
     `;
+  
+   /* === CLEANUP LEGACY (mở rộng selector) ===
+ * Gỡ mọi control auth/ user cũ KHÔNG nằm trong #nini_header
+ */
+document.querySelectorAll([
+  // cái mới
+  '.btn-auth', '.avatar', '.user-info',
+  // cái cũ có thể còn
+  '.btn-login', '.btn-logout', '#btnLogout', '.logout', '.login',
+  '.user', '.userbox', '.user-menu', '.auth-controls', '.auth-box'
+].join(',')).forEach(el => {
+  if (!el.closest('#nini_header')) el.remove();
+});
 
-    /* === CLEANUP LEGACY ===
-     * NOTE: gỡ mọi control auth cũ KHÔNG nằm trong #nini_header (ngăn 2 avatar, 2 nút Đăng xuất).
-     */
-    document.querySelectorAll('.btn-auth, .avatar, .user-info').forEach(el => {
-      if (!el.closest('#nini_header')) el.remove();
-    });
 
     // open auth modal
     $('#btnAuthOpen')?.addEventListener('click', () => {
@@ -128,3 +135,4 @@
     }
   });
 })();
+

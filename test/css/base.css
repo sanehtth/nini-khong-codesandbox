@@ -149,7 +149,7 @@ body[data-auth="in"] .auth-only { display:inline-flex !important; }
    BACKGROUND THEME (khôi phục)
    ======================================================================= */
 body.home {
-  background: url("/public/assets/bg/forest-day.webp") center top / cover fixed no-repeat;
+  background: url("/public/assets/bg/nini_home.webp") center top / cover fixed no-repeat;
 }
 @media (max-width: 900px){
   body.home { background-attachment: scroll; background-size: cover; }
@@ -162,3 +162,4 @@ body.home {
 .top-left-logo,
 .header-logo,
 .header__logo { display:none !important; }
+

@@ -1,24 +1,11 @@
 /* ========================================================================
  * NiNi — Firebase + Mail Pro wrapper (ESM)
- * Single-file: KHÔNG cần /public/js/nini-config.js nữa
+ * Single-file, KHÔNG cần /public/js/nini-config.js
  *
  * MỤC TIÊU:
- * - Cấp API gọn cho UI:
- *     NINI.fb.init()
- *     NINI.fb.onUserChanged(cb)
- *     NINI.fb.googleLogin()
- *     NINI.fb.login(email, password)
- *     NINI.fb.registerEmailOnly(email)           // đăng ký chỉ cần email
- *     NINI.fb.resetPassword(email)               // ưu tiên Mail Pro → fallback Firebase
- *     NINI.fb.makePasswordResetLink(email)       // tạo link reset chuẩn Firebase qua function
- *     NINI.fb.logout()
- *     NINI.fb.currentUser()
- *     NINI.fb.getIdToken(forceRefresh?)
- *
- * - ƯU TIÊN Mail Pro (Netlify/Vercel/Cloudflare): send-verify / send-reset / make-reset-link
- *   Khi server lỗi → fallback Firebase SDK để không block người dùng.
- *
- * - KHÔNG chứa URL ảnh/UI: chỉ lo phần auth & mail.
+ *  - Pro-first email (Mail Pro: verify / reset / make-reset-link)
+ *  - Lỗi server → fallback Firebase SDK (không chặn người dùng)
+ *  - API gọn + tương thích UI cũ qua alias
  * ===================================================================== */
 
 /* =========================
@@ -42,27 +29,21 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 /* =========================================================
- * 1) CONFIG — điền của bạn vào đây (copy từ nini-config.js cũ)
- *    Nếu muốn giữ tách bạch, bạn có thể set trước:
- *      window.__NINI_FIREBASE_CONFIG__ = {...}  // ở <script> inline
- *    Khi không có, code sẽ dùng object dưới.
+ * 1) CONFIG — điền của bạn ở đây (hoặc set window.__NINI_FIREBASE_CONFIG__)
  * ======================================================= */
 const FIREBASE_CONFIG = window.__NINI_FIREBASE_CONFIG__ || {
-  /* TODO: THAY bằng config thật của bạn
+  
   apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   authDomain: "nini-8f3d4.firebaseapp.com",
   projectId: "nini-8f3d4",
   storageBucket: "nini-8f3d4.firebasestorage.app",
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184",
-  */
+  
 };
 
 /* =========================================================
- * 2) MAIL PRO ENDPOINTS — pro-first, có thể override 1 chỗ
- *    Nếu deploy ở Vercel/Cloudflare, đổi sang /api/... cho phù hợp.
- *    Có thể override bằng:
- *       window.NINI_MAIL_ENDPOINTS = { reset:"/api/...", verify:"/api/...", make:"/api/..." }
+ * 2) MAIL ENDPOINTS — ưu tiên Netlify, có thể override 1 chỗ
  * ======================================================= */
 const MAIL = Object.assign({
   reset : "/.netlify/functions/send-reset",
@@ -70,7 +51,7 @@ const MAIL = Object.assign({
   make  : "/.netlify/functions/make-reset-link",
 }, (window.NINI_MAIL_ENDPOINTS || {}));
 
-/* tiện ích fetch JSON với error rõ ràng */
+/* tiện ích POST JSON, trả error rõ ràng */
 async function postJSON(url, payload) {
   const res = await fetch(url, {
     method: "POST",
@@ -87,24 +68,21 @@ async function postJSON(url, payload) {
 }
 
 /* =========================================================
- * 3) STATE & EVENT BUS (nhẹ) — để header/onoff nghe trạng thái
+ * 3) EVENT BUS NHẸ — cho header/onoff nghe trạng thái
  * ======================================================= */
 const N = (window.NINI = window.NINI || {});
-/* event bus đơn giản: N.emit('evt', data) / N.on('evt', cb) */
 if (!N.emit || !N.on) {
   const _map = new Map();
   N.emit = (evt, data) => { (_map.get(evt) || []).forEach(fn => { try{ fn(data); }catch{} }); };
   N.on   = (evt, fn) => { if(!_map.has(evt)) _map.set(evt, []); _map.get(evt).push(fn); };
 }
 
-/* lưu đối tượng firebase */
-let app = null;
-let auth = null;
-let inited = false;
-
 /* =========================================================
  * 4) INIT — khởi tạo Firebase app/auth (một lần)
  * ======================================================= */
+let app = null;
+let auth = null;
+let inited = false;
 export async function init() {
   if (inited && app && auth) return { app, auth };
 
@@ -122,12 +100,12 @@ export async function init() {
   // gắn listener user change 1 lần
   if (!N._userWatcher) {
     onAuthStateChanged(auth, (user) => {
-  N.emit('user:changed', user || null);   // bắn event cho UI
-  if (!N.fb) N.fb = {};
-  N.fb._user = user || null;              // ✅ gán bình thường
-  if (user) console.log("[NINI] user:", user.email || user.uid);
-  else console.log("[NINI] user: signed out");
-});
+      N.emit('user:changed', user || null);
+      if (!N.fb) N.fb = {};
+      N.fb._user = user || null;   // ✅ KHÔNG dùng optional chaining ở vế trái
+      if (user) console.log("[NINI] user:", user.email || user.uid);
+      else console.log("[NINI] user: signed out");
+    });
     N._userWatcher = true;
   }
 
@@ -135,10 +113,10 @@ export async function init() {
 }
 
 /* =========================================================
- * 5) SUBSCRIBE USER — cho UI nghe trạng thái đăng nhập
+ * 5) SUBSCRIBE USER + HELPER TOKEN
  * ======================================================= */
 export function onUserChanged(cb) { N.on('user:changed', cb); }
-export function currentUser() { return N.fb?._user || null; }
+export function currentUser()    { return N.fb?._user || null; }
 export async function getIdToken(force=false) {
   await init(); const u = currentUser(); if (!u) return null;
   return await u.getIdToken(force);
@@ -161,9 +139,8 @@ export async function login(email, password) {
 
 /* =========================================================
  * 7) ĐĂNG KÝ EMAIL-ONLY
- *     - tạo user tạm (email + mật khẩu ngẫu nhiên)
- *     - gửi mail xác minh qua Mail Pro
- *     - UI (auth-action.html) sẽ tùy chọn tạo link reset sau verify
+ *    - tạo user tạm (email + mật khẩu ngẫu nhiên)
+ *    - gửi mail xác minh qua Mail Pro
  * ======================================================= */
 function _genTempPassword() {
   const b = crypto.getRandomValues(new Uint8Array(12));
@@ -196,8 +173,7 @@ export async function registerEmailOnly(email) {
 
 /* =========================================================
  * 8) QUÊN MẬT KHẨU (RESET)
- *     - Ưu tiên Mail Pro
- *     - Lỗi → fallback Firebase SDK để vẫn gửi được
+ *    - Ưu tiên Mail Pro → lỗi thì fallback Firebase SDK
  * ======================================================= */
 export async function resetPassword(email) {
   await init();
@@ -212,7 +188,6 @@ export async function resetPassword(email) {
     });
     return { ok:true, via:"mail-pro" };
   } catch (e) {
-    // fallback qua Firebase SDK
     await sendPasswordResetEmail(auth, email, {
       url: location.origin + "/reset-password.html"
     });
@@ -221,9 +196,8 @@ export async function resetPassword(email) {
 }
 
 /* =========================================================
- * 9) TẠO LINK RESET CHUẨN FIREBASE QUA FUNCTION
- *     - Dùng trong auth-action sau khi user đã verify
- *     - Server có thể trả { resetUrl } để redirect luôn
+ * 9) TẠO LINK RESET CHUẨN FIREBASE (qua function)
+ *    - Server có thể trả { resetUrl } để redirect luôn
  * ======================================================= */
 export async function makePasswordResetLink(email) {
   await init();
@@ -235,20 +209,16 @@ export async function makePasswordResetLink(email) {
     origin: location.origin,
     continueUrl: location.origin + "/reset-password.html"
   });
-  // Có thể là { resetUrl } hoặc { ok:true } (nếu server đã gửi mail)
   return r || { ok:true };
 }
 
 /* =========================================================
  * 10) ĐĂNG XUẤT
  * ======================================================= */
-export async function logout() {
-  await init(); await signOut(auth);
-}
+export async function logout() { await init(); await signOut(auth); }
 
 /* =========================================================
- * 11) EXPOSE ra NINI.fb để code cũ dùng
- *     (đồng thời export qua ESM cho code mới)
+ * 11) EXPOSE ra NINI.fb & ALIAS cho UI cũ
  * ======================================================= */
 N.fb = Object.assign(N.fb || {}, {
   init,
@@ -261,15 +231,14 @@ N.fb = Object.assign(N.fb || {}, {
   logout,
   currentUser,
   getIdToken,
-  // nội bộ: giữ app/auth phục vụ debug nếu cần
   _app: () => app, _auth: () => auth
 });
-// --- Các alias để tương thích code cũ ---
-N.fb.loginEmailPass = login;              // UI cũ gọi tên này
-N.fb.loginEmailPassword = login;          // …hoặc tên này
-N.fb.sendReset = resetPassword;           // nếu UI cũ gọi sendReset()
-N.fb.makeReset = makePasswordResetLink;   // nếu UI cũ gọi makeReset()
 
-// Tự init sớm (optional). Có thể bỏ nếu muốn chủ động gọi ở ngoài.
+// --- Alias tương thích UI cũ (để không phải sửa modal cũ) ---
+N.fb.loginEmailPass      = login;
+N.fb.loginEmailPassword  = login;
+N.fb.sendReset           = resetPassword;
+N.fb.makeReset           = makePasswordResetLink;
+
+// Tự init sớm (có thể bỏ nếu muốn chủ động gọi ở ngoài)
 init().catch(err => console.error(err?.message || err));
-

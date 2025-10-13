@@ -2,180 +2,137 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Hồ sơ | NiNi — Funny</title>
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
- 
+
+  <!-- theme chung -->
   <link rel="stylesheet" href="/test/css/base.css" />
-  <link rel="stylesheet" href="/test/css/auth-modal.css" />
   <link rel="stylesheet" href="/test/css/footer.css" />
-
+  <!-- (nếu muốn) nhét CSS profile-only ở đây -->
   <style>
-    .wrap { max-width: 980px; margin: 24px auto 0; padding: 0 12px; }
-    .card.glass{
-      border: 1px solid var(--glass-bd); background: var(--glass-1);
-      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-      border-radius: 16px; padding: 16px;
-    }
-    .grid { display: grid; grid-template-columns: 240px 1fr; gap: 16px; }
-    @media (max-width: 768px){ .grid{ grid-template-columns: 1fr; } }
+   /* profile.css – chỉ giữ phần rất đặc thù */
+.profile-card{ max-width:980px; margin:24px auto; padding:12px; }
+.profile-grid{
+  display:grid; grid-template-columns:240px 1fr; gap:16px;
+}
+@media (max-width:768px){
+  .profile-grid{ grid-template-columns:1fr; }
+}
 
-    .avatarBox { display:flex; flex-direction:column; align-items:center; gap:10px; }
-    .avatarBox img{ width: 160px; height:160px; object-fit:cover; border-radius:50%;
-                    border: 1px solid var(--glass-bd);
-                    background: url('/public/assets/avatar/NV.webp') center/cover no-repeat; }
+/* avatar */
+.profile-avatar{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+.profile-avatar .avatarBox{
+  width:160px; height:160px; border-radius:50%;
+  background: var(--avatar-default-url) center/cover no-repeat;
+  border:1px solid var(--glass-bd);
+}
 
-    .form .row{ display:grid; grid-template-columns: 160px 1fr; gap:10px; align-items:center; }
-    .form .row + .row{ margin-top:10px; }
-    .form label{ color:#fff; opacity:.9; }
+/* hàng form 2 cột */
+.form-rows{ display:grid; grid-template-columns:160px 1fr; gap:10px; align-items:center; }
+.form-rows + .form-rows{ margin-top:10px; }
 
-    /* input trên nền kính (giống index) */
-    .glass input, .glass textarea, .glass select{
-      background: transparent; color: #fff; border: none;
-      border-bottom: 1px solid var(--line); padding: 8px 2px 6px; border-radius:0;
-      outline: none; width: 100%; transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    .glass input::placeholder, .glass textarea::placeholder{ color: rgba(255,255,255,.75); }
-    .glass input:hover, .glass textarea:hover, .glass select:hover{ border-bottom-color: var(--line-hover); }
-    .glass input:focus, .glass textarea:focus, .glass select:focus{
-      border-bottom-color: var(--line-focus); box-shadow: 0 2px 0 0 var(--line-focus);
-    }
+/* actions bên dưới form */
+.profile-actions{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
 
-    .actions{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
-    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
-          padding:8px 14px; border-radius:999px; background:transparent; color:#fff;
-          border:1px solid rgba(255,255,255,.65); cursor:pointer; transition:.2s; }
-    .btn:hover{ color:#f6d35c; border-color:#f6d35c; background: rgba(255,255,255,.06); }
-    .btn.primary{ background: var(--btn-active-bg); color:#fff; border-color: transparent; }
   </style>
 </head>
 
-<body class="theme-spring home">
-  <!-- Header -->
+<body class="home theme-spring">
+  <!-- Header dựng bằng header.js -->
   <header id="nini_header"></header>
 
-  <main class="wrap">
-    <h1 style="text-align:center;margin:8px 0 18px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5)">Hồ sơ</h1>
+  <main class="stage">
+    <section class="frame glass profile-card">
+      <h1 style="margin:0 0 12px 0;">Hồ sơ</h1>
 
-    <section class="card glass">
-      <div class="grid">
-        <!-- Cột trái: avatar -->
-        <div class="avatarBox">
-          <img id="pfAvatar" src="" alt="avatar"/>
-          <input type="file" id="pfUpload" accept="image/*" />
-          <button class="btn" id="btnUpload">Tải ảnh mới</button>
-          <button class="btn" id="btnResetAva">Về mặc định</button>
+      <div class="profile-grid">
+        <!-- LEFT: avatar -->
+        <div class="profile-avatar">
+          <div class="avatarBox" id="profileAvatar"></div>
+          <div>
+            <input type="file" id="avatarInput" accept="image/*" />
+          </div>
+          <div class="profile-actions">
+            <button class="btn sm" id="btnUploadAvatar">Tải ảnh mới</button>
+            <button class="btn sm" id="btnResetAvatar">Về mặc định</button>
+          </div>
         </div>
 
-        <!-- Cột phải: form -->
-        <div class="form">
-          <div class="row">
+        <!-- RIGHT: form (dùng input style chung) -->
+        <form id="profileForm">
+          <div class="form-rows">
             <label>Email</label>
-            <input id="pfEmail" type="email" placeholder="you@example.com" disabled />
+            <input type="email" id="email" placeholder="you@example.com" />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Tên hiển thị</label>
-            <input id="pfName" type="text" placeholder="Bé NiNi" />
+            <input type="text" id="displayName" placeholder="Bé NiNi" />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Ngày sinh</label>
-            <input id="pfDOB" type="text" placeholder="dd/mm/yyyy" />
+            <input type="text" id="dob" placeholder="dd/mm/yyyy" />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Tỉnh/Thành</label>
-            <input id="pfCity" type="text" placeholder="Hà Nội / TPHCM ..." />
+            <input type="text" id="city" placeholder="Hà Nội / TPHCM ..." />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Lớp/Khối</label>
-            <input id="pfClass" type="text" placeholder="Lớp 2, Lớp 3..." />
+            <input type="text" id="grade" placeholder="Lớp 2, Lớp 3..." />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Phụ huynh</label>
-            <input id="pfParent" type="text" placeholder="Tên phụ huynh" />
+            <input type="text" id="parent" placeholder="Tên phụ huynh" />
           </div>
-          <div class="row">
+          <div class="form-rows">
             <label>Điện thoại</label>
-            <input id="pfPhone" type="text" placeholder="09xxxxxxx" />
+            <input type="tel" id="phone" placeholder="09xxxxxxx" />
           </div>
 
-          <div class="actions">
-            <button class="btn primary" id="btnSave">Lưu hồ sơ</button>
-            <button class="btn" id="btnChangePass">Đổi / Thêm mật khẩu</button>
-            <button class="btn" id="btnSync">Đồng bộ lại</button>
+          <div class="profile-actions">
+            <button type="submit" class="btn" id="btnSave">Lưu hồ sơ</button>
+            <a class="btn" href="/auth-action.html#mode=resetPassword">Đổi / Thêm mật khẩu</a>
+            <button type="button" class="btn" id="btnBack">Đóng bỏ lại</button>
           </div>
-        </div>
+        </form>
       </div>
     </section>
 
-    <!-- Footer -->
-    <footer id="nini_footer"></footer>
+    <!-- 4 nút dưới chân trang -->
+    <div class="footer">
+      <a class="chip" href="/#/about">Giới thiệu</a>
+      <a class="chip" href="/#/rules">Luật chơi</a>
+      <a class="chip" href="/#/forum">Diễn đàn</a>
+      <a class="chip" href="/#/feedback">Góp ý</a>
+    </div>
   </main>
 
-  <!-- JS: config + fb + core + header + modal + onoff + glue + footer -->
-  <script src="/public/js/nini-config.js"></script>
-  <script src="/public/js/nini-fb.js"></script>
-
-  <script src="/test/js/core.js"></script>
-  <script src="/test/js/header.js" defer></script>
+  <!-- script: fb sdk (đã import trong nini-fb.mjs), header, modal, glue, footer -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
+  <script src="/test/js/header.js"></script>
   <script src="/test/js/auth-modal.js" defer></script>
-  <script src="/test/js/auth-glue.js"></script>
-  <script src="/test/js/onoff.js" defer></script>
+  <script src="/test/js/auth-glue.js" defer></script>
   <script src="/test/js/footer.js" defer></script>
 
-  <!-- Page logic -->
+  <!-- profile logic riêng (nếu có) -->
   <script>
-  (function(){
-    const N = window.NINI || {};
-    const $ = (s, r=document)=>r.querySelector(s);
-
-    function fill(u){
-      $('#pfEmail').value = u?.email || '';
-      $('#pfName').value  = (u?.displayName || 'Bé NiNi');
-      $('#pfAvatar').src  = u?.photoURL || '';
-    }
-
-    function needLogin(){
-      if (N.emit) N.emit('auth:open');
-      const m = document.getElementById('authModal');
-      if (m){
-        m.classList.remove('hidden');
-        m.setAttribute('aria-hidden','false');
-        document.body.classList.add('body-auth-open');
-      }
-    }
-
-    // Subscribe user
-    if (N.fb?.onUserChanged){
-      N.fb.onUserChanged(u => { u ? fill(u) : needLogin(); });
-    }
-
-    // Actions
-    $('#btnSave').addEventListener('click', async ()=>{
-      const name = $('#pfName').value.trim();
-      if (!name) return alert('Nhập tên hiển thị');
-      try{ await N.fb?.updateProfile?.({ displayName:name }); alert('Đã lưu hồ sơ.'); }
-      catch(e){ alert(e.message); }
-    });
-
-    $('#btnChangePass').addEventListener('click', async ()=>{
-      const email = $('#pfEmail').value.trim();
-      if (!email) return alert('Chưa có email người dùng.');
-      try{ await N.fb?.sendPasswordResetEmail?.(email); alert('Đã gửi email đặt lại mật khẩu.'); }
-      catch(e){ alert(e.message); }
-    });
-
-    $('#btnSync').addEventListener('click', ()=>location.reload());
-
-    // Avatar preview (demo)
-    $('#btnUpload').addEventListener('click', ()=>{
-      const f = $('#pfUpload'); if (!f.files || !f.files[0]) return alert('Chọn ảnh trước đã nhé!');
-      const url = URL.createObjectURL(f.files[0]); $('#pfAvatar').src = url;
-    });
-    $('#btnResetAva').addEventListener('click', ()=>{ $('#pfAvatar').src = ''; });
-  })();
+    // ví dụ đọc current user để fill form
+    (function(){
+      const N = window.NINI || {};
+      const fb = N.fb || {};
+      const fill = (u) => {
+        if (!u) return;
+        document.getElementById('email').value = u.email || '';
+        document.getElementById('displayName').value = u.displayName || '';
+        if (u.photoURL) {
+          document.getElementById('profileAvatar').style.backgroundImage = `url("${u.photoURL}")`;
+        }
+      };
+      try {
+        fb.onUserChanged && fb.onUserChanged(fill);
+        if (fb.currentUser) fill(fb.currentUser());
+      } catch {}
+    })();
   </script>
 </body>
 </html>
-
-
-

@@ -1,41 +1,49 @@
+/* header.js — safe render + auth toggle */
 (function () {
   const N = (window.NINI = window.NINI || {});
   if (N._wiredHeader) return;
   N._wiredHeader = true;
 
-  function mount(sel = '#nini_header') {
-    const root = document.querySelector(sel) || (() => {
-      const h = document.createElement('header'); h.id = 'nini_header';
-      document.body.prepend(h); return h;
-    })();
+  const $ = (s, r = document) => r.querySelector(s);
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  function render() {
+    const root = document.getElementById('nini_header');
+    if (!root) {
+      console.warn('[header] Không tìm thấy #nini_header');
+      return;
+    }
 
     root.innerHTML = `
       <div class="nini-header-wrap">
-        <a href="/#/home" class="site-brand" data-auto-slogan aria-label="NiNi">
-          <i class="logo-left"></i>
-        </a>
+        <div class="brand">
+          <a class="logo" href="/#/home" title="NiNi — Funny"></a>
+          <span class="slogan">chơi mê ly, bứt phá tư duy</span>
+        </div>
 
         <nav class="nav">
-          <a href="/#/home" class="nav-link">Trang chủ</a>
-          <a href="/#/rules" class="nav-link">Luật chơi</a>
+          <a class="nav-link" href="/#/home">Trang chủ</a>
+          <a class="nav-link" href="/#/rules">Luật chơi</a>
         </nav>
 
-        <div class="userbox">
-          <img class="avatar" id="niniAvatar" alt="avatar">
-          <span id="niniEmail" class="email"></span>
-          <button id="btnAuthOpen" class="btn-auth guest-only" type="button">Đăng nhập / Đăng ký</button>
-          <button id="btnLogout" class="btn-auth auth-only" type="button" data-auth="logout">Đăng xuất</button>
+        <div class="userbox" id="userbox">
+          <button id="btnAuthOpen" class="btn-auth" type="button">Đăng nhập / Đăng ký</button>
+
+          <div id="userInfo" class="user-info" style="display:none">
+            <button id="btnProfile" class="avatar" type="button" title="Hồ sơ"></button>
+            <span class="nick" id="userNick"></span>
+            <button id="btnSignOut" class="btn-auth" type="button">Đăng xuất</button>
+          </div>
         </div>
       </div>
     `;
 
-    // dọn sạch logo/badge legacy nếu còn trong DOM
-    const kill = (s) => document.querySelectorAll(s).forEach(n => n.remove());
-    kill('.nini-badge, .left-logo, .site-logo, .top-left-logo, .header-logo, .header__logo');
-
-    // mở modal
-    root.querySelector('#btnAuthOpen')?.addEventListener('click', (e) => {
-      e.preventDefault();
+    // open auth modal
+    $('#btnAuthOpen')?.addEventListener('click', () => {
       if (N.emit) N.emit('auth:open');
       const m = document.getElementById('authModal');
       if (m) {
@@ -45,43 +53,55 @@
       }
     });
 
-    // logout
-    root.querySelector('#btnLogout')?.addEventListener('click', async (e) => {
-      e.preventDefault();
-      try { await N.fb?.logout?.(); } catch {}
+    // go profile
+    $('#btnProfile')?.addEventListener('click', () => {
+      location.href = '/profile.html';
     });
 
-    // avatar & email -> profile
-    const goProfile = (e) => {
-      e.preventDefault();
-      if (document.body.dataset.auth === 'in') location.href = '/profile.html';
-    };
-    root.querySelector('#niniAvatar')?.addEventListener('click', goProfile);
-    root.querySelector('#niniEmail') ?.addEventListener('click', goProfile);
-
-    function renderUser(u){
-      const $email  = root.querySelector('#niniEmail');
-      const $avatar = root.querySelector('#niniAvatar');
-
-      if (u){
-        document.body.dataset.auth = 'in';
-        const nick = (u.displayName && u.displayName.trim()) || (u.email ? u.email.split('@')[0] : '');
-        $email.textContent = nick;            // ✅ nickname thay vì email
-        $avatar.src = u.photoURL || '';       // rỗng -> dùng avatar default từ CSS
-        $email.style.cursor = 'pointer';
-      } else {
-        document.body.dataset.auth = 'out';
-        $email.textContent = '';
-        $avatar.src = '';
-        $email.style.cursor = 'default';
+    // sign out
+    $('#btnSignOut')?.addEventListener('click', async () => {
+      try {
+        await N.fb?.signOut?.();
+      } catch (e) {
+        console.error(e);
       }
-    }
-
-    try { N.fb?.onUserChanged && N.fb.onUserChanged(renderUser); } catch {}
-    return root;
+    });
   }
 
-  N.header = { mount };
-  if (document.readyState !== 'loading') mount();
-  else document.addEventListener('DOMContentLoaded', () => mount());
+  function updateAuthUI(user) {
+    const btnAuth = document.getElementById('btnAuthOpen');
+    const boxUser = document.getElementById('userInfo');
+    const nick = document.getElementById('userNick');
+    const ava = document.getElementById('btnProfile');
+
+    if (user) {
+      btnAuth && (btnAuth.style.display = 'none');
+      boxUser && (boxUser.style.display = 'inline-flex');
+
+      const display = user.displayName || user.email?.split('@')[0] || 'NiNi';
+      if (nick) nick.textContent = display;
+
+      const letter = display?.trim()?.[0]?.toUpperCase?.() || 'U';
+      if (ava) {
+        ava.style.setProperty('--ava-bg', `url("${user.photoURL || ''}")`);
+        ava.setAttribute('data-letter', letter);
+      }
+    } else {
+      boxUser && (boxUser.style.display = 'none');
+      btnAuth && (btnAuth.style.display = 'inline-flex');
+      if (ava) {
+        ava.style.removeProperty('--ava-bg');
+        ava.setAttribute('data-letter', 'U');
+      }
+    }
+  }
+
+  // wire
+  ready(() => {
+    render();
+    // nghe user thay đổi -> toggle nút
+    if (N.fb?.onUserChanged) N.fb.onUserChanged(updateAuthUI);
+    // cập nhật ngay nếu đã đăng nhập sẵn
+    if (N.fb?.currentUser) updateAuthUI(N.fb.currentUser());
+  });
 })();

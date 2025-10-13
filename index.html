@@ -2,16 +2,27 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny (Clean)</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
-  <!-- CSS -->
-<link rel="stylesheet" href="./test/css/base.css">
-<link rel="stylesheet" href="./test/css/stage.css">
-<link rel="stylesheet" href="./test/css/footer.css">
-<link rel="stylesheet" href="./test/css/auth-modal.css">
+
+  <!-- ========== CSS ========== -->
+  <!-- base.css đã GỘP header.css và chứa toàn bộ brand/avatar/background -->
+  <link rel="stylesheet" href="./test/css/base.css">
+  <link rel="stylesheet" href="./test/css/auth-modal.css">
+  <link rel="stylesheet" href="./test/css/stage.css">
+  <link rel="stylesheet" href="./test/css/footer.css">
+
+  <!-- (tuỳ chọn) cấu hình Firebase & Mail endpoints ngay tại index, 
+       nếu bạn không muốn sửa trực tiếp trong file nini-fb.mjs -->
+ 
+  <!-- ========== SDK DUY NHẤT cần nạp: nini-fb.mjs (đã tự import Firebase SDK) ========== -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
 </head>
-<body class="theme-spring"> <!-- body class đổi theo mùa -->
+
+<!-- body có thể đổi class theo mùa: home/spring/summer/autumn/winter -->
+<body class="home">
+  <!-- Header sẽ được header.js render vào đây -->
   <header id="nini_header"></header>
 
   <main class="stage">
@@ -19,27 +30,18 @@
     <nav id="season_bar"></nav>
   </main>
 
-<!-- dùng ESM -->
-<script type="module" src="./public/js/nini-fb.mjs"></script>
-<script src="./test/js/auth-modal.js" defer>
-<script src="./test/js/onoff.js" defer></script>
-<script src="./test/js/auth-glue.js" defer></script>
+  <!-- ========== JS app: core -> header -> stage -> auth-modal -> onoff -> auth-glue -> footer ========== -->
+  <script src="./test/js/core.js"></script>
+  <script src="./test/js/header.js" defer></script>
+  <script src="./test/js/stage.js" defer></script>
 
-<script src="./test/js/header.js" defer></script>
-<script src="./test/js/core.js"></script>
-<script src="./test/js/stage.js" defer></script>
-<script src="./test/js/footer.js" defer></script>
+  <!-- Modal đăng nhập/đăng ký/quen mật khẩu -->
+  <script src="./test/js/auth-modal.js" defer></script>
+  <!-- onoff.js: quản lý open/close modal, overlay, ESC, v.v. -->
+  <script src="./test/js/onoff.js" defer></script>
+  <!-- auth-glue.js: nối UI modal với NINI.fb (login, registerEmailOnly, reset, v.v.) -->
+  <script src="./test/js/auth-glue.js" defer></script>
+
+  <script src="./test/js/footer.js" defer></script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-

@@ -163,3 +163,145 @@ body.home {
 .header-logo,
 .header__logo { display:none !important; }
 
+/* =========================================================
+   THEME COMMON TOKENS
+   ======================================================= */
+:root{
+  /* Nền đã có nên mọi khối nội dung đều dùng kính (glass) */
+  --glass-1: rgba(255,255,255,.15);  /* lớp nền nhẹ */
+  --glass-2: rgba(255,255,255,.35);  /* lớp nổi hơn (message) */
+  --glass-bd: rgba(255,255,255,.45); /* viền kính */
+  --blur: 8px;
+
+  /* Màu dùng cho button state */
+  --btn-text: #fff;
+  --btn-bd: rgba(255,255,255,.65);
+  --btn-hover: #f6d35c;  /* vàng khi hover (chữ + viền) */
+  --btn-active-bg: #2ecc71; /* xanh lá nhạt khi chọn */
+  --btn-focus: rgba(255,255,255,.75);
+
+  /* Textbox line */
+  --line: rgba(255,255,255,.65);
+  --line-hover: #f6d35c;
+  --line-focus: #2ecc71;
+}
+
+/* =========================================================
+   KÍNH (GLASS) DÙNG CHUNG
+   ======================================================= */
+.glass{
+  background: var(--glass-1);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--glass-bd);
+  border-radius: 16px;
+}
+
+.glass-2{
+  background: var(--glass-2);
+  backdrop-filter: blur(var(--blur));
+  -webkit-backdrop-filter: blur(var(--blur));
+  border: 1px solid var(--glass-bd);
+  border-radius: 16px;
+}
+
+/* frame tổng (card/khối nội dung) */
+.frame{ padding: 16px; }
+.frame.glass, .frame.glass-2{ padding: 18px; }
+
+/* message/alert mặc định nên “nổi” hơn */
+.message{ padding: 12px 14px; border-radius: 12px; }
+.message.glass-2{ box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+
+/* Áp cho stage glass nếu muốn */
+.stage > .glass{ background: var(--glass-1); }
+
+/* =========================================================
+   BUTTON — viền trắng, chữ trắng; hover vàng; active xanh lá
+   ======================================================= */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem; padding:8px 14px; border-radius:999px;
+  background: transparent;
+  color: var(--btn-text);
+  border: 1px solid var(--btn-bd);
+  text-decoration:none; cursor:pointer; user-select:none;
+  transition: .2s ease;
+}
+.btn:hover{
+  color: var(--btn-hover);
+  border-color: var(--btn-hover);
+  background: rgba(255,255,255,.06);
+}
+.btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+  border-color: var(--btn-focus);
+}
+/* trạng thái được chọn (tab đang active, nút đang bật) */
+.btn.is-active,
+.btn[aria-current="true"],
+.btn[aria-pressed="true"]{
+  background: var(--btn-active-bg);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* Nếu cần nút nhỏ/nhỏ hơn */
+.btn.sm{ padding:6px 10px; font-size:.92rem; }
+.btn.xs{ padding:4px 8px;  font-size:.85rem; }
+
+/* gợi ý áp cho các nút header đã có class */
+#nini_header .btn-auth{ composes: btn; }        /* nếu build không hỗ trợ composes, cứ để .btn-auth kế thừa .btn */
+#nini_header .btn-auth{
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:6px 10px; border-radius:999px;
+  background: transparent; color:#fff; border:1px solid var(--btn-bd);
+}
+#nini_header .btn-auth:hover{ color:var(--btn-hover); border-color:var(--btn-hover); }
+
+/* =========================================================
+   TEXTBOX — trong suốt, chỉ có 1 line phía dưới
+   ======================================================= */
+.input, input[type="text"], input[type="email"], input[type="password"],
+input[type="tel"], input[type="number"], textarea, select{
+  background: transparent;
+  color: #fff;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 8px 2px 6px;
+  border-radius: 0;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.input::placeholder, input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.75); }
+.input:hover, input:hover, textarea:hover, select:hover{
+  border-bottom-color: var(--line-hover);
+}
+.input:focus, input:focus, textarea:focus, select:focus{
+  border-bottom-color: var(--line-focus);
+  box-shadow: 0 2px 0 0 var(--line-focus);
+}
+
+/* Label và group gợi ý */
+.field{ display:flex; flex-direction:column; gap:6px; }
+.label{ color:#fff; opacity:.9; font-size:.92rem; }
+
+/* =========================================================
+   Tương phản cho nền kính (chữ, link)
+   ======================================================= */
+.glass, .glass-2, .frame.glass, .message.glass-2{
+  color:#fff;
+}
+.glass a, .glass-2 a{ color:#fff; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Nếu cần chip/tab kiểu kính */
+.chip{
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:6px 10px; border-radius:999px;
+  color:#fff; border:1px solid var(--glass-bd);
+  background: rgba(255,255,255,.1);
+}
+.chip.is-active{ background: var(--btn-active-bg); border-color: transparent; }
+

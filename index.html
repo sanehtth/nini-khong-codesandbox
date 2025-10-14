@@ -1,323 +1,375 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>NiNi — Funny (Clean)</title>
-
-  <!-- Favicon -->
+  <title>NiNi — Funny</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
 
-  <!-- ===== CSS dùng chung (có sẵn) ===== -->
-  <link rel="stylesheet" href="/test/css/base.css" />
-  <link rel="stylesheet" href="/test/css/auth-modal.css" />
-  <link rel="stylesheet" href="/test/css/header.css" />
-  <link rel="stylesheet" href="/test/css/stage.css" />
-  <link rel="stylesheet" href="/test/css/footer.css" />
-
-  <!-- (tuỳ chọn) Theme boot: load override từ Netlify Function -->
-  <script src="/test/js/theme-boot.js" defer></script>
-
-  <!-- Firebase wrapper của bạn -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
-
-  <!-- CSS nhỏ cho avatar/popup (phần còn lại dùng style chung) -->
+  <!-- Base styles (kính mờ) -->
   <style>
-    .avatar-btn{
-      width:32px;height:32px;border-radius:999px;border:1px solid var(--glass-bd);
-      background:rgba(255,255,255,.15);display:inline-grid;place-items:center;cursor:pointer;
-      box-shadow:0 2px 6px rgba(0,0,0,.15);background-size:cover;background-position:center;
-      margin-left:10px;
+    :root{
+      --bg: #101b10;
+      --fg: #e9f6ea;
+      --muted:#cfe6d1;
+      --brand:#66e39d;
+      --brand-2:#2ed573;
+      --glass: rgba(255,255,255,.08);
+      --glass-2: rgba(255,255,255,.12);
+      --glass-3: rgba(255,255,255,.18);
+      --blur: 12px;
+      --radius: 16px;
+      --shadow: 0 8px 30px rgba(0,0,0,.25);
+      --card-w: 1100px;
+      --bar-h: 60px;
+      --nav-w: 76px;
     }
-    .avatar-letter{color:#fff;font-weight:700;text-shadow:0 1px 1px rgba(0,0,0,.4);font-size:12px}
-    .avatar-menu{
-      position:absolute;right:16px;top:64px;width:260px;padding:10px;border-radius:14px;z-index:40
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--fg); background:#0d1a0f url("/public/assets/bg/nini_home.webp") center/cover fixed no-repeat;
+      font: 16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto;
     }
-    .avatar-menu.hidden{display:none}
-    .avatar-menu .user-row{display:flex;gap:10px;align-items:center}
-    .avatar-thumb{width:36px;height:36px;border-radius:999px;background:#2e7d32 center/cover no-repeat;border:1px solid rgba(255,255,255,.6)}
-    .user-meta .name{font-weight:700;color:#fff}
-    .user-meta .email{opacity:.9;font-size:.9rem;color:#fff}
-    .menu-sep{height:1px;background:var(--glass-bd);margin:10px 0}
-    .menu-item{width:100%;text-align:left;padding:8px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:#fff;cursor:pointer}
-    .menu-item:hover{background:rgba(255,255,255,.12);border-color:var(--glass-bd)}
-    /* Modal giữ style chung: chỉ đảm bảo overlay hiển thị */
-    .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:50}
-    .auth-modal.hidden{display:none}
-    .auth-box{width:min(560px,94vw);padding:16px;border-radius:16px}
-    .auth-tabs{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-    .auth-tabs .tab{padding:6px 12px;border-radius:999px}
-    .auth-tabs .tab.is-active{background:var(--btn-active-bg);border-color:transparent}
-    .auth-tabs .close{margin-left:auto}
-    .auth-form{display:grid;gap:8px}
-    .auth-form.hidden{display:none}
-    .actions{display:flex;gap:8px;align-items:center}
-    #authMsg{margin-top:8px;min-height:18px;color:#fff}
+    a{color:inherit;text-decoration:none}
+    .btn{
+      appearance:none;border:1px solid transparent;background:var(--glass-2);
+      color:var(--fg);padding:8px 14px;border-radius:12px;backdrop-filter: blur(var(--blur));
+      box-shadow:var(--shadow);cursor:pointer;transition:.2s;
+    }
+    .btn:hover{background:var(--glass-3)}
+    .chip{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.15)}
+    .glass{background:var(--glass);backdrop-filter: blur(var(--blur));border:1px solid rgba(255,255,255,.1)}
+    .wrap{display:grid;grid-template-columns: var(--nav-w) 1fr;min-height:100dvh}
+
+    /* Header (top) */
+    .topbar{
+      position:sticky;top:0;z-index:30;height:var(--bar-h);
+      display:flex;align-items:center;gap:16px;
+      padding:10px 16px;margin:12px; border-radius:999px;
+      background:var(--glass-2); backdrop-filter: blur(var(--blur)); border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+    }
+    .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+    .brand__logo{width:36px;height:36px;border-radius:10px;background:#000 url('/public/assets/icons/logomini.svg') center/70% no-repeat}
+    .brand__slogan{font-weight:600;opacity:.9}
+
+    .topnav{display:flex;gap:10px}
+    .topnav a{padding:8px 12px;border-radius:12px}
+    .topnav a.active,.topnav a:hover{background:var(--glass-3)}
+
+    /* Sidebar */
+    .sidenav{
+      position:sticky;top:calc(var(--bar-h) + 24px);height:calc(100dvh - var(--bar-h) - 48px);
+      display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px;
+    }
+    .snav-btn{
+      width:52px;height:52px;border-radius:14px;display:grid;place-items:center;
+      background:var(--glass-2);border:1px solid rgba(255,255,255,.12);cursor:pointer;transition:.2s;
+    }
+    .snav-btn:hover,.snav-btn.active{background:var(--glass-3)}
+    .snav-btn span{font-size:22px}
+    .snav-label{font-size:11px;opacity:.7;margin-top:4px}
+
+    /* Stage (content) */
+    .stage{
+      padding: 0 16px 40px 8px;
+    }
+    .card{
+      max-width:var(--card-w); margin:20px auto; border-radius:24px;padding:18px 20px;
+      background:var(--glass);backdrop-filter: blur(var(--blur)); border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+    }
+    .card h2{margin:6px 0 14px 0}
+    .grid{
+      display:grid;gap:14px;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+    }
+    .tile{
+      border-radius:18px;padding:16px;background:var(--glass-2);border:1px solid rgba(255,255,255,.12);
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .tile h3{margin:0 0 6px 0}
+    .tile p{margin:0 0 10px 0;opacity:.9}
+    .tile .btn{align-self:flex-start}
+
+    /* Avatar + menu */
+    .userbox{display:flex;align-items:center;gap:8px}
+    .avatar{
+      width:36px;height:36px;border-radius:999px;display:grid;place-items:center;
+      background:var(--glass-2);border:1px solid rgba(255,255,255,.12);cursor:pointer;position:relative;overflow:hidden
+    }
+    .avatar[data-letter]::after{content:attr(data-letter);font-weight:700}
+    .menu{
+      position:absolute;top:48px;right:0;min-width:180px;display:none;flex-direction:column;gap:6px;
+      padding:10px;border-radius:12px;background:var(--glass-2);border:1px solid rgba(255,255,255,.12)
+    }
+    .menu a,.menu button{display:block;text-align:left}
+    .avatar.open + .menu{display:flex}
+
+    /* Modal auth (tận dụng style chung) */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:50}
+    .modal.show{display:flex}
+    .modal .sheet{width:min(720px,90vw);border-radius:20px;padding:18px;background:var(--glass);border:1px solid rgba(255,255,255,.15)}
+    .modal .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .row{display:flex;gap:10px;align-items:center}
+    .row > input{flex:1;border-radius:12px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--fg)}
+    .note{opacity:.8;font-size:13px}
+    @media (max-width: 880px){
+      .grid{grid-template-columns: 1fr}
+      .topbar{border-radius:18px}
+      .sidenav{top:unset;height:auto;position:static;flex-direction:row;justify-content:center}
+      .wrap{grid-template-columns: 1fr}
+    }
   </style>
 </head>
-<body class="home-spring">
-  <!-- ===== HEADER: logo + slogan + tabs + avatar ===== -->
-  <header id="nini_header" class="nini-header-wrap">
+<body>
+
+  <!-- ======= TOP BAR ======= -->
+  <div class="topbar">
     <div class="brand">
-      <a class="logo" href="/#/home" title="NiNi — Funny"></a>
-      <span class="slogan">chơi mê ly, bứt phá tư duy</span>
+      <div class="brand__logo"></div>
+      <div class="brand__slogan">chơi mê ly, bứt phá tư duy</div>
     </div>
 
-    <nav class="nav">
-      <a class="nav-link" href="/#/storybook">Storybook</a>
-      <a class="nav-link" href="/#/video">Video</a>
-      <a class="nav-link" href="/#/game">Game</a>
-      <a class="nav-link" href="/#/shop">Shop</a>
+    <nav class="topnav" id="topnav">
+      <a href="#/about"   data-top>Giới thiệu</a>
+      <a href="#/rules"   data-top>Luật chơi</a>
+      <a href="#/forum"   data-top>Diễn đàn</a>
+      <a href="#/feedback" data-top>Góp ý</a>
     </nav>
 
-    <!-- Avatar (mặc định là khách) -->
-    <div style="position:relative">
-      <button id="avatarBtn" class="avatar-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Tài khoản">
-        <span id="avatarLetter" class="avatar-letter">N</span>
-      </button>
-      <div id="avatarMenu" class="avatar-menu glass hidden" role="menu" aria-hidden="true">
-        <div class="user-row">
-          <div id="avatarThumb" class="avatar-thumb"></div>
-          <div class="user-meta">
-            <div id="userDisplay" class="name">NiNi</div>
-            <div id="userEmail" class="email">you@example.com</div>
-          </div>
-        </div>
-        <div class="menu-sep"></div>
-        <a role="menuitem" class="menu-item" href="/profile.html">Hồ sơ</a>
-        <button role="menuitem" class="menu-item" id="btnSignOut">Đăng xuất</button>
+    <!-- user -->
+    <div class="userbox">
+      <button id="btnAuthOpen" class="btn chip" type="button">Đăng nhập</button>
+
+      <button id="btnAvatar" class="avatar" type="button" title="Tài khoản" data-letter="N"></button>
+      <div id="userMenu" class="menu">
+        <a class="btn" href="/profile.html">Hồ sơ</a>
+        <button id="btnSignOut" class="btn" type="button">Đăng xuất</button>
       </div>
-    </div>
-  </header>
-
-  <!-- ===== MAIN: khung hiển thị nội dung theo tab ===== -->
-  <main class="stage">
-    <section id="stageCard" class="stage-card glass">
-      <h2>Chào mừng đến với <strong>NiNi — Funny</strong></h2>
-      <p>Dùng thanh trên để chuyển mục <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, <strong>Shop</strong>.</p>
-    </section>
-    <nav id="season_bar"></nav>
-  </main>
-
-  <!-- ===== FOOTER (nếu cần) ===== -->
-  <footer id="nini_footer"></footer>
-
-  <!-- ===== AUTH MODAL (3 tab) ===== -->
-  <div id="authModal" class="auth-modal hidden" aria-hidden="true">
-    <div class="auth-box glass-2">
-      <div class="auth-tabs">
-        <button class="tab is-active" data-auth-tab="login">Đăng nhập</button>
-        <button class="tab" data-auth-tab="signup">Đăng ký</button>
-        <button class="tab" data-auth-tab="reset">Quên mật khẩu</button>
-        <button class="close btn sm" id="authClose" title="Đóng">Đóng</button>
-      </div>
-
-      <form id="formLogin" class="auth-form" data-auth-panel="login">
-        <label class="label">Email</label>
-        <input class="input" type="email" name="email" autocomplete="email" required />
-        <label class="label">Mật khẩu</label>
-        <input class="input" type="password" name="password" autocomplete="current-password" required />
-        <div class="actions">
-          <button class="btn" type="submit">Đăng nhập</button>
-          <button class="btn sm" type="button" id="btnLoginGoogle">Đăng nhập Google</button>
-        </div>
-      </form>
-
-      <form id="formSignup" class="auth-form hidden" data-auth-panel="signup">
-        <label class="label">Email</label>
-        <input class="input" type="email" name="email" autocomplete="email" required />
-        <div class="actions">
-          <button class="btn" type="submit">Gửi email xác minh</button>
-        </div>
-      </form>
-
-      <form id="formReset" class="auth-form hidden" data-auth-panel="reset">
-        <label class="label">Email</label>
-        <input class="input" type="email" name="email" autocomplete="email" required />
-        <div class="actions">
-          <button class="btn" type="submit">Gửi link đặt lại mật khẩu</button>
-        </div>
-      </form>
-
-      <div class="msg" id="authMsg"></div>
     </div>
   </div>
 
-  <!-- ===== CORE JS (Header flow + Auth + Router tab) ===== -->
+  <!-- ======= LAYOUT ======= -->
+  <div class="wrap">
+    <!-- SIDEBAR -->
+    <aside class="sidenav" id="sidenav">
+      <a class="snav-btn" href="#/storybook" data-side title="Storybook"><span>📚</span><div class="snav-label">Storybook</div></a>
+      <a class="snav-btn" href="#/video"     data-side title="Video">     <span>🎬</span><div class="snav-label">Video</div></a>
+      <a class="snav-btn" href="#/game"      data-side title="Game">      <span>🎮</span><div class="snav-label">Game</div></a>
+      <a class="snav-btn" href="#/shop"      data-side title="Shop">      <span>🛍️</span><div class="snav-label">Shop</div></a>
+    </aside>
+
+    <!-- STAGE -->
+    <main class="stage">
+      <section id="stageCard" class="card">
+        <!-- Nội dung sẽ render bằng JS -->
+      </section>
+    </main>
+  </div>
+
+  <!-- ======= AUTH MODAL (tận dụng style chung) ======= -->
+  <div id="authModal" class="modal" aria-hidden="true">
+    <div class="sheet">
+      <div class="tabs">
+        <button class="btn chip" data-auth-tab="login">Đăng nhập</button>
+        <button class="btn chip" data-auth-tab="signup">Đăng ký</button>
+        <button class="btn chip" data-auth-tab="reset">Quên mật khẩu</button>
+        <button id="authClose" class="btn" style="margin-left:auto">Đóng</button>
+      </div>
+
+      <!-- login -->
+      <form id="formLogin" class="pane" data-pane="login">
+        <div class="row"><input type="email" placeholder="Email" /></div>
+        <div class="row"><input type="password" placeholder="Mật khẩu" /></div>
+        <div class="row"><button class="btn" type="submit">Đăng nhập</button>
+          <button class="btn" type="button" id="btnGoogle">Đăng nhập Google</button></div>
+        <div class="note">Mẹo: bạn có thể bật VPN nếu mạng chặn Firebase auth API.</div>
+      </form>
+
+      <!-- signup (email verify) -->
+      <form id="formSignup" class="pane" data-pane="signup" style="display:none">
+        <div class="row"><input type="email" placeholder="Email" /></div>
+        <div class="row"><button class="btn" type="submit">Gửi mail xác minh</button></div>
+        <div class="note">Hệ thống gửi email xác minh đăng ký.</div>
+      </form>
+
+      <!-- reset -->
+      <form id="formReset" class="pane" data-pane="reset" style="display:none">
+        <div class="row"><input type="email" placeholder="Email" /></div>
+        <div class="row"><button class="btn" type="submit">Gửi link đặt lại mật khẩu</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======= PAGE SCRIPTS ======= -->
+  <!-- Firebase wrapper + auth glue của bạn -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
+  <script src="/test/js/auth-glue.js" defer></script>
+
   <script>
   (function(){
     const N = (window.NINI = window.NINI || {});
-    if (N._wiredIndex) return; N._wiredIndex = true;
-
     const $ = (s, r=document) => r.querySelector(s);
-    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-    const LS_AUTH = 'nini.auth';
-    const LS_USER = 'nini.user';
+    const $$ = (s, r=document) => r.querySelectorAll(s);
 
-    // ========= Simple tab router (hash) =========
-    const views = {
-      'storybook': `
-        <h2><i class="ico-book"></i> Storybook</h2>
-        <p>Truyện ngắn & tranh minh họa.</p>
-      `,
-      'video': `
-        <h2><i class="ico-video"></i> Video</h2>
-        <p>Clip ngắn vui nhộn, bổ ích.</p>
-      `,
-      'game': `
-        <h2><i class="ico-game"></i> Game</h2>
-        <p>Mini games rèn tư duy.</p>
-      `,
-      'shop': `
-        <h2><i class="ico-cart"></i> Shop</h2>
-        <div class="grid">
-          <div class="card glass-2">
-            <h3>Sticker NiNi</h3>
-            <p>Bộ 20 sticker dễ thương.</p>
-            <button class="btn sm">Xem</button>
-          </div>
-          <div class="card glass-2">
-            <h3>Sổ tay giải đố</h3>
-            <p>100 thử thách tư duy.</p>
-            <button class="btn sm">Xem</button>
-          </div>
-          <div class="card glass-2">
-            <h3>Áo thun NiNi</h3>
-            <p>Chất cotton mềm, unisex.</p>
-            <button class="btn sm">Xem</button>
-          </div>
-        </div>
-      `
+    // ====== Router nội bộ (hash) ======
+    const routes = {
+      '/storybook': renderStory,
+      '/video':     renderVideo,
+      '/game':      renderGame,
+      '/shop':      renderShop,
+      '/about':     renderAbout,
+      '/rules':     renderRules,
+      '/forum':     renderForum,
+      '/feedback':  renderFeedback,
     };
-    function renderByHash(){
-      const h = (location.hash||'').replace('#/','').trim();
-      const html = views[h] || `
-        <h2>Chào mừng đến với <strong>NiNi — Funny</strong></h2>
-        <p>Dùng thanh trên để chuyển mục <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, <strong>Shop</strong>.</p>
-      `;
-      $('#stageCard').innerHTML = html;
-      // set active
-      $$('.nav .nav-link').forEach(a=>{
-        a.classList.toggle('is-active', a.getAttribute('href') === `#/${h}`);
-      });
-    }
-    window.addEventListener('hashchange', renderByHash);
-    renderByHash();
 
-    // ========= Auth UI helpers =========
-    function setMsg(t){ const m=$('#authMsg'); if(m){ m.textContent=t||''; m.style.opacity=t?1:0; } }
-    function emailOf(x){ return String(x||'').trim().toLowerCase(); }
-
-    function uiGuest(){
-      const btn=$('#avatarBtn'), menu=$('#avatarMenu');
-      btn.style.backgroundImage=''; $('#avatarLetter').textContent='N';
-      menu?.classList.add('hidden'); btn.dataset.state='guest';
-    }
-    function uiUser(u){
-      const btn=$('#avatarBtn'), menu=$('#avatarMenu');
-      const display=(u?.displayName || (u?.email? u.email.split('@')[0]:'NiNi')).trim();
-      $('#avatarLetter').textContent=display[0]?.toUpperCase()||'N';
-      if(u?.photoURL){ btn.style.backgroundImage=`url("${u.photoURL}")`; $('#avatarThumb').style.backgroundImage=`url("${u.photoURL}")`; }
-      else { btn.style.backgroundImage=''; $('#avatarThumb').style.backgroundImage=''; }
-      $('#userDisplay').textContent=display; $('#userEmail').textContent=u?.email||'';
-      btn.dataset.state='in';
+    function setActiveLinks() {
+      const hash = location.hash.replace('#','') || '/storybook';
+      // top
+      $$('#topnav a').forEach(a=> a.classList.toggle('active', a.getAttribute('href').slice(1)===hash));
+      // side
+      $$('#sidenav [data-side]').forEach(a=> a.classList.toggle('active', a.getAttribute('href').slice(1)===hash));
     }
 
-    function openModal(panel='login'){
-      const m=$('#authModal'); m.classList.remove('hidden'); m.setAttribute('aria-hidden','false');
-      document.body.classList.add('body-auth-open'); setMsg('');
-      $$('.auth-tabs .tab').forEach(t=>t.classList.toggle('is-active', t.dataset.authTab===panel));
-      $$('.auth-form').forEach(f=>f.classList.toggle('hidden', f.dataset.authPanel!==panel));
+    function render() {
+      const key = location.hash.replace('#','') || '/storybook';
+      setActiveLinks();
+      const fn = routes[key] || renderStory;
+      fn();
+    }
+    window.addEventListener('hashchange', render);
+    document.addEventListener('DOMContentLoaded', render);
+
+    // ====== Content renderers ======
+    const card = $('#stageCard');
+
+    function renderStory(){
+      card.innerHTML = `
+        <h2>Storybook</h2>
+        <div class="grid">
+          ${tile('Bí mật khu rừng','Truyện tranh tương tác ngắn.')}
+          ${tile('Bạn NiNi & chiếc lá','Câu chuyện về lòng dũng cảm.')}
+          ${tile('Hộp nhạc kỳ diệu','Khám phá cảm xúc qua âm nhạc.')}
+        </div>`;
+    }
+    function renderVideo(){
+      card.innerHTML = `
+        <h2>Video</h2>
+        <div class="grid">
+          ${tile('NiNi Shorts','Video ngắn truyền cảm hứng.')}
+          ${tile('Học mà vui','Kênh chia sẻ mẹo tư duy.')}
+          ${tile('Behind the scenes','Hậu trường làm game & truyện.')}
+        </div>`;
+    }
+    function renderGame(){
+      card.innerHTML = `
+        <h2>Game</h2>
+        <div class="grid">
+          ${tile('100 thử thách tư duy','Mini puzzle luyện não.')}
+          ${tile('MeoMaze','Mê cung mèo tinh nghịch.')}
+          ${tile('ColorMatch','Ghép màu phản xạ nhanh.')}
+        </div>`;
+    }
+    function renderShop(){
+      card.innerHTML = `
+        <h2>Shop</h2>
+        <div class="grid">
+          ${tile('Sticker NiNi','Bộ 20 sticker dễ thương.')}
+          ${tile('Sổ tay giải đố','100 thử thách tư duy.')}
+          ${tile('Áo thun NiNi','Cotton mềm, unisex.')}
+        </div>`;
+    }
+
+    function renderAbout(){ card.innerHTML = `<h2>Giới thiệu</h2><p>NiNi — Funny: chơi mê ly, bứt phá tư duy.</p>`; }
+    function renderRules(){ card.innerHTML = `<h2>Luật chơi</h2><p>Luật đơn giản, công bằng, đề cao sáng tạo.</p>`; }
+    function renderForum(){ card.innerHTML = `<h2>Diễn đàn</h2><p>Nơi chia sẻ mẹo & kinh nghiệm hay.</p>`; }
+    function renderFeedback(){ card.innerHTML = `<h2>Góp ý</h2><p>Gửi ý tưởng, góp ý để NiNi tốt hơn nhé!</p>`; }
+
+    function tile(title, desc){
+      return `
+        <div class="tile">
+          <h3>${title}</h3>
+          <p>${desc}</p>
+          <button class="btn">Xem</button>
+        </div>`;
+    }
+
+    // ====== Auth modal (mở/đóng + đổi tab) ======
+    const modal = $('#authModal');
+    const btnOpen = $('#btnAuthOpen');
+    const btnClose = $('#authClose');
+
+    btnOpen.addEventListener('click', () => openModal('login'));
+    btnClose.addEventListener('click', () => closeModal());
+
+    document.addEventListener('click', (e)=>{
+      const b = e.target.closest('[data-auth-tab]');
+      if (!b) return;
+      const tab = b.getAttribute('data-auth-tab');
+      switchPane(tab);
+    });
+
+    function openModal(tab='login'){
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden','false');
+      switchPane(tab);
     }
     function closeModal(){
-      const m=$('#authModal'); m.classList.add('hidden'); m.setAttribute('aria-hidden','true');
-      document.body.classList.remove('body-auth-open'); setMsg('');
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden','true');
+    }
+    function switchPane(name){
+      $$('.pane').forEach(p => p.style.display = (p.dataset.pane===name?'block':'none'));
     }
 
-    // Avatar acts as: guest=open modal; signed=in -> toggle menu
-    $('#avatarBtn')?.addEventListener('click', (e)=>{
-      if ((e.currentTarget.dataset.state||'guest') === 'in') {
-        $('#avatarMenu')?.classList.toggle('hidden');
-        e.currentTarget.setAttribute('aria-expanded', $('#avatarMenu').classList.contains('hidden')?'false':'true');
-      } else openModal('login');
-    });
-    document.addEventListener('click', (ev)=>{
-      const m=$('#avatarMenu'); if(!m || m.classList.contains('hidden')) return;
-      if(!ev.target.closest('#avatarMenu, #avatarBtn')) m.classList.add('hidden');
-    });
+    // ====== Avatar menu + đồng bộ trạng thái ======
+    const ava = $('#btnAvatar');
+    const menu = $('#userMenu');
+    const btnSignOut = $('#btnSignOut');
 
-    // Tabs switch
-    $$('.auth-tabs .tab').forEach(t=>{
-      t.addEventListener('click', ()=>{
-        $$('.auth-tabs .tab').forEach(x=>x.classList.toggle('is-active', x===t));
-        const k=t.dataset.authTab;
-        $$('.auth-form').forEach(f=>f.classList.toggle('hidden', f.dataset.authPanel!==k));
-        setMsg('');
-      });
+    ava.addEventListener('click', () => {
+      // nếu guest -> mở modal; nếu đã login -> toggle menu
+      const u = N.fb?.currentUser?.();
+      if (!u){ openModal('login'); return; }
+      ava.classList.toggle('open');
     });
-    $('#authClose')?.addEventListener('click', ()=>{ checkState(); closeModal(); });
-
-    // Submit handlers
-    $('#formLogin')?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); setMsg('');
-      const email = emailOf(e.target.email.value);
-      const password = String(e.target.password.value||'');
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
-      try{
-        const fn = N.fb?.loginEmailPass || N.fb?.loginEmailPassword;
-        if(!fn) throw new Error('Thiếu NINI.fb.loginEmailPass');
-        const u = await fn(email, password);
-        localStorage.setItem(LS_AUTH,'1'); localStorage.setItem(LS_USER, JSON.stringify({email:u.email, displayName:u.displayName||'', photoURL:u.photoURL||''}));
-        uiUser(u); closeModal();
-      }catch(err){ setMsg(err?.message||'Đăng nhập thất bại'); }
-    });
-
-    $('#formSignup')?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); setMsg('');
-      const email = emailOf(e.target.email.value);
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
-      try{
-        if(!N.fb?.registerEmailOnly) throw new Error('Thiếu NINI.fb.registerEmailOnly');
-        await N.fb.registerEmailOnly(email);
-        setMsg('Đã gửi email xác minh. Hãy kiểm tra hộp thư.');
-      }catch(err){ setMsg(err?.message||'Đăng ký thất bại'); }
-    });
-
-    $('#formReset')?.addEventListener('submit', async (e)=>{
-      e.preventDefault(); setMsg('');
-      const email=emailOf(e.target.email.value);
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
-      try{
-        if(!N.fb?.resetPassword) throw new Error('Thiếu NINI.fb.resetPassword');
-        await N.fb.resetPassword(email);
-        setMsg('Đã gửi link đặt lại mật khẩu.');
-      }catch(err){ setMsg(err?.message||'Gửi mail thất bại'); }
-    });
-
-    // Đăng xuất (menu)
-    async function reallySignOut(){
-      try{ await N.fb?.signOut?.(); }catch(_){}
-      try{ await N.fb?.logout?.(); }catch(_){}
-      localStorage.removeItem(LS_AUTH); localStorage.removeItem(LS_USER);
-      uiGuest();
-    }
     document.addEventListener('click', (e)=>{
-      const x=e.target.closest('#btnSignOut'); if(!x) return;
-      e.preventDefault(); e.stopImmediatePropagation();
-      reallySignOut(); $('#avatarMenu')?.classList.add('hidden');
-    }, true);
+      if (!e.target.closest('#btnAvatar')) ava.classList.remove('open');
+    });
 
-    // Đồng bộ trạng thái
-    function checkState(){
-      try{ const u=N.fb?.currentUser?.(); if(u){ uiUser(u); return true; } }catch(_){}
-      uiGuest(); return false;
+    btnSignOut.addEventListener('click', async ()=>{
+      try{ await N.fb?.signOut?.(); }catch(_){}
+      ava.classList.remove('open');
+    });
+
+    function syncUser(u){
+      const guest = !u;
+      $('#btnAuthOpen').style.display = guest ? 'inline-flex' : 'none';
+      ava.style.display = guest ? 'none' : 'grid';
+      if (u){
+        const display = u.displayName || (u.email ? u.email.split('@')[0] : 'NiNi');
+        const letter = (display.trim()[0]||'N').toUpperCase();
+        ava.setAttribute('data-letter', letter);
+        if (u.photoURL){
+          ava.style.backgroundImage = `url("${u.photoURL}")`;
+          ava.style.backgroundSize = 'cover';
+        } else {
+          ava.style.backgroundImage = '';
+        }
+      } else {
+        ava.removeAttribute('data-letter');
+        ava.style.backgroundImage = '';
+      }
     }
-    try{ N.fb?.onUserChanged?.(u=>u?uiUser(u):uiGuest()); }catch(_){}
-    (function initFirst(){
-      const cache=(()=>{ try{ return JSON.parse(localStorage.getItem(LS_USER)||'null'); }catch(_){ return null; }})();
-      if(cache && localStorage.getItem(LS_AUTH)==='1') uiUser(cache); else checkState();
-    })();
+    // theo dõi Firebase auth
+    try{
+      N.fb?.onUserChanged?.(syncUser);
+      const u = N.fb?.currentUser?.(); if (u) syncUser(u); else syncUser(null);
+    }catch(_){}
   })();
   </script>
+
 </body>
 </html>

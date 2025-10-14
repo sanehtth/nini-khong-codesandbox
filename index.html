@@ -4,154 +4,320 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny (Clean)</title>
+
+  <!-- Favicon -->
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
 
-  <!-- ========== CSS chung của site (giữ theo dự án của bạn) ========== -->
-  <link rel="stylesheet" href="/test/css/base.css">
-  <link rel="stylesheet" href="/test/css/auth-modal.css">
-  <link rel="stylesheet" href="/test/css/footer.css">
-  <link rel="stylesheet" href="/test/css/stage.css">
+  <!-- ===== CSS dùng chung (có sẵn) ===== -->
+  <link rel="stylesheet" href="/test/css/base.css" />
+  <link rel="stylesheet" href="/test/css/auth-modal.css" />
+  <link rel="stylesheet" href="/test/css/header.css" />
+  <link rel="stylesheet" href="/test/css/stage.css" />
+  <link rel="stylesheet" href="/test/css/footer.css" />
 
-  <!-- ========== CSS mới cho header tabs + stage card ========== -->
-  <link rel="stylesheet" href="/test/css/header-tab.css">
+  <!-- (tuỳ chọn) Theme boot: load override từ Netlify Function -->
+  <script src="/test/js/theme-boot.js" defer></script>
 
-  <!-- (tuỳ chọn) Theme boot: load override theme từ Netlify function -->
-  <!-- <script src="/test/js/theme-boot.js" defer></script> -->
+  <!-- Firebase wrapper của bạn -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
+
+  <!-- CSS nhỏ cho avatar/popup (phần còn lại dùng style chung) -->
+  <style>
+    .avatar-btn{
+      width:32px;height:32px;border-radius:999px;border:1px solid var(--glass-bd);
+      background:rgba(255,255,255,.15);display:inline-grid;place-items:center;cursor:pointer;
+      box-shadow:0 2px 6px rgba(0,0,0,.15);background-size:cover;background-position:center;
+      margin-left:10px;
+    }
+    .avatar-letter{color:#fff;font-weight:700;text-shadow:0 1px 1px rgba(0,0,0,.4);font-size:12px}
+    .avatar-menu{
+      position:absolute;right:16px;top:64px;width:260px;padding:10px;border-radius:14px;z-index:40
+    }
+    .avatar-menu.hidden{display:none}
+    .avatar-menu .user-row{display:flex;gap:10px;align-items:center}
+    .avatar-thumb{width:36px;height:36px;border-radius:999px;background:#2e7d32 center/cover no-repeat;border:1px solid rgba(255,255,255,.6)}
+    .user-meta .name{font-weight:700;color:#fff}
+    .user-meta .email{opacity:.9;font-size:.9rem;color:#fff}
+    .menu-sep{height:1px;background:var(--glass-bd);margin:10px 0}
+    .menu-item{width:100%;text-align:left;padding:8px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:#fff;cursor:pointer}
+    .menu-item:hover{background:rgba(255,255,255,.12);border-color:var(--glass-bd)}
+    /* Modal giữ style chung: chỉ đảm bảo overlay hiển thị */
+    .auth-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:50}
+    .auth-modal.hidden{display:none}
+    .auth-box{width:min(560px,94vw);padding:16px;border-radius:16px}
+    .auth-tabs{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .auth-tabs .tab{padding:6px 12px;border-radius:999px}
+    .auth-tabs .tab.is-active{background:var(--btn-active-bg);border-color:transparent}
+    .auth-tabs .close{margin-left:auto}
+    .auth-form{display:grid;gap:8px}
+    .auth-form.hidden{display:none}
+    .actions{display:flex;gap:8px;align-items:center}
+    #authMsg{margin-top:8px;min-height:18px;color:#fff}
+  </style>
 </head>
-<body class="home">
+<body class="home-spring">
+  <!-- ===== HEADER: logo + slogan + tabs + avatar ===== -->
+  <header id="nini_header" class="nini-header-wrap">
+    <div class="brand">
+      <a class="logo" href="/#/home" title="NiNi — Funny"></a>
+      <span class="slogan">chơi mê ly, bứt phá tư duy</span>
+    </div>
 
-  <!-- ========== HEADER MỚI: logo + slogan + 4 tab ========== -->
-  <!-- JS header-tabs sẽ render nội dung vào thẻ này -->
-  <header id="nini_header"></header>
+    <nav class="nav">
+      <a class="nav-link" href="/#/storybook">Storybook</a>
+      <a class="nav-link" href="/#/video">Video</a>
+      <a class="nav-link" href="/#/game">Game</a>
+      <a class="nav-link" href="/#/shop">Shop</a>
+    </nav>
 
-  <!-- ========== HERO / MESSAGE ở giữa (card kính to) ========== -->
-  <!-- Phần này là “khung trắng to ở giữa”. JS tabs sẽ tự đổ nội dung vào #stageCard -->
-  <main id="stage" class="stage">
-    <section id="stageCard" class="stage-card">
-      <h2>👋 Chào mừng đến với NiNi — Funny</h2>
-      <p>Dùng thanh tab trên header để xem <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, hay <strong>Shop</strong>. Nội dung sẽ hiện ngay tại đây.</p>
+    <!-- Avatar (mặc định là khách) -->
+    <div style="position:relative">
+      <button id="avatarBtn" class="avatar-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Tài khoản">
+        <span id="avatarLetter" class="avatar-letter">N</span>
+      </button>
+      <div id="avatarMenu" class="avatar-menu glass hidden" role="menu" aria-hidden="true">
+        <div class="user-row">
+          <div id="avatarThumb" class="avatar-thumb"></div>
+          <div class="user-meta">
+            <div id="userDisplay" class="name">NiNi</div>
+            <div id="userEmail" class="email">you@example.com</div>
+          </div>
+        </div>
+        <div class="menu-sep"></div>
+        <a role="menuitem" class="menu-item" href="/profile.html">Hồ sơ</a>
+        <button role="menuitem" class="menu-item" id="btnSignOut">Đăng xuất</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN: khung hiển thị nội dung theo tab ===== -->
+  <main class="stage">
+    <section id="stageCard" class="stage-card glass">
+      <h2>Chào mừng đến với <strong>NiNi — Funny</strong></h2>
+      <p>Dùng thanh trên để chuyển mục <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, <strong>Shop</strong>.</p>
     </section>
+    <nav id="season_bar"></nav>
   </main>
 
-  <!-- ========== FOOTER (nếu bạn đã có) ========== -->
+  <!-- ===== FOOTER (nếu cần) ===== -->
   <footer id="nini_footer"></footer>
 
-  <!-- ============================================================
-       ===============  CỤM ĐĂNG NHẬP / ĐĂNG KÝ  ==================
-       - Nút nổi góc trái–dưới (FAB) để mở modal
-       - Modal đăng nhập / đăng ký / quên mật khẩu
-       - Glue + flow: xử lý sự kiện + đồng bộ UI
-       ============================================================ -->
-
- <!-- Nút nổi mở modal -->
-<button id="btnAuthOpenFab" class="fab-auth" aria-label="Đăng nhập / Đăng ký" title="Đăng nhập / Đăng ký">
-  <span>Đăng nhập</span>
-</button>
-
-<!-- Auth Modal -->
-<div id="authModal" class="auth-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
-  <div class="auth-box glass-2" role="document">   <!-- thêm class glass-2 -->
-    <div class="auth-head">
-      <div class="tabs">
+  <!-- ===== AUTH MODAL (3 tab) ===== -->
+  <div id="authModal" class="auth-modal hidden" aria-hidden="true">
+    <div class="auth-box glass-2">
+      <div class="auth-tabs">
         <button class="tab is-active" data-auth-tab="login">Đăng nhập</button>
         <button class="tab" data-auth-tab="signup">Đăng ký</button>
         <button class="tab" data-auth-tab="reset">Quên mật khẩu</button>
+        <button class="close btn sm" id="authClose" title="Đóng">Đóng</button>
       </div>
-      <button class="btn-close" id="btnAuthClose" aria-label="Đóng">Đóng</button>
+
+      <form id="formLogin" class="auth-form" data-auth-panel="login">
+        <label class="label">Email</label>
+        <input class="input" type="email" name="email" autocomplete="email" required />
+        <label class="label">Mật khẩu</label>
+        <input class="input" type="password" name="password" autocomplete="current-password" required />
+        <div class="actions">
+          <button class="btn" type="submit">Đăng nhập</button>
+          <button class="btn sm" type="button" id="btnLoginGoogle">Đăng nhập Google</button>
+        </div>
+      </form>
+
+      <form id="formSignup" class="auth-form hidden" data-auth-panel="signup">
+        <label class="label">Email</label>
+        <input class="input" type="email" name="email" autocomplete="email" required />
+        <div class="actions">
+          <button class="btn" type="submit">Gửi email xác minh</button>
+        </div>
+      </form>
+
+      <form id="formReset" class="auth-form hidden" data-auth-panel="reset">
+        <label class="label">Email</label>
+        <input class="input" type="email" name="email" autocomplete="email" required />
+        <div class="actions">
+          <button class="btn" type="submit">Gửi link đặt lại mật khẩu</button>
+        </div>
+      </form>
+
+      <div class="msg" id="authMsg"></div>
     </div>
-
-    <!-- Login -->
-    <form id="formLogin" class="pane active" autocomplete="on">
-      <label>Email</label>
-      <input type="email" name="email" placeholder="you@example.com" required />
-      <label>Mật khẩu</label>
-      <input type="password" name="password" placeholder="••••••••" required />
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">Đăng nhập</button>
-        <button type="button" id="btnGoogle" class="btn">Đăng nhập Google</button>
-      </div>
-    </form>
-
-    <!-- Signup -->
-    <form id="formSignup" class="pane" autocomplete="on">
-      <label>Email</label>
-      <input type="email" name="email" placeholder="you@example.com" required />
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">Đăng ký</button>
-      </div>
-    </form>
-
-    <!-- Reset -->
-    <form id="formReset" class="pane" autocomplete="on">
-      <label>Email</label>
-      <input type="email" name="email" placeholder="you@example.com" required />
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">Gửi link đặt lại mật khẩu</button>
-      </div>
-    </form>
-
-    <div class="msg" aria-live="polite"></div>
   </div>
-</div>
 
-
-
-  <!-- ========== Firebase core (module) — KHÔNG ĐƯỢC BỎ ========== -->
-  <!-- File này khởi tạo Firebase + expose NINI.fb (login, logout, onUserChanged, ...) -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
-
-  <!-- ========== JS header mới (logo + slogan + 4 tab) ========== -->
-  <script src="/test/js/header-tab.js" defer></script>
-
-  <!-- ========== JS auth: modal UI + flow + glue  (MỖI FILE CHỈ NẠP 1 LẦN) ========== -->
-  <!-- auth-modal.js: chuyển tab trong modal, nút đóng/mở -->
-  <script src="/test/js/auth-modal.js" defer></script>
-
-  <!-- auth-glue.js: bắt sự kiện submit login/signup/reset + gọi NINI.fb.*, đồng bộ UI -->
-  <script src="/test/js/auth-glue.js" defer></script>
-
-  <!-- auth-flow.js: gắn listener 1 lần (mở modal từ FAB, mở profile khi avatar, signOut) -->
-  <script src="/test/js/auth-flow.js" defer></script>
-
-  <!-- (Nếu bạn dùng FAB riêng có CSS) -->
-  <link rel="stylesheet" href="/test/css/fab-auth.css">
-
-  <!-- ====== Hook nhỏ: FAB mở modal (phòng khi auth-flow chưa lắng) ====== -->
+  <!-- ===== CORE JS (Header flow + Auth + Router tab) ===== -->
   <script>
-    // Mở modal bằng FAB
-    document.addEventListener('DOMContentLoaded', function(){
-      var fab = document.getElementById('btnAuthOpenFab');
-      var modal = document.getElementById('authModal');
-      if (fab && modal){
-        fab.addEventListener('click', function(){
-          modal.classList.remove('hidden');
-          modal.setAttribute('aria-hidden', 'false');
-          document.body.classList.add('body-auth-open');
-          // Phát event nội bộ (nếu glue đang lắng nghe)
-          window.NINI && NINI.emit && NINI.emit('auth:open');
-        });
-      }
-      var closeBtn = document.getElementById('btnAuthClose');
-      if (closeBtn && modal){
-        closeBtn.addEventListener('click', function(){
-          modal.classList.add('hidden');
-          modal.setAttribute('aria-hidden', 'true');
-          document.body.classList.remove('body-auth-open');
-          window.NINI && NINI.emit && NINI.emit('auth:close');
-        });
-      }
-    });
-  </script>
+  (function(){
+    const N = (window.NINI = window.NINI || {});
+    if (N._wiredIndex) return; N._wiredIndex = true;
 
-  <!-- ============================================================
-       GHI CHÚ QUAN TRỌNG
-       - Tránh nạp trùng: mỗi file JS ở trên chỉ nên có MỘT lần trong trang
-       - Header mới hoạt động theo hash router: #/story | #/video | #/game | #/shop
-       - Nội dung sẽ hiển thị ngay tại #stageCard (không chuyển trang)
-       - Đăng nhập: dùng FAB góc trái–dưới để mở modal; glue sẽ gọi NINI.fb.*
-       ============================================================ -->
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+    const LS_AUTH = 'nini.auth';
+    const LS_USER = 'nini.user';
+
+    // ========= Simple tab router (hash) =========
+    const views = {
+      'storybook': `
+        <h2><i class="ico-book"></i> Storybook</h2>
+        <p>Truyện ngắn & tranh minh họa.</p>
+      `,
+      'video': `
+        <h2><i class="ico-video"></i> Video</h2>
+        <p>Clip ngắn vui nhộn, bổ ích.</p>
+      `,
+      'game': `
+        <h2><i class="ico-game"></i> Game</h2>
+        <p>Mini games rèn tư duy.</p>
+      `,
+      'shop': `
+        <h2><i class="ico-cart"></i> Shop</h2>
+        <div class="grid">
+          <div class="card glass-2">
+            <h3>Sticker NiNi</h3>
+            <p>Bộ 20 sticker dễ thương.</p>
+            <button class="btn sm">Xem</button>
+          </div>
+          <div class="card glass-2">
+            <h3>Sổ tay giải đố</h3>
+            <p>100 thử thách tư duy.</p>
+            <button class="btn sm">Xem</button>
+          </div>
+          <div class="card glass-2">
+            <h3>Áo thun NiNi</h3>
+            <p>Chất cotton mềm, unisex.</p>
+            <button class="btn sm">Xem</button>
+          </div>
+        </div>
+      `
+    };
+    function renderByHash(){
+      const h = (location.hash||'').replace('#/','').trim();
+      const html = views[h] || `
+        <h2>Chào mừng đến với <strong>NiNi — Funny</strong></h2>
+        <p>Dùng thanh trên để chuyển mục <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, <strong>Shop</strong>.</p>
+      `;
+      $('#stageCard').innerHTML = html;
+      // set active
+      $$('.nav .nav-link').forEach(a=>{
+        a.classList.toggle('is-active', a.getAttribute('href') === `#/${h}`);
+      });
+    }
+    window.addEventListener('hashchange', renderByHash);
+    renderByHash();
+
+    // ========= Auth UI helpers =========
+    function setMsg(t){ const m=$('#authMsg'); if(m){ m.textContent=t||''; m.style.opacity=t?1:0; } }
+    function emailOf(x){ return String(x||'').trim().toLowerCase(); }
+
+    function uiGuest(){
+      const btn=$('#avatarBtn'), menu=$('#avatarMenu');
+      btn.style.backgroundImage=''; $('#avatarLetter').textContent='N';
+      menu?.classList.add('hidden'); btn.dataset.state='guest';
+    }
+    function uiUser(u){
+      const btn=$('#avatarBtn'), menu=$('#avatarMenu');
+      const display=(u?.displayName || (u?.email? u.email.split('@')[0]:'NiNi')).trim();
+      $('#avatarLetter').textContent=display[0]?.toUpperCase()||'N';
+      if(u?.photoURL){ btn.style.backgroundImage=`url("${u.photoURL}")`; $('#avatarThumb').style.backgroundImage=`url("${u.photoURL}")`; }
+      else { btn.style.backgroundImage=''; $('#avatarThumb').style.backgroundImage=''; }
+      $('#userDisplay').textContent=display; $('#userEmail').textContent=u?.email||'';
+      btn.dataset.state='in';
+    }
+
+    function openModal(panel='login'){
+      const m=$('#authModal'); m.classList.remove('hidden'); m.setAttribute('aria-hidden','false');
+      document.body.classList.add('body-auth-open'); setMsg('');
+      $$('.auth-tabs .tab').forEach(t=>t.classList.toggle('is-active', t.dataset.authTab===panel));
+      $$('.auth-form').forEach(f=>f.classList.toggle('hidden', f.dataset.authPanel!==panel));
+    }
+    function closeModal(){
+      const m=$('#authModal'); m.classList.add('hidden'); m.setAttribute('aria-hidden','true');
+      document.body.classList.remove('body-auth-open'); setMsg('');
+    }
+
+    // Avatar acts as: guest=open modal; signed=in -> toggle menu
+    $('#avatarBtn')?.addEventListener('click', (e)=>{
+      if ((e.currentTarget.dataset.state||'guest') === 'in') {
+        $('#avatarMenu')?.classList.toggle('hidden');
+        e.currentTarget.setAttribute('aria-expanded', $('#avatarMenu').classList.contains('hidden')?'false':'true');
+      } else openModal('login');
+    });
+    document.addEventListener('click', (ev)=>{
+      const m=$('#avatarMenu'); if(!m || m.classList.contains('hidden')) return;
+      if(!ev.target.closest('#avatarMenu, #avatarBtn')) m.classList.add('hidden');
+    });
+
+    // Tabs switch
+    $$('.auth-tabs .tab').forEach(t=>{
+      t.addEventListener('click', ()=>{
+        $$('.auth-tabs .tab').forEach(x=>x.classList.toggle('is-active', x===t));
+        const k=t.dataset.authTab;
+        $$('.auth-form').forEach(f=>f.classList.toggle('hidden', f.dataset.authPanel!==k));
+        setMsg('');
+      });
+    });
+    $('#authClose')?.addEventListener('click', ()=>{ checkState(); closeModal(); });
+
+    // Submit handlers
+    $('#formLogin')?.addEventListener('submit', async (e)=>{
+      e.preventDefault(); setMsg('');
+      const email = emailOf(e.target.email.value);
+      const password = String(e.target.password.value||'');
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
+      try{
+        const fn = N.fb?.loginEmailPass || N.fb?.loginEmailPassword;
+        if(!fn) throw new Error('Thiếu NINI.fb.loginEmailPass');
+        const u = await fn(email, password);
+        localStorage.setItem(LS_AUTH,'1'); localStorage.setItem(LS_USER, JSON.stringify({email:u.email, displayName:u.displayName||'', photoURL:u.photoURL||''}));
+        uiUser(u); closeModal();
+      }catch(err){ setMsg(err?.message||'Đăng nhập thất bại'); }
+    });
+
+    $('#formSignup')?.addEventListener('submit', async (e)=>{
+      e.preventDefault(); setMsg('');
+      const email = emailOf(e.target.email.value);
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
+      try{
+        if(!N.fb?.registerEmailOnly) throw new Error('Thiếu NINI.fb.registerEmailOnly');
+        await N.fb.registerEmailOnly(email);
+        setMsg('Đã gửi email xác minh. Hãy kiểm tra hộp thư.');
+      }catch(err){ setMsg(err?.message||'Đăng ký thất bại'); }
+    });
+
+    $('#formReset')?.addEventListener('submit', async (e)=>{
+      e.preventDefault(); setMsg('');
+      const email=emailOf(e.target.email.value);
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setMsg('Email chưa đúng định dạng');
+      try{
+        if(!N.fb?.resetPassword) throw new Error('Thiếu NINI.fb.resetPassword');
+        await N.fb.resetPassword(email);
+        setMsg('Đã gửi link đặt lại mật khẩu.');
+      }catch(err){ setMsg(err?.message||'Gửi mail thất bại'); }
+    });
+
+    // Đăng xuất (menu)
+    async function reallySignOut(){
+      try{ await N.fb?.signOut?.(); }catch(_){}
+      try{ await N.fb?.logout?.(); }catch(_){}
+      localStorage.removeItem(LS_AUTH); localStorage.removeItem(LS_USER);
+      uiGuest();
+    }
+    document.addEventListener('click', (e)=>{
+      const x=e.target.closest('#btnSignOut'); if(!x) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      reallySignOut(); $('#avatarMenu')?.classList.add('hidden');
+    }, true);
+
+    // Đồng bộ trạng thái
+    function checkState(){
+      try{ const u=N.fb?.currentUser?.(); if(u){ uiUser(u); return true; } }catch(_){}
+      uiGuest(); return false;
+    }
+    try{ N.fb?.onUserChanged?.(u=>u?uiUser(u):uiGuest()); }catch(_){}
+    (function initFirst(){
+      const cache=(()=>{ try{ return JSON.parse(localStorage.getItem(LS_USER)||'null'); }catch(_){ return null; }})();
+      if(cache && localStorage.getItem(LS_AUTH)==='1') uiUser(cache); else checkState();
+    })();
+  })();
+  </script>
 </body>
 </html>
-
-
-

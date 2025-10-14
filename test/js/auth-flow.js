@@ -1,4 +1,4 @@
-﻿/* auth-flow.js
+/* auth-flow.js
  * Quản lý 1 cờ đăng nhập duy nhất + 3 hàm: loginUI, logoutUI, checkAuthState
  * Nút Đóng modal: chạy checkAuthState() trước, rồi mới đóng modal.
  */

@@ -2,461 +2,117 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Funny</title>
-  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/svg+xml" />
-  <!-- CSS nền sẵn có của bạn (đường dẫn nhớ sửa đúng, để hết 404) -->
+
+  <!-- Base styles -->
   <link rel="stylesheet" href="/test/css/base.css">
   <link rel="stylesheet" href="/test/css/footer.css">
   <link rel="stylesheet" href="/test/css/auth-modal.css">
-  <link rel="stylesheet" href="/test/css/stage.css">
-
-  <!-- Firebase glue (chỉ 1 lần) -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
-
+  
   <style>
-    :root{
-      --glass-bg: rgba(255,255,255,.08);
-      --glass-brd: rgba(255,255,255,.35);
-      --panel-radius: 18px;
-      --ok: #59f07b;
-      --warn: #ffd568;
-      --accent: #7aa6ff;
-    }
+    /* Khung 2 cột dùng chung */
+    .stage { padding: 24px 16px 80px; }
+    .two-col { display:grid; grid-template-columns: 340px 1fr; gap:16px; }
+    .panel { background: var(--glass-bd); border:1px solid var(--glass-bd2);
+             backdrop-filter: blur(8px); border-radius: 18px; padding:16px; }
+    .panel h2 { margin:4px 0 12px; font-size:18px }
+    .list { display:flex; flex-direction:column; gap:12px; }
+    .list .item { background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+                  border-radius:14px; padding:12px 14px; cursor:pointer; }
+    .list .item.active{ outline:2px solid rgba(255,255,255,.35) }
 
-    /* ===== HEADER ===== */
-    .topbar{ position:sticky; top:16px; z-index:30; display:flex; justify-content:center; }
-    .topbar-inner{
-      display:flex; align-items:center; gap:14px;
-      background: var(--glass-bg); border:1px solid var(--glass-brd);
-      border-radius:999px; padding:8px 12px; box-shadow:0 10px 30px rgba(0,0,0,.15);
-      backdrop-filter: blur(10px);
-    }
-    .brand{ display:flex; align-items:center; gap:10px; padding:0 6px; }
-    .brand .logo{ width:60px; height:28px; background:url('/public/assets/icons/logonini.svg') center/contain no-repeat; }
-    .brand .slogan{ color:#fff; opacity:.9; font-weight:600; white-space:nowrap; }
+    /* Rail icon bên trái (profile/books/video/game/shop/chat/notify/setting) */
+    .rail { position:fixed; left:18px; top:160px; display:flex; flex-direction:column; gap:16px; z-index:5 }
+    .rail .ico { width:44px; height:44px; display:grid; place-items:center; border-radius:12px;
+                 background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+                 cursor:pointer; }
+    .rail .ico img{ width:28px;height:28px }
+    .rail .ico.active{ outline:2px solid rgba(255,255,255,.35) }
 
-    .tabs{ display:flex; gap:8px; margin-left:10px; }
-    .pill{
-      padding:8px 14px; border-radius:999px; cursor:pointer; color:#fff;
-      font-weight:600; border:1px solid rgba(255,255,255,.25);
-      background:rgba(0,0,0,.35); backdrop-filter: blur(8px); transition:.2s;
-    }
-    .pill:hover{ transform:translateY(-1px); background:rgba(0,0,0,.45); }
+    /* Header */
+    header#nini_header{ position:sticky; top:0; z-index:6; }
+    .topbar{ height:56px; display:flex; align-items:center; justify-content:space-between;
+             padding:0 16px; background:var(--panel-grad); border-bottom:1px solid var(--glass-bd2); }
+    .brand{ display:flex; align-items:center; gap:10px }
+    .brand img{ height:28px }
+    .tabs{ display:flex; gap:10px }
+    .tabs .btn{ padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.08);
+                border:1px solid rgba(255,255,255,.15); cursor:pointer }
+    .userbox{ display:flex; align-items:center; gap:10px }
+    .avatar{ width:30px;height:30px;border-radius:50%;background:#ececff;color:#4b47ff;
+             display:grid;place-items:center;font-weight:700 }
 
-    .user{ margin-left:10px; position:relative; display:flex; align-items:center; gap:8px; }
-    .avatar{
-      width:32px; height:32px; border-radius:50%; border:1px solid var(--glass-brd);
-      display:grid; place-items:center; background:#ececff; color:#4b47ff; font-weight:800; cursor:pointer;
-      background-image: var(--ava-bg, none); background-size:cover; background-position:center;
-    }
-    .menu{
-      position:absolute; right:0; top:120%; min-width:160px; display:none; padding:6px;
-      background:var(--glass-bg); border:1px solid var(--glass-brd); backdrop-filter: blur(12px); border-radius:12px;
-    }
-    .menu.open{ display:block; }
-    .menu button{ width:100%; text-align:left; border:0; background:transparent; color:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; }
-    .menu button:hover{ background:rgba(255,255,255,.08); }
+    /* Auth bubble (nút avatar) */
+    .user-menu{ position:relative }
+    .user-dd{ position:absolute; right:0; top:44px; width:200px; display:none }
+    .user-dd.open{ display:block }
+    .user-dd .panel{ padding:8px }
+    .user-dd button{ width:100% }
 
-    /* ===== LAYOUT ===== */
-    .shell{ display:flex; gap:18px; padding:88px 16px 32px; max-width:1280px; margin:0 auto; }
-    .sidebar{ width:64px; flex:0 0 64px; display:flex; flex-direction:column; gap:12px; }
-    .sidebtn{
-      width:64px; height:64px; border-radius:14px; border:1px solid var(--glass-brd);
-      background:var(--glass-bg) center/30px no-repeat; color:#fff; cursor:pointer; backdrop-filter: blur(8px); transition:.2s;
-    }
-    .sidebtn:hover{ transform:translateY(-1px); background-color:rgba(255,255,255,.12); }
-
-    /* --- ĐẶT icon đúng thư mục (đổi nếu bạn lưu nơi khác) --- */
-    .sidebtn[data-route="profile"]  { background-image:url('/public/assets/icons/user.webp'); }
-    .sidebtn[data-route="storybook"]{ background-image:url('/public/assets/icons/book.webp'); }
-    .sidebtn[data-route="video"]    { background-image:url('/public/assets/icons/video.webp'); }
-    .sidebtn[data-route="game"]     { background-image:url('/public/assets/icons/game.webp'); }
-    .sidebtn[data-route="shop"]     { background-image:url('/public/assets/icons/shop.webp'); }
-
-    .stage{ flex:1; display:flex; gap:16px; min-height:440px; }
-    .panel{
-      background:var(--glass-bg); border:1px solid var(--glass-brd); backdrop-filter: blur(12px);
-      border-radius:var(--panel-radius); box-shadow:0 10px 30px rgba(0,0,0,.15); color:#fff;
-    }
-    .list{ width:320px; flex:0 0 320px; padding:16px; display:flex; flex-direction:column; gap:12px; }
-    .detail{ flex:1; padding:16px; }
-
-    .item{ border:1px solid var(--glass-brd); border-radius:14px; padding:12px; background:rgba(0,0,0,.15); cursor:pointer; transition:.2s; }
-    .item:hover{ background:rgba(0,0,0,.25); transform:translateY(-1px); }
-
-    /* ===== PROFILE ===== */
-    .profile-card{
-      display:grid; grid-template-columns:72px 1fr; gap:12px; align-items:center;
-      border:1px solid var(--glass-brd); border-radius:14px; padding:12px; background:rgba(0,0,0,.12);
-    }
-    .profile-ava{
-      width:72px; height:72px; border-radius:50%; border:1px solid var(--glass-brd); background:#fff3; display:grid; place-items:center; font-weight:800;
-      background-image: var(--ava2, none); background-size:cover; background-position:center;
-    }
-    .muted{ opacity:.8; }
-
-    .stats{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
-    .stat{
-      border:1px solid var(--glass-brd); border-radius:12px; padding:10px; background:rgba(0,0,0,.12);
-    }
-    .stat h4{ margin:0 0 8px; font-size:14px; opacity:.9; }
-    .bar{ height:8px; border-radius:6px; background:#fff2; overflow:hidden; }
-    .bar > i{ display:block; height:100%; background:linear-gradient(90deg, var(--accent), var(--ok)); width:40%; }
-
-    .inv{ margin-top:12px; display:grid; grid-template-columns:repeat(6, 1fr); gap:10px; }
-    .chip{
-      border:1px solid var(--glass-brd); border-radius:12px; padding:8px 10px; text-align:center; background:rgba(0,0,0,.12);
-    }
-    .chip b{ display:block; font-size:18px; }
-
-    .hide{ display:none !important; }
+    /* Nút “Đăng nhập” nổi góc trái dưới cho trường hợp chưa đăng nhập */
+    #fabAuth{ position:fixed; left:12px; bottom:12px; z-index:7 }
   </style>
 </head>
 <body class="home">
 
   <!-- ===== HEADER ===== -->
-  <div class="topbar">
-    <div class="topbar-inner" id="nini_header">
+  <header id="nini_header">
+    <div class="topbar">
       <div class="brand">
-        <a class="logo" href="#/home" title="NiNi — Funny"></a>
-        <span class="slogan">chơi mê ly, bứt phá tư duy</span>
+        <img class="brand__logo" src="/public/assets/icons/logomini.svg" alt="NiNi">
+        <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
       </div>
 
-      <nav class="tabs">
-        <button class="pill" data-nav="#/home">Giới thiệu</button>
-        <button class="pill" data-nav="#/rules">Luật chơi</button>
-        <button class="pill" data-nav="#/forum">Diễn đàn</button>
-        <button class="pill" data-nav="#/feedback">Góp ý</button>
+      <nav class="tabs" id="topTabs">
+        <button class="btn" data-nav="/storybook">Giới thiệu</button>
+        <button class="btn" data-nav="/rules">Luật chơi</button>
+        <button class="btn" data-nav="/forum">Diễn đàn</button>
+        <button class="btn" data-nav="/feedback">Góp ý</button>
       </nav>
 
-      <div class="user" id="userArea">
-        <button id="btnAuthOpen" class="pill" type="button">Đăng nhập</button>
+      <div class="userbox">
+        <button class="btn" id="btnAuthOpen" data-auth="open">Đăng nhập</button>
 
-        <div id="userInfo" class="hide" style="display:flex; align-items:center; gap:8px;">
-          <div id="btnProfile" class="avatar" title="Hồ sơ" data-letter="U"></div>
-          <span id="userNick" style="font-weight:700;">NiNi</span>
-          <div class="menu" id="userMenu">
-            <button data-nav="#/profile">Hồ sơ</button>
-            <button id="btnSignOut">Đăng xuất</button>
+        <div class="user-menu">
+          <div class="avatar" id="userAvatar" data-auth="avatar">N</div>
+          <div class="user-dd" id="userDrop">
+            <div class="panel">
+              <button class="btn" data-nav="/profile">Hồ sơ</button>
+              <button class="btn" id="btnLogout" data-auth="logout">Đăng xuất</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </header>
+
+  <!-- ===== RAIL ICONS ===== -->
+  <div class="rail" id="leftRail">
+    <div class="ico" data-nav="/profile" title="Hồ sơ"><img src="/public/assets/icons/user.webp" alt=""></div>
+    <div class="ico" data-nav="/storybook" title="Storybook"><img src="/public/assets/icons/book.webp" alt=""></div>
+    <div class="ico" data-nav="/video" title="Video"><img src="/public/assets/icons/video.webp" alt=""></div>
+    <div class="ico" data-nav="/game" title="Game"><img src="/public/assets/icons/game.webp" alt=""></div>
+    <div class="ico" data-nav="/shop" title="Shop"><img src="/public/assets/icons/shop.webp" alt=""></div>
+    <div class="ico" data-nav="/chat" title="Chat"><img src="/public/assets/icons/chat.webp" alt=""></div>
+    <div class="ico" data-nav="/notify" title="Thông báo"><img src="/public/assets/icons/note.webp" alt=""></div>
+    <div class="ico" data-nav="/settings" title="Cài đặt"><img src="/public/assets/icons/setting.webp" alt=""></div>
   </div>
 
-  <!-- ===== BODY ===== -->
-  <div class="shell">
-    <aside class="sidebar">
-      <button class="sidebtn" title="Hồ sơ" data-route="profile"></button>
-      <button class="sidebtn" title="Storybook" data-route="storybook"></button>
-      <button class="sidebtn" title="Video" data-route="video"></button>
-      <button class="sidebtn" title="Game" data-route="game"></button>
-      <button class="sidebtn" title="Shop" data-route="shop"></button>
-    </aside>
+  <!-- ===== CONTENT STAGE ===== -->
+  <main class="stage">
+    <section id="stageMain" class="two-col">
+      <aside id="colLeft"  class="panel"></aside>
+      <article id="colRight" class="panel"></article>
+    </section>
+  </main>
 
-    <main class="stage">
-      <section class="panel list" id="listPane"></section>
-      <section class="panel detail" id="detailPane"></section>
-    </main>
-  </div>
+  <!-- FAB login (fallback) -->
+  <button id="fabAuth" class="btn" data-auth="open" style="display:none">Đăng nhập</button>
 
-  <!-- ===== AUTH MODAL (kính mờ) ===== -->
-  <div id="authModal" aria-hidden="true" class="hide">
-    <div class="auth-box">
-      <div class="auth-tabs">
-        <button class="pill" data-auth-tab="login">Đăng nhập</button>
-        <button class="pill" data-auth-tab="signup">Đăng ký</button>
-        <button class="pill" data-auth-tab="reset">Quên mật khẩu</button>
-        <div style="flex:1"></div>
-        <button class="pill" id="btnAuthClose">Đóng</button>
-      </div>
-
-      <form id="formLogin" class="auth-form">
-        <div class="auth-row">
-          <label>Email</label>
-          <input type="email" placeholder="you@example.com">
-        </div>
-        <div class="auth-row">
-          <label>Mật khẩu</label>
-          <input type="password" placeholder="••••••••">
-        </div>
-        <div class="auth-actions">
-          <button type="submit" class="pill">Đăng nhập</button>
-          <button type="button" id="btnLoginGoogle" class="pill">Đăng nhập Google</button>
-        </div>
-      </form>
-
-      <form id="formSignup" class="auth-form hide">
-        <div class="auth-row">
-          <label>Email</label>
-          <input type="email" placeholder="you@example.com">
-        </div>
-        <div class="auth-actions">
-          <button type="submit" class="pill">Gửi email xác minh</button>
-        </div>
-      </form>
-
-      <form id="formReset" class="auth-form hide">
-        <div class="auth-row">
-          <label>Email</label>
-          <input type="email" placeholder="you@example.com">
-        </div>
-        <div class="auth-actions">
-          <button type="submit" class="pill">Gửi link đặt lại mật khẩu</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <footer id="mini_footer"></footer>
-
-  <script>
-  (function(){
-    const N = (window.NINI = window.NINI || {});
-    const $ = (s,r=document)=>r.querySelector(s);
-    const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
-
-    const listPane = $('#listPane');
-    const detailPane = $('#detailPane');
-
-    /* -------- Demo data -------- */
-    const DATA = {
-      storybook: { title:'Thư viện', items:[
-        {id:'b1', title:'Bé NiNi & khu rừng'},
-        {id:'b2', title:'Cuộc đua sắc màu'},
-        {id:'b3', title:'Bạn mới của NiNi'},
-      ]},
-      video: { title:'Video', items:[
-        {id:'v1', title:'Chuỗi 1 · Các mẹo tư duy nhanh'},
-        {id:'v2', title:'Chuỗi 2 · Giải đố cùng NiNi'},
-        {id:'v3', title:'Chuỗi 3 · Kể chuyện tương tác'},
-      ]},
-      game: { title:'Game', items:[
-        {id:'g1', title:'Ghép hình'},
-        {id:'g2', title:'Tìm điểm khác nhau'},
-        {id:'g3', title:'Đường mê cung'},
-      ]},
-      shop: { title:'Shop', items:[
-        {id:'s1', title:'Sticker NiNi'},
-        {id:'s2', title:'Sổ tay giải đố'},
-        {id:'s3', title:'Áo thun NiNi'},
-      ]},
-    };
-
-    /* -------- Render list/detail (storybook/video/game/shop) -------- */
-    function renderList(route){
-      const pack = DATA[route];
-      if(!pack){ listPane.innerHTML=''; return; }
-      listPane.innerHTML = `
-        <h3>${pack.title}</h3>
-        ${pack.items.map(i=>`<div class="item" data-id="${i.id}">${i.title}</div>`).join('')}
-      `;
-      $$('.item', listPane).forEach(el=>{
-        el.addEventListener('click', ()=> renderDetail(route, el.dataset.id));
-      });
-    }
-    function renderDetail(route, id){
-      const pack = DATA[route];
-      const it = pack?.items.find(x=>x.id===id);
-      detailPane.innerHTML = it
-        ? `<h3>${it.title}</h3><p>Nội dung demo ở đây (${route} / ${id}).</p>`
-        : `<h3>Chào mừng đến với NiNi — Funny</h3><p>Dùng thanh bên trái để mở Storybook, Video, Game, Shop.</p>`;
-    }
-
-    /* -------- Render các trang tĩnh của header -------- */
-    function renderStatic(section){
-      const map = {
-        home: `<h3>Giới thiệu</h3><p>NiNi — Funny là sân chơi tư duy cho thiếu nhi.</p>`,
-        rules:`<h3>Luật chơi</h3><ul><li>Chơi vui, tôn trọng bạn bè.</li><li>Không spam, không độc hại.</li></ul>`,
-        forum:`<h3>Diễn đàn</h3><p>Khu sinh hoạt cộng đồng.</p>`,
-        feedback:`<h3>Góp ý</h3><p>Cho tụi mình biết góp ý của bạn nhé!</p>`
-      };
-      listPane.innerHTML=''; detailPane.innerHTML = map[section] || map.home;
-    }
-
-    /* -------- PROFILE (2 cột) -------- */
-    function renderProfile(){
-      const user = getCurrentUser();
-      if(!user){
-        listPane.innerHTML = '';
-        detailPane.innerHTML = `
-          <h3>Hồ sơ</h3>
-          <p>Bạn chưa đăng nhập. Nhấn <button class="pill" id="openLoginInline">Đăng nhập</button> để tiếp tục.</p>
-        `;
-        $('#openLoginInline')?.addEventListener('click', ()=> openModal('login'));
-        return;
-      }
-
-      // trái: thông tin cá nhân
-      listPane.innerHTML = `
-        <h3>Thông tin</h3>
-        <div class="profile-card">
-          <div class="profile-ava" id="profAva"></div>
-          <div>
-            <div style="font-weight:700">${user.displayName || (user.email? user.email.split('@')[0] : 'NiNi')}</div>
-            <div class="muted">${user.email || ''}</div>
-          </div>
-        </div>
-        <div class="item" id="btnEdit">Chỉnh sửa thông tin</div>
-        <div class="item" id="btnSecurity">Bảo mật &amp; mật khẩu</div>
-        <div class="item" id="btnLogout">Đăng xuất</div>
-      `;
-
-      const avaEl = $('#profAva');
-      if(user.photoURL){ avaEl.style.setProperty('--ava2', `url("${user.photoURL}")`); avaEl.textContent=''; }
-      else { avaEl.style.setProperty('--ava2', 'none'); avaEl.textContent=(user.displayName||'U').slice(0,1).toUpperCase(); }
-
-      $('#btnLogout').addEventListener('click', doSignOut);
-
-      // phải: thành tích
-      detailPane.innerHTML = `
-        <h3>Thành tích</h3>
-        <div class="stats">
-          <div class="stat">
-            <h4>XP</h4>
-            <div class="bar"><i style="width:65%"></i></div>
-            <div class="muted">650 / 1000</div>
-          </div>
-          <div class="stat">
-            <h4>Xu</h4>
-            <div class="bar"><i style="width:40%; background:linear-gradient(90deg,var(--warn),#f6b)"></i></div>
-            <div class="muted">400</div>
-          </div>
-          <div class="stat">
-            <h4>Cấp độ</h4>
-            <div class="muted"><b>Level 7</b></div>
-          </div>
-        </div>
-
-        <h3 style="margin-top:16px">Vật phẩm</h3>
-        <div class="inv">
-          <div class="chip">Rương gỗ <b>3</b></div>
-          <div class="chip">Rương bạc <b>1</b></div>
-          <div class="chip">Rương vàng <b>0</b></div>
-          <div class="chip">Mảnh ghép A <b>5</b></div>
-          <div class="chip">Mảnh ghép B <b>2</b></div>
-          <div class="chip">Mảnh ghép C <b>1</b></div>
-        </div>
-      `;
-    }
-
-    /* -------- Router -------- */
-    function goByHash(){
-      const hash = location.hash.replace(/^#\//,'');
-      if(!hash){ renderStatic('home'); return; }
-
-      if(['profile'].includes(hash)){ renderProfile(); return; }
-
-      if(['storybook','video','game','shop'].includes(hash)){
-        renderList(hash); renderDetail(hash, null); return;
-      }
-
-      if(['home','rules','forum','feedback'].includes(hash)){
-        renderStatic(hash); return;
-      }
-
-      // deep link item: #/storybook?id=b3
-      const [path, qs] = hash.split('?');
-      if(['storybook','video','game','shop'].includes(path)){
-        const id = new URLSearchParams(qs||'').get('id');
-        renderList(path); renderDetail(path,id); return;
-      }
-      renderStatic('home');
-    }
-    window.addEventListener('hashchange', goByHash);
-    window.addEventListener('load', goByHash);
-
-    /* -------- Header/Sidebar click -------- */
-    $$('.tabs .pill').forEach(b=> b.addEventListener('click', ()=> location.hash = b.dataset.nav ));
-    $$('.sidebtn').forEach(b=> b.addEventListener('click', ()=> location.hash = '#/'+b.dataset.route ));
-
-    /* -------- Auth modal -------- */
-    const modal = $('#authModal');
-    function openModal(tab='login'){ modal.classList.remove('hide'); switchTab(tab); }
-    function closeModal(){ modal.classList.add('hide'); }
-    $('#btnAuthOpen').addEventListener('click', ()=> openModal('login'));
-    $('#btnAuthClose').addEventListener('click', closeModal);
-    $$('.auth-tabs [data-auth-tab]').forEach(b=> b.addEventListener('click', ()=> switchTab(b.dataset.authTab)));
-    function switchTab(tab){
-      $('#formLogin').classList.toggle('hide', tab!=='login');
-      $('#formSignup').classList.toggle('hide', tab!=='signup');
-      $('#formReset').classList.toggle('hide', tab!=='reset');
-    }
-
-    /* -------- Auth handlers (uỷ quyền SDK) -------- */
-    $('#formLogin').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const email = $('#formLogin input[type="email"]').value.trim().toLowerCase();
-      const pass  = $('#formLogin input[type="password"]').value;
-      try{
-        const user = await N.fb?.loginEmailPass?.(email,pass) || await N.fb?.loginEmailPassword?.(email,pass);
-        updateAuthUI(user); closeModal();
-      }catch(err){ alert(err?.message||'Đăng nhập thất bại'); }
-    });
-    $('#btnLoginGoogle').addEventListener('click', async ()=>{
-      try{ const user = await N.fb?.loginGoogle?.(); updateAuthUI(user); closeModal(); }
-      catch(err){ alert(err?.message||'Google Sign-in lỗi'); }
-    });
-    $('#formSignup').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const email = $('#formSignup input[type="email"]').value.trim().toLowerCase();
-      try{ await N.fb?.registerEmailOnly?.(email); alert('Đã gửi email xác minh.'); closeModal(); }
-      catch(err){ alert(err?.message||'Đăng ký thất bại'); }
-    });
-    $('#formReset').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const email = $('#formReset input[type="email"]').value.trim().toLowerCase();
-      try{ await N.fb?.resetPassword?.(email); alert('Đã gửi link đặt lại mật khẩu.'); closeModal(); }
-      catch(err){ alert(err?.message||'Gửi mail thất bại'); }
-    });
-
-    /* -------- Avatar menu + signout -------- */
-    const userInfo = $('#userInfo'), btnAuth = $('#btnAuthOpen'),
-          nick = $('#userNick'), ava = $('#btnProfile'), menu = $('#userMenu');
-
-    ava.addEventListener('click', ()=> menu.classList.toggle('open'));
-    document.addEventListener('click', (e)=>{ if(!e.target.closest('#userArea')) menu.classList.remove('open'); });
-    $('#btnSignOut').addEventListener('click', doSignOut);
-
-    async function doSignOut(){
-      try{ if(N.fb?.signOut) await N.fb.signOut(); else if(N.fb?.logout) await N.fb.logout(); }catch(_){}
-      updateAuthUI(null);
-      location.hash = '#/home';
-    }
-
-    function getCurrentUser(){
-      try{
-        if(typeof N.fb?.currentUser === 'function') return N.fb.currentUser();
-        return N._user || null;
-      }catch(_){ return null; }
-    }
-
-    function updateAuthUI(user){
-      const inUser = !!user;
-      btnAuth.classList.toggle('hide', inUser);
-      userInfo.classList.toggle('hide', !inUser);
-      if(inUser){
-        const display = user.displayName || (user.email? user.email.split('@')[0] : 'NiNi');
-        nick.textContent = display;
-        const letter = (display||'U').slice(0,1).toUpperCase();
-        if(user.photoURL){ ava.style.setProperty('--ava-bg', `url("${user.photoURL}")`); ava.textContent=''; }
-        else { ava.style.setProperty('--ava-bg','none'); ava.textContent=letter; }
-      }else{
-        ava.style.setProperty('--ava-bg','none'); ava.textContent='U'; nick.textContent='NiNi';
-      }
-    }
-
-    // theo dõi user từ SDK
-    try{
-      N.fb?.onUserChanged?.((u)=>{ N._user=u; updateAuthUI(u); if(location.hash==='#/profile') renderProfile(); });
-      const cur = getCurrentUser(); if(cur) updateAuthUI(cur);
-    }catch(_){}
-  })();
-  </script>
+  <!-- ===== SCRIPTS ===== -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
+  <script src="/test/js/auth-glue.js"></script>
+  <script src="/test/js/app-shell.js"></script>
 </body>
 </html>
-
-
-
-

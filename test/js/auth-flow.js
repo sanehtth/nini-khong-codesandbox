@@ -1,4 +1,3 @@
-<script>
 // auth-flow.js — gắn listener 1 lần bằng event delegation + đồng bộ UI
 (function () {
   const N = (window.NINI = window.NINI || {});
@@ -89,4 +88,3 @@
     console.warn('[auth-flow] onUserChanged not ready yet');
   }
 })();
-</script>

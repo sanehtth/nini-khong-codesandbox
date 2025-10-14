@@ -172,3 +172,44 @@ body > .btn-auth:not(#nini_header *),
 body > .avatar:not(#nini_header *),
 body > .user-info:not(#nini_header *){ display:none !important; }
 
+/* --- Header brand look --- */
+#nini_header .nini-header-wrap{
+  position: sticky; top:0; z-index:30;
+  display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
+  padding:8px 12px; margin:0 auto; max-width:1120px;
+  background: rgba(0,0,0,.22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border-radius:14px;
+}
+#nini_header .brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:#fff; }
+#nini_header .brand .logo{
+  width:112px; height:28px; background:url("/public/assets/icons/logo_text.webp") left/contain no-repeat;
+}
+#nini_header .brand .slogan{ font-size:12.5px; opacity:.9; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+
+#nini_header .nav{ display:flex; gap:10px; }
+#nini_header .nav-link{ color:#fff; text-decoration:none; }
+#nini_header .nav-link:hover{ color:#f6d35c; }
+
+/* Avatar dạng nút để click vào profile */
+#nini_header .avatar-btn{ background:transparent; border:none; cursor:pointer; padding:0; }
+#nini_header .avatar{
+  --size:28px;
+  width:var(--size); height:var(--size); border-radius:50%;
+  border:1px solid rgba(255,255,255,.6);
+  background: var(--ava-bg) center/cover no-repeat;
+  display:inline-grid; place-items:center;
+  color:#fff; font-weight:700; text-shadow:0 1px 1px rgba(0,0,0,.35);
+}
+#nini_header .avatar.is-empty{ background:#2e7d32; }
+#nini_header .avatar.is-empty::after{ content: attr(data-letter); }
+
+#nini_header .btn-auth{
+  display:inline-flex; align-items:center; gap:.5rem; padding:8px 12px; border-radius:999px;
+  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.7); cursor:pointer; transition:.2s;
+}
+#nini_header .btn-auth:hover{ color:#f6d35c; border-color:#f6d35c; }
+
+/* Đảm bảo không bị rule cũ ẩn logo/brand */
+#nini_header .brand,
+#nini_header .brand .logo { display:inline-flex !important; }
+

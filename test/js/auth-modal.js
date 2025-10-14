@@ -1,224 +1,148 @@
-/* auth-modal.js — full: Modal với 3 tab (login/signup/reset) + submit */
+<!-- Nhớ nhúng file này sau khi đã load NINI core + auth-glue.js -->
+<script>
+/* ---------------------------------------------------------
+   auth-modal.js
+   - Bắt tab (Đăng nhập / Đăng ký / Quên mật khẩu)
+   - Bắt submit form và phát sự kiện cho auth-glue.js
+   - Điều khiển mở/đóng modal + trạng thái loading nhẹ
+   --------------------------------------------------------- */
 (function () {
   const N = (window.NINI = window.NINI || {});
-  if (N._wiredAuthModal) return;
+  if (N._wiredAuthModal) return;   // tránh double-bind
   N._wiredAuthModal = true;
 
-  // ---- Tạo DOM nếu chưa có
-  function ensureModal() {
-    let m = document.getElementById('authModal');
-    if (m) return m;
-    m = document.createElement('div');
-    m.id = 'authModal';
-    m.className = 'hidden';
-    m.setAttribute('aria-hidden', 'true');
-    m.innerHTML = `
-      <div class="auth-backdrop">
-        <div class="auth-box">
-          <div class="box-head">
-            <div class="box-title">Đăng nhập / Đăng ký / Quên mật khẩu</div>
-            <button class="btn" data-auth="close" style="margin-left:auto">Đóng</button>
-          </div>
-
-          <div class="tabs">
-            <button type="button" data-auth-tab="login"  class="active">Đăng nhập</button>
-            <button type="button" data-auth-tab="signup">Đăng ký</button>
-            <button type="button" data-auth-tab="reset">Quên mật khẩu</button>
-          </div>
-
-          <div class="forms">
-            <!-- LOGIN -->
-            <form id="formLogin" class="active">
-              <div class="form-row">
-                <label>Email</label>
-                <input type="email" name="email" autocomplete="username" required />
-              </div>
-              <div class="form-row">
-                <label>Mật khẩu</label>
-                <input type="password" name="password" autocomplete="current-password" required />
-              </div>
-              <div class="actions">
-                <button type="submit" class="btn primary">Đăng nhập</button>
-                <button type="button" class="btn google" data-auth="google">Đăng nhập Google</button>
-              </div>
-            </form>
-
-            <!-- SIGNUP -->
-            <form id="formSignup">
-              <div class="form-row">
-                <label>Email</label>
-                <input type="email" name="email" autocomplete="email" required />
-              </div>
-              <div class="form-row">
-                <label>Mật khẩu</label>
-                <input type="password" name="password" autocomplete="new-password" required />
-              </div>
-              <div class="form-row">
-                <label>Nhập lại mật khẩu</label>
-                <input type="password" name="confirm" autocomplete="new-password" required />
-              </div>
-              <div class="actions">
-                <button type="submit" class="btn primary">Đăng ký</button>
-              </div>
-              <div class="hint">Bạn sẽ nhận email xác minh (verification email).</div>
-            </form>
-
-            <!-- RESET -->
-            <form id="formReset">
-              <div class="form-row">
-                <label>Email</label>
-                <input type="email" name="email" autocomplete="email" required />
-              </div>
-              <div class="actions">
-                <button type="submit" class="btn primary">Gửi link đặt lại</button>
-              </div>
-              <div class="hint">Chúng tôi sẽ gửi link đặt lại mật khẩu qua email.</div>
-            </form>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(m);
-    return m;
+  // Mini event-bus (nếu chưa có)
+  if (!N.emit) {
+    const _evts = {};
+    N.on  = (name, fn) => ((_evts[name] = _evts[name] || []).push(fn), fn);
+    N.emit= (name, payload) => (_evts[name]||[]).forEach(fn => { try{ fn(payload||{}); }catch(_){ } });
   }
 
-  const M = () => document.getElementById('authModal') || ensureModal();
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-  // ---- Mở/Đóng
+  const modal   = $('#authModal');
+  const box     = modal?.querySelector('.auth-box');
+  const msgBox  = box?.querySelector('.msg');
+  const tabs    = $$('.auth-head .tab', box);
+
+  const frmLogin  = $('#formLogin', box);
+  const frmSignup = $('#formSignup', box);
+  const frmReset  = $('#formReset', box);
+
+  const btnOpenFab  = $('#btnAuthOpenFab');
+  const btnClose    = $('#btnAuthClose');
+  const btnGoogle   = $('#btnGoogle', box);
+
+  // -------- Helpers UI ----------
   function openModal() {
-    const m = M();
-    m.classList.remove('hidden');
-    m.setAttribute('aria-hidden', 'false');
-    // autofocus email ở tab hiện tại
-    const f = m.querySelector('form.active input[type="email"]');
-    if (f) setTimeout(() => f.focus(), 0);
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('body-auth-open');
+    clearMsg();
   }
   function closeModal() {
-    const m = M();
-    m.classList.add('hidden');
-    m.setAttribute('aria-hidden', 'true');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('body-auth-open');
   }
-
-  // ---- Chuyển tab
-  function switchTab(name) {
-    const m = M();
-    m.querySelectorAll('.tabs [data-auth-tab]').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-auth-tab') === name);
-    });
-    m.querySelectorAll('.forms form').forEach(f => {
-      f.classList.toggle('active', f.id === `form${name[0].toUpperCase()+name.slice(1)}`);
-    });
-    const f = m.querySelector('form.active input[type="email"]');
-    if (f) f.focus();
+  function setActivePane(name) {
+    $$('.pane', box).forEach(p => p.classList.remove('active'));
+    if (name === 'login')  frmLogin?.classList.add('active');
+    if (name === 'signup') frmSignup?.classList.add('active');
+    if (name === 'reset')  frmReset?.classList.add('active');
+    tabs.forEach(t => t.classList.toggle('is-active', t.dataset.authTab === name));
+    clearMsg();
   }
-
-  // ---- Lắng nghe mở/đóng qua bus (nếu nơi khác emit)
-  N.on && N.on('auth:open', openModal);
-  N.on && N.on('auth:close', closeModal);
-
-  // ---- Click chung: backdrop/close/tab/google
-  document.addEventListener('click', (e) => {
-    const m = document.getElementById('authModal');
-    const insideModal = e.target.closest('#authModal');
-    if (!insideModal) return; // click ngoài modal -> để event khác xử lý
-
-    // backdrop
-    const insideBox = e.target.closest('#authModal .auth-box');
-    if (insideModal && !insideBox) {
-      e.preventDefault();
-      closeModal();
-      N.emit && N.emit('auth:close');
-      return;
+  function setLoading(form, isOn, text) {
+    if (!form) return;
+    const submit = form.querySelector('button[type="submit"]');
+    if (!submit) return;
+    if (isOn) {
+      submit.dataset._text = submit.textContent;
+      if (text) submit.textContent = text;
+      submit.disabled = true;
+    } else {
+      submit.textContent = submit.dataset._text || submit.textContent;
+      submit.disabled = false;
     }
+  }
+  function showMsg(type, text) {
+    if (!msgBox) return;
+    msgBox.className = 'msg' + (type ? ' ' + type : '');
+    msgBox.textContent = text || '';
+  }
+  function clearMsg(){ showMsg('', ''); }
 
-    // nút Đóng
-    if (e.target.closest('[data-auth="close"]')) {
-      e.preventDefault();
-      closeModal();
-      N.emit && N.emit('auth:close');
-      return;
-    }
+  // --------- Wire: mở/đóng ----------
+  btnOpenFab?.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+  btnClose?.addEventListener('click',  (e) => { e.preventDefault(); closeModal(); });
+  // click nền ngoài để đóng
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-    // tabs
-    const tabBtn = e.target.closest('[data-auth-tab]');
-    if (tabBtn) {
-      e.preventDefault();
-      switchTab(tabBtn.getAttribute('data-auth-tab'));
-      return;
-    }
-
-    // Google
-    if (e.target.closest('[data-auth="google"]')) {
-      e.preventDefault();
-      N.emit && N.emit('auth:google');
-      // tuỳ bạn: chuyển hướng Google OAuth ở đây
-      return;
-    }
+  // --------- Wire: tabs ----------
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => setActivePane(tab.dataset.authTab));
   });
 
-  // ---- ESC để đóng
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    const m = document.getElementById('authModal');
-    if (!m || m.getAttribute('aria-hidden') === 'true') return;
+  // --------- Wire: submit forms ----------
+  frmLogin?.addEventListener('submit', (e) => {
     e.preventDefault();
-    closeModal();
-    N.emit && N.emit('auth:close');
+    clearMsg();
+    const email = (frmLogin.querySelector('input[name="email"]')?.value || '').trim();
+    const password = (frmLogin.querySelector('input[name="password"]')?.value || '').trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showMsg('err','Email không hợp lệ.'); return;
+    }
+    if (!password) { showMsg('err','Vui lòng nhập mật khẩu.'); return; }
+    setLoading(frmLogin, true, 'Đang đăng nhập...');
+    N.emit('auth:login', { email, password });
   });
 
- // ---- SUBMIT: đọc trực tiếp từ input, không phụ thuộc FormData ----
-document.addEventListener('submit', (e) => {
-  const f = e.target;
-  if (!f.matches('#formLogin, #formSignup, #formReset')) return;
-  e.preventDefault();
+  frmSignup?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearMsg();
+    const email = (frmSignup.querySelector('input[name="email"]')?.value || '').trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showMsg('err','Email không hợp lệ.'); return;
+    }
+    setLoading(frmSignup, true, 'Đang gửi email xác minh...');
+    N.emit('auth:signup', { email });
+  });
 
-  // Tìm input trong CHÍNH form đang submit (không lẫn tab khác)
-  const pickFromForm = (selectors) => {
-    const el = f.querySelector(selectors);
-    if (!el) return '';
-    // cố đọc cả value đang hiển thị lẫn value attribute
-    return String(el.value ?? el.getAttribute('value') ?? '').trim();
-  };
+  frmReset?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearMsg();
+    const email = (frmReset.querySelector('input[name="email"]')?.value || '').trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showMsg('err','Email không hợp lệ.'); return;
+    }
+    setLoading(frmReset, true, 'Đang gửi link...');
+    N.emit('auth:reset', { email });
+  });
 
-  // Email: thử theo thứ tự -> type=email -> name=email -> name có chữ 'mail'
-  const email =
-    pickFromForm('input[type="email"]') ||
-    pickFromForm('input[name="email"]') ||
-    pickFromForm('input[name*="mail" i]');
+  // Google
+  btnGoogle?.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearMsg();
+    showMsg('', 'Đang mở Google...');
+    N.emit('auth:google', {});
+  });
 
-  // Password / Confirm
-  const password = pickFromForm('input[type="password"], input[name="password"]');
-  const confirm  = pickFromForm('input[name="confirm"]');
+  // --------- Nhận phản hồi từ auth-glue ----------
+  // auth-glue sẽ gọi setMsg() nội bộ của nó, nhưng mình lắng nghe thêm
+  // để đồng bộ loading & đóng modal sau khi OK
+  N.on && N.on('auth:ui:done', ({ form, ok, message }) => {
+    // form: 'login' | 'signup' | 'reset'
+    const map = { login: frmLogin, signup: frmSignup, reset: frmReset };
+    setLoading(map[form], false);
+    if (message) showMsg(ok ? 'ok' : 'err', message);
+    if (ok && form !== 'reset') closeModal(); // login/signup OK → đóng
+  });
 
-  const N = (window.NINI = window.NINI || {});
-
-  if (f.id === 'formLogin') {
-    N.emit && N.emit('auth:login',  { email: (email || '').toLowerCase(), password });
-    return;
-  }
-  if (f.id === 'formSignup') {
-    N.emit && N.emit('auth:signup', { email: (email || '').toLowerCase(), password, confirm });
-    return;
-  }
-  if (f.id === 'formReset') {
-    N.emit && N.emit('auth:reset',  { email: (email || '').toLowerCase() });
-    return;
-  }
-});
-// <-- đóng KHỐI submit delegation
-
-// (tùy chọn) Prefill từ query string khi test
-(() => {
-  const p = new URLSearchParams(location.search);
-  const em = p.get('email'); const pw = p.get('password');
-  if (!em && !pw) return;
-  const login = document.getElementById('formLogin');
-  if (!login) return;
-  if (em) login.querySelector('input[name="email"]').value    = em;
-  if (pw) login.querySelector('input[name="password"]').value = pw;
+  // Khi auth-glue muốn chỉ hiển thị thông điệp
+  N.on && N.on('auth:ui:msg', ({ type, text }) => showMsg(type, text));
 })();
-
-// tạo modal ngay để CSS áp vào
-ensureModal();
-})(); // <-- NHỚ đóng IIFE của toàn file
-
+</script>

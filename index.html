@@ -4,56 +4,149 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>NiNi — Funny (Clean)</title>
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
- 
+  <link rel="icon" href="/public/assets/icons/logomini.svg" type="image/svg+xml" />
 
-  <!-- ========== CSS ========== -->
-  <!-- base.css đã GỘP header.css và chứa toàn bộ brand/avatar/background -->
-  <link rel="stylesheet" href="./test/css/base.css">
-  <link rel="stylesheet" href="./test/css/auth-modal.css">
-  <link rel="stylesheet" href="./test/css/stage.css">
-  <link rel="stylesheet" href="./test/css/footer.css">
+  <!-- ========== CSS chung của site (giữ theo dự án của bạn) ========== -->
+  <link rel="stylesheet" href="/test/css/base.css">
+  <link rel="stylesheet" href="/test/css/auth-modal.css">
+  <link rel="stylesheet" href="/test/css/footer.css">
+  <link rel="stylesheet" href="/test/css/stage.css">
 
-  <!-- (tuỳ chọn) cấu hình Firebase & Mail endpoints ngay tại index, 
-       nếu bạn không muốn sửa trực tiếp trong file nini-fb.mjs -->
- 
-  <!-- ========== SDK DUY NHẤT cần nạp: nini-fb.mjs (đã tự import Firebase SDK) ========== -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
+  <!-- ========== CSS mới cho header tabs + stage card ========== -->
+  <link rel="stylesheet" href="/test/css/header-tabs.css">
+
+  <!-- (tuỳ chọn) Theme boot: load override theme từ Netlify function -->
+  <!-- <script src="/test/js/theme-boot.js" defer></script> -->
 </head>
-
-<!-- body có thể đổi class theo mùa: home/spring/summer/autumn/winter -->
 <body class="home">
-  <!-- Header sẽ được header.js render vào đây -->
+
+  <!-- ========== HEADER MỚI: logo + slogan + 4 tab ========== -->
+  <!-- JS header-tabs sẽ render nội dung vào thẻ này -->
   <header id="nini_header"></header>
 
-  <main class="stage">
-    <section id="stage"></section>
-    <nav id="season_bar"></nav>
+  <!-- ========== HERO / MESSAGE ở giữa (card kính to) ========== -->
+  <!-- Phần này là “khung trắng to ở giữa”. JS tabs sẽ tự đổ nội dung vào #stageCard -->
+  <main id="stage" class="stage">
+    <section id="stageCard" class="stage-card">
+      <h2>👋 Chào mừng đến với NiNi — Funny</h2>
+      <p>Dùng thanh tab trên header để xem <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, hay <strong>Shop</strong>. Nội dung sẽ hiện ngay tại đây.</p>
+    </section>
   </main>
 
-  <!-- ========== JS app: core -> header -> stage -> auth-modal -> onoff -> auth-glue -> footer ========== -->
-  <script src="./test/js/core.js"></script>
-<!-- Render header 1 lần -->
-<script defer src="/test/js/header.js"></script>
+  <!-- ========== FOOTER (nếu bạn đã có) ========== -->
+  <footer id="nini_footer"></footer>
 
-<!-- Bắt click + đồng bộ UI đăng nhập/đăng xuất -->
-<script defer src="/test/js/auth-flow.js"></script>
+  <!-- ============================================================
+       ===============  CỤM ĐĂNG NHẬP / ĐĂNG KÝ  ==================
+       - Nút nổi góc trái–dưới (FAB) để mở modal
+       - Modal đăng nhập / đăng ký / quên mật khẩu
+       - Glue + flow: xử lý sự kiện + đồng bộ UI
+       ============================================================ -->
 
-<!-- Modal đăng nhập cũ của bạn (nếu có) -->
-<script defer src="/test/js/auth-modal.js"></script>
+  <!-- Nút nổi mở modal (nếu bạn dùng bản FAB) -->
+  <button id="btnAuthOpenFab" class="fab-auth" aria-label="Đăng nhập" title="Đăng nhập">
+    <span>Đăng nhập</span>
+  </button>
 
-<script src="./test/js/stage.js" defer></script>
- 
-  <!-- onoff.js: quản lý open/close modal, overlay, ESC, v.v. -->
-  <script src="./test/js/auth-glue.js" defer></script>
-  <script src="./test/js/onoff.js" defer></script>
-  <script src="./test/js/footer.js" defer></script>
+  <!-- Auth Modal (giữ nguyên đúng id/class để glue nhận) -->
+  <div id="authModal" class="auth-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="auth-box" role="document">
+      <div class="auth-head">
+        <div class="tabs">
+          <button class="tab is-active" data-auth-tab="login">Đăng nhập</button>
+          <button class="tab" data-auth-tab="signup">Đăng ký</button>
+          <button class="tab" data-auth-tab="reset">Quên mật khẩu</button>
+        </div>
+        <button class="btn-close" id="btnAuthClose" aria-label="Đóng">Đóng</button>
+      </div>
+
+      <!-- Login -->
+      <form id="formLogin" class="pane active" autocomplete="on">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required />
+        <label>Mật khẩu</label>
+        <input type="password" name="password" placeholder="••••••••" required />
+        <div class="actions">
+          <button type="submit" class="btn-primary">Đăng nhập</button>
+          <button type="button" id="btnGoogle" class="btn">Đăng nhập Google</button>
+        </div>
+      </form>
+
+      <!-- Signup -->
+      <form id="formSignup" class="pane" autocomplete="on">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required />
+        <div class="actions">
+          <button type="submit" class="btn-primary">Đăng ký</button>
+        </div>
+      </form>
+
+      <!-- Reset -->
+      <form id="formReset" class="pane" autocomplete="on">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required />
+        <div class="actions">
+          <button type="submit" class="btn-primary">Gửi link đặt lại mật khẩu</button>
+        </div>
+      </form>
+
+      <div class="msg" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- ========== Firebase core (module) — KHÔNG ĐƯỢC BỎ ========== -->
+  <!-- File này khởi tạo Firebase + expose NINI.fb (login, logout, onUserChanged, ...) -->
+  <script type="module" src="/public/js/nini-fb.mjs"></script>
+
+  <!-- ========== JS header mới (logo + slogan + 4 tab) ========== -->
+  <script src="/test/js/header-tabs.js" defer></script>
+
+  <!-- ========== JS auth: modal UI + flow + glue  (MỖI FILE CHỈ NẠP 1 LẦN) ========== -->
+  <!-- auth-modal.js: chuyển tab trong modal, nút đóng/mở -->
+  <script src="/test/js/auth-modal.js" defer></script>
+
+  <!-- auth-glue.js: bắt sự kiện submit login/signup/reset + gọi NINI.fb.*, đồng bộ UI -->
+  <script src="/test/js/auth-glue.js" defer></script>
+
+  <!-- auth-flow.js: gắn listener 1 lần (mở modal từ FAB, mở profile khi avatar, signOut) -->
+  <script src="/test/js/auth-flow.js" defer></script>
+
+  <!-- (Nếu bạn dùng FAB riêng có CSS) -->
+  <link rel="stylesheet" href="/test/css/fab-auth.css">
+
+  <!-- ====== Hook nhỏ: FAB mở modal (phòng khi auth-flow chưa lắng) ====== -->
+  <script>
+    // Mở modal bằng FAB
+    document.addEventListener('DOMContentLoaded', function(){
+      var fab = document.getElementById('btnAuthOpenFab');
+      var modal = document.getElementById('authModal');
+      if (fab && modal){
+        fab.addEventListener('click', function(){
+          modal.classList.remove('hidden');
+          modal.setAttribute('aria-hidden', 'false');
+          document.body.classList.add('body-auth-open');
+          // Phát event nội bộ (nếu glue đang lắng nghe)
+          window.NINI && NINI.emit && NINI.emit('auth:open');
+        });
+      }
+      var closeBtn = document.getElementById('btnAuthClose');
+      if (closeBtn && modal){
+        closeBtn.addEventListener('click', function(){
+          modal.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove('body-auth-open');
+          window.NINI && NINI.emit && NINI.emit('auth:close');
+        });
+      }
+    });
+  </script>
+
+  <!-- ============================================================
+       GHI CHÚ QUAN TRỌNG
+       - Tránh nạp trùng: mỗi file JS ở trên chỉ nên có MỘT lần trong trang
+       - Header mới hoạt động theo hash router: #/story | #/video | #/game | #/shop
+       - Nội dung sẽ hiển thị ngay tại #stageCard (không chuyển trang)
+       - Đăng nhập: dùng FAB góc trái–dưới để mở modal; glue sẽ gọi NINI.fb.*
+       ============================================================ -->
 </body>
 </html>
-
-
-
-
-
-
-

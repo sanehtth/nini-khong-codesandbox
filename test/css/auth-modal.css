@@ -1,71 +1,131 @@
-/* --- Hiển/ẩn modal --- */
-#authModal.hidden,
-#authModal[aria-hidden="true"] { display: none !important; }
+/* =========================================================
+   auth-modal.css — Glass UI thống nhất với base.css
+   - Overlay blur nền
+   - Hộp kính .glass-2, viền trắng
+   - Nút .btn giống header/trang chủ
+   - Input dùng token --line/--line-hover/--line-focus
+   ======================================================= */
 
-#authModal { position: fixed; inset: 0; z-index: 9999; }
+/* Overlay */
+.auth-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.35);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.auth-modal.hidden{ display: none; }
+.body-auth-open{ overflow: hidden; }
 
-/* backdrop và box */
-#authModal .auth-backdrop{
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.45);
-}
-#authModal .auth-box{
-  width: min(520px, 92vw);
-  background: #fff; border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.18);
-  padding: 16px 18px;
-}
-
-/* header box */
-#authModal .box-head{
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 10px;
-}
-#authModal .box-title{ font-weight: 700; }
-
-/* tabs */
-#authModal .tabs{ display:flex; gap:8px; margin: 8px 0 12px; }
-#authModal .tabs [data-auth-tab]{
-  border:1px solid #ddd; border-radius:999px;
-  padding:6px 10px; background:#f7f7f7; cursor:pointer; font-size:14px;
-}
-#authModal .tabs [data-auth-tab].active{
-  background:#ececff; border-color:#b8b8ff; color:#4b47ff;
-}
-
-/* form */
-#authModal form{ display:none; }
-#authModal form.active{ display:block; }
-#authModal .form-row{ margin:10px 0; }
-#authModal .form-row label{ display:block; font-size:13px; margin-bottom:6px; }
-#authModal .form-row input{
-  width:100%; height:36px; padding:0 10px; border:1px solid #ddd; border-radius:8px;
+/* Hộp modal “kính mờ” */
+.auth-box{
+  width: min(720px, calc(100vw - 28px));
+  margin: 10px;
+  border-radius: 16px;
+  padding: 18px;
+  background: var(--glass-2, rgba(255,255,255,.35));
+  border: 1px solid var(--glass-bd, rgba(255,255,255,.45));
+  -webkit-backdrop-filter: blur(var(--blur, 8px));
+  backdrop-filter: blur(var(--blur, 8px));
+  color: #fff;
+  box-shadow: 0 12px 48px rgba(0,0,0,.18);
 }
 
-/* action buttons */
-#authModal .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-#authModal .btn{
-  height:36px; padding:0 12px; border-radius:8px; cursor:pointer; border:1px solid #d7d7d7; background:#f7f7f7;
+/* Header trong modal */
+.auth-head{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 14px;
 }
-#authModal .btn.primary{ background:#4b47ff; color:#fff; border-color:#4b47ff; }
-#authModal .btn.google{ background:#fff; }
+.auth-head .tabs{ display:flex; gap: 8px; }
+.auth-head .tabs .tab{
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:6px 10px; border-radius:999px;
+  color:#fff; border:1px solid var(--glass-bd);
+  background: rgba(255,255,255,.10);
+  cursor:pointer; user-select:none;
+}
+.auth-head .tabs .tab.is-active{
+  background: var(--btn-active-bg, #2ecc71);
+  border-color: transparent;
+}
+.auth-head .btn-close{
+  padding:6px 10px; border-radius:999px;
+  border:1px solid var(--glass-bd); background:transparent;
+  color:#fff; cursor:pointer;
+}
+.auth-head .btn-close:hover{ color:#f6d35c; border-color:#f6d35c; }
 
-/* link nhỏ */
-#authModal .hint{ font-size:12px; color:#666; margin-top:4px; }
-#authModal .msg { margin-top: 8px; font-size: 13px; }
-#authModal .msg.ok  { color: #2e7d32; }
-#authModal .msg.err { color: #b00020; }
-/* thông báo nhỏ trong modal */
-#authModal .msg { margin-top: 8px; font-size: 13px; }
-#authModal .msg.ok  { color: #2e7d32; }
-#authModal .msg.err { color: #b00020; }
+/* Pane form */
+.pane{ display:none; }
+.pane.active{ display:block; }
 
-/* container user ở header (nếu muốn) */
-#nini_header .userbox { display: inline-flex; align-items: center; gap: 8px; }
+.pane label{
+  display:block; margin: 10px 0 6px; color:#fff; opacity:.95;
+  font-size:.95rem;
+}
 
-#authModal .msg { margin-top: 8px; font-size: 13px; }
-#authModal .msg.ok  { color: #2e7d32; }
-#authModal .msg.err { color: #b00020; }
+/* Input: dùng token chung ở base.css */
+.pane input[type="email"],
+.pane input[type="password"],
+.pane input[type="text"]{
+  background: transparent; color:#fff;
+  border:none; border-bottom:1px solid var(--line, rgba(255,255,255,.65));
+  padding: 10px 2px 8px; border-radius:0; outline:none; width:100%;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pane input::placeholder{ color: rgba(255,255,255,.75); }
+.pane input:hover{ border-bottom-color: var(--line-hover, #f6d35c); }
+.pane input:focus{
+  border-bottom-color: var(--line-focus, #2ecc71);
+  box-shadow: 0 2px 0 0 var(--line-focus, #2ecc71);
+}
 
+/* Khu nút hành động */
+.actions{
+  display:flex; flex-wrap:wrap; gap:10px;
+  margin-top: 16px;
+}
 
+/* Nút chuẩn site (.btn đã có ở base.css) */
+.actions .btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.5rem; padding:8px 14px; border-radius:999px;
+  background: transparent; color: var(--btn-text, #fff);
+  border: 1px solid var(--btn-bd, rgba(255,255,255,.65));
+  text-decoration:none; cursor:pointer; user-select:none;
+  transition: .2s ease;
+}
+.actions .btn:hover{
+  color: var(--btn-hover, #f6d35c);
+  border-color: var(--btn-hover, #f6d35c);
+  background: rgba(255,255,255,.06);
+}
+.actions .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+.actions .btn-primary{
+  background: var(--btn-active-bg, #2ecc71);
+  color:#fff; border-color: transparent;
+}
+
+/* Thông báo trạng thái */
+.msg{
+  margin-top: 14px; font-size: .95rem;
+  padding: 10px 12px; border-radius: 12px;
+  border:1px solid var(--glass-bd);
+  background: rgba(255,255,255,.10);
+}
+.msg.ok{ border-color:#2ecc71; background:rgba(46,204,113,.15); }
+.msg.err{ border-color:#ff6b6b; background:rgba(255,107,107,.15); }
+
+/* FAB mở modal (góc trái–dưới) */
+.fab-auth{
+  position: fixed; left: 16px; bottom: 16px; z-index: 50;
+  padding: 10px 14px; border-radius: 999px;
+  border: 1px solid var(--glass-bd); background: rgba(0,0,0,.22);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  color:#fff; cursor:pointer;
+}
+.fab-auth:hover{ color:#f6d35c; border-color:#f6d35c; }

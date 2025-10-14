@@ -43,56 +43,58 @@
        - Glue + flow: xử lý sự kiện + đồng bộ UI
        ============================================================ -->
 
-  <!-- Nút nổi mở modal (nếu bạn dùng bản FAB) -->
-  <button id="btnAuthOpenFab" class="fab-auth" aria-label="Đăng nhập" title="Đăng nhập">
-    <span>Đăng nhập</span>
-  </button>
+ <!-- Nút nổi mở modal -->
+<button id="btnAuthOpenFab" class="fab-auth" aria-label="Đăng nhập / Đăng ký" title="Đăng nhập / Đăng ký">
+  <span>Đăng nhập</span>
+</button>
 
-  <!-- Auth Modal (giữ nguyên đúng id/class để glue nhận) -->
-  <div id="authModal" class="auth-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="auth-box" role="document">
-      <div class="auth-head">
-        <div class="tabs">
-          <button class="tab is-active" data-auth-tab="login">Đăng nhập</button>
-          <button class="tab" data-auth-tab="signup">Đăng ký</button>
-          <button class="tab" data-auth-tab="reset">Quên mật khẩu</button>
-        </div>
-        <button class="btn-close" id="btnAuthClose" aria-label="Đóng">Đóng</button>
+<!-- Auth Modal -->
+<div id="authModal" class="auth-modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="auth-box glass-2" role="document">   <!-- thêm class glass-2 -->
+    <div class="auth-head">
+      <div class="tabs">
+        <button class="tab is-active" data-auth-tab="login">Đăng nhập</button>
+        <button class="tab" data-auth-tab="signup">Đăng ký</button>
+        <button class="tab" data-auth-tab="reset">Quên mật khẩu</button>
       </div>
-
-      <!-- Login -->
-      <form id="formLogin" class="pane active" autocomplete="on">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="you@example.com" required />
-        <label>Mật khẩu</label>
-        <input type="password" name="password" placeholder="••••••••" required />
-        <div class="actions">
-          <button type="submit" class="btn-primary">Đăng nhập</button>
-          <button type="button" id="btnGoogle" class="btn">Đăng nhập Google</button>
-        </div>
-      </form>
-
-      <!-- Signup -->
-      <form id="formSignup" class="pane" autocomplete="on">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="you@example.com" required />
-        <div class="actions">
-          <button type="submit" class="btn-primary">Đăng ký</button>
-        </div>
-      </form>
-
-      <!-- Reset -->
-      <form id="formReset" class="pane" autocomplete="on">
-        <label>Email</label>
-        <input type="email" name="email" placeholder="you@example.com" required />
-        <div class="actions">
-          <button type="submit" class="btn-primary">Gửi link đặt lại mật khẩu</button>
-        </div>
-      </form>
-
-      <div class="msg" aria-live="polite"></div>
+      <button class="btn-close" id="btnAuthClose" aria-label="Đóng">Đóng</button>
     </div>
+
+    <!-- Login -->
+    <form id="formLogin" class="pane active" autocomplete="on">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <label>Mật khẩu</label>
+      <input type="password" name="password" placeholder="••••••••" required />
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        <button type="button" id="btnGoogle" class="btn">Đăng nhập Google</button>
+      </div>
+    </form>
+
+    <!-- Signup -->
+    <form id="formSignup" class="pane" autocomplete="on">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Đăng ký</button>
+      </div>
+    </form>
+
+    <!-- Reset -->
+    <form id="formReset" class="pane" autocomplete="on">
+      <label>Email</label>
+      <input type="email" name="email" placeholder="you@example.com" required />
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">Gửi link đặt lại mật khẩu</button>
+      </div>
+    </form>
+
+    <div class="msg" aria-live="polite"></div>
   </div>
+</div>
+
+
 
   <!-- ========== Firebase core (module) — KHÔNG ĐƯỢC BỎ ========== -->
   <!-- File này khởi tạo Firebase + expose NINI.fb (login, logout, onUserChanged, ...) -->
@@ -150,5 +152,6 @@
        ============================================================ -->
 </body>
 </html>
+
 
 

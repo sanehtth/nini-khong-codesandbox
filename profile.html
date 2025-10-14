@@ -109,10 +109,17 @@
 
   <!-- script: fb sdk (đã import trong nini-fb.mjs), header, modal, glue, footer -->
   <script type="module" src="/public/js/nini-fb.mjs"></script>
-  <script src="/test/js/header.js"></script>
-  <script src="/test/js/auth-modal.js" defer></script>
+  <!-- Render header 1 lần -->
+<script defer src="/test/js/header.js"></script>
+
+<!-- Bắt click + đồng bộ UI đăng nhập/đăng xuất -->
+<script defer src="/test/js/auth-flow.js"></script>
+
+<!-- Modal đăng nhập cũ của bạn (nếu có) -->
+<script defer src="/test/js/auth-modal.js"></script>
+
+  
   <script src="/test/js/auth-glue.js" defer></script>
-  <script src="/test/js/auth-flow.js" defer></script>
   <script src="/test/js/footer.js" defer></script>
 
   <!-- profile logic riêng (nếu có) -->
@@ -137,4 +144,5 @@
   </script>
 </body>
 </html>
+
 

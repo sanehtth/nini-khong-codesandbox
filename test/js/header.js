@@ -1,4 +1,3 @@
-<script>
 // header.js — render header 1 lần, để chỗ cho delegation bắt click
 (function () {
   const N = (window.NINI = window.NINI || {});
@@ -41,4 +40,3 @@
   if (document.readyState !== 'loading') renderOnce();
   else document.addEventListener('DOMContentLoaded', renderOnce);
 })();
-</script>

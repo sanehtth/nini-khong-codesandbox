@@ -7,14 +7,11 @@
 
   <!-- Base styles của bạn -->
   <link rel="stylesheet" href="/test/css/base.css">
-  <link rel="stylesheet" href="/test/css/footerss.css">
+  <link rel="stylesheet" href="/test/css/footer.css">
   <link rel="stylesheet" href="/test/css/auth-modal.css">
   <link rel="stylesheet" href="/test/css/stage.css">
 
-  <!-- (tuỳ chọn) theme boot (logo/slogan override, cache) -->
-  <script src="/test/js/theme-boot.js" defer></script>
-
-  <!-- Firebase glue (chỉ 1 lần) -->
+   <!-- Firebase glue (chỉ 1 lần) -->
   <script type="module" src="/public/js/nini-fb.mjs"></script>
 
   <style>
@@ -101,10 +98,10 @@
       transition:.2s;
     }
     .sidebtn:hover{ transform:translateY(-1px); background-color:rgba(255,255,255,.12); }
-    .sidebtn[data-route="storybook"]{ background-image:url('/public/assets/icons/book.svg'); }
-    .sidebtn[data-route="video"]{ background-image:url('/public/assets/icons/video.svg'); }
-    .sidebtn[data-route="game"]{ background-image:url('/public/assets/icons/gamepad.svg'); }
-    .sidebtn[data-route="shop"]{ background-image:url('/public/assets/icons/shop.svg'); }
+    .sidebtn[data-route="storybook"]{ background-image:url('/public/assets/icons/book.webp'); }
+    .sidebtn[data-route="video"]{ background-image:url('/public/assets/icons/video.webp'); }
+    .sidebtn[data-route="game"]{ background-image:url('/public/assets/icons/game.webp'); }
+    .sidebtn[data-route="shop"]{ background-image:url('/public/assets/icons/shop.webp'); }
 
     /* Content: list + detail */
     .stage{
@@ -515,3 +512,4 @@
   </script>
 </body>
 </html>
+

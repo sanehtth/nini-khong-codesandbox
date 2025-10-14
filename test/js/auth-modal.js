@@ -1,5 +1,4 @@
 <!-- Nhớ nhúng file này sau khi đã load NINI core + auth-glue.js -->
-<script>
 /* ---------------------------------------------------------
    auth-modal.js
    - Bắt tab (Đăng nhập / Đăng ký / Quên mật khẩu)
@@ -145,4 +144,3 @@
   // Khi auth-glue muốn chỉ hiển thị thông điệp
   N.on && N.on('auth:ui:msg', ({ type, text }) => showMsg(type, text));
 })();
-</script>

@@ -1,133 +1,143 @@
 // auth-flow.js
 (function(){
-  if (window.__AUTH_FLOW_BOUND__) return; // chống bind nhiều lần
+  // Chống bind 2 lần nếu file bị import nhầm
+  if (window.__AUTH_FLOW_BOUND__) return;
   window.__AUTH_FLOW_BOUND__ = true;
 
-  // ====== state & dom shortcut
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  // --------- Helper dom ----------
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
+  // --------- Element chính ----------
   const els = {
-    signIn:  $('#btnSignIn'),
-    signOut: $('#btnSignOut'),
-    modal:   $('#authModal'),      // <div id="authModal" class="auth-modal" hidden>...</div>
-    backdrop: document.getElementById('authBackdrop') || (()=> {
-      const b = document.createElement('div');
-      b.id='authBackdrop'; document.body.appendChild(b); return b;
-    })(),
+    signIn : $('#btnSignIn'),    // Nút đăng nhập duy nhất ở header
+    signOut: $('#btnSignOut'),   // Nút đăng xuất
+    modal  : $('#authModal'),    // Modal đăng nhập
+    backdrop: $('#authBackdrop') // Nền mờ
   };
 
-  // ====== helpers
-  function openAuth() {
-    if (!els.modal) return;
-    document.body.classList.add('auth-open');
-    els.modal.hidden = false;
-  }
-  function closeAuth() {
-    document.body.classList.remove('auth-open');
-    if (els.modal) els.modal.hidden = true;
-  }
-
-  // ====== UI sync theo login flag (đọc từ localStorage hoặc Firebase)
+  // --------- Local flag giả lập đăng nhập (thay bằng Firebase sau này) ----------
   const LS_AUTH = 'nini.auth';
-  function isLoggedIn() { return localStorage.getItem(LS_AUTH) === '1'; }
-  function setLoggedIn(v) { localStorage.setItem(LS_AUTH, v ? '1' : '0'); }
+  const isLoggedIn  = () => localStorage.getItem(LS_AUTH) === '1';
+  const setLoggedIn = (v) => localStorage.setItem(LS_AUTH, v ? '1' : '0');
 
-  function renderAuthUI() {
+  // Đồng bộ UI theo trạng thái đăng nhập
+  function renderAuthUI(){
     const ok = isLoggedIn();
     if (els.signIn)  els.signIn.hidden  = ok;
     if (els.signOut) els.signOut.hidden = !ok;
   }
 
-  // ====== event delegation cho toàn trang
-  document.addEventListener('click', async (ev) => {
-    const t = ev.target.closest('[data-action],[data-auth],[data-nav],[data-item]');
+  // --------- Mở/đóng modal ----------
+  function openAuth(){
+    if (!els.modal) return;
+    document.body.classList.add('auth-open');
+    els.modal.hidden = false;
+    els.backdrop.hidden = false;
+  }
+  function closeAuth(){
+    document.body.classList.remove('auth-open');
+    if (els.modal) els.modal.hidden = true;
+    if (els.backdrop) els.backdrop.hidden = true;
+  }
 
-    // mở modal từ FAB hoặc bất cứ thứ gì có data-auth="open"
-    if (t?.dataset?.auth === 'open') {
-      ev.preventDefault(); openAuth(); return;
-    }
-    if (t?.dataset?.auth === 'close') { ev.preventDefault(); closeAuth(); return; }
+  // Click backdrop để đóng
+  els.backdrop?.addEventListener('click', closeAuth);
+  // Click vùng trống trong modal để đóng
+  els.modal?.addEventListener('click', (e)=>{ if(e.target===els.modal) closeAuth(); });
 
-    // header: đăng nhập/đăng xuất
-    if (t?.id === 'btnSignIn' || t?.dataset?.action === 'signin') {
-      ev.preventDefault(); openAuth(); return;
-    }
-    if (t?.id === 'btnSignOut' || t?.dataset?.action === 'signout') {
-      ev.preventDefault();
-      try {
-        // TODO: gọi Firebase signOut(); hiện đang dùng local flag
-        setLoggedIn(false);
-        renderAuthUI();
-      } catch(e){ console.error(e); }
-      return;
-    }
+  // --------- Router siêu gọn cho các section #page-... ----------
+  const PAGES = ['home','rules','forum','contact','storybook','video','game','shop','chat','notify','settings','profile'];
 
-    // router: header & side-nav
-    if (t?.dataset?.nav) {
+  function navigate(name){
+    if (!PAGES.includes(name)) name = 'home';
+    PAGES.forEach(p => {
+      const el = document.getElementById(`page-${p}`);
+      if (el) el.hidden = (p !== name);
+    });
+    // Đổi hash để back/forward hoạt động
+    const tgt = `#/${name}`;
+    if (location.hash !== tgt) history.pushState({}, '', tgt);
+  }
+
+  // Back/forward của trình duyệt
+  window.addEventListener('popstate', ()=>{
+    const name = (location.hash.replace('#/','') || 'home');
+    navigate(name);
+  });
+
+  // --------- Nạp chi tiết cho khung bên phải ----------
+  function loadItemDetail(key){
+    // Tìm khung detail-box trong trang đang hiển thị (page visible)
+    const page = PAGES.map(p=>document.getElementById(`page-${p}`)).find(el=>el && !el.hidden);
+    const box  = page?.querySelector('#detail-box');
+    if (!box) return;
+
+    // Tìm text của item (để demo)
+    const src = page.querySelector(`[data-item="${CSS.escape(key)}"]`);
+    const title = src?.textContent?.trim() || 'Nội dung';
+
+    box.innerHTML = `
+      <div class="glass p-4">
+        <h3 style="margin-top:0">${title}</h3>
+        <p>Đây là nội dung chi tiết cho <strong>${key}</strong>. Khi tích hợp dữ liệu thật, phần này sẽ hiển thị preview/reader/video/game…</p>
+      </div>`;
+  }
+
+  // --------- Event Delegation (bắt mọi click 1 chỗ) ----------
+  document.addEventListener('click', (ev)=>{
+    const t = ev.target.closest('[data-nav],[data-item],[data-auth],[data-action],#btnSignIn,#btnSignOut]');
+    if (!t) return;
+
+    // 1) Điều hướng header / thanh trái
+    if (t.dataset.nav){
       ev.preventDefault();
       navigate(t.dataset.nav);
       return;
     }
 
-    // chọn mục trong danh sách (storybook/video/game/shop…)
-    if (t?.dataset?.item) {
+    // 2) Chọn mục bên trái (storybook/video/game/shop…)
+    if (t.dataset.item){
       ev.preventDefault();
       loadItemDetail(t.dataset.item);
       return;
     }
-  }, {capture:false, passive:false});
 
-  // ====== modal: click ra ngoài để đóng
-  if (els.backdrop) els.backdrop.addEventListener('click', closeAuth);
-  if (els.modal) els.modal.addEventListener('click', (e)=>{
-    if (e.target === els.modal) closeAuth();
+    // 3) Nhóm auth
+    if (t.id === 'btnSignIn' || t.dataset.action === 'signin' || t.dataset.auth === 'open'){
+      ev.preventDefault(); openAuth(); return;
+    }
+    if (t.id === 'btnSignOut' || t.dataset.action === 'signout'){
+      ev.preventDefault();
+      // TODO: Firebase signOut(); hiện dùng local flag
+      setLoggedIn(false);
+      renderAuthUI();
+      return;
+    }
+    if (t.dataset.auth === 'close'){
+      ev.preventDefault(); closeAuth(); return;
+    }
+    if (t.dataset.auth === 'tab'){
+      // Demo đổi tab trong modal (UI)
+      $$('.auth-tabs [data-auth="tab"]').forEach(b=>b.classList.remove('is-active'));
+      t.classList.add('is-active');
+      // Bạn có thể show/hide các form tương ứng ở đây
+      return;
+    }
   });
 
-  // ====== router siêu gọn cho các khung
-  const pages = ['home','storybook','video','game','shop','chat','notify','settings','profile'];
-  function navigate(name){
-    if (!pages.includes(name)) name = 'home';
-    pages.forEach(p => {
-      const el = document.getElementById(`page-${p}`);
-      if (el) el.hidden = (p !== name);
-    });
-    // cập nhật hash nhẹ nhàng
-    if (location.hash !== `#/${name}`) history.pushState({}, '', `#/${name}`);
-  }
-
-  // ====== hiển thị chi tiết bên khung phải
-  function loadItemDetail(key){
-    const box = document.getElementById('detail-box');
-    if (!box) return;
-    // Tạm demo: lấy text từ data-*
-    const src = document.querySelector(`[data-item="${key}"]`);
-    const title = src?.textContent?.trim() || 'Nội dung';
-    box.innerHTML = `
-      <div class="glass p-4">
-        <h3 class="mb-2">${title}</h3>
-        <p>Nội dung chi tiết của <strong>${key}</strong> sẽ hiển thị ở đây.</p>
-      </div>`;
-  }
-
-  // ====== khởi động
-  renderAuthUI();
-  // tự route theo hash lúc tải
-  navigate((location.hash.replace('#/','')||'home'));
-
-  // Back/forward
-  window.addEventListener('popstate', ()=> {
-    navigate((location.hash.replace('#/','')||'home'));
-  });
-
-  // ====== giả lập submit đăng nhập trong modal
-  const fakeForm = document.getElementById('authForm');
-  if (fakeForm) fakeForm.addEventListener('submit', (e)=>{
+  // --------- Submit form đăng nhập (demo) ----------
+  const form = $('#authForm');
+  form?.addEventListener('submit', (e)=>{
     e.preventDefault();
-    // TODO: gọi Firebase signInWithEmailAndPassword…
+    // TODO: Thay bằng Firebase signInWithEmailAndPassword(...)
     setLoggedIn(true);
     renderAuthUI();
     closeAuth();
   });
+
+  // --------- Khởi động ----------
+  renderAuthUI();
+  navigate((location.hash.replace('#/','') || 'home'));
 
 })();

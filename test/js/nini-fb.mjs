@@ -40,6 +40,7 @@ apiKey: "AIzaSyBdaMS7aI03wHLhi1Md2QDitJFkA61IYUU",
   messagingSenderId: "991701821645",
   appId: "1:991701821645:web:fb21c357562c6c801da184",
   };
+document.dispatchEvent(new Event('NiNi:fb-ready'));
 
 const MAIL = Object.assign(
   {
@@ -157,4 +158,5 @@ export {
   registerEmailOnly,
   resetPassword,
 };
+
 

@@ -1,94 +1,91 @@
-﻿/* app-shell.js — router + render + kiểm tra đăng nhập cho hồ sơ / chat / notify / settings
-   YÊU CẦU: đã có /public/js/nini-fb.mjs và /test/js/auth-glue.js (đã nghe onUserChanged)
-*/
-(function () {
-  const N = (window.NINI = window.NINI || {});
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$= (sel, root=document) => Array.from(root.querySelectorAll(sel));
+/* app-shell.js – Router + kiểm tra đăng nhập (singleton) */
 
-  // ---------- STATE ----------
+(function () {
+  if (window.__APP_SHELL_INIT) return;       // << khóa đa lần
+  window.__APP_SHELL_INIT = true;
+
+  const N = (window.NINI = window.NINI || {});
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
   const state = {
-    route: location.pathname.replace(/\/+$/, '') || '/home',
-    user: null
+    route: location.pathname.replace(/\/+$/,'') || '/home',
+    user : null
   };
 
-  // helper
-  function initialsOf(u){
-    const name = (u?.displayName || u?.email || '').trim();
-    const a = name.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-    return ((a[0]||'')[0]||'N' + (a[a.length-1]||'')[0]||'');
+  // ==== helpers ====
+  function initials(u){
+    const n=(u?.displayName||u?.email||'').trim();
+    const a=n.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    return ((a[0]||'N')[0]||'N') + ((a[a.length-1]||'')[0]||'');
   }
+
   function setActiveRail(){
     $$('.rail .ico').forEach(i=>{
-      const nav = i.getAttribute('data-nav');
-      i.classList.toggle('active', state.route.startsWith(nav));
+      i.classList.toggle('active', state.route.startsWith(i.dataset.nav));
     });
   }
-  function openAuth(){ N.emit && N.emit('auth:open'); }
 
-  // gọi khi cần bảo vệ trang
-  function ensureSignedIn(onOk){
-    if (state.user) return onOk && onOk();
-    // Lần đầu: mở modal
-    openAuth();
-    // Dự phòng: hiện nút fab
-    $('#fabAuth').style.display = 'inline-block';
+  // ==== AUTH OPEN: singleton ====
+  function openAuth(){
+    if (N.emit) N.emit('auth:open');      // auth-glue sẽ mở modal (1 cái)
+    $('#fabAuth').style.display = 'inline-block';   // fallback
   }
 
-  // ---------- RENDER ----------
+  function ensureSignedIn(ok){
+    if (state.user) { ok && ok(); return; }
+    openAuth();
+  }
+
+  // ==== VIEWS ====
   const L = $('#colLeft'), R = $('#colRight');
 
   const views = {
-    '/home': () => {
+    '/home': ()=>{
       L.innerHTML = `<h2>Xin chào với NiNi — Funny</h2>
-        <p>Dùng thanh bên trái để mở <strong>Storybook</strong>, <strong>Video</strong>, <strong>Game</strong>, <strong>Shop</strong>, <strong>Chat</strong>, <strong>Thông báo</strong>, <strong>Cài đặt</strong>.</p>`;
-      R.innerHTML = `<h2>Mẹo</h2><p>Nhấp các icon ở rail trái hoặc các thẻ trên thanh trên cùng.</p>`;
+        <p>Dùng thanh bên trái để mở Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt.</p>`;
+      R.innerHTML = `<h2>Mẹo</h2><p>Nhấp các icon ở rail trái hoặc thẻ trên thanh trên cùng.</p>`;
     },
-
-    '/storybook': () => {
+    '/storybook': ()=>{
       L.innerHTML = `<h2>Thư viện</h2>
-        <div class="list" id="sbList">
-          <div class="item" data-id="b1">Bé NiNi & khu rừng</div>
-          <div class="item" data-id="b2">Cuộc đua sắc màu</div>
-          <div class="item" data-id="b3">Bạn mới của NiNi</div>
+        <div class="list">
+          <div class="item active">Bé NiNi & khu rừng</div>
+          <div class="item">Cuộc đua sắc màu</div>
+          <div class="item">Bạn mới của NiNi</div>
         </div>`;
       R.innerHTML = `<h2>Bạn mới của NiNi</h2>
         <p>Khung đọc thử nội dung sẽ hiển thị ở đây.</p>
-        <button class="btn">Đọc từ đầu</button> <button class="btn">Tiếp tục</button>`;
+        <button class="btn">Đọc từ đầu</button>
+        <button class="btn">Tiếp tục</button>`;
     },
-
-    '/video': () => {
+    '/video': ()=>{
       L.innerHTML = `<h2>Video</h2>
         <div class="list">
-          <div class="item">Chuỗi 1 — mẹo tư duy nhanh</div>
-          <div class="item">Chuỗi 2 — giải đố cùng NiNi</div>
-          <div class="item">Chuỗi 3 — kể chuyện tương tác</div>
+          <div class="item active">Chuỗi 1 — mẹo tư duy nhanh</div>
+          <div class="item">Chuỗi 2 — giải đố</div>
+          <div class="item">Chuỗi 3 — kể chuyện</div>
         </div>`;
       R.innerHTML = `<h2>Phát video</h2><p>Khung player ở đây.</p>`;
     },
-
-    '/game': () => {
+    '/game': ()=>{
       L.innerHTML = `<h2>Game</h2>
         <div class="list">
-          <div class="item">Ghép hình</div>
+          <div class="item active">Ghép hình</div>
           <div class="item">Tìm điểm khác</div>
           <div class="item">Mê cung</div>
         </div>`;
       R.innerHTML = `<h2>Chọn game để bắt đầu</h2>`;
     },
-
-    '/shop': () => {
+    '/shop': ()=>{
       L.innerHTML = `<h2>Shop</h2>
         <div class="list">
-          <div class="item">Sticker NiNi</div>
+          <div class="item active">Sticker NiNi</div>
           <div class="item">Sổ tay giải đố</div>
           <div class="item">Áo thun NiNi</div>
         </div>`;
-      R.innerHTML = `<h2>Sản phẩm nổi bật</h2><p>Chi tiết sản phẩm sẽ hiển thị ở đây.</p>`;
+      R.innerHTML = `<h2>Sản phẩm nổi bật</h2><p>Chi tiết sẽ hiển thị ở đây.</p>`;
     },
-
-    // ====== 3 mục mới ======
-    '/chat': () => {
+    '/chat': ()=>{
       ensureSignedIn(()=>{
         L.innerHTML = `<h2>Bạn bè</h2>
           <div class="list">
@@ -99,13 +96,12 @@
         R.innerHTML = `<h2>Chat với Meo Chan</h2>
           <div style="height:340px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;margin-bottom:12px"></div>
           <div style="display:flex;gap:8px">
-            <input id="msg" class="panel" style="flex:1;padding:10px" placeholder="Nhập tin nhắn...">
+            <input class="panel" style="flex:1;padding:10px" placeholder="Nhập tin nhắn...">
             <button class="btn">Gửi</button>
           </div>`;
       });
     },
-
-    '/notify': () => {
+    '/notify': ()=>{
       ensureSignedIn(()=>{
         L.innerHTML = `<h2>Thông báo</h2>
           <div class="list">
@@ -113,14 +109,11 @@
             <div class="item">Cập nhật phiên bản</div>
             <div class="item">Khuyến mãi Shop</div>
           </div>`;
-        R.innerHTML = `<h2>Nhiệm vụ ngày</h2><ul>
-          <li>Đọc 1 chương truyện</li>
-          <li>Chơi 1 game</li>
-          <li>Mời 1 bạn mới</li></ul>`;
+        R.innerHTML = `<h2>Nhiệm vụ ngày</h2>
+          <ul><li>Đọc 1 chương truyện</li><li>Chơi 1 game</li><li>Mời 1 bạn mới</li></ul>`;
       });
     },
-
-    '/settings': () => {
+    '/settings': ()=>{
       ensureSignedIn(()=>{
         L.innerHTML = `<h2>Cài đặt</h2>
           <div class="list">
@@ -128,39 +121,37 @@
             <div class="item">Bảo mật</div>
             <div class="item">Thông báo</div>
           </div>`;
-        R.innerHTML = `<h2>Tùy chỉnh</h2><p>Khu vực để trống, bạn sẽ set sau.</p>`;
+        R.innerHTML = `<h2>Tùy chỉnh</h2><p>Để trống – bạn sẽ thiết lập sau.</p>`;
       });
     },
-
-    '/profile': () => {
+    '/profile': ()=>{
       ensureSignedIn(()=>{
+        const u = state.user;
         L.innerHTML = `<h2>Hồ sơ</h2>
           <div class="list">
             <div class="item active">Thông tin cá nhân</div>
             <div class="item">Thành tích</div>
           </div>`;
-        const u = state.user;
         R.innerHTML = `<h2>Xin chào, ${u.displayName || u.email || ''}</h2>
           <p>XP: 1,250 • Xu: 430</p>
-          <p>Vật phẩm: Rương gỗ × 2 • Rương bạc × 1</p>`;
+          <p>Vật phẩm: Rương gỗ ×2 • Rương bạc ×1</p>`;
       });
     }
   };
 
   function render(){
-    const fn = views[state.route] || views['/home'];
-    fn();
+    (views[state.route] || views['/home'])();
     setActiveRail();
   }
 
-  // ---------- NAV ----------
   function goto(path){
     if (path === state.route) return;
     state.route = path;
-    history.pushState({}, '', path);
+    history.pushState({},'',path);
     render();
   }
-  // Click trên top tabs & rail
+
+  // ==== EVENTS (gắn 1 lần duy nhất) ====
   document.addEventListener('click', (e)=>{
     const nav = e.target.closest('[data-nav]');
     if (nav){ e.preventDefault(); goto(nav.dataset.nav); return; }
@@ -172,66 +163,61 @@
       $('#userDrop')?.classList.remove('open');
     }
 
-    // mở auth modal
-    if (e.target.closest('[data-auth="open"]')){
-      e.preventDefault(); openAuth();
+    // mở auth
+    if (e.target.closest('[data-auth="open"]')){ e.preventDefault(); openAuth(); }
+
+    // logout
+    if (e.target.closest('#btnLogout')){
+      e.preventDefault();
+      try{ (N.fb || (N.fb = (window.NINI && window.NINI.fb) || {})).logout(); }
+      catch(err){ console.error(err); }
     }
   });
 
-  // ---------- AUTH STATE ----------
-  // cập nhật header theo user
+  // ==== AUTH STATE SYNC ====
   function applyUser(u){
     state.user = u || null;
     const btnLogin = $('#btnAuthOpen');
     const av = $('#userAvatar');
-    const dd = $('#userDrop');
-    // toggle
+
     if (u){
       btnLogin.style.display = 'none';
       av.style.display = 'grid';
-      av.textContent = u.photoURL ? '' : (initialsOf(u));
-      if (u.photoURL){ av.style.background='transparent'; av.innerHTML=`<img src="${u.photoURL}" style="width:30px;height:30px;border-radius:50%" referrerpolicy="no-referrer">`; }
+      if (u.photoURL){
+        av.style.background='transparent';
+        av.innerHTML = `<img src="${u.photoURL}" referrerpolicy="no-referrer"
+                        style="width:30px;height:30px;border-radius:50%">`;
+      } else {
+        av.textContent = initials(u);
+      }
       $('#fabAuth').style.display = 'none';
-      dd?.classList.remove('open');
     } else {
       btnLogin.style.display = '';
       av.style.display = 'none';
-      $('#fabAuth').style.display = 'inline-block';
+      $('#fabAuth').style.display = 'inline-block'; // có 1 cái duy nhất
     }
   }
 
-  // nhận tín hiệu từ fb glue
   try{
-    const fb = (window.NINI && window.NINI.fb) || {};
-    fb.onUserChanged && fb.onUserChanged((u)=>{
+    // nhận user change từ glue
+    (N.fb || (N.fb = (window.NINI && window.NINI.fb) || {})).onUserChanged((u)=>{
       applyUser(u);
-      // nếu đang ở trang cần login mà user sign-out => render lại
+      // nếu đang ở trang cần login mà bị sign-out
       if (!u && ['/profile','/chat','/notify','/settings'].includes(state.route)){
-        R.innerHTML = `<h2>Hồ sơ</h2><p>Bạn chưa đăng nhập. Nhấn <button class="btn" data-auth="open">Đăng nhập</button> để tiếp tục.</p>`;
+        R.innerHTML = `<h2>Hồ sơ</h2>
+          <p>Bạn chưa đăng nhập. Nhấn <button class="btn" data-auth="open">Đăng nhập</button> để tiếp tục.</p>`;
       } else {
         render();
       }
     });
   }catch(_){}
 
-  // logout
-  document.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('#btnLogout');
-    if (!btn) return;
-    e.preventDefault();
-    try{
-      const fb = (window.NINI && window.NINI.fb) || {};
-      await fb.logout();
-    }catch(err){ console.error(err); }
-  });
-
-  // popstate
   window.addEventListener('popstate', ()=>{
-    state.route = location.pathname.replace(/\/+$/, '') || '/home';
+    state.route = location.pathname.replace(/\/+$/,'') || '/home';
     render();
   });
 
-  // khởi tạo
-  state.route = location.pathname.replace(/\/+$/, '') || '/home';
+  // init
+  state.route = location.pathname.replace(/\/+$/,'') || '/home';
   render();
 })();

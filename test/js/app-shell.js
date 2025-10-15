@@ -1,224 +1,174 @@
-/* app-shell.js – Router + kiểm tra đăng nhập (singleton) */
-
+/* app-shell.js — Router + đồng bộ trạng thái đăng nhập (Firebase thật)
+ * - KHÔNG dùng mock nữa.
+ * - Trông đợi N.fb đã được gắn bởi /test/js/nini-fb.mjs (Firebase config + methods).
+ * - Dùng event bus trong core.js: N.on / N.emit.
+ */
 (function () {
-  if (window.__APP_SHELL_INIT) return;       // << khóa đa lần
-  window.__APP_SHELL_INIT = true;
-
   const N = (window.NINI = window.NINI || {});
-  const $  = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+  if (N._wiredAppShell) return;
+  N._wiredAppShell = true;
 
-  const state = {
-    route: location.pathname.replace(/\/+$/,'') || '/home',
-    user : null
-  };
+  // ---------- Helpers ----------
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-  // ==== helpers ====
-  function initials(u){
-    const n=(u?.displayName||u?.email||'').trim();
-    const a=n.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-    return ((a[0]||'N')[0]||'N') + ((a[a.length-1]||'')[0]||'');
-  }
+  // Router state
+  N.route = N.route || { current: 'home' };
+  const PAGES = ['home','rules','forum','contact','storybook','video','game','shop','chat','notify','settings','profile'];
 
-  function setActiveRail(){
-    $$('.rail .ico').forEach(i=>{
-      i.classList.toggle('active', state.route.startsWith(i.dataset.nav));
+  function navigate(name) {
+    if (!PAGES.includes(name)) name = 'home';
+    N.route.current = name;
+    // stage.js tạo DOM, ta chỉ ẩn/hiện theo id: #page-...
+    PAGES.forEach(p => {
+      const sec = document.getElementById(`page-${p}`);
+      if (sec) sec.hidden = (p !== name);
     });
+    const target = `#/${name}`;
+    if (location.hash !== target) history.pushState({}, '', target);
   }
 
-  // ==== AUTH OPEN: singleton ====
-  function openAuth(){
-  if (N.emit) N.emit('auth:open');      // chỉ yêu cầu mở modal
-  // KHÔNG đụng đến #fabAuth ở đây
-}
-
-  function ensureSignedIn(ok){
-    if (state.user) { ok && ok(); return; }
-    openAuth();
-  }
-
-  // ==== VIEWS ====
-  const L = $('#colLeft'), R = $('#colRight');
-
-  const views = {
-    '/home': ()=>{
-      L.innerHTML = `<h2>Xin chào với NiNi — Funny</h2>
-        <p>Dùng thanh bên trái để mở Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt.</p>`;
-      R.innerHTML = `<h2>Mẹo</h2><p>Nhấp các icon ở rail trái hoặc thẻ trên thanh trên cùng.</p>`;
-    },
-    '/storybook': ()=>{
-      L.innerHTML = `<h2>Thư viện</h2>
-        <div class="list">
-          <div class="item active">Bé NiNi & khu rừng</div>
-          <div class="item">Cuộc đua sắc màu</div>
-          <div class="item">Bạn mới của NiNi</div>
-        </div>`;
-      R.innerHTML = `<h2>Bạn mới của NiNi</h2>
-        <p>Khung đọc thử nội dung sẽ hiển thị ở đây.</p>
-        <button class="btn">Đọc từ đầu</button>
-        <button class="btn">Tiếp tục</button>`;
-    },
-    '/video': ()=>{
-      L.innerHTML = `<h2>Video</h2>
-        <div class="list">
-          <div class="item active">Chuỗi 1 — mẹo tư duy nhanh</div>
-          <div class="item">Chuỗi 2 — giải đố</div>
-          <div class="item">Chuỗi 3 — kể chuyện</div>
-        </div>`;
-      R.innerHTML = `<h2>Phát video</h2><p>Khung player ở đây.</p>`;
-    },
-    '/game': ()=>{
-      L.innerHTML = `<h2>Game</h2>
-        <div class="list">
-          <div class="item active">Ghép hình</div>
-          <div class="item">Tìm điểm khác</div>
-          <div class="item">Mê cung</div>
-        </div>`;
-      R.innerHTML = `<h2>Chọn game để bắt đầu</h2>`;
-    },
-    '/shop': ()=>{
-      L.innerHTML = `<h2>Shop</h2>
-        <div class="list">
-          <div class="item active">Sticker NiNi</div>
-          <div class="item">Sổ tay giải đố</div>
-          <div class="item">Áo thun NiNi</div>
-        </div>`;
-      R.innerHTML = `<h2>Sản phẩm nổi bật</h2><p>Chi tiết sẽ hiển thị ở đây.</p>`;
-    },
-    '/chat': ()=>{
-      ensureSignedIn(()=>{
-        L.innerHTML = `<h2>Bạn bè</h2>
-          <div class="list">
-            <div class="item active">Meo Chan</div>
-            <div class="item">Cú Mực</div>
-            <div class="item">Thỏ Trắng</div>
-          </div>`;
-        R.innerHTML = `<h2>Chat với Meo Chan</h2>
-          <div style="height:340px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;margin-bottom:12px"></div>
-          <div style="display:flex;gap:8px">
-            <input class="panel" style="flex:1;padding:10px" placeholder="Nhập tin nhắn...">
-            <button class="btn">Gửi</button>
-          </div>`;
-      });
-    },
-    '/notify': ()=>{
-      ensureSignedIn(()=>{
-        L.innerHTML = `<h2>Thông báo</h2>
-          <div class="list">
-            <div class="item active">Nhiệm vụ ngày (3)</div>
-            <div class="item">Cập nhật phiên bản</div>
-            <div class="item">Khuyến mãi Shop</div>
-          </div>`;
-        R.innerHTML = `<h2>Nhiệm vụ ngày</h2>
-          <ul><li>Đọc 1 chương truyện</li><li>Chơi 1 game</li><li>Mời 1 bạn mới</li></ul>`;
-      });
-    },
-    '/settings': ()=>{
-      ensureSignedIn(()=>{
-        L.innerHTML = `<h2>Cài đặt</h2>
-          <div class="list">
-            <div class="item active">Hồ sơ</div>
-            <div class="item">Bảo mật</div>
-            <div class="item">Thông báo</div>
-          </div>`;
-        R.innerHTML = `<h2>Tùy chỉnh</h2><p>Để trống – bạn sẽ thiết lập sau.</p>`;
-      });
-    },
-    '/profile': ()=>{
-      ensureSignedIn(()=>{
-        const u = state.user;
-        L.innerHTML = `<h2>Hồ sơ</h2>
-          <div class="list">
-            <div class="item active">Thông tin cá nhân</div>
-            <div class="item">Thành tích</div>
-          </div>`;
-        R.innerHTML = `<h2>Xin chào, ${u.displayName || u.email || ''}</h2>
-          <p>XP: 1,250 • Xu: 430</p>
-          <p>Vật phẩm: Rương gỗ ×2 • Rương bạc ×1</p>`;
-      });
-    }
-  };
-
-  function render(){
-    (views[state.route] || views['/home'])();
-    setActiveRail();
-  }
-
-  function goto(path){
-    if (path === state.route) return;
-    state.route = path;
-    history.pushState({},'',path);
-    render();
-  }
-
-  // ==== EVENTS (gắn 1 lần duy nhất) ====
-  document.addEventListener('click', (e)=>{
-    const nav = e.target.closest('[data-nav]');
-    if (nav){ e.preventDefault(); goto(nav.dataset.nav); return; }
-
-    // avatar dropdown
-    if (e.target.id === 'userAvatar'){
-      $('#userDrop').classList.toggle('open');
-    } else if (!e.target.closest('#userDrop')){
-      $('#userDrop')?.classList.remove('open');
-    }
-
-    // mở auth
-    if (e.target.closest('[data-auth="open"]')){ e.preventDefault(); openAuth(); }
-
-    // logout
-    if (e.target.closest('#btnLogout')){
-      e.preventDefault();
-      try{ (N.fb || (N.fb = (window.NINI && window.NINI.fb) || {})).logout(); }
-      catch(err){ console.error(err); }
-    }
+  window.addEventListener('popstate', () => {
+    const name = (location.hash.replace('#/','') || 'home');
+    navigate(name);
   });
 
-  // ==== AUTH STATE SYNC ====
-  function applyUser(u){
-    state.user = u || null;
-    const btnLogin = $('#btnAuthOpen');
-    const av = $('#userAvatar');
+  // ---------- Auth UI sync ----------
+  // Các node trong header-tab.js
+  function headerNodes() {
+    const root = $('#nini_header') || document;
+    return {
+      loginBtn : root.querySelector('#btnSignIn'),
+      logoutBtn: root.querySelector('#btnSignOut'),
+      avatarBtn: root.querySelector('#btnProfile'),  // nút avatar (nếu có)
+      nickSpan : root.querySelector('#userNick'),
+      userInfo : root.querySelector('#userInfo')
+    };
+  }
 
-    if (u){
-      btnLogin.style.display = 'none';
-      av.style.display = 'grid';
-      if (u.photoURL){
-        av.style.background='transparent';
-        av.innerHTML = `<img src="${u.photoURL}" referrerpolicy="no-referrer"
-                        style="width:30px;height:30px;border-radius:50%">`;
-      } else {
-        av.textContent = initials(u);
+  function applyUser(user) {
+    const { loginBtn, logoutBtn, avatarBtn, nickSpan, userInfo } = headerNodes();
+    const isIn = !!user;
+
+    // Toggle
+    if (loginBtn)  loginBtn.hidden  = isIn;
+    if (logoutBtn) logoutBtn.hidden = !isIn;
+    if (userInfo)  userInfo.style.display = isIn ? 'inline-flex' : 'none';
+
+    // Thông tin hiển thị
+    if (isIn) {
+      const display = user.displayName || (user.email ? user.email.split('@')[0] : 'NiNi');
+      if (nickSpan) nickSpan.textContent = display;
+      if (avatarBtn) {
+        // chữ cái nếu không có photoURL
+        if (user.photoURL) {
+          avatarBtn.style.setProperty('--ava-bg', `url("${user.photoURL}")`);
+        } else {
+          avatarBtn.style.removeProperty('--ava-bg');
+        }
+        const letter = (display.trim()[0] || 'U').toUpperCase();
+        avatarBtn.setAttribute('data-letter', letter);
       }
-      $('#fabAuth').style.display = 'none';
     } else {
-      btnLogin.style.display = '';
-      av.style.display = 'none';
-      $('#fabAuth').style.display = 'inline-block'; // có 1 cái duy nhất
+      if (nickSpan) nickSpan.textContent = '';
+      if (avatarBtn) {
+        avatarBtn.style.removeProperty('--ava-bg');
+        avatarBtn.setAttribute('data-letter', 'U');
+      }
     }
   }
 
-  try{
-    // nhận user change từ glue
-    (N.fb || (N.fb = (window.NINI && window.NINI.fb) || {})).onUserChanged((u)=>{
-      applyUser(u);
-      // nếu đang ở trang cần login mà bị sign-out
-      if (!u && ['/profile','/chat','/notify','/settings'].includes(state.route)){
-        R.innerHTML = `<h2>Hồ sơ</h2>
-          <p>Bạn chưa đăng nhập. Nhấn <button class="btn" data-auth="open">Đăng nhập</button> để tiếp tục.</p>`;
-      } else {
-        render();
-      }
-    });
-  }catch(_){}
+  // ---------- Event delegation toàn trang ----------
+  document.addEventListener('click', async (ev) => {
+    const t = ev.target.closest('[data-nav],[data-item],[data-auth],[data-action],#btnSignIn,#btnSignOut,#btnProfile');
+    if (!t) return;
 
-  window.addEventListener('popstate', ()=>{
-    state.route = location.pathname.replace(/\/+$/,'') || '/home';
-    render();
+    // Điều hướng (header tabs + rail)
+    if (t.dataset.nav) {
+      ev.preventDefault();
+      navigate(t.dataset.nav);
+      return;
+    }
+
+    // Chọn item ở cột trái (storybook/video/game/shop...) -> nạp chi tiết sang khung phải
+    if (t.dataset.item) {
+      ev.preventDefault();
+      // stage.js đã render #detail-box trong page hiện tại
+      const visiblePage = PAGES.map(p => document.getElementById(`page-${p}`)).find(el => el && !el.hidden);
+      const box = visiblePage?.querySelector('#detail-box');
+      if (box) {
+        const title = (t.textContent || '').trim() || t.dataset.item;
+        box.innerHTML = `
+          <div class="glass p-4">
+            <h3 style="margin-top:0">${title}</h3>
+            <p>Chi tiết của <b>${t.dataset.item}</b> sẽ hiển thị ở đây.</p>
+          </div>`;
+      }
+      return;
+    }
+
+    // Auth: mở/đóng modal
+    if (t.id === 'btnSignIn' || t.dataset.auth === 'open') {
+      ev.preventDefault();
+      N.emit && N.emit('auth:open');
+      return;
+    }
+    if (t.dataset.auth === 'close') {
+      ev.preventDefault();
+      N.emit && N.emit('auth:close');
+      return;
+    }
+
+    // Avatar -> đi tới profile
+    if (t.id === 'btnProfile') {
+      ev.preventDefault();
+      navigate('profile');
+      return;
+    }
+
+    // Logout thật (Firebase)
+    if (t.id === 'btnSignOut' || t.dataset.action === 'signout') {
+      ev.preventDefault();
+      try {
+        await N.fb?.logout?.();
+      } catch (e) {
+        console.error('[logout]', e);
+      }
+      return;
+    }
   });
 
-  // init
-  state.route = location.pathname.replace(/\/+$/,'') || '/home';
-  render();
-})();
+  // ---------- Lắng nghe thay đổi user từ Firebase ----------
+  try {
+    if (N.fb?.onUserChanged) {
+      N.fb.onUserChanged((u) => {
+        applyUser(u);
+        // Nếu cần bảo vệ route: ví dụ /profile chỉ cho user login
+        if (!u && N.route.current === 'profile') navigate('home');
+      });
+    }
+  } catch (e) {
+    console.warn('[app-shell] onUserChanged not available yet');
+  }
 
+  // ---------- Khi modal auth submit xong / đóng -> sync header ----------
+  N.on && N.on('auth:done',  (u) => applyUser(u));
+  N.on && N.on('auth:close', () => {
+    // Sau khi đóng modal, kiểm tra lại user hiện tại
+    try {
+      const u = N.fb?.currentUser?.();
+      applyUser(u || null);
+    } catch {}
+  });
+
+  // ---------- Khởi động ----------
+  // Route theo hash hiện tại
+  const initial = (location.hash.replace('#/','') || 'home');
+  navigate(initial);
+
+  // Nếu đã đăng nhập sẵn (Firebase giữ phiên), cập nhật ngay
+  try {
+    const u = N.fb?.currentUser?.();
+    if (u) applyUser(u);
+  } catch {}
+})();

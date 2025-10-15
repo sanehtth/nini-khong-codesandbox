@@ -419,3 +419,22 @@ body::after{
 .prose p{ margin: .25rem 0 .75rem; }
 .prose a{ color: #99f6e4; }
 
+#authBackdrop[hidden],
+#authModal[hidden] { display: none !important; }
+
+#authBackdrop {
+  position: fixed; inset: 0;
+  background: rgb(0 0 0 / .45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity .18s ease;
+  pointer-events: none;
+  z-index: 999;
+}
+
+body.body-auth-open #authBackdrop {
+  opacity: 1; pointer-events: auto;
+}
+
+body.body-auth-open .stage { filter: blur(4px); }
+

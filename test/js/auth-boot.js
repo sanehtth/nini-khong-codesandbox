@@ -1,43 +1,116 @@
-// test/js/auth-boot.js  (bản vá click + z-index cao + vị trí mới)
+// test/js/auth-boot.js — nút "Đăng nhập" dạng pill + avatar & menu + modal tối giản
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 
-  function ensureFab(){
-    let btn = $('#authFab');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = 'authFab';
-      btn.type = 'button';
-      btn.setAttribute('aria-label','Đăng nhập');
-      // Đặt lên góc phải trên (tránh nút tròn dưới góc)
-      btn.style.cssText = `
-        position:fixed; right:16px; top:14px; z-index:1000000;
-        display:inline-flex; align-items:center; justify-content:center;
-        width:44px; height:44px; border-radius:22px; border:none;
-        background:#30a46c; color:#fff; box-shadow:0 6px 18px rgba(0,0,0,.25);
-        cursor:pointer; font-size:18px; font-weight:700; pointer-events:auto;
-      `;
-      btn.textContent = '↪';
-      btn.addEventListener('click', openModal, { passive: true });
-      document.body.appendChild(btn);
-    }
+  /* ============ UI helpers ============ */
+  function pillButton(id, text) {
+    const b = document.createElement('button');
+    b.id = id;
+    b.type = 'button';
+    b.textContent = text;
+    b.setAttribute('aria-label', text);
+    b.style.cssText = `
+      position:fixed; right:98px; top:16px; z-index:1000000;
+      height:36px; padding:0 14px; border-radius:18px;
+      border:none; background:#2ea36a; color:#fff; font-weight:700;
+      box-shadow:0 6px 18px rgba(0,0,0,.22); cursor:pointer;
+      display:inline-flex; align-items:center; gap:8px;
+    `;
+    return b;
   }
 
+  function avatarButton(id, txt) {
+    const wrap = document.createElement('div');
+    wrap.id = id;
+    wrap.style.cssText = `
+      position:fixed; right:98px; top:12px; z-index:1000000;
+      display:flex; align-items:center; gap:8px;
+    `;
+
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.textContent = txt || '';
+    pill.style.cssText = `
+      height:36px; padding:0 12px; border-radius:18px;
+      border:none; background:#263; color:#cfe; font-weight:700;
+      box-shadow:0 6px 18px rgba(0,0,0,.20); cursor:default; display:none;
+    `;
+    pill.className = 'nini_user_name';
+
+    const av = document.createElement('button');
+    av.type = 'button';
+    av.style.cssText = `
+      width:36px; height:36px; border-radius:50%; border:none;
+      background:#30a46c; color:#fff; font-weight:800; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center;
+      overflow:hidden;
+      box-shadow:0 6px 18px rgba(0,0,0,.22);
+    `;
+    av.className = 'nini_avatar';
+
+    const img = document.createElement('img');
+    img.alt = 'avatar';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:none;';
+    av.appendChild(img);
+
+    const span = document.createElement('span');
+    span.textContent = 'N';
+    av.appendChild(span);
+
+    const menu = document.createElement('div');
+    menu.className = 'nini_menu';
+    menu.style.cssText = `
+      position:absolute; right:0; top:46px; background:#101a14; color:#dff;
+      border-radius:12px; min-width:160px; padding:8px;
+      box-shadow:0 18px 64px rgba(0,0,0,.5); display:none; z-index:1000001;
+    `;
+    menu.innerHTML = `
+      <button type="button" data-act="profile" style="all:unset;display:block;width:100%;padding:10px;border-radius:8px;cursor:pointer">Hồ sơ</button>
+      <button type="button" data-act="logout"  style="all:unset;display:block;width:100%;padding:10px;border-radius:8px;cursor:pointer;color:#fbb">Đăng xuất</button>
+    `;
+
+    wrap.appendChild(pill);
+    wrap.appendChild(av);
+    wrap.appendChild(menu);
+
+    // menu toggle
+    av.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    });
+    document.addEventListener('click', ()=> menu.style.display = 'none');
+
+    // actions
+    menu.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      if (btn.dataset.act === 'profile') {
+        location.href = '/#/profile';
+      } else if (btn.dataset.act === 'logout') {
+        const fb = window.NiNi && window.NiNi.fb;
+        fb && fb.auth && fb.auth.signOut && fb.auth.signOut().catch(()=>{});
+      }
+    });
+
+    return wrap;
+  }
+
+  /* ============ Modal tối giản để test ============ */
   function ensureModal(){
     if ($('#authModal')) return;
     const wrap = document.createElement('div');
     wrap.id = 'authModal';
     wrap.innerHTML = `
       <div class="am_backdrop" style="
-        position:fixed; inset:0; background:rgba(0,0,0,.6);
+        position:fixed; inset:0; background:rgba(0,0,0,.62);
         display:none; align-items:center; justify-content:center;
-        z-index:1000001; pointer-events:auto;">
+        z-index:1000002;">
         <div class="am_box" role="dialog" aria-modal="true" style="
           width:min(560px, 92vw); border-radius:14px; background:#101a14;
-          color:#dff; box-shadow:0 18px 64px rgba(0,0,0,.5); padding:20px;">
+          color:#dff; box-shadow:0 18px 64px rgba(0,0,0,.55); padding:20px;">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-            <h3 style="margin:0; font-weight:700">Đăng nhập</h3>
+            <h3 style="margin:0; font-weight:800">Đăng nhập</h3>
             <button type="button" id="am_close" style="
               border:none; background:transparent; color:#9dd; font-size:22px; cursor:pointer">×</button>
           </div>
@@ -70,9 +143,8 @@
     `;
     document.body.appendChild(wrap);
 
-    // click tab + đóng
     wrap.addEventListener('click', (e)=>{
-      if (e.target.id === 'am_close') return closeModal();
+      if (e.target.id === 'am_close') { closeModal(); return; }
       const t = e.target.closest('.am_tab'); if (!t) return;
       const view = t.dataset.tab;
       $$('.am_view', wrap).forEach(v => v.hidden = v.dataset.view !== view);
@@ -84,17 +156,15 @@
     $('#am_do_login').onclick = async () => {
       try { show('Đang đăng nhập…', 1);
         await fb.auth.signInWithEmailAndPassword($('#am_email_l').value.trim(), $('#am_pass_l').value);
-        show('Đăng nhập thành công!', 1); setTimeout(closeModal, 350);
+        show('Đăng nhập thành công!', 1); setTimeout(closeModal, 300);
       } catch (e){ show(e.message || 'Lỗi đăng nhập'); }
     };
-
     $('#am_do_signup').onclick = async () => {
       try { show('Đang tạo tài khoản…', 1);
         await fb.auth.createUserWithEmailAndPassword($('#am_email_s').value.trim(), $('#am_pass_s').value);
-        show('Tạo tài khoản thành công!', 1); setTimeout(closeModal, 350);
+        show('Tạo tài khoản thành công!', 1); setTimeout(closeModal, 300);
       } catch (e){ show(e.message || 'Lỗi đăng ký'); }
     };
-
     $('#am_do_reset').onclick = async () => {
       try { show('Đang gửi email…', 1);
         await fb.auth.sendPasswordResetEmail($('#am_email_r').value.trim());
@@ -103,27 +173,54 @@
     };
   }
 
-  function openModal(){
-    const bd = $('#authModal .am_backdrop'); if (bd) bd.style.display='flex';
-  }
-  function closeModal(){
-    const bd = $('#authModal .am_backdrop'); if (bd) bd.style.display='none';
+  function openModal(){ const bd = $('#authModal .am_backdrop'); bd && (bd.style.display='flex'); }
+  function closeModal(){ const bd = $('#authModal .am_backdrop'); bd && (bd.style.display='none'); }
+
+  /* ============ Nút đăng nhập & avatar ============ */
+  function ensureEntry(){
+    // Nếu đã có -> bỏ qua
+    if ($('#niniLoginBtn') || $('#niniUserBox')) return;
+
+    const u = window.NiNi && window.NiNi.user;
+
+    if (!u) {
+      const btn = pillButton('niniLoginBtn', 'Đăng nhập');
+      btn.addEventListener('click', openModal, { passive: true });
+      document.body.appendChild(btn);
+    } else {
+      const fullName = u.displayName || u.email || 'Người dùng';
+      const ab = avatarButton('niniUserBox', fullName);
+      // avatar populate
+      const img = ab.querySelector('img');
+      const span = ab.querySelector('span');
+      if (u.photoURL) {
+        img.src = u.photoURL; img.style.display='block'; span.style.display='none';
+      } else {
+        span.textContent = (fullName.trim()[0] || 'N').toUpperCase();
+      }
+      // show name pill (tuỳ thích ẩn/hiện)
+      ab.querySelector('.nini_user_name').style.display = 'none';
+      document.body.appendChild(ab);
+    }
   }
 
-  function updateFab(){
-    const fab = $('#authFab'); if (!fab) return;
-    const u = window.NiNi && window.NiNi.user;
-    fab.style.display = u ? 'none' : 'inline-flex';
+  function cleanupEntry(){
+    const a = $('#niniLoginBtn'); a && a.remove();
+    const b = $('#niniUserBox');  b && b.remove();
+  }
+
+  function updateAuthUI(){
+    cleanupEntry();
+    ensureEntry();
   }
 
   function boot(){
-    ensureFab();
     ensureModal();
-    updateFab();
+    ensureEntry();
   }
 
-  // Sự kiện user-changed từ core.js
-  document.addEventListener('NiNi:user-changed', updateFab);
+  // lắng nghe core.js bắn ra khi auth thay đổi
+  document.addEventListener('NiNi:user-changed', updateAuthUI);
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
@@ -131,6 +228,6 @@
     boot();
   }
 
-  // Xuất API để test nhanh từ Console
-  window.NiNiAuth = { open: openModal, close: closeModal, refresh: updateFab };
+  // API test nhanh
+  window.NiNiAuth = { open: openModal, close: closeModal, refresh: updateAuthUI };
 })();

@@ -1,194 +1,142 @@
-<!-- Nhớ nhúng file này sau khi đã load NINI core + auth-glue.js -->
-/* ---------------------------------------------------------
-   auth-modal.js
-   - Bắt tab (Đăng nhập / Đăng ký / Quên mật khẩu)
-   - Bắt submit form và phát sự kiện cho auth-glue.js
-   - Điều khiển mở/đóng modal + trạng thái loading nhẹ
-   --------------------------------------------------------- */
+/* auth-modal.js — Modal Đăng nhập/Đăng ký/Quên mật khẩu
+   - Tự tạo dock #authDock nếu chưa có
+   - Không crash khi chưa có phần tử
+   - Mở/đóng an toàn, luôn gỡ blur khi đóng
+   - Xuất API: window.NiNiAuth.open(tab?), window.NiNiAuth.close()
+*/
+
 (function () {
-  const N = (window.NINI = window.NINI || {});
-  if (N._wiredAuthModal) return;   // tránh double-bind
-  N._wiredAuthModal = true;
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-  // Mini event-bus (nếu chưa có)
-  if (!N.emit) {
-    const _evts = {};
-    N.on  = (name, fn) => ((_evts[name] = _evts[name] || []).push(fn), fn);
-    N.emit= (name, payload) => (_evts[name]||[]).forEach(fn => { try{ fn(payload||{}); }catch(_){ } });
+  // ============= Mount dock =============
+  let dock = $('#authDock');
+  if (!dock) {
+    dock = document.createElement('div');
+    dock.id = 'authDock';
+    document.body.appendChild(dock);
   }
 
- // ==== helpers an toàn ====
-   
-const $  = (s, r = document) => r?.querySelector?.(s) || null;
-const $$ = (s, r = document) => (r?.querySelectorAll ? Array.from(r.querySelectorAll(s)) : []);
+  // ============= Render modal =============
+  const html = `
+  <div class="auth-modal" role="dialog" aria-modal="true" hidden>
+    <div class="auth-backdrop" data-close="1"></div>
+    <div class="auth-box glass">
+      <div class="auth-head">
+        <button class="tab in" data-tab="login">Đăng nhập</button>
+        <button class="tab" data-tab="signup">Đăng ký</button>
+        <button class="tab" data-tab="reset">Quên mật khẩu</button>
+        <button class="x" id="btnAuthClose" aria-label="Đóng">×</button>
+      </div>
+      <div class="msg" aria-live="polite"></div>
+      <div class="auth-body">
+        <form id="formLogin"   class="pane in" data-pane="login"  autocomplete="on">
+          <label>Email</label><input id="loginEmail" type="email" required />
+          <label>Mật khẩu</label><input id="loginPass" type="password" required />
+          <button type="submit" class="primary">Đăng nhập</button>
+        </form>
 
-// Đảm bảo DOM cho auth modal/backdrop tồn tại trước khi dùng
-function ensureAuthShell() {
-  let modal = $('#authModal');
-  if (!modal) {
-    // Nếu dự án của bạn đã inject modal ở file khác, bạn có thể return null để đợi lần sau
-    // return null;
+        <form id="formSignup"  class="pane" data-pane="signup" autocomplete="on">
+          <label>Email</label><input id="signupEmail" type="email" required />
+          <label>Mật khẩu</label><input id="signupPass" type="password" required />
+          <button type="submit" class="primary">Tạo tài khoản</button>
+        </form>
 
-    // Còn nếu muốn tạo skeleton tối thiểu (để không crash) thì bật đoạn sau:
-    modal = document.createElement('div');
-    modal.id = 'authModal';
-    modal.setAttribute('hidden', '');         // ẩn mặc định
-    modal.innerHTML = `
-      <div class="auth-box">
-        <div class="auth-head">
-          <button class="tab" data-tab="login">Đăng nhập</button>
-          <button class="tab" data-tab="signup">Đăng ký</button>
-          <button class="tab" data-tab="reset">Quên mật khẩu</button>
-          <button id="btnAuthClose" aria-label="Đóng">×</button>
-        </div>
-        <div class="msg" aria-live="polite"></div>
-        <form id="formLogin"  data-pane="login"></form>
-        <form id="formSignup" data-pane="signup" hidden></form>
-        <form id="formReset"  data-pane="reset"  hidden></form>
-        <button id="btnGoogle" type="button">Google</button>
-      </div>`;
-    document.body.appendChild(modal);
+        <form id="formReset"   class="pane" data-pane="reset">
+          <label>Email</label><input id="resetEmail" type="email" required />
+          <button type="submit" class="primary">Gửi link đặt lại mật khẩu</button>
+        </form>
+      </div>
+    </div>
+  </div>`;
+
+  dock.innerHTML = html;
+  const modal     = $('.auth-modal', dock);
+  const box       = $('.auth-box', modal);
+  const msgBox    = $('.msg', modal);
+  const tabs      = $$('.auth-head .tab', modal);
+
+  function setMsg(t) { msgBox.textContent = t || ''; }
+
+  function switchTab(name) {
+    tabs.forEach(b => b.classList.toggle('in', b.dataset.tab === name));
+    $$('.pane', modal).forEach(p => p.classList.toggle('in', p.dataset.pane === name));
   }
 
-  let backdrop = $('#authBackdrop');
-  if (!backdrop) {
-    backdrop = document.createElement('div');
-    backdrop.id = 'authBackdrop';
-    backdrop.setAttribute('hidden', '');
-    document.body.appendChild(backdrop);
+  // ============= Open/Close =============
+  function openModal(tab = 'login') {
+    switchTab(tab);
+    modal.hidden = false;
+    document.body.classList.add('body-auth-open'); // chỉ blur khi MỞ
+    setTimeout(() => $('#loginEmail').focus(), 10);
   }
-  return modal;
-}
 
-// ==== lấy các node với guard null an toàn ====
-const modal  = ensureAuthShell();
-if (!modal) {
-  console.warn('[auth-modal] Shell chưa sẵn sàng, bỏ qua init lần này.');
-  // tránh crash: thoát sớm; lần sau khi shell có thì init lại
-  return;
-}
-const box    = $('.auth-box', modal);
-const msgBox = $('.msg', box);
-const tabs   = $$('.auth-head .tab', box);
-
-// các form/nút có thể chưa có — dùng guard cho chắc
-const frmLogin   = $('#formLogin',  box);
-const frmSignup  = $('#formSignup', box);
-const frmReset   = $('#formReset',  box);
-const btnOpenFab = $('#btnAuthOpenFab');   // nếu có
-const btnClose   = $('#btnAuthClose', box) || $('#btnAuthClose');
-const btnGoogle  = $('#btnGoogle', box);
-
-
-  // -------- Helpers UI ----------
-  function openModal() {
-    if (!modal) return;
-    modal.classList.remove('hidden');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('body-auth-open');
-    clearMsg();
-  }
   function closeModal() {
-    if (!modal) return;
-    modal.classList.add('hidden');
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('body-auth-open');
+    modal.hidden = true;
+    document.body.classList.remove('body-auth-open'); // GỠ BLUR CHẮC CHẮN
+    setMsg('');
   }
-  function setActivePane(name) {
-    $$('.pane', box).forEach(p => p.classList.remove('active'));
-    if (name === 'login')  frmLogin?.classList.add('active');
-    if (name === 'signup') frmSignup?.classList.add('active');
-    if (name === 'reset')  frmReset?.classList.add('active');
-    tabs.forEach(t => t.classList.toggle('is-active', t.dataset.authTab === name));
-    clearMsg();
-  }
-  function setLoading(form, isOn, text) {
-    if (!form) return;
-    const submit = form.querySelector('button[type="submit"]');
-    if (!submit) return;
-    if (isOn) {
-      submit.dataset._text = submit.textContent;
-      if (text) submit.textContent = text;
-      submit.disabled = true;
-    } else {
-      submit.textContent = submit.dataset._text || submit.textContent;
-      submit.disabled = false;
-    }
-  }
-  function showMsg(type, text) {
-    if (!msgBox) return;
-    msgBox.className = 'msg' + (type ? ' ' + type : '');
-    msgBox.textContent = text || '';
-  }
-  function clearMsg(){ showMsg('', ''); }
 
-  // --------- Wire: mở/đóng ----------
-  btnOpenFab?.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
-  btnClose?.addEventListener('click',  (e) => { e.preventDefault(); closeModal(); });
-  // click nền ngoài để đóng
-  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  // Expose API
+  window.NiNiAuth = window.NiNiAuth || {};
+  window.NiNiAuth.open  = openModal;
+  window.NiNiAuth.close = closeModal;
 
-  // --------- Wire: tabs ----------
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => setActivePane(tab.dataset.authTab));
+  // Delegate
+  modal.addEventListener('click', (e) => {
+    if (e.target.dataset.close) { closeModal(); }
+  });
+  $('#btnAuthClose', modal).addEventListener('click', closeModal);
+  tabs.forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  // ESC to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
   });
 
-  // --------- Wire: submit forms ----------
-  frmLogin?.addEventListener('submit', (e) => {
+  // ============= Submit handlers =============
+  function validEmail(v){ return /\S+@\S+\.\S+/.test(v); }
+
+  $('#formLogin', modal).addEventListener('submit', async (e) => {
     e.preventDefault();
-    clearMsg();
-    const email = (frmLogin.querySelector('input[name="email"]')?.value || '').trim();
-    const password = (frmLogin.querySelector('input[name="password"]')?.value || '').trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showMsg('err','Email không hợp lệ.'); return;
+    const email = $('#loginEmail').value.trim();
+    const pass  = $('#loginPass').value;
+    if (!validEmail(email)) return setMsg('Email không hợp lệ.');
+    setMsg('Đang đăng nhập ...');
+    try {
+      await window.NiNi?.fb?.signInWithEmailAndPassword(email, pass);
+      setMsg('Đăng nhập thành công!');
+      closeModal();
+    } catch (err) {
+      setMsg(err?.message || 'Không đăng nhập được.');
     }
-    if (!password) { showMsg('err','Vui lòng nhập mật khẩu.'); return; }
-    setLoading(frmLogin, true, 'Đang đăng nhập...');
-    N.emit('auth:login', { email, password });
   });
 
-  frmSignup?.addEventListener('submit', (e) => {
+  $('#formSignup', modal).addEventListener('submit', async (e) => {
     e.preventDefault();
-    clearMsg();
-    const email = (frmSignup.querySelector('input[name="email"]')?.value || '').trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showMsg('err','Email không hợp lệ.'); return;
+    const email = $('#signupEmail').value.trim();
+    const pass  = $('#signupPass').value;
+    if (!validEmail(email)) return setMsg('Email không hợp lệ.');
+    setMsg('Đang tạo tài khoản ...');
+    try {
+      await window.NiNi?.fb?.createUserWithEmailAndPassword(email, pass);
+      setMsg('Tạo tài khoản thành công!');
+      closeModal();
+    } catch (err) {
+      setMsg(err?.message || 'Không tạo được tài khoản.');
     }
-    setLoading(frmSignup, true, 'Đang gửi email xác minh...');
-    N.emit('auth:signup', { email });
   });
 
-  frmReset?.addEventListener('submit', (e) => {
+  $('#formReset', modal).addEventListener('submit', async (e) => {
     e.preventDefault();
-    clearMsg();
-    const email = (frmReset.querySelector('input[name="email"]')?.value || '').trim();
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showMsg('err','Email không hợp lệ.'); return;
+    const email = $('#resetEmail').value.trim();
+    if (!validEmail(email)) return setMsg('Email không hợp lệ.');
+    setMsg('Đang gửi liên kết ...');
+    try {
+      await window.NiNi?.fb?.sendPasswordResetEmail(email);
+      setMsg('Đã gửi liên kết đặt lại mật khẩu!');
+    } catch (err) {
+      setMsg(err?.message || 'Không gửi được email.');
     }
-    setLoading(frmReset, true, 'Đang gửi link...');
-    N.emit('auth:reset', { email });
   });
-
-  // Google
-  btnGoogle?.addEventListener('click', (e) => {
-    e.preventDefault();
-    clearMsg();
-    showMsg('', 'Đang mở Google...');
-    N.emit('auth:google', {});
-  });
-
-  // --------- Nhận phản hồi từ auth-glue ----------
-  // auth-glue sẽ gọi setMsg() nội bộ của nó, nhưng mình lắng nghe thêm
-  // để đồng bộ loading & đóng modal sau khi OK
-  N.on && N.on('auth:ui:done', ({ form, ok, message }) => {
-    // form: 'login' | 'signup' | 'reset'
-    const map = { login: frmLogin, signup: frmSignup, reset: frmReset };
-    setLoading(map[form], false);
-    if (message) showMsg(ok ? 'ok' : 'err', message);
-    if (ok && form !== 'reset') closeModal(); // login/signup OK → đóng
-  });
-
-  // Khi auth-glue muốn chỉ hiển thị thông điệp
-  N.on && N.on('auth:ui:msg', ({ type, text }) => showMsg(type, text));
 })();
-

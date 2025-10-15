@@ -1,5 +1,4 @@
 ﻿<!-- test/js/auth-boot.js -->
-<script>
 (function(){
   const $  = (s, r=document) => r.querySelector(s);
   const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -144,6 +143,4 @@
   } else {
     boot();
   }
-
 })();
-</script>

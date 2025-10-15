@@ -1,57 +1,58 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Funny</title>
-<link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
-  <!-- Base styles -->
+
+  <!-- CSS cơ bản -->
   <link rel="stylesheet" href="/test/css/base.css">
-  <link rel="stylesheet" href="/test/css/footer.css">
   <link rel="stylesheet" href="/test/css/auth-modal.css">
-  
+  <link rel="stylesheet" href="/test/css/footer.css">
+
+
   <style>
-    /* Khung 2 cột dùng chung */
-    .stage { padding: 24px 16px 80px; }
-    .two-col { display:grid; grid-template-columns: 340px 1fr; gap:16px; }
-    .panel { background: var(--glass-bd); border:1px solid var(--glass-bd2);
-             backdrop-filter: blur(8px); border-radius: 18px; padding:16px; }
-    .panel h2 { margin:4px 0 12px; font-size:18px }
-    .list { display:flex; flex-direction:column; gap:12px; }
-    .list .item { background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
-                  border-radius:14px; padding:12px 14px; cursor:pointer; }
+    .stage { padding:24px 16px 80px; }
+    .two-col { display:grid; grid-template-columns:340px 1fr; gap:16px; }
+    .panel { background:var(--glass-bd); border:1px solid var(--glass-bd2);
+             backdrop-filter:blur(8px); border-radius:18px; padding:16px; }
+    .panel h2{ margin:4px 0 12px; font-size:18px }
+
+    .list{ display:flex; flex-direction:column; gap:12px; }
+    .list .item{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+                 border-radius:14px; padding:12px 14px; cursor:pointer }
     .list .item.active{ outline:2px solid rgba(255,255,255,.35) }
 
-    /* Rail icon bên trái (profile/books/video/game/shop/chat/notify/setting) */
-    .rail { position:fixed; left:18px; top:160px; display:flex; flex-direction:column; gap:16px; z-index:5 }
-    .rail .ico { width:44px; height:44px; display:grid; place-items:center; border-radius:12px;
-                 background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
-                 cursor:pointer; }
-    .rail .ico img{ width:28px;height:28px }
-    .rail .ico.active{ outline:2px solid rgba(255,255,255,.35) }
-
-    /* Header */
-    header#nini_header{ position:sticky; top:0; z-index:6; }
+    header#nini_header{ position:sticky; top:0; z-index:6 }
     .topbar{ height:56px; display:flex; align-items:center; justify-content:space-between;
-             padding:0 16px; background:var(--panel-grad); border-bottom:1px solid var(--glass-bd2); }
+             padding:0 16px; background:var(--panel-grad); border-bottom:1px solid var(--glass-bd2) }
     .brand{ display:flex; align-items:center; gap:10px }
     .brand img{ height:28px }
+    .brand__fallback{ font-weight:700 }
+
     .tabs{ display:flex; gap:10px }
     .tabs .btn{ padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.08);
                 border:1px solid rgba(255,255,255,.15); cursor:pointer }
-    .userbox{ display:flex; align-items:center; gap:10px }
-    .avatar{ width:30px;height:30px;border-radius:50%;background:#ececff;color:#4b47ff;
-             display:grid;place-items:center;font-weight:700 }
 
-    /* Auth bubble (nút avatar) */
+    .userbox{ display:flex; align-items:center; gap:10px }
+    .avatar{ width:30px; height:30px; border-radius:50%;
+             background:#ececff; color:#4b47ff; display:grid; place-items:center; font-weight:700 }
+
     .user-menu{ position:relative }
     .user-dd{ position:absolute; right:0; top:44px; width:200px; display:none }
     .user-dd.open{ display:block }
     .user-dd .panel{ padding:8px }
     .user-dd button{ width:100% }
 
-    /* Nút “Đăng nhập” nổi góc trái dưới cho trường hợp chưa đăng nhập */
-    #fabAuth{ position:fixed; left:12px; bottom:12px; z-index:7 }
+    /* rail trái */
+    .rail{ position:fixed; left:18px; top:160px; display:flex; flex-direction:column; gap:16px; z-index:5 }
+    .rail .ico{ width:44px; height:44px; display:grid; place-items:center; border-radius:12px;
+                background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); cursor:pointer }
+    .rail .ico img{ width:28px; height:28px }
+    .rail .ico.active{ outline:2px solid rgba(255,255,255,.35) }
+
+    /* FAB dự phòng (luôn chỉ có 1) */
+    #fabAuth{ position:fixed; left:12px; bottom:12px; z-index:7; display:none }
   </style>
 </head>
 <body class="home">
@@ -60,7 +61,10 @@
   <header id="nini_header">
     <div class="topbar">
       <div class="brand">
-        <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi">
+        <!-- đổi sang đường dẫn logo thật; fallback text nếu lỗi -->
+        <img class="brand__logo" src="/public/assets/logo/nini-text.webp"
+             alt="NiNi" onerror="this.style.display='none';document.querySelector('.brand__fallback').style.display='inline'">
+        <span class="brand__fallback" style="display:none">NiNi</span>
         <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
       </div>
 
@@ -72,10 +76,12 @@
       </nav>
 
       <div class="userbox">
+        <!-- NÚT đăng nhập duy nhất trên header -->
         <button class="btn" id="btnAuthOpen" data-auth="open">Đăng nhập</button>
 
+        <!-- avatar + dropdown -->
         <div class="user-menu">
-          <div class="avatar" id="userAvatar" data-auth="avatar">N</div>
+          <div class="avatar" id="userAvatar" data-auth="avatar" style="display:none">N</div>
           <div class="user-dd" id="userDrop">
             <div class="panel">
               <button class="btn" data-nav="/profile">Hồ sơ</button>
@@ -87,34 +93,33 @@
     </div>
   </header>
 
-  <!-- ===== RAIL ICONS ===== -->
+  <!-- ===== RAIL ===== -->
   <div class="rail" id="leftRail">
-    <div class="ico" data-nav="/profile" title="Hồ sơ"><img src="/public/assets/icons/user.webp" alt=""></div>
-    <div class="ico" data-nav="/storybook" title="Storybook"><img src="/public/assets/icons/book.webp" alt=""></div>
-    <div class="ico" data-nav="/video" title="Video"><img src="/public/assets/icons/video.webp" alt=""></div>
-    <div class="ico" data-nav="/game" title="Game"><img src="/public/assets/icons/game.webp" alt=""></div>
-    <div class="ico" data-nav="/shop" title="Shop"><img src="/public/assets/icons/shop.webp" alt=""></div>
-    <div class="ico" data-nav="/chat" title="Chat"><img src="/public/assets/icons/chat.webp" alt=""></div>
-    <div class="ico" data-nav="/notify" title="Thông báo"><img src="/public/assets/icons/note.webp" alt=""></div>
-    <div class="ico" data-nav="/settings" title="Cài đặt"><img src="/public/assets/icons/setting.webp" alt=""></div>
+    <div class="ico" data-nav="/profile"   title="Hồ sơ"><img src="/public/assets/icons/user.webp"    alt=""></div>
+    <div class="ico" data-nav="/storybook" title="Storybook"><img src="/public/assets/icons/book.webp"    alt=""></div>
+    <div class="ico" data-nav="/video"     title="Video"><img src="/public/assets/icons/video.webp"   alt=""></div>
+    <div class="ico" data-nav="/game"      title="Game"><img src="/public/assets/icons/game.webp" alt=""></div>
+    <div class="ico" data-nav="/shop"      title="Shop"><img src="/public/assets/icons/shop.webp"    alt=""></div>
+    <div class="ico" data-nav="/chat"      title="Chat"><img src="/public/assets/icons/chat.webp"    alt=""></div>
+    <div class="ico" data-nav="/notify"    title="Thông báo"><img src="/public/assets/icons/note.webp"    alt=""></div>
+    <div class="ico" data-nav="/settings"  title="Cài đặt"><img src="/public/assets/icons/setting.webp" alt=""></div>
   </div>
 
-  <!-- ===== CONTENT STAGE ===== -->
+  <!-- ===== MAIN ===== -->
   <main class="stage">
     <section id="stageMain" class="two-col">
-      <aside id="colLeft"  class="panel"></aside>
+      <aside  id="colLeft"  class="panel"></aside>
       <article id="colRight" class="panel"></article>
     </section>
   </main>
 
-  <!-- FAB login (fallback) -->
-  <button id="fabAuth" class="btn" data-auth="open" style="display:none">Đăng nhập</button>
+  <!-- FAB dự phòng (chỉ 1 cái) -->
+  <button id="fabAuth" class="btn" data-auth="open">Đăng nhập</button>
 
-  <!-- ===== SCRIPTS ===== -->
+  <!-- ===== JS ===== -->
+  <!-- CHỈ NẠP 1 LẦN: fb mjs (module) + glue + shell -->
   <script type="module" src="/public/js/nini-fb.mjs"></script>
   <script src="/test/js/auth-glue.js"></script>
   <script src="/test/js/app-shell.js"></script>
 </body>
 </html>
-
-

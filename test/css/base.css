@@ -438,3 +438,9 @@ body.body-auth-open #authBackdrop {
 
 body.body-auth-open .stage { filter: blur(4px); }
 
+/* tránh lớp trang trí chặn click */
+.stage::before, .stage::after,
+.panel::before, .panel::after {
+  pointer-events: none !important;
+}
+

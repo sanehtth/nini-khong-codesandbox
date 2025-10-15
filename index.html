@@ -1,94 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
-  <link rel="stylesheet" href="/test/css/base.css" />
-  <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
+
+  <!-- CSS: chỉ dùng /test/css -->
+  <link rel="stylesheet" href="/test/css/base.css">
+  <link rel="stylesheet" href="/test/css/header-tab.css">
+  <link rel="stylesheet" href="/test/css/stage.css">
+  <link rel="stylesheet" href="/test/css/auth-modal.css">
+  <!-- (tuỳ chọn) -->
+  <!-- <link rel="stylesheet" href="/test/css/footer.css"> -->
+  <!-- <link rel="stylesheet" href="/test/css/fab-auth.css"> -->
+  <!-- <link rel="stylesheet" href="/test/css/onoff.css"> -->
 </head>
 
-<body>
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="topbar__inner">
-      <div class="brand">
-        <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny">
-        <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
-      </div>
+<body class="home">
+  <!-- Header sẽ được render vào đây bởi header-tab.js -->
+  <header id="nini_header"></header>
 
-      <nav class="nav">
-        <button class="nav__pill nav__pill--active">Giới thiệu</button>
-        <button class="nav__pill">Luật chơi</button>
-        <button class="nav__pill">Diễn đàn</button>
-        <button class="nav__pill">Góp ý</button>
-      </nav>
-
-      <div class="userbox">
-        <button class="btn btn--ghost btn--sm" id="loginBtn">Đăng nhập</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <button class="icon-btn"><img src="/public/assets/icons/user.webp" alt="Profile"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/book.webp" alt="Storybook"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/video.webp" alt="Video"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/game.webp" alt="Game"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/shop.webp" alt="Shop"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/chat.webp" alt="Chat"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/note.webp" alt="Thông báo"></button>
-    <button class="icon-btn"><img src="/public/assets/icons/setting.webp" alt="Cài đặt"></button>
-  </aside>
-
-  <!-- MAIN CONTENT -->
+  <!-- Khu nội dung chính -->
   <main class="stage">
-    <section class="panel stage__left">
-      <h2 class="stage__title">Xin chào với NiNi — Funny</h2>
-      <p>Dùng thanh bên trái để mở <b>Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt</b>.</p>
-    </section>
-
-    <section class="panel stage__right">
-      <h3 class="stage__title">Mẹo</h3>
-      <p>Nhấp các icon ở trái hoặc các tab trên thanh trên cùng.</p>
-    </section>
+    <!-- left rail + content do stage.js/app-shell.js điều hướng -->
+    <section id="stage"></section>
+    <nav id="season_bar"></nav>
   </main>
 
-  <!-- MODAL ĐĂNG NHẬP -->
-  <div class="modal" id="loginModal">
-    <div class="modal__backdrop"></div>
-    <div class="modal__panel glass">
-      <div class="modal__header">
-        <h2 class="modal__title">Đăng nhập</h2>
-        <button class="modal__close" id="closeLogin">&times;</button>
-      </div>
-      <form class="form">
-        <input class="input" type="text" placeholder="Tên đăng nhập" />
-        <input class="input" type="password" placeholder="Mật khẩu" />
-        <button class="btn">Đăng nhập</button>
-      </form>
-    </div>
-  </div>
+  <!-- Modal auth (auth-modal.js sẽ inject nội dung vào #authModal) -->
+  <div id="authBackdrop" hidden></div>
+  <div id="authModal" class="auth-modal" hidden aria-modal="true" role="dialog"></div>
 
-  <script>
-    // JS nhỏ để mở / đóng modal đăng nhập
-    const loginBtn = document.getElementById('loginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const closeLogin = document.getElementById('closeLogin');
+  <!-- JS: CHỈ DÙNG /test/js THEO THỨ TỰ NÀY -->
+  <script src="/test/js/core.js"></script>
 
-    loginBtn.addEventListener('click', () => {
-      loginModal.classList.add('modal--open');
-    });
+  <!-- Firebase thật: DI CHUYỂN nini-fb.mjs từ /public sang /test/js và import ở đây -->
+  <script type="module" src="/test/js/nini-fb.mjs"></script>
 
-    closeLogin.addEventListener('click', () => {
-      loginModal.classList.remove('modal--open');
-    });
+  <!-- UI & modal -->
+  <script src="/test/js/header-tab.js"></script>
+  <script src="/test/js/stage.js"></script>
+  <script src="/test/js/onoff.js"></script>
+  <script src="/test/js/auth-modal.js"></script>
+  <script src="/test/js/auth-glue.js"></script>
 
-    loginModal.addEventListener('click', e => {
-      if (e.target === loginModal) loginModal.classList.remove('modal--open');
-    });
-  </script>
+  <!-- Điều phối router + đồng bộ trạng thái đăng nhập -->
+  <script src="/test/js/app-shell.js"></script>
+
+  <!-- (tuỳ chọn) -->
+  <!-- <script src="/test/js/footer.js"></script> -->
+  <!-- <script src="/test/js/effects.js"></script> -->
 </body>
 </html>
-

@@ -1,274 +1,108 @@
-/* =======================================================================
-   NiNi — base.css (CLEAN THEME)
-   - Glass theme + button + input + chip
-   - Header readable trên nền ảnh
-   - Background trang chủ
-   - Ẩn logo/brand legacy để chỉ còn 1 logo
-   ======================================================================= */
+/* ============ RESET NHẸ ============ */
+* { box-sizing: border-box; }
+html,body { height: 100%; }
+body {
+  margin: 0;
+  font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #fff;
+  /* Hình nền rừng */
+  background: url('assets/bg/forest.jpg') center/cover fixed no-repeat;
+}
 
-/* --------- Tokens chung --------- */
-:root{
-  --ink:#233;
+/* ============ GLASS CARD ============ */
+.glass {
+  background: rgba(20, 40, 20, .35);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+.p-4 { padding: 16px; }
 
-  /* glass */
-  --glass-1: rgba(255,255,255,.15);
-  --glass-2: rgba(255,255,255,.35);
-  --glass-bd: rgba(255,255,255,.45);
-  --blur: 8px;
-
-  /* button */
-  --btn-text:#fff;
-  --btn-bd: rgba(255,255,255,.65);
-  --btn-hover:#f6d35c;        /* vàng khi hover (chữ + viền) */
-  --btn-active-bg:#2ecc71;    /* xanh lá nhạt khi active */
-
-  /* textbox line */
-  --line: rgba(255,255,255,.65);
-  --line-hover:#f6d35c;
-  --line-focus:#2ecc71;
-
-  /* brand */
+/* ============ HEADER (thanh trên) ============ */
+.topbar{
+  position: sticky; top: 16px; margin: 16px auto 0;
+  max-width: 1100px; display:flex; align-items:center; gap:16px;
+  padding: 10px 14px;
+}
+.topbar .brand{ display:flex; align-items:center; gap:10px; }
+.brand__logo { width: 36px; height: 36px; object-fit: contain; }
+.brand__slogan { opacity: .9; font-size: 14px; }
+ /* brand */
   --brand-logo-left-url: url("/public/assets/icons/logo_text.webp");
   --brand-slogan: "chơi mê ly, bứt phá tư duy";
   --brand-slogan-color:#fff;
   --brand-slogan-size:12.5px;
 
-  /* avatar default */
-  --avatar-default-url: url("/public/assets/avatar/NV.webp");
+.topnav{ display:flex; gap: 12px; }
+.topnav a{ color:#fff; text-decoration:none; padding:8px 10px; border-radius:12px; }
+.topnav a:hover{ background: rgba(255,255,255,.12); }
+
+.auth .btn{ margin-left: 6px; }
+
+/* ============ BUTTONS ============ */
+.btn{
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  color:#fff; border-radius:12px; padding:8px 12px; cursor:pointer;
 }
+.btn:hover{ background: rgba(255,255,255,.28); }
+.btn.primary{ background:#3fa76e; border-color:#4ec48a; }
+.btn.small{ padding:6px 10px; font-size:14px; }
 
-/* --------- Reset nhẹ --------- */
-*{ box-sizing:border-box; }
-html,body{ margin:0; padding:0; color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
-a{ color:inherit; }
-
-/* --------- Background trang chủ --------- */
-body.home{
-  background: url("/public/assets/bg/nini_home.webp") center top / cover fixed no-repeat;
+/* ============ THANH ICON BÊN TRÁI ============ */
+.rail{
+  position: fixed; left: 16px; top: 120px; display:flex; flex-direction:column;
+  gap: 10px; z-index: 10;
 }
-@media (max-width:900px){
-  body.home{ background-attachment:scroll; background-size:cover; }
+.rail__btn{
+  width: 44px; height:44px; display:grid; place-items:center;
+  border: 1px solid rgba(255,255,255,.2); background: rgba(20,40,20,.35);
+  backdrop-filter: blur(6px); border-radius: 12px; cursor: pointer;
 }
+.rail__btn img{ width: 24px; height: 24px; }
 
-/* --------- Glass helpers --------- */
-.glass{
-  background:var(--glass-1);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border:1px solid var(--glass-bd);
-  border-radius:16px;
+/* ============ STAGE / LAYOUT 2 CỘT ============ */
+.stage{ max-width: 1100px; margin: 16px auto 40px; padding: 0 12px; }
+.page-2col{ display:flex; align-items:flex-start; gap: 24px; }
+.col-left{ width: 420px; }
+.col-right{ flex:1 1 auto; min-height: 260px; }
+
+.nav-list{ list-style: none; padding:0; margin:8px 0 0; }
+.nav-list a{
+  display:block; color:#fff; text-decoration:none; padding: 12px 14px;
+  border-radius: 12px;
 }
-.glass-2{
-  background:var(--glass-2);
-  backdrop-filter: blur(var(--blur));
-  -webkit-backdrop-filter: blur(var(--blur));
-  border:1px solid var(--glass-bd);
-  border-radius:16px;
-}
-.frame{ padding:16px; }
-.frame.glass,.frame.glass-2{ padding:18px; }
+.nav-list a:hover{ background: rgba(255,255,255,.12); }
 
-.stage{ max-width:1100px; margin:18px auto; padding:12px; }
-.stage > .glass{ background:var(--glass-1); }
-
-/* Message */
-.message{ padding:12px 14px; border-radius:12px; }
-.message.glass-2{ box-shadow:0 8px 24px rgba(0,0,0,.08); }
-
-/* --------- Chip / soft-tabs --------- */
-.chip, .soft-tabs .chip{
-  display:inline-flex; align-items:center; gap:.4rem;
-  padding:6px 10px; border-radius:999px;
-  color:#fff; border:1px solid var(--glass-bd);
-  background: rgba(255,255,255,.10);
-}
-.chip.is-active, .soft-tabs .chip.is-active{
-  background:var(--btn-active-bg); border-color:transparent;
-}
-.soft-tabs{ display:flex; gap:8px; justify-content:center; margin:14px 0 0; }
-
-/* --------- Button --------- */
-.btn, #nini_header .btn-auth{
-  display:inline-flex; align-items:center; justify-content:center;
-  gap:.5rem; padding:8px 14px; border-radius:999px;
-  background:transparent; color:var(--btn-text);
-  border:1px solid var(--btn-bd);
-  text-decoration:none; cursor:pointer; user-select:none;
-  transition:.2s ease;
-}
-.btn:hover, #nini_header .btn-auth:hover{
-  color:var(--btn-hover); border-color:var(--btn-hover);
-  background:rgba(255,255,255,.06);
-}
-.btn:focus-visible{ outline:none; box-shadow:0 0 0 3px rgba(255,255,255,.25); border-color:#fff; }
-.btn.is-active,[aria-current="true"],[aria-pressed="true"]{ background:var(--btn-active-bg); color:#fff; border-color:transparent; }
-.btn.sm{ padding:6px 10px; font-size:.92rem; }
-.btn.xs{ padding:4px 8px; font-size:.85rem; }
-
-/* --------- Textbox (line dưới) --------- */
-.input, input[type="text"], input[type="email"], input[type="password"],
-input[type="tel"], input[type="number"], textarea, select{
-  background: transparent; color:#fff; border:none;
-  border-bottom:1px solid var(--line);
-  padding:8px 2px 6px; border-radius:0; outline:none; width:100%;
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.input::placeholder, input::placeholder, textarea::placeholder{ color:rgba(255,255,255,.75); }
-.input:hover, input:hover, textarea:hover, select:hover{ border-bottom-color:var(--line-hover); }
-.input:focus, input:focus, textarea:focus, select:focus{
-  border-bottom-color:var(--line-focus);
-  box-shadow:0 2px 0 0 var(--line-focus);
-}
-.guest-only { display:inline-flex; }
-.auth-only  { display:none; }
-body[data-auth="in"] .guest-only { display:none!important; }
-body[data-auth="in"] .auth-only  { display:inline-flex!important; }
-
-/* --------- Footer đơn giản --------- */
-.footer{ max-width:1100px; margin:24px auto; padding:12px; text-align:center; opacity:.9; }
-
-/* =======================================================================
-   HEADER look (đọc tốt trên nền ảnh)
-   ======================================================================= */
-#nini_header{ padding:10px 16px; }
-#nini_header .nini-header-wrap{
-  position:sticky; top:0; z-index:30;
-  display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center;
-  max-width:1120px; margin:0 auto; padding:8px 12px;
-  background:rgba(0,0,0,.22);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  border-radius:14px;
-}
-#nini_header .brand{ display:flex; align-items:center; gap:8px; font-weight:700; color:#fff; }
-#nini_header .logo{
-  width:56px; height:28px; display:inline-block;
-  background:var(--brand-logo-left-url) left center/contain no-repeat;
-}
-#nini_header .slogan{ font-size:.92rem; opacity:.85; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-#nini_header .nav{ display:flex; gap:10px; }
-#nini_header .nav-link{ color:#fff; text-decoration:none; }
-#nini_header .nav-link:hover{ color:var(--btn-hover); }
-#nini_header .user-info{ display:inline-flex; align-items:center; gap:10px; }
-#nini_header .avatar{
-  --size:28px; width:var(--size); height:var(--size); border-radius:999px; position:relative;
-  background:var(--avatar-default-url) center/cover no-repeat; border:1px solid rgba(255,255,255,.6);
-}
-#nini_header .nick{ color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-
-/* Toggle theo trạng thái đăng nhập (được set bởi JS) */
-.guest-only{ display:inline-flex; }
-.auth-only{ display:none; }
-body[data-auth="in"] .guest-only{ display:none !important; }
-body[data-auth="in"] .auth-only{ display:inline-flex !important; }
-
-/* =======================================================================
-   DỌN LEGACY: Ẩn toàn bộ logo/brand/nút auth cũ ngoài #nini_header
-   ======================================================================= */
-#nini_header .site-brand .title-logo,
-#nini_header .brand, .legacy-logo, .nini-logo,
-.nini-badge, .logo-small, .header-logo, .header__logo { display:none !important; }
-
-body > .btn-auth:not(#nini_header *),
-body > .avatar:not(#nini_header *),
-body > .user-info:not(#nini_header *){ display:none !important; }
-
-/* --- Header brand look --- */
-#nini_header .nini-header-wrap{
-  position: sticky; top:0; z-index:30;
-  display:grid; grid-template-columns: 1fr auto auto; gap:12px; align-items:center;
-  padding:8px 12px; margin:0 auto; max-width:1120px;
-  background: rgba(0,0,0,.22); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  border-radius:14px;
-}
-#nini_header .brand{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:#fff; }
-#nini_header .brand .logo{
-  width:112px; height:28px; background:url("/public/assets/icons/logo_text.webp") left/contain no-repeat;
-}
-#nini_header .brand .slogan{ font-size:12.5px; opacity:.9; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-
-#nini_header .nav{ display:flex; gap:10px; }
-#nini_header .nav-link{ color:#fff; text-decoration:none; }
-#nini_header .nav-link:hover{ color:#f6d35c; }
-
-/* Avatar dạng nút để click vào profile */
-#nini_header .avatar-btn{ background:transparent; border:none; cursor:pointer; padding:0; }
-#nini_header .avatar{
-  --size:28px;
-  width:var(--size); height:var(--size); border-radius:50%;
-  border:1px solid rgba(255,255,255,.6);
-  background: var(--ava-bg) center/cover no-repeat;
-  display:inline-grid; place-items:center;
-  color:#fff; font-weight:700; text-shadow:0 1px 1px rgba(0,0,0,.35);
-}
-#nini_header .avatar.is-empty{ background:#2e7d32; }
-#nini_header .avatar.is-empty::after{ content: attr(data-letter); }
-
-#nini_header .btn-auth{
-  display:inline-flex; align-items:center; gap:.5rem; padding:8px 12px; border-radius:999px;
-  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.7); cursor:pointer; transition:.2s;
-}
-#nini_header .btn-auth:hover{ color:#f6d35c; border-color:#f6d35c; }
-
-/* Đảm bảo không bị rule cũ ẩn logo/brand */
-#nini_header .brand,
-#nini_header .brand .logo { display:inline-flex !important; }
-
-/* Header readable on photo bg */
-#nini_header .nini-header-wrap{
-  position: sticky; top: 0; z-index: 30;
-  display:grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
-  padding: 8px 12px; margin: 0 auto; max-width: 1120px;
-  background: rgba(0,0,0,.22);
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  border-radius: 14px;
-}
-
-/* Brand: logo + slogan */
-#nini_header .brand{ display:flex; align-items:center; gap:8px; text-decoration:none; color:#fff; }
-#nini_header .logo{
-  width: 112px; height: 28px; display:inline-block;
-  background: url('/public/assets/icons/logo_text.webp') left center/contain no-repeat;
-}
-#nini_header .slogan{ font-size:12.5px; opacity:.9; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-
-/* Nav & buttons */
-#nini_header .nav{ display:flex; gap:10px; }
-#nini_header .nav-link{ color:#fff; text-decoration:none; }
-#nini_header .nav-link:hover{ color:#f6d35c; }
-
-#nini_header .btn-auth{
-  display:inline-flex; align-items:center; gap:.5rem; padding:8px 12px;
-  border-radius:999px; background:transparent; color:#fff;
-  border:1px solid rgba(255,255,255,.7); cursor:pointer; transition:.2s;
-}
-#nini_header .btn-auth:hover{ color:#f6d35c; border-color:#f6d35c; }
-
-/* Avatar chữ cái */
-#nini_header .avatar{
-  --size: 28px;
-  width: var(--size); height: var(--size);
-  border-radius: 999px; position: relative;
-  background: var(--ava-bg, #2e7d32) center/cover no-repeat;
-  border:1px solid rgba(255,255,255,.6);
-}
-#nini_header .avatar::after{
-  content: attr(data-letter);
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  color:#fff; font-weight:700; text-shadow:0 1px 1px rgba(0,0,0,.35);
-}
-#nini_header .nick{ color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.55); }
-
-/* base.css – bổ sung cuối file */
+/* ============ MODAL + BACKDROP ============ */
+/* Backdrop sẽ được ẩn/hiện cùng body.auth-open */
 #authBackdrop{
   position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
+  background: rgba(0, 0, 0, .45);
   backdrop-filter: blur(3px);
-  z-index: 999;              /* cao hơn nội dung, thấp hơn modal */
+  z-index: 999;
 }
+body:not(.auth-open) #authBackdrop{ display:none; }
+
 .auth-modal{
-  position: fixed; inset: 0; display: grid;
-  place-items: center; z-index: 1000;
+  position: fixed; inset: 0; display: grid; place-items: center;
+  z-index: 1000;
 }
 .auth-modal[hidden]{ display:none!important; }
-body:not(.auth-open) #authBackdrop{ display:none!important; }
+
+.auth-card{ width: min(520px, 92vw); }
+.auth-tabs{ display:flex; gap:8px; margin-bottom:10px; align-items:center; }
+.auth-tabs [data-auth="tab"]{
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color:#fff; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+}
+.auth-tabs .is-active{ background:#3fa76e; border-color:#4ec48a; }
+.auth-body label{ display:block; margin: 8px 0; }
+.auth-body input{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.08); color:#fff;
+}
+.note{ opacity:.8; font-size: 13px; }
 

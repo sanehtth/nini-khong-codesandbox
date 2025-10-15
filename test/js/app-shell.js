@@ -28,9 +28,9 @@
 
   // ==== AUTH OPEN: singleton ====
   function openAuth(){
-    if (N.emit) N.emit('auth:open');      // auth-glue sẽ mở modal (1 cái)
-    $('#fabAuth').style.display = 'inline-block';   // fallback
-  }
+  if (N.emit) N.emit('auth:open');      // chỉ yêu cầu mở modal
+  // KHÔNG đụng đến #fabAuth ở đây
+}
 
   function ensureSignedIn(ok){
     if (state.user) { ok && ok(); return; }
@@ -221,3 +221,4 @@
   state.route = location.pathname.replace(/\/+$/,'') || '/home';
   render();
 })();
+

@@ -17,21 +17,68 @@
     N.emit= (name, payload) => (_evts[name]||[]).forEach(fn => { try{ fn(payload||{}); }catch(_){ } });
   }
 
-  const $  = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+ // ==== helpers an toàn ====
+   
+const $  = (s, r = document) => r?.querySelector?.(s) || null;
+const $$ = (s, r = document) => (r?.querySelectorAll ? Array.from(r.querySelectorAll(s)) : []);
 
-  const modal   = $('#authModal');
-  const box     = modal?.querySelector('.auth-box');
-  const msgBox  = box?.querySelector('.msg');
-  const tabs    = $$('.auth-head .tab', box);
+// Đảm bảo DOM cho auth modal/backdrop tồn tại trước khi dùng
+function ensureAuthShell() {
+  let modal = $('#authModal');
+  if (!modal) {
+    // Nếu dự án của bạn đã inject modal ở file khác, bạn có thể return null để đợi lần sau
+    // return null;
 
-  const frmLogin  = $('#formLogin', box);
-  const frmSignup = $('#formSignup', box);
-  const frmReset  = $('#formReset', box);
+    // Còn nếu muốn tạo skeleton tối thiểu (để không crash) thì bật đoạn sau:
+    modal = document.createElement('div');
+    modal.id = 'authModal';
+    modal.setAttribute('hidden', '');         // ẩn mặc định
+    modal.innerHTML = `
+      <div class="auth-box">
+        <div class="auth-head">
+          <button class="tab" data-tab="login">Đăng nhập</button>
+          <button class="tab" data-tab="signup">Đăng ký</button>
+          <button class="tab" data-tab="reset">Quên mật khẩu</button>
+          <button id="btnAuthClose" aria-label="Đóng">×</button>
+        </div>
+        <div class="msg" aria-live="polite"></div>
+        <form id="formLogin"  data-pane="login"></form>
+        <form id="formSignup" data-pane="signup" hidden></form>
+        <form id="formReset"  data-pane="reset"  hidden></form>
+        <button id="btnGoogle" type="button">Google</button>
+      </div>`;
+    document.body.appendChild(modal);
+  }
 
-  const btnOpenFab  = $('#btnAuthOpenFab');
-  const btnClose    = $('#btnAuthClose');
-  const btnGoogle   = $('#btnGoogle', box);
+  let backdrop = $('#authBackdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'authBackdrop';
+    backdrop.setAttribute('hidden', '');
+    document.body.appendChild(backdrop);
+  }
+  return modal;
+}
+
+// ==== lấy các node với guard null an toàn ====
+const modal  = ensureAuthShell();
+if (!modal) {
+  console.warn('[auth-modal] Shell chưa sẵn sàng, bỏ qua init lần này.');
+  // tránh crash: thoát sớm; lần sau khi shell có thì init lại
+  return;
+}
+const box    = $('.auth-box', modal);
+const msgBox = $('.msg', box);
+const tabs   = $$('.auth-head .tab', box);
+
+// các form/nút có thể chưa có — dùng guard cho chắc
+const frmLogin   = $('#formLogin',  box);
+const frmSignup  = $('#formSignup', box);
+const frmReset   = $('#formReset',  box);
+const btnOpenFab = $('#btnAuthOpenFab');   // nếu có
+const btnClose   = $('#btnAuthClose', box) || $('#btnAuthClose');
+const btnGoogle  = $('#btnGoogle', box);
+
 
   // -------- Helpers UI ----------
   function openModal() {
@@ -144,3 +191,4 @@
   // Khi auth-glue muốn chỉ hiển thị thông điệp
   N.on && N.on('auth:ui:msg', ({ type, text }) => showMsg(type, text));
 })();
+

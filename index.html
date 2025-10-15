@@ -1,239 +1,92 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NiNi — Funny</title>
   <link rel="stylesheet" href="/test/css/base.css" />
-  
 </head>
+
 <body>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <img class="brand__logo" src="/public/assets/icons/logo_text.png" alt="NiNi Funny">
+        <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
+      </div>
 
-  <!-- ==================== HEADER (thanh trên cùng) ==================== -->
-  <header class="topbar glass">
-    <div class="brand">
-      <!-- Logo + slogan (có thể thay src/logo tùy ý) -->
-      <img src="/public/assets/icons/logo_text.webp" alt="NiNi" class="brand__logo" />
-      <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
-    </div>
+      <nav class="nav">
+        <button class="nav__pill nav__pill--active">Giới thiệu</button>
+        <button class="nav__pill">Luật chơi</button>
+        <button class="nav__pill">Diễn đàn</button>
+        <button class="nav__pill">Góp ý</button>
+      </nav>
 
-    <nav class="topnav">
-      <!-- 4 tab yêu cầu: dùng data-nav để router -->
-      <a href="#/home"   data-nav="home">Giới thiệu</a>
-      <a href="#/rules"  data-nav="rules">Luật chơi</a>
-      <a href="#/forum"  data-nav="forum">Diễn đàn</a>
-      <a href="#/contact" data-nav="contact">Góp ý</a>
-    </nav>
-
-    <div class="auth">
-      <!-- CHỈ CÓ 1 nút đăng nhập ở header -->
-      <button id="btnSignIn"  class="btn">Đăng nhập</button>
-      <button id="btnSignOut" class="btn" hidden>Đăng xuất</button>
+      <div class="userbox">
+        <button class="btn btn--ghost btn--sm" id="loginBtn">Đăng nhập</button>
+      </div>
     </div>
   </header>
 
-  <!-- =============== THANH ICON BÊN TRÁI (mở các khu) =============== -->
-  <aside class="rail">
-    <!-- Các icon đều gắn data-nav để điều hướng  -->
-    <button class="rail__btn" data-nav="profile"  title="Hồ sơ">
-      <img src="/public/assets/icons/user.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="storybook" title="Storybook">
-      <img src="/public/assets/icons/book.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="video"    title="Video">
-      <img src="/public/assets/icons/video.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="game"     title="Game">
-      <img src="/public/assets/icons/game.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="shop"     title="Shop">
-      <img src="/public/assets/icons/shop.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="chat"     title="Chat">
-      <img src="/public/assets/icons/chat.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="notify"   title="Thông báo">
-      <img src="/public/assets/icons/note.webp" alt="" />
-    </button>
-    <button class="rail__btn" data-nav="settings" title="Cài đặt">
-      <img src="/public/assets/icons/setting.webp" alt="" />
-    </button>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <button class="icon-btn"><img src="/public/assets/icons/user.webp" alt="Profile"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/story.webp" alt="Storybook"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/video.webp" alt="Video"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/game.webp" alt="Game"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/shop.webp" alt="Shop"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/chat.webp" alt="Chat"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/bell.webp" alt="Thông báo"></button>
+    <button class="icon-btn"><img src="/public/assets/icons/gear.webp" alt="Cài đặt"></button>
   </aside>
 
-  <!-- ========================== KHUNG NỘI DUNG ========================== -->
+  <!-- MAIN CONTENT -->
   <main class="stage">
-
-    <!-- Trang Home (mặc định) -->
-    <section id="page-home" class="page-2col">
-      <div class="col-left glass">
-        <h3>Xin chào với NiNi — Funny</h3>
-        <p>Dùng thanh bên trái để mở <strong>Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt</strong>.</p>
-      </div>
-      <div class="col-right glass">
-        <h3>Mẹo</h3>
-        <p>Nhấp các icon ở trái hoặc các tab trên thanh trên cùng.</p>
-      </div>
+    <section class="panel stage__left">
+      <h2 class="stage__title">Xin chào với NiNi — Funny</h2>
+      <p>Dùng thanh bên trái để mở <b>Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt</b>.</p>
     </section>
 
-    <!-- Rules -->
-    <section id="page-rules" hidden class="page-2col">
-      <div class="col-left glass"><h3>Luật chơi</h3><p>Đang cập nhật…</p></div>
-      <div class="col-right glass"><p>Phần này bạn có thể chèn nội dung chi tiết.</p></div>
+    <section class="panel stage__right">
+      <h3 class="stage__title">Mẹo</h3>
+      <p>Nhấp các icon ở trái hoặc các tab trên thanh trên cùng.</p>
     </section>
-
-    <!-- Forum -->
-    <section id="page-forum" hidden class="page-2col">
-      <div class="col-left glass"><h3>Diễn đàn</h3><p>Đang cập nhật…</p></div>
-      <div class="col-right glass"><p>Nơi trao đổi & thảo luận.</p></div>
-    </section>
-
-    <!-- Contact -->
-    <section id="page-contact" hidden class="page-2col">
-      <div class="col-left glass"><h3>Góp ý</h3><p>Đang cập nhật…</p></div>
-      <div class="col-right glass"><p>Form góp ý sẽ đặt ở đây.</p></div>
-    </section>
-
-    <!-- Storybook (2 cột: danh sách trái, chi tiết phải) -->
-    <section id="page-storybook" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Thư viện</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="sb-forest">Bé NiNi & khu rừng</a></li>
-          <li><a href="#" data-item="sb-color">Cuộc đua sắc màu</a></li>
-          <li><a href="#" data-item="sb-friends">Bạn mới của NiNi</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Khung đọc thử nội dung sẽ hiển thị ở đây.</div>
-      </div>
-    </section>
-
-    <!-- Video (demo bố cục giống storybook) -->
-    <section id="page-video" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Video</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="v1">Chuỗi 1 — mẹo tư duy nhanh</a></li>
-          <li><a href="#" data-item="v2">Chuỗi 2 — giải đố cùng NiNi</a></li>
-          <li><a href="#" data-item="v3">Chuỗi 3 — kể chuyện tương tác</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Chọn một chuỗi bên trái…</div>
-      </div>
-    </section>
-
-    <!-- Game -->
-    <section id="page-game" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Game</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="g-match">Ghép cặp</a></li>
-          <li><a href="#" data-item="g-quiz">Đố vui</a></li>
-          <li><a href="#" data-item="g-path">Tìm đường</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Chọn một trò chơi để xem hướng dẫn.</div>
-      </div>
-    </section>
-
-    <!-- Shop -->
-    <section id="page-shop" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Shop</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="sticker">Sticker NiNi</a></li>
-          <li><a href="#" data-item="book-100">Sổ tay giải đố</a></li>
-          <li><a href="#" data-item="tee">Áo thun NiNi</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Chọn sản phẩm ở bên trái…</div>
-      </div>
-    </section>
-
-    <!-- Chat -->
-    <section id="page-chat" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Bạn bè</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="u-nini">NiNi</a></li>
-          <li><a href="#" data-item="u-milu">MiLu</a></li>
-          <li><a href="#" data-item="u-bibi">BiBi</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Khung chat sẽ hiện ở đây.</div>
-      </div>
-    </section>
-
-    <!-- Notify -->
-    <section id="page-notify" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Tiêu đề thông báo</h3>
-        <ul class="nav-list">
-          <li><a href="#" data-item="n1">Cập nhật phiên bản</a></li>
-          <li><a href="#" data-item="n2">Sự kiện tuần này</a></li>
-        </ul>
-      </div>
-      <div class="col-right" id="detail-box">
-        <div class="glass p-4">Chi tiết thông báo sẽ hiển thị ở đây.</div>
-      </div>
-    </section>
-
-    <!-- Settings -->
-    <section id="page-settings" hidden class="page-2col">
-      <div class="col-left glass"><h3>Cài đặt</h3></div>
-      <div class="col-right glass"><p>Để trống, bạn cấu hình sau.</p></div>
-    </section>
-
-    <!-- Profile (Hồ sơ) -->
-    <section id="page-profile" hidden class="page-2col">
-      <div class="col-left glass">
-        <h3>Hồ sơ</h3>
-        <p>Thông tin cá nhân (khi đăng nhập) sẽ hiện ở đây.</p>
-      </div>
-      <div class="col-right glass">
-        <h3>Thành tích</h3>
-        <p>XP, xu, vật phẩm (rương gỗ/bạc/vàng, mảnh ghép…).</p>
-      </div>
-    </section>
-
   </main>
 
-  <!-- =========================== MODAL ĐĂNG NHẬP =========================== -->
-  <!-- Lưu ý: backdrop được tạo trong JS; nhưng đặt sẵn element để dễ style -->
-  <div id="authBackdrop" hidden></div>
-
-  <div id="authModal" class="auth-modal" hidden aria-modal="true" role="dialog">
-    <div class="auth-card glass">
-      <div class="auth-tabs">
-        <button data-auth="tab" data-tab="login"  class="is-active">Đăng nhập</button>
-        <button data-auth="tab" data-tab="signup">Đăng ký</button>
-        <button data-auth="tab" data-tab="reset">Quên mật khẩu</button>
-        <button class="btn small" data-auth="close" style="margin-left:auto">Đóng</button>
+  <!-- MODAL ĐĂNG NHẬP -->
+  <div class="modal" id="loginModal">
+    <div class="modal__backdrop"></div>
+    <div class="modal__panel glass">
+      <div class="modal__header">
+        <h2 class="modal__title">Đăng nhập</h2>
+        <button class="modal__close" id="closeLogin">&times;</button>
       </div>
-
-      <!-- Form đơn giản demo: submit sẽ set flag đăng nhập -->
-      <form id="authForm" class="auth-body">
-        <label>Email
-          <input type="email" name="email" required placeholder="you@example.com" />
-        </label>
-        <label>Mật khẩu
-          <input type="password" name="password" required placeholder="••••••" />
-        </label>
-        <button class="btn primary" type="submit" data-action="signin">Đăng nhập</button>
+      <form class="form">
+        <input class="input" type="text" placeholder="Tên đăng nhập" />
+        <input class="input" type="password" placeholder="Mật khẩu" />
+        <button class="btn">Đăng nhập</button>
       </form>
-
-      <p class="note">* Đây là bản demo UI: thay bằng Firebase khi triển khai thật.</p>
     </div>
   </div>
 
-  <!-- =============================== SCRIPTS =============================== -->
-  <!-- Chỉ load MỘT file JS quản lý auth + router + delegation -->
-  <script src="auth-flow.js"></script>
+  <script>
+    // JS nhỏ để mở / đóng modal đăng nhập
+    const loginBtn = document.getElementById('loginBtn');
+    const loginModal = document.getElementById('loginModal');
+    const closeLogin = document.getElementById('closeLogin');
+
+    loginBtn.addEventListener('click', () => {
+      loginModal.classList.add('modal--open');
+    });
+
+    closeLogin.addEventListener('click', () => {
+      loginModal.classList.remove('modal--open');
+    });
+
+    loginModal.addEventListener('click', e => {
+      if (e.target === loginModal) loginModal.classList.remove('modal--open');
+    });
+  </script>
 </body>
 </html>
-

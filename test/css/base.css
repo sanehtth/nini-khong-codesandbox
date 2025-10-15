@@ -60,13 +60,13 @@ body {
 }
 
 /* ---------------------------- Background image -------------------------- */
-/* Bạn có thể thay bg bằng ảnh rừng của bạn ở /public/assets/bg.webp */
+/* Bạn có thể thay bg bằng ảnh rừng của bạn ở /public/assets/bg/nini_home.webp */
 body::before{
   content:"";
   position: fixed;
   inset: 0;
   z-index: -2;
-  background: url("/public/assets/bg.webp") center/cover no-repeat;
+  background: url("/public/assets/bg/nini_home.webp") center/cover no-repeat;
   filter: saturate(1.05) contrast(1.02);
 }
 
@@ -418,3 +418,4 @@ body::after{
 }
 .prose p{ margin: .25rem 0 .75rem; }
 .prose a{ color: #99f6e4; }
+

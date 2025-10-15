@@ -1,129 +1,238 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NiNi — Funny</title>
-<link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" /> 
-  <!-- CSS cơ bản -->
-  <link rel="stylesheet" href="/test/css/base.css">
-  <link rel="stylesheet" href="/test/css/auth-modal.css">
-  <link rel="stylesheet" href="/test/css/footer.css">
-
-
-  <style>
-    .stage { padding:24px 16px 80px; }
-    .two-col { display:grid; grid-template-columns:340px 1fr; gap:16px; }
-    .panel { background:var(--glass-bd); border:1px solid var(--glass-bd2);
-             backdrop-filter:blur(8px); border-radius:18px; padding:16px; }
-    .panel h2{ margin:4px 0 12px; font-size:18px }
-
-    .list{ display:flex; flex-direction:column; gap:12px; }
-    .list .item{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
-                 border-radius:14px; padding:12px 14px; cursor:pointer }
-    .list .item.active{ outline:2px solid rgba(255,255,255,.35) }
-
-    header#nini_header{ position:sticky; top:0; z-index:6 }
-    .topbar{ height:56px; display:flex; align-items:center; justify-content:space-between;
-             padding:0 16px; background:var(--panel-grad); border-bottom:1px solid var(--glass-bd2) }
-    .brand{ display:flex; align-items:center; gap:10px }
-    .brand img{ height:28px }
-    .brand__fallback{ font-weight:700 }
-
-    .tabs{ display:flex; gap:10px }
-    .tabs .btn{ padding:8px 14px; border-radius:999px; background:rgba(255,255,255,.08);
-                border:1px solid rgba(255,255,255,.15); cursor:pointer }
-
-    .userbox{ display:flex; align-items:center; gap:10px }
-    .avatar{ width:30px; height:30px; border-radius:50%;
-             background:#ececff; color:#4b47ff; display:grid; place-items:center; font-weight:700 }
-
-    .user-menu{ position:relative }
-    .user-dd{ position:absolute; right:0; top:44px; width:200px; display:none }
-    .user-dd.open{ display:block }
-    .user-dd .panel{ padding:8px }
-    .user-dd button{ width:100% }
-
-    /* rail trái */
-    .rail{ position:fixed; left:18px; top:160px; display:flex; flex-direction:column; gap:16px; z-index:5 }
-    .rail .ico{ width:44px; height:44px; display:grid; place-items:center; border-radius:12px;
-                background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); cursor:pointer }
-    .rail .ico img{ width:28px; height:28px }
-    .rail .ico.active{ outline:2px solid rgba(255,255,255,.35) }
-
-    /* FAB dự phòng (luôn chỉ có 1) */
-    #fabAuth{ position:fixed; left:12px; bottom:12px; z-index:7; display:none }
-  </style>
+  <link rel="stylesheet" href="base.css" />
+  
 </head>
-<body class="home">
+<body>
 
-  <!-- ===== HEADER ===== -->
-  <header id="nini_header">
-    <div class="topbar">
-      <div class="brand">
-        <!-- đổi sang đường dẫn logo thật; fallback text nếu lỗi -->
-        <img class="brand__logo" src="/public/assets/icons/logo_text.webp"
-             alt="NiNi" onerror="this.style.display='none';document.querySelector('.brand__fallback').style.display='inline'">
-        <span class="brand__fallback" style="display:none">NiNi</span>
-        <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
-      </div>
+  <!-- ==================== HEADER (thanh trên cùng) ==================== -->
+  <header class="topbar glass">
+    <div class="brand">
+      <!-- Logo + slogan (có thể thay src/logo tùy ý) -->
+      <img src="/public/assets/icons/logo_text.webp" alt="NiNi" class="brand__logo" />
+      <span class="brand__slogan">chơi mê ly, bật phá tư duy</span>
+    </div>
 
-      <nav class="tabs" id="topTabs">
-        <button class="btn" data-nav="/storybook">Giới thiệu</button>
-        <button class="btn" data-nav="/rules">Luật chơi</button>
-        <button class="btn" data-nav="/forum">Diễn đàn</button>
-        <button class="btn" data-nav="/feedback">Góp ý</button>
-      </nav>
+    <nav class="topnav">
+      <!-- 4 tab yêu cầu: dùng data-nav để router -->
+      <a href="#/home"   data-nav="home">Giới thiệu</a>
+      <a href="#/rules"  data-nav="rules">Luật chơi</a>
+      <a href="#/forum"  data-nav="forum">Diễn đàn</a>
+      <a href="#/contact" data-nav="contact">Góp ý</a>
+    </nav>
 
-      <div class="userbox">
-        <!-- NÚT đăng nhập duy nhất trên header -->
-        <button class="btn" id="btnAuthOpen" data-auth="open">Đăng nhập</button>
-
-        <!-- avatar + dropdown -->
-        <div class="user-menu">
-          <div class="avatar" id="userAvatar" data-auth="avatar" style="display:none">N</div>
-          <div class="user-dd" id="userDrop">
-            <div class="panel">
-              <button class="btn" data-nav="/profile">Hồ sơ</button>
-              <button class="btn" id="btnLogout" data-auth="logout">Đăng xuất</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="auth">
+      <!-- CHỈ CÓ 1 nút đăng nhập ở header -->
+      <button id="btnSignIn"  class="btn">Đăng nhập</button>
+      <button id="btnSignOut" class="btn" hidden>Đăng xuất</button>
     </div>
   </header>
 
-  <!-- ===== RAIL ===== -->
-  <div class="rail" id="leftRail">
-    <div class="ico" data-nav="/profile"   title="Hồ sơ"><img src="/public/assets/icons/user.webp"    alt=""></div>
-    <div class="ico" data-nav="/storybook" title="Storybook"><img src="/public/assets/icons/book.webp"    alt=""></div>
-    <div class="ico" data-nav="/video"     title="Video"><img src="/public/assets/icons/video.webp"   alt=""></div>
-    <div class="ico" data-nav="/game"      title="Game"><img src="/public/assets/icons/game.webp" alt=""></div>
-    <div class="ico" data-nav="/shop"      title="Shop"><img src="/public/assets/icons/shop.webp"    alt=""></div>
-    <div class="ico" data-nav="/chat"      title="Chat"><img src="/public/assets/icons/chat.webp"    alt=""></div>
-    <div class="ico" data-nav="/notify"    title="Thông báo"><img src="/public/assets/icons/note.webp"    alt=""></div>
-    <div class="ico" data-nav="/settings"  title="Cài đặt"><img src="/public/assets/icons/setting.webp" alt=""></div>
-  </div>
+  <!-- =============== THANH ICON BÊN TRÁI (mở các khu) =============== -->
+  <aside class="rail">
+    <!-- Các icon đều gắn data-nav để điều hướng  -->
+    <button class="rail__btn" data-nav="profile"  title="Hồ sơ">
+      <img src="/public/assets/icons/user.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="storybook" title="Storybook">
+      <img src="/public/assets/icons/book.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="video"    title="Video">
+      <img src="/public/assets/icons/video.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="game"     title="Game">
+      <img src="/public/assets/icons/game.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="shop"     title="Shop">
+      <img src="/public/assets/icons/shop.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="chat"     title="Chat">
+      <img src="/public/assets/icons/chat.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="notify"   title="Thông báo">
+      <img src="/public/assets/icons/note.webp" alt="" />
+    </button>
+    <button class="rail__btn" data-nav="settings" title="Cài đặt">
+      <img src="/public/assets/icons/setting.webp" alt="" />
+    </button>
+  </aside>
 
-  <!-- ===== MAIN ===== -->
+  <!-- ========================== KHUNG NỘI DUNG ========================== -->
   <main class="stage">
-    <section id="stageMain" class="two-col">
-      <aside  id="colLeft"  class="panel"></aside>
-      <article id="colRight" class="panel"></article>
+
+    <!-- Trang Home (mặc định) -->
+    <section id="page-home" class="page-2col">
+      <div class="col-left glass">
+        <h3>Xin chào với NiNi — Funny</h3>
+        <p>Dùng thanh bên trái để mở <strong>Storybook, Video, Game, Shop, Chat, Thông báo, Cài đặt</strong>.</p>
+      </div>
+      <div class="col-right glass">
+        <h3>Mẹo</h3>
+        <p>Nhấp các icon ở trái hoặc các tab trên thanh trên cùng.</p>
+      </div>
     </section>
+
+    <!-- Rules -->
+    <section id="page-rules" hidden class="page-2col">
+      <div class="col-left glass"><h3>Luật chơi</h3><p>Đang cập nhật…</p></div>
+      <div class="col-right glass"><p>Phần này bạn có thể chèn nội dung chi tiết.</p></div>
+    </section>
+
+    <!-- Forum -->
+    <section id="page-forum" hidden class="page-2col">
+      <div class="col-left glass"><h3>Diễn đàn</h3><p>Đang cập nhật…</p></div>
+      <div class="col-right glass"><p>Nơi trao đổi & thảo luận.</p></div>
+    </section>
+
+    <!-- Contact -->
+    <section id="page-contact" hidden class="page-2col">
+      <div class="col-left glass"><h3>Góp ý</h3><p>Đang cập nhật…</p></div>
+      <div class="col-right glass"><p>Form góp ý sẽ đặt ở đây.</p></div>
+    </section>
+
+    <!-- Storybook (2 cột: danh sách trái, chi tiết phải) -->
+    <section id="page-storybook" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Thư viện</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="sb-forest">Bé NiNi & khu rừng</a></li>
+          <li><a href="#" data-item="sb-color">Cuộc đua sắc màu</a></li>
+          <li><a href="#" data-item="sb-friends">Bạn mới của NiNi</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Khung đọc thử nội dung sẽ hiển thị ở đây.</div>
+      </div>
+    </section>
+
+    <!-- Video (demo bố cục giống storybook) -->
+    <section id="page-video" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Video</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="v1">Chuỗi 1 — mẹo tư duy nhanh</a></li>
+          <li><a href="#" data-item="v2">Chuỗi 2 — giải đố cùng NiNi</a></li>
+          <li><a href="#" data-item="v3">Chuỗi 3 — kể chuyện tương tác</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Chọn một chuỗi bên trái…</div>
+      </div>
+    </section>
+
+    <!-- Game -->
+    <section id="page-game" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Game</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="g-match">Ghép cặp</a></li>
+          <li><a href="#" data-item="g-quiz">Đố vui</a></li>
+          <li><a href="#" data-item="g-path">Tìm đường</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Chọn một trò chơi để xem hướng dẫn.</div>
+      </div>
+    </section>
+
+    <!-- Shop -->
+    <section id="page-shop" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Shop</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="sticker">Sticker NiNi</a></li>
+          <li><a href="#" data-item="book-100">Sổ tay giải đố</a></li>
+          <li><a href="#" data-item="tee">Áo thun NiNi</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Chọn sản phẩm ở bên trái…</div>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section id="page-chat" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Bạn bè</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="u-nini">NiNi</a></li>
+          <li><a href="#" data-item="u-milu">MiLu</a></li>
+          <li><a href="#" data-item="u-bibi">BiBi</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Khung chat sẽ hiện ở đây.</div>
+      </div>
+    </section>
+
+    <!-- Notify -->
+    <section id="page-notify" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Tiêu đề thông báo</h3>
+        <ul class="nav-list">
+          <li><a href="#" data-item="n1">Cập nhật phiên bản</a></li>
+          <li><a href="#" data-item="n2">Sự kiện tuần này</a></li>
+        </ul>
+      </div>
+      <div class="col-right" id="detail-box">
+        <div class="glass p-4">Chi tiết thông báo sẽ hiển thị ở đây.</div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="page-settings" hidden class="page-2col">
+      <div class="col-left glass"><h3>Cài đặt</h3></div>
+      <div class="col-right glass"><p>Để trống, bạn cấu hình sau.</p></div>
+    </section>
+
+    <!-- Profile (Hồ sơ) -->
+    <section id="page-profile" hidden class="page-2col">
+      <div class="col-left glass">
+        <h3>Hồ sơ</h3>
+        <p>Thông tin cá nhân (khi đăng nhập) sẽ hiện ở đây.</p>
+      </div>
+      <div class="col-right glass">
+        <h3>Thành tích</h3>
+        <p>XP, xu, vật phẩm (rương gỗ/bạc/vàng, mảnh ghép…).</p>
+      </div>
+    </section>
+
   </main>
 
-  <!-- FAB dự phòng (chỉ 1 cái) -->
-  <button id="fabAuth" class="btn" data-auth="open">Đăng nhập</button>
+  <!-- =========================== MODAL ĐĂNG NHẬP =========================== -->
+  <!-- Lưu ý: backdrop được tạo trong JS; nhưng đặt sẵn element để dễ style -->
+  <div id="authBackdrop" hidden></div>
 
-  <!-- ===== JS ===== -->
-  <!-- CHỈ NẠP 1 LẦN: fb mjs (module) + glue + shell -->
-  <script type="module" src="/public/js/nini-fb.mjs"></script>
-  <script src="/test/js/auth-glue.js"></script>
-  <script src="/test/js/app-shell.js"></script>
+  <div id="authModal" class="auth-modal" hidden aria-modal="true" role="dialog">
+    <div class="auth-card glass">
+      <div class="auth-tabs">
+        <button data-auth="tab" data-tab="login"  class="is-active">Đăng nhập</button>
+        <button data-auth="tab" data-tab="signup">Đăng ký</button>
+        <button data-auth="tab" data-tab="reset">Quên mật khẩu</button>
+        <button class="btn small" data-auth="close" style="margin-left:auto">Đóng</button>
+      </div>
+
+      <!-- Form đơn giản demo: submit sẽ set flag đăng nhập -->
+      <form id="authForm" class="auth-body">
+        <label>Email
+          <input type="email" name="email" required placeholder="you@example.com" />
+        </label>
+        <label>Mật khẩu
+          <input type="password" name="password" required placeholder="••••••" />
+        </label>
+        <button class="btn primary" type="submit" data-action="signin">Đăng nhập</button>
+      </form>
+
+      <p class="note">* Đây là bản demo UI: thay bằng Firebase khi triển khai thật.</p>
+    </div>
+  </div>
+
+  <!-- =============================== SCRIPTS =============================== -->
+  <!-- Chỉ load MỘT file JS quản lý auth + router + delegation -->
+  <script src="auth-flow.js"></script>
 </body>
 </html>
-
-
-
-

@@ -220,3 +220,43 @@ h2, .ttl, .seeall{ color: var(--ink); }
   border-radius:24px;
   box-shadow:0 8px 20px rgba(0,0,0,.1);
 }
+
+/* sidebar profile footer */
+.nini-side{ position: relative; }
+.side-icons{ padding-bottom: 72px; } /* chừa chỗ cho footer */
+.sb-footer{
+  position: absolute;
+  left: 8px; right: 8px; bottom: 8px;
+}
+
+.sb-profile{
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.28);
+  color: #0f172a; font-weight: 700;
+}
+.sb-profile.in{ background: rgba(255,255,255,.28); }
+
+.sb-avatar{
+  width: 36px; height: 36px; border-radius: 999px;
+  overflow: hidden; background: #fff6;
+  display: grid; place-items: center;
+}
+.sb-avatar img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+.sb-name{ flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.sb-menu{
+  position: absolute; left: 8px; right: 8px; bottom: 58px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.15);
+  display: grid;
+}
+.sb-menu button{
+  text-align: left; padding: 10px 12px; border: 0; background: transparent; cursor: pointer;
+}
+.sb-menu button:hover{ background: #f1f5f9; }

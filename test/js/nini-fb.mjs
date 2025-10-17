@@ -138,6 +138,7 @@ async function resetPassword(email) {
   return true;
 }
 
+
 // ======= EXPOSE TO WINDOW =======
 expose({
   onUserChanged,
@@ -149,6 +150,36 @@ expose({
   resetPassword,
 });
 
+/* === Alias về N.fb + tên hàm chuẩn cho UI === */
+(function () {
+  // 1) Đồng bộ sang window.N.fb (UI khác dùng N.fb.*)
+  window.N = window.N || {};
+  window.N.fb = Object.assign({}, window.N.fb || {}, {
+    // alias tên hàm "chuẩn" mà popup/UI cũ đang gọi
+    signInEmailPass : loginEmailPass,   // N.fb.signInEmailPass(email, pass)
+    signInGoogle    : loginGoogle,      // N.fb.signInGoogle()
+    sendSignInEmail : registerEmailOnly,// N.fb.sendSignInEmail(email)
+    sendReset       : resetPassword,    // N.fb.sendReset(email)
+    onAuthChanged   : onUserChanged,    // N.fb.onAuthChanged(cb)
+    currentUser     : currentUser,      // N.fb.currentUser()
+    // thêm alias ngắn (nếu bạn muốn)
+    signIn          : loginEmailPass,
+    signOut         : logout,
+  });
+
+  // 2) Phát sự kiện fb-ready **sau khi** đã có N.fb/NINI.fb
+  document.dispatchEvent(new Event('NiNi:fb-ready'));
+
+  // 3) Phát sự kiện NiNi:auth-changed khi trạng thái đăng nhập đổi
+  //    (để FAB, header… có thể ẩn/hiện theo user)
+  onUserChanged((user) => {
+    window.dispatchEvent(
+      new CustomEvent('NiNi:auth-changed', { detail: user || null })
+    );
+  });
+})();
+/*=========>>>>>>>>>het alias<<<<<<<==============*/
+
 export {
   onUserChanged,
   currentUser,
@@ -158,5 +189,6 @@ export {
   registerEmailOnly,
   resetPassword,
 };
+
 
 

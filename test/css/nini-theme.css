@@ -1,0 +1,349 @@
+﻿/* ==========================================================================
+   NiNi — Funny: THEME CSS (gộp base.css + stage.css)
+   - Reset & variables
+   - Background
+   - Helpers
+   - Glass/Panel
+   - Header (logo + slogan + tabs)
+   - Stage layout (sidebar + storybook + reader)
+   - Buttons, Badge
+   - Modal Auth
+   - Responsive
+   - Safeguards
+   ========================================================================== */
+
+/* ---------------------------- 1) Reset ---------------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+html{
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+               Helvetica Neue, Arial, "Noto Sans", "Liberation Sans", sans-serif,
+               "Apple Color Emoji","Segoe UI Emoji";
+  line-height:1.5;
+  color:#0f172a;
+  background:#0b1f12;                /* fallback nếu mất ảnh nền */
+}
+
+/* ---------------------------- 2) Variables ------------------------------ */
+:root{
+  /* Màu thương hiệu & chữ */
+  --brand:#22c55e;
+  --brand-2:#16a34a;
+  --ink:#0f172a;
+  --muted:#475569;
+  --light:#f8fafc;
+
+  /* Kính & panel */
+  --glass:rgba(255,255,255,.26);
+  --glass-bd:rgba(255,255,255,.25);
+  --panel:rgba(255,255,255,.10);
+  --shadow:0 10px 30px rgba(0,0,0,.25);
+  --radius-lg:24px;
+  --radius-md:14px;
+  --radius-sm:10px;
+
+  /* Nav pill */
+  --pill-bg:#0b2a17cc;
+  --pill-active:#14603a;
+  --pill-text:#e6f6ed;
+
+  /* Buttons */
+  --btn:#10b981;        /* emerald */
+  --btn-active:#0ea5e9; /* sky */
+}
+
+/* ---------------------------- 3) Background ----------------------------- */
+/* Ảnh nền rừng */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-2;
+  background:url("/public/assets/bg/nini_home.webp") center/cover no-repeat;
+  filter:saturate(1.05) contrast(1.02);
+}
+
+/* Lớp mờ gradient giúp chữ nổi hơn */
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:-1;
+  background:
+    radial-gradient(60% 60% at 50% 20%, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 40%),
+    linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.25));
+}
+
+/* ---------------------------- 4) Helpers -------------------------------- */
+.container{ width:min(1200px,92vw); margin:0 auto; }
+.hidden{ display:none !important; }
+.muted{ color:var(--muted); }
+.center{ text-align:center; }
+
+/* ---------------------------- 5) Glass / Panel -------------------------- */
+/* (DUY NHẤT) Định nghĩa kính chung cho toàn site */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(16px) saturate(160%);
+  -webkit-backdrop-filter:blur(16px) saturate(160%);
+  border:1px solid var(--glass-bd);
+  border-radius:var(--radius-lg);
+  box-shadow:0 8px 20px rgba(0,0,0,.10);
+  color:var(--ink);
+}
+
+.panel{
+  background:var(--panel);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--glass-bd);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);
+}
+
+/* ---------------------------- 6) Header --------------------------------- */
+#nini_header{ position:sticky; top:0; z-index:50; }
+
+.nini-header{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:16px;
+  margin:10px auto;
+  padding:10px 14px;
+  max-width:1200px;
+  border-radius:18px;
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  border:1px solid rgba(255,255,255,.28);
+}
+
+/* logo + slogan */
+.nh-left .brand{
+  display:flex; gap:10px; align-items:center;
+  text-decoration:none; color:inherit;
+}
+.brand-logo{ width:36px; height:36px; display:block; }
+.brand-text{ line-height:1.1; display:grid; }
+.brand-name{ font-size:14px; }
+.brand-slogan{ font-size:12px; opacity:.8; }
+
+/* nav pills giữa header */
+.nh-nav{ display:flex; gap:10px; align-items:center; }
+.nh-nav .pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:8px 12px; border-radius:999px;
+  text-decoration:none;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.55);
+  font-weight:700; font-size:13px; color:#0f172a;
+  transition:transform .12s ease, background .12s ease;
+}
+.nh-nav .pill:hover{ transform:translateY(-1px); }
+.nh-nav .pill.active{
+  background:rgba(255,255,255,.9);
+  border-color:rgba(255,255,255,.7);
+}
+
+/* auth dock bên phải */
+.nh-right{ display:flex; align-items:center; gap:8px; }
+
+/* ---------------------------- 7) Stage Layout --------------------------- */
+/* Grid tổng: Sidebar | Middle (Storybook) | Main (Reader/khác) */
+.nini-layout{
+  max-width:1200px;
+  margin:24px auto 48px;
+  padding:0 16px;
+  display:grid;
+  gap:24px;
+  grid-template-columns:88px 320px 1fr;
+}
+
+/* Sidebar: chỉ icon + tooltip */
+.nini-side{
+  padding:14px;
+  background:rgba(20,83,45,.55);
+  color:#f0fdf4;
+  border:1px solid rgba(255,255,255,.20);
+  border-radius:var(--radius-lg);
+  z-index:10; /* tránh tooltip bị che */
+}
+.side-icons{ display:flex; flex-direction:column; gap:14px; padding:6px 0; }
+@media (min-width:1200px){ .side-icons{ gap:16px; } }
+
+.icon-btn{
+  position:relative; display:grid; place-items:center;
+  padding:10px; text-decoration:none;
+}
+.icon-btn .icon{
+  width:44px; height:44px; border-radius:12px;
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.22);
+  border:1px solid var(--glass-bd);
+}
+.icon-btn img{ width:28px; height:28px; object-fit:contain; display:block; }
+
+/* Tooltip */
+.icon-btn .lbl{
+  position:absolute; left:calc(100% + 10px); top:50%;
+  transform:translateY(-50%) translateX(-6px);
+  opacity:0; visibility:hidden; pointer-events:none;
+  white-space:nowrap; z-index:50;
+  background:rgba(17,24,39,.92); color:#fff;
+  font-size:12px; font-weight:700;
+  padding:6px 10px; border-radius:10px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.15);
+}
+.icon-btn .lbl::after{
+  content:""; position:absolute; right:100%; top:50%;
+  transform:translateY(-50%);
+  border:6px solid transparent; border-right-color:rgba(17,24,39,.92);
+}
+.icon-btn:hover .lbl,
+.icon-btn:focus-visible .lbl{
+  opacity:1; visibility:visible; transform:translateY(-50%);
+  transition:opacity .15s ease, transform .15s ease;
+}
+@media (max-width:900px){ .icon-btn .lbl{ display:none; } }
+
+/* Middle: Storybook list */
+.nini-middle{ display:flex; flex-direction:column; gap:24px; }
+.storybook.panel{ padding:18px; }
+.storybook .sb-head{
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:10px; font-weight:800; color:var(--ink);
+}
+.lib-grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+.lib-card{
+  display:flex; gap:12px; align-items:center; cursor:pointer;
+  padding:10px; border-radius:16px;
+  background:rgba(255,255,255,.35);
+  border:1px solid var(--glass-bd);
+  backdrop-filter:blur(12px);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.lib-card:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.08); }
+.lib-cover{ width:64px; height:64px; border-radius:12px; overflow:hidden; background:#f1f5f9; flex:0 0 auto; }
+.lib-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
+.lib-title{ margin:0 0 4px; font:800 16px/1.1 system-ui, sans-serif; color:var(--ink); }
+.lib-author{ margin:0; font:13px/1.35 system-ui, sans-serif; color:#334155; }
+
+/* Main: Reader (trình đọc) */
+.nini-main{ display:flex; flex-direction:column; gap:24px; }
+.panel{ padding:18px; }
+
+.panel-head{ display:flex; align-items:center; justify-content:space-between; margin:4px 2px 12px; }
+.panel-head h2{ margin:0; font-size:18px; color:var(--ink); }
+
+.reader-controls{ display:flex; gap:8px; align-items:center; }
+.btn.small{
+  padding:6px 10px; border-radius:10px; border:1px solid var(--glass-bd);
+  background:rgba(255,255,255,.65); font-weight:700; cursor:pointer;
+}
+.btn.small.active{ background:rgba(255,255,255,.85); }
+
+/* Ảnh 16:9 chuẩn */
+.reader-stage{ display:grid; gap:12px; }
+.reader-image{
+  width:100%; aspect-ratio:16 / 9;
+  border-radius:14px; overflow:hidden; background:rgba(0,0,0,.06);
+}
+.reader-image > img#reader_img{
+  display:block; width:100%; height:100%; object-fit:cover;
+}
+
+.reader-text{
+  font-size:16px; line-height:1.6; color:var(--ink);
+  background:rgba(255,255,255,.55);
+  border:1px solid var(--glass-bd);
+  border-radius:14px; padding:12px;
+}
+.reader-nav{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+.page-indicator{ font-weight:800; color:var(--ink); }
+
+/* ---------------------------- 8) Buttons / Badge ------------------------ */
+.btn{
+  appearance:none; border:0;
+  padding:10px 14px; border-radius:12px;
+  background:var(--btn); color:#052e1a;
+  font-weight:800; cursor:pointer;
+  transition:transform .12s ease, background .12s ease, box-shadow .12s ease;
+  box-shadow:0 6px 18px rgba(16,185,129,.35);
+}
+.btn:hover{ transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); background:var(--btn-active); color:#fff; }
+.btn--ghost{
+  background:transparent; color:#e2fbe8;
+  border:1px solid rgba(255,255,255,.25); box-shadow:none;
+}
+.btn--sm{ padding:6px 10px; border-radius:10px; font-weight:700; }
+
+.badge{
+  display:inline-block; padding:3px 8px; border-radius:999px;
+  background:rgba(255,255,255,.14); color:#eafff7; font-size:.78rem;
+  border:1px solid rgba(255,255,255,.22);
+}
+
+/* ---------------------------- 9) Modal Auth ----------------------------- */
+.modal{ position:fixed; inset:0; display:none; place-items:center; z-index:70; }
+.modal--open{ display:grid; }
+.modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.35); backdrop-filter:blur(2px); }
+.modal__panel{ position:relative; width:min(640px,94vw); padding:18px; }
+.modal__header{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.modal__title{ color:#eafff7; font-weight:800; }
+.modal__close{
+  width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); color:#eafff7; cursor:pointer;
+}
+.form{ display:grid; gap:12px; }
+.input{
+  width:100%; padding:10px 12px; border-radius:10px;
+  background:rgba(255,255,255,.08); color:#eafff7; border:1px solid rgba(255,255,255,.22); outline:none;
+}
+.input::placeholder{ color:#cfeee3; }
+.tabs{
+  display:inline-flex; padding:4px; gap:4px;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22); border-radius:999px;
+}
+.tab{ padding:6px 10px; border-radius:999px; color:#eafff7; cursor:pointer; }
+.tab--active{ background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.5); }
+
+/* Backdrop & blur khi mở auth (tương thích glue hiện có) */
+#authBackdrop[hidden], #authModal[hidden]{ display:none !important; }
+#authBackdrop{
+  position:fixed; inset:0; background:rgb(0 0 0 / .45);
+  backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px);
+  opacity:0; transition:opacity .18s ease; pointer-events:none; z-index:999;
+}
+body.body-auth-open #authBackdrop{ opacity:1; pointer-events:auto; }
+body.body-auth-open .stage,
+body.body-auth-open .nini-layout{ filter:blur(4px); }
+
+/* ---------------------------- 10) Responsive ---------------------------- */
+@media (max-width:1100px){
+  .nini-layout{ grid-template-columns:220px 1fr; }
+  .nini-middle{ grid-column:1 / -1; order:3; }
+}
+@media (max-width:800px){
+  .nini-header{ grid-template-columns:1fr auto; row-gap:8px; }
+  .nh-nav{ grid-column:1 / -1; justify-content:center; flex-wrap:wrap; }
+}
+@media (max-width:700px){
+  .nini-layout{ grid-template-columns:1fr; }
+  .nini-side{ order:1; }
+  .nini-main{ order:2; }
+  .nini-middle{ order:3; }
+}
+
+/* ---------------------------- 11) Safeguards ---------------------------- */
+/* tránh lớp trang trí chặn click */
+.stage::before, .stage::after,
+.panel::before, .panel::after { pointer-events:none !important; }

@@ -161,3 +161,55 @@
 h2, .ttl, .seeall{
   color: #0f172a !important;
 }
+
+/* Ẩn dải tím phía trên */
+.nini-promo { display: none !important; }
+
+/* Layout 3 cột: Sidebar | Storybook | Main */
+.nini-layout{
+  grid-template-columns: 260px 320px 1fr !important;
+}
+
+/* Cột giữa (Storybook) */
+.nini-middle{ display:flex; flex-direction:column; gap:24px; }
+
+/* Panel Storybook kiểu glass */
+.storybook.panel{
+  padding: 18px;
+}
+.storybook .sb-head{
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  font-weight:800; color:#0f172a;
+}
+.storybook .sb-grid{
+  display:grid; gap:14px; grid-template-columns:1fr;
+}
+.sb-card{
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,0.25);
+  border-radius: 18px;
+  padding:14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+}
+.sb-card h4{ margin:0 0 6px; font-size:16px; font-weight:800; color:#0f172a; }
+.sb-card p{ margin:0 0 10px; font-size:13px; color:#334155; }
+.sb-card .btn{
+  display:inline-block; padding:8px 12px; border-radius:12px;
+  background: rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,.4);
+  font-weight:700; color:#0f172a; text-decoration:none;
+}
+
+/* Responsive: dưới 1100px, Storybook xuống dưới Main */
+@media (max-width:1100px){
+  .nini-layout{ grid-template-columns: 220px 1fr !important; }
+  .nini-middle{ grid-column: 1 / -1; order: 3; }
+}
+
+/* Dưới 700px: một cột */
+@media (max-width:700px){
+  .nini-layout{ grid-template-columns: 1fr !important; }
+  .nini-side{ order: 1; }
+  .nini-main{ order: 2; }
+  .nini-middle{ order: 3; }
+}

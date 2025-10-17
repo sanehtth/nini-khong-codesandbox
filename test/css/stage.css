@@ -267,3 +267,7 @@ h2, .ttl, .seeall{
   background: rgba(20,83,45,0.55) !important;
   color:#eafff8;
 }
+/* Khung icon cố định size, không co về 0 */
+.icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; }
+.icon img { width: 22px; height: 22px; display: block; object-fit: contain; }
+

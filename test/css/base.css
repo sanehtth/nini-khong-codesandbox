@@ -190,29 +190,6 @@ body::after{
   cursor: pointer;
 }
 
-/* ---------------------------- Sidebar icon trái ------------------------- */
-.sidebar{
-  position: fixed;
-  left: 14px;
-  top: 110px;
-  display: grid;
-  gap: 12px;
-  z-index: 30;
-}
-.icon-btn{
-  width: 42px; height: 42px;
-  border-radius: 12px;
-  display: grid; place-items: center;
-  background: rgba(255,255,255,.12);
-  border: 1px solid rgba(255,255,255,.2);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  cursor: pointer;
-  transition: transform .12s ease, background .12s ease;
-}
-.icon-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.18); }
-.icon-btn img{ width: 22px; height: 22px; display:block; }
-
 /* ---------------------------- Stage / content layout -------------------- */
 .stage{
   margin: 22px auto 48px;
@@ -371,18 +348,6 @@ body::after{
   border: 1px solid rgba(16,185,129,.5);
 }
 
-/* ---------------------------- Footer (tùy chọn) ------------------------- */
-.footer{
-  width: min(1200px, 94vw);
-  margin: 24px auto 50px;
-  padding: 12px 14px;
-  text-align: center;
-  color: #cdeee3;
-  border-radius: 14px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.16);
-}
-
 /* ---------------------------- Responsive -------------------------------- */
 @media (max-width: 1024px){
   .stage{
@@ -442,5 +407,67 @@ body.body-auth-open .stage { filter: blur(4px); }
 .stage::before, .stage::after,
 .panel::before, .panel::after {
   pointer-events: none !important;
+}
+
+/* ===== Header (logo + slogan + tabs) ===== */
+#nini_header { 
+  position: sticky; top: 0; z-index: 50;  /* nổi trên stage */
+}
+
+/* khung glass gọn, đồng bộ với theme glass */
+.nini-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  margin: 10px auto;
+  padding: 10px 14px;
+  max-width: 1200px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border: 1px solid rgba(255,255,255,.28);
+}
+
+/* logo + text */
+.nh-left .brand {
+  display: flex; gap: 10px; align-items: center;
+  text-decoration: none; color: inherit;
+}
+.brand-logo {
+  width: 36px; height: 36px; display: block;
+}
+.brand-text { line-height: 1.1; display: grid; }
+.brand-name { font-size: 14px; }
+.brand-slogan { font-size: 12px; opacity: .8; }
+
+/* nav pills */
+.nh-nav {
+  display: flex; gap: 10px; align-items: center;
+}
+.nh-nav .pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 12px; border-radius: 999px;
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.55);
+  font-weight: 700; font-size: 13px;
+  color: #0f172a;
+  transition: transform .12s ease, background .12s ease;
+}
+.nh-nav .pill:hover { transform: translateY(-1px); }
+.nh-nav .pill.active {
+  background: rgba(255,255,255,.9);
+  border-color: rgba(255,255,255,.7);
+}
+
+/* khu auth ở bên phải (nút đăng nhập/ avatar) */
+.nh-right { display: flex; align-items: center; gap: 8px; }
+
+/* mobile */
+@media (max-width: 800px) {
+  .nini-header { grid-template-columns: 1fr auto; row-gap: 8px; }
+  .nh-nav { grid-column: 1 / -1; justify-content: center; flex-wrap: wrap; }
 }
 

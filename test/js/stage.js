@@ -324,42 +324,10 @@
 
             <!-- Search + Quick + Recent -->
             <section class="panel glass">
-              <div class="search">
-                <input type="text" placeholder="Mô tả ý tưởng, mình sẽ giúp bạn tạo..." />
-                <span class="ico">🔎</span>
-              </div>
-
-              <div class="quick">
-                ${[
-                  "Instagram Post","Sheet","Doc","Whiteboard",
-                  "Presentation","Social media","Photo editor","Video"
-                ].map(l => `
-                  <button class="qa">
-                    <span class="qa-ico">🧩</span>
-                    <span class="qa-txt">${l}</span>
-                  </button>
-                `).join("")}
-              </div>
-
-              <div class="panel-head">
-                <h2>Recent designs</h2>
-                <a href="#/designs" class="seeall">Xem tất cả ›</a>
-              </div>
-              <div id="recent_grid" class="recents"></div>
+              
             </section>
 
-            <!-- Assignments -->
-            <section class="panel glass">
-              <div class="panel-head">
-                <h2>Assignments</h2>
-                <a href="#/classwork" class="seeall">Tới Classwork ›</a>
-              </div>
-              <div class="empty">
-                <h3>Thư giãn thôi</h3>
-                <p>Khi giáo viên giao bài, bài tập sẽ xuất hiện ở đây và trong thông báo.</p>
-              </div>
-            </section>
-          </main>
+           </main>
         </div>
       </div>
     `;
@@ -412,5 +380,6 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+
 
 

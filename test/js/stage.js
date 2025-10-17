@@ -145,101 +145,117 @@
   }
 
   function bindReaderBehavior(holder, meta, bookData){
-    // state của trình đọc
-    const state = {
-      idx: 0,
-      lang: "vi",
-      audio: null,
-      pages: Array.isArray(bookData.pages) ? bookData.pages : []
-    };
+  const state = {
+    idx: 0,
+    lang: "vi",
+    audio: null,
+    pages: Array.isArray(bookData.pages) ? bookData.pages : []
+  };
 
-    const imgEl   = holder.querySelector("#reader_img");
-    const textEl  = holder.querySelector("#reader_text");
-    const pageEl  = holder.querySelector("#reader_page");
-    const btnPrev = holder.querySelector(".prev");
-    const btnNext = holder.querySelector(".next");
-    const btnAudio= holder.querySelector(".audio");
-    const btnLangs= holder.querySelectorAll(".lang");
+  const imgEl   = holder.querySelector("#reader_img");
+  const textEl  = holder.querySelector("#reader_text");
+  const pageEl  = holder.querySelector("#reader_page");
+  const btnPrev = holder.querySelector(".prev");
+  const btnNext = holder.querySelector(".next");
+  const btnAudio= holder.querySelector(".audio");
+  const btnLangs= holder.querySelectorAll(".lang");
 
-    function clampIdx(i){
-      const last = Math.max(0, state.pages.length - 1);
-      return Math.min(last, Math.max(0, i));
-    }
-    function pageObj(){
-      return state.pages[state.idx] || {};
-    }
-    function asset(keyVi, keyEn){
-      const p = pageObj();
-      return state.lang === "vi" ? (p[keyVi] || "") : (p[keyEn] || "");
-    }
+  const clampIdx = i => Math.min(Math.max(i, 0), Math.max(0, state.pages.length - 1));
+  const pageObj  = () => state.pages[state.idx] || {};
 
-    function stopAudio(){
-      if (state.audio){
-        state.audio.pause();
-        state.audio.currentTime = 0;
-        state.audio = null;
-      }
-    }
-
-    function renderPage(){
-      const imgSrc = asset("L_image_vi", "L_image_en");
-      const text   = asset("noidung_vi", "noidung_en");
-
-      if (imgSrc) { imgEl.src = imgSrc; imgEl.style.display = "block"; }
-      else        { imgEl.removeAttribute("src"); imgEl.style.display = "none"; }
-
-      textEl.innerText = text || "";
-      pageEl.textContent = `${state.idx+1}/${Math.max(1,state.pages.length)}`;
-
-      // update active lang button
-      btnLangs.forEach(b => b.classList.toggle("active", b.dataset.lang === state.lang));
-
-      // khóa nút đầu/cuối
-      btnPrev.disabled = (state.idx === 0);
-      btnNext.disabled = (state.idx >= state.pages.length - 1);
-    }
-
-    // NAV
-    btnPrev.addEventListener("click", () => { stopAudio(); state.idx = clampIdx(state.idx - 1); renderPage(); });
-    btnNext.addEventListener("click", () => { stopAudio(); state.idx = clampIdx(state.idx + 1); renderPage(); });
-
-    // LANG
-    btnLangs.forEach(b=>{
-      b.addEventListener("click", ()=>{
-        stopAudio();
-        state.lang = b.dataset.lang === "en" ? "en" : "vi";
-        renderPage();
-      });
-    });
-
-    // AUDIO
-    btnAudio.addEventListener("click", ()=>{
-      // toggle play/pause
-      if (state.audio){
-        stopAudio();
-        return;
-      }
-      const src = asset("L_sound_vi", "L_sound_en");
-      if (!src) return;
-      try{
-        state.audio = new Audio(src);
-        state.audio.addEventListener("ended", ()=>{ state.audio=null; });
-        state.audio.play().catch(()=>{ state.audio=null; });
-      }catch(e){ state.audio=null; }
-    });
-
-    // KEYBOARD (← →)
-    holder.addEventListener("keydown", (ev)=>{
-      if (ev.key === "ArrowLeft"){ btnPrev.click(); }
-      if (ev.key === "ArrowRight"){ btnNext.click(); }
-    });
-
-    // render đầu tiên
-    renderPage();
-    // focus để dùng phím
-    holder.tabIndex = 0;
-    holder.focus();
+  // ---- NEW: helper dò nhiều biến thể key ----
+  const pick = (obj, keys) => {
+    for (const k of keys) if (obj && obj[k]) return obj[k];
+    return "";
+  };
+  function imageFor(lang) {
+    const p = pageObj();
+    const alt = lang === "vi" ? "vn" : "en";
+    return pick(p, [
+      `L_image_${lang}`, `image_${lang}`, `img_${lang}`,
+      `L_image_${alt}`,  `image_${alt}`,  `img_${alt}`, // phòng khi file chỉ có 1 biến thể
+      "L_image", "image", "img", "L_image_pr"           // một số tên bạn đang dùng
+    ]);
   }
+  function soundFor(lang) {
+    const p = pageObj();
+    const alt = lang === "vi" ? "vn" : "en";
+    return pick(p, [
+      `L_sound_${lang}`, `sound_${lang}`, `audio_${lang}`,
+      `L_sound_${alt}`,  `sound_${alt}`,  `audio_${alt}`,
+      "L_sound", "sound", "audio"
+    ]);
+  }
+  function textFor(lang) {
+    const p = pageObj();
+    const alt = lang === "vi" ? "vn" : "en";
+    return pick(p, [
+      `noidung_${lang}`, `content_${lang}`, `text_${lang}`,
+      `noidung_${alt}`,  `content_${alt}`,  `text_${alt}`,
+      "noidung", "content", "text"
+    ]);
+  }
+  // -------------------------------------------
+
+  function stopAudio(){
+    if (state.audio){
+      state.audio.pause();
+      state.audio.currentTime = 0;
+      state.audio = null;
+    }
+  }
+
+  function renderPage(){
+    const imgSrc = imageFor(state.lang);
+    const text   = textFor(state.lang);
+
+    if (imgSrc) { imgEl.src = imgSrc; imgEl.style.display = "block"; }
+    else        { imgEl.removeAttribute("src"); imgEl.style.display = "none"; }
+
+    // Giữ xuống dòng đúng như trong JSON
+    textEl.textContent = text || "";
+
+    pageEl.textContent = `${state.idx+1}/${Math.max(1,state.pages.length)}`;
+    btnLangs.forEach(b => b.classList.toggle("active", b.dataset.lang === state.lang));
+    btnPrev.disabled = (state.idx === 0);
+    btnNext.disabled = (state.idx >= state.pages.length - 1);
+  }
+
+  // NAV
+  btnPrev.addEventListener("click", () => { stopAudio(); state.idx = clampIdx(state.idx - 1); renderPage(); });
+  btnNext.addEventListener("click", () => { stopAudio(); state.idx = clampIdx(state.idx + 1); renderPage(); });
+
+  // LANG
+  btnLangs.forEach(b=>{
+    b.addEventListener("click", ()=>{
+      stopAudio();
+      state.lang = b.dataset.lang === "en" ? "en" : "vi";
+      renderPage();
+    });
+  });
+
+  // AUDIO
+  btnAudio.addEventListener("click", ()=>{
+    if (state.audio){ stopAudio(); return; }
+    const src = soundFor(state.lang);
+    if (!src) return;
+    try{
+      state.audio = new Audio(src);
+      state.audio.addEventListener("ended", ()=>{ state.audio=null; });
+      state.audio.play().catch(()=>{ state.audio=null; });
+    }catch(e){ state.audio=null; }
+  });
+
+  holder.addEventListener("keydown", (ev)=>{
+    if (ev.key === "ArrowLeft"){ btnPrev.click(); }
+    if (ev.key === "ArrowRight"){ btnNext.click(); }
+  });
+
+  renderPage();
+  holder.tabIndex = 0;
+  holder.focus();
+}
+
 
   async function openBookReader(root, bookMeta){
     const mainHolder = root.querySelector("#detail-holder");
@@ -384,3 +400,4 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+

@@ -319,3 +319,25 @@ h2, .ttl, .seeall{
 
 /* Tooltip label khi hover (nếu bạn đang dùng) vẫn giữ nguyên */
 
+/* Khoảng cách giữa các icon ở sidebar */
+.side-icons{
+  display: flex;                 /* xếp dọc mềm */
+  flex-direction: column;
+  gap: 14px;                     /* <-- chỉnh 12–18px tùy bạn */
+  padding: 6px 0;
+}
+
+/* Nếu muốn giãn hơn trên màn hình lớn */
+@media (min-width: 1200px){
+  .side-icons{ gap: 16px; }
+}
+
+/* Trường hợp CSS cũ override gap, backup bằng margin */
+.side-icons > .icon-btn + .icon-btn{
+  margin-top: 14px;              /* fallback nếu cần */
+}
+
+/* Căn giữa icon theo chiều ngang trong cột hẹp */
+.icon-btn{ justify-content: center; }
+
+

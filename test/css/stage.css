@@ -267,7 +267,23 @@ h2, .ttl, .seeall{
   background: rgba(20,83,45,0.55) !important;
   color:#eafff8;
 }
-/* Khung icon cố định size, không co về 0 */
-.icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; }
-.icon img { width: 22px; height: 22px; display: block; object-fit: contain; }
+/* === ENHANCE: Sidebar icon-only, khung to hơn === */
+.nini-layout{ grid-template-columns: 88px 320px 1fr !important; }
+
+.icon-btn{ justify-content:center; padding:10px; gap:10px; }
+.icon-btn .lbl{ display:none; }             /* icon-only */
+.icon-btn .icon{
+  width: 44px; height: 44px;                /* khung to hơn */
+  border-radius: 12px;
+  background: rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.28);
+  display: grid; place-items: center;
+}
+.icon-btn img{
+  width: 28px; height: 28px;                /* ảnh to hơn */
+  object-fit: contain; display: block;
+}
+.side-icons{ gap: 12px; }                   /* giãn đều hơn */
+
+
 

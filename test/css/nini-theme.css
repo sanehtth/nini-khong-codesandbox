@@ -386,3 +386,14 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 }
 
 /* Tooltip giữ nguyên như cũ */
+
+/* ==== Header brand logo: ép vuông, không méo ==== */
+.brand-logo{
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;   /* tuỳ: 0 (vuông), 8-10 (bo góc) */
+  object-fit: cover;     /* fill khung, không méo */
+  aspect-ratio: 1 / 1;   /* khoá tỉ lệ 1:1 */
+  display: block;
+  background: rgba(255,255,255,.2);
+}

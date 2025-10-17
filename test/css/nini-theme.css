@@ -389,7 +389,7 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 
 /* ==== Header brand logo: ép vuông, không méo ==== */
 .brand-logo{
-  width: 80px;
+  width: 95px;
   height: 40px;
   border-radius: 1px;   /* tuỳ: 0 (vuông), 8-10 (bo góc) */
   object-fit: cover;     /* fill khung, không méo */
@@ -397,5 +397,6 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   display: block;
   background: rgba(255,255,255,.2);
 }
+
 
 

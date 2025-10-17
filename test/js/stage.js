@@ -10,14 +10,18 @@
       <span class="plus">+</span>
       <span class="create">Tạo mới</span>
     </div>
-    <nav class="side-nav">
-      <button class="item active">Trang chủ</button>
-      <button class="item" data-nav="classwork">Classwork</button>
-      <button class="item">Projects</button>
-      <button class="item">Templates</button>
-      <button class="item">Brand</button>
-      <button class="item">More</button>
-    </nav>
+      // đặt ngay trên renderStage để dễ chỉnh
+  const SIDE_ITEMS = [
+    { key: "storybook", label: "Storybook", icon: "/public/assets/icons/book.webp", href: "#/home" },
+    { key: "video",     label: "Video",     icon: "/public/assets/icons/video.webp", href: "#/video" },
+    { key: "game",      label: "Game",      icon: "/public/assets/icons/game.webp",  href: "#/game"  },
+    { key: "shop",      label: "Shop",      icon: "/public/assets/icons/shop.webp",  href: "#/shop"  },
+    { key: "note",      label: "Thông báo", icon: "/public/assets/icons/note.webp",  href: "#/notify"},
+    { key: "chat",      label: "Chat",      icon: "/public/assets/icons/chat.webp",  href: "#/chat"  },
+    { key: "setting",   label: "Cài đặt",   icon: "/public/assets/icons/setting.webp", href: "#/settings" },
+    { key: "user",      label: "Cá nhân",   icon: "/public/assets/icons/user.webp", href: "#/profile" },
+  ];
+
   </aside>
 
   <!-- Storybook (cột giữa) -->
@@ -120,4 +124,5 @@
   N.mountOnce('#stage', renderStage);
   N.mountOnce('#season_nav', renderSeasonsNav);
 })();
+
 

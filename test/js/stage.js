@@ -154,22 +154,22 @@
    * ======================================================= */
 
   // 3.1) Render toàn trang (layout) + bind các sự kiện sidebar
-  function renderStage(root) {
-    root.innerHTML = layoutHTML();
+ function renderStage(root) {
+  root.innerHTML = layoutHTML();
 
-    // Bắt sự kiện sidebar
-    const bar = root.querySelector('#side_icons');
-    bar.addEventListener('click', async (e) => {
-      const a = e.target.closest('.icon-btn');
-      if (!a) return;
+  // 👉 Thêm dòng này để tự tải danh sách Storybook khi vào trang
+  loadLibraryAndRenderList(root);
 
-      const key = a.dataset.key;
-      if (key === 'storybook') {
-        await loadLibraryAndRenderList(root);
-      }
-      // các key khác (video, game, …) hiện chưa xử lý
-      e.preventDefault();
-    });
+  const bar = root.querySelector('#side_icons');
+  bar.addEventListener('click', async (e) => {
+    const a = e.target.closest('.icon-btn');
+    if (!a) return;
+    const key = a.dataset.key;
+    if (key === 'storybook') {
+      await loadLibraryAndRenderList(root);
+    }
+    e.preventDefault();
+  });
 
     // Nếu muốn tự động tải Storybook khi vào trang: bật dòng dưới
     // loadLibraryAndRenderList(root);
@@ -339,3 +339,4 @@
   N.mountOnce('#stage', renderStage);
   // ----- END MOUNT -----
 })();
+

@@ -1,205 +1,194 @@
 /* =========================================================
-   NiNi — Canva-like Home (no Tailwind)
-   Compact CSS • Clean modules • With notes for theming
+   NiNi — Stage styles (tối giản, không đè header)
+   Quy ước: luôn prefix bằng .nini- | .storybook | .story-reader
    ========================================================= */
 
-/* ========== 1) Tokens / Variables (điểm chỉnh theme) ========== */
+/* ---------- 0) Biến dùng chung (tuỳ chọn) ---------- */
 :root{
-  /* NOTE: thay các màu dưới đây để đổi tone theme */
-  --bg1:#eef2ff; --bg2:#f3e8ff; --bg3:#e6fffb;
-  --glass: rgba(255,255,255,0.72);
-  --ring: rgba(0,0,0,.06);
-  --shadow: 0 10px 30px rgba(0,0,0,.07);
-  --accent:#0ea5a5;
-  --accent-2:#059669;
-  --ink:#0f172a;
-  --ink-sub:#334155;
+  --ring:    rgba(255,255,255,.28);
+  --glass:   rgba(255,255,255,.26);
+  --glass-2: rgba(255,255,255,.20);
+  --ink:     #0f172a;
 }
 
-/* ========== 2) Canvas / Background ========== */
-/* NOTE: Giữ nền rừng (tắt gradient mặc định) */
-.nini-canvas{ background:none !important; min-height:100vh; }
+/* ---------- 1) Nền canvas ----------
+   NOTE: giữ ảnh rừng của bạn, không áp gradient ở đây  */
+.nini-canvas{ background:none; min-height:100vh; }
 
-/* ========== 3) Glass system ========== */
-/* NOTE: Glass chung; nhẹ – nhìn xuyên nền rừng */
+/* ---------- 2) Khung kính (glass) ----------
+   NOTE: dùng chung cho panel/khối; chỉnh độ trong tại đây */
 .glass{
-  background: rgba(255,255,255,.28) !important;
+  background: var(--glass);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255,255,255,.25);
-  box-shadow: 0 8px 20px rgba(0,0,0,.10);
+  border: 1px solid var(--ring);
   border-radius: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.10);
+  color: var(--ink);
 }
-/* Panel glass mặc định (nhẹ hơn sidebar) */
-.panel.glass{ background: rgba(255,255,255,.25) !important; color:var(--ink); }
 
-/* ========== 4) Layout tổng ========== */
-/* 3 cột: Sidebar (icon) | Middle (Storybook) | Main */
+/* ---------- 3) Grid tổng: Sidebar | Middle | Main ---------- */
 .nini-layout{
-  max-width:1200px; margin:24px auto; padding:0 16px;
-  display:grid; gap:24px;
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 16px;
+  display: grid;
+  gap: 24px;
   grid-template-columns: 88px 320px 1fr;
 }
+
+/* Responsive cơ bản */
 @media (max-width:1100px){
-  .nini-layout{ grid-template-columns: 220px 1fr !important; }
-  .nini-middle{ grid-column:1 / -1; order:3; }
+  .nini-layout{ grid-template-columns: 220px 1fr; }
+  .nini-middle{ grid-column: 1 / -1; order: 3; }
 }
 @media (max-width:700px){
-  .nini-layout{ grid-template-columns: 1fr !important; }
-  .nini-side{ order:1; } .nini-main{ order:2; } .nini-middle{ order:3; }
+  .nini-layout{ grid-template-columns: 1fr; }
+  .nini-side{ order:1; }
+  .nini-main{ order:2; }
+  .nini-middle{ order:3; }
 }
 
-/* ========== 5) Sidebar (chỉ icon + tooltip) ========== */
-.nini-side{ padding:14px; z-index:10; } /* tránh tooltip bị che */
-.nini-side.glass{
-  /* NOTE: màu nền sidebar – chỉnh ở đây */
-  background: rgba(20,83,45,.55) !important; color:#f0fdf4;
-  border: 1px solid rgba(255,255,255,.2);
+/* ---------- 4) Sidebar: chỉ icon + tooltip ----------
+   NOTE: màu đậm hơn để dễ đọc trên nền rừng */
+.nini-side{
+  padding: 14px;
+  background: rgba(20,83,45,.55);
+  color: #f0fdf4;
+  border: 1px solid var(--glass-2);
+  z-index: 10; /* tránh tooltip bị che */
 }
-.side-icons{ display:flex; flex-direction:column; gap:14px; padding:6px 0; }
-@media (min-width:1200px){ .side-icons{ gap:16px; } }
 
-.icon-btn{ position:relative; display:grid; place-items:center; padding:10px; background:transparent!important; border:none!important; box-shadow:none!important; }
+.side-icons{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 0;
+}
+@media (min-width:1200px){ .side-icons{ gap: 16px; } }
+
+.icon-btn{
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  text-decoration: none;
+}
 .icon-btn .icon{
-  width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
-  background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.28);
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.22);
+  border: 1px solid var(--ring);
 }
-.icon-btn img{ width:28px; height:28px; object-fit:contain; display:block; }
-/* Tooltip */
+.icon-btn img{
+  width: 28px; height: 28px; object-fit: contain; display: block;
+}
+
+/* Tooltip label khi hover */
 .icon-btn .lbl{
-  position:absolute; left:calc(100% + 10px); top:50%;
-  transform:translateY(-50%) translateX(-6px);
-  opacity:0; visibility:hidden; pointer-events:none; white-space:nowrap; z-index:50;
-  background:rgba(17,24,39,.92); color:#fff; font-size:12px; font-weight:700;
-  padding:6px 10px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.25);
-  border:1px solid rgba(255,255,255,.15);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  white-space: nowrap;
+  background: rgba(17,24,39,.92);
+  color: #fff; font-size: 12px; font-weight: 700;
+  padding: 6px 10px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
 }
 .icon-btn .lbl::after{
-  content:""; position:absolute; right:100%; top:50%; transform:translateY(-50%);
-  border:6px solid transparent; border-right-color:rgba(17,24,39,.92);
+  content:""; position:absolute; right:100%; top:50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: rgba(17,24,39,.92);
 }
-.icon-btn:hover .lbl, .icon-btn:focus-visible .lbl{
-  opacity:1; visibility:visible; transform:translateY(-50%) translateX(0);
-  transition:opacity .15s, transform .15s;
+.icon-btn:hover .lbl,
+.icon-btn:focus-visible .lbl{
+  opacity: 1; visibility: visible; transform: translateY(-50%);
+  transition: opacity .15s ease, transform .15s ease;
 }
 @media (max-width:900px){ .icon-btn .lbl{ display:none; } }
 
-/* ========== 6) Middle column (Storybook list) ========== */
-.nini-middle{ display:flex; flex-direction:column; gap:24px; }
-.storybook.panel{ padding:18px; }
-.storybook .sb-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; font-weight:800; color:var(--ink); }
+/* ---------- 5) Cột giữa: Storybook list ---------- */
+.storybook.panel{ padding: 18px; }
+.storybook .sb-head{
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px; font-weight: 800; color: var(--ink);
+}
 
-.lib-grid{ display:grid; gap:14px; grid-template-columns:1fr; }
+.lib-grid{ display: grid; gap: 14px; grid-template-columns: 1fr; }
 .lib-card{
-  display:flex; gap:12px; align-items:center; cursor:pointer; padding:10px; border-radius:16px;
-  background:rgba(255,255,255,.35); border:1px solid rgba(255,255,255,.25); backdrop-filter: blur(12px);
+  display: flex; gap: 12px; align-items: center;
+  cursor: pointer;
+  padding: 10px; border-radius: 16px;
+  background: rgba(255,255,255,.35);
+  border: 1px solid var(--ring);
+  backdrop-filter: blur(12px);
+  transition: transform .12s ease, box-shadow .12s ease;
 }
-.lib-card:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.08); }
-.lib-cover{ width:64px; height:64px; border-radius:12px; overflow:hidden; background:#f1f5f9; flex:0 0 auto; }
-.lib-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
-.lib-title{ margin:0 0 4px; font-size:16px; font-weight:800; color:var(--ink); }
-.lib-author{ margin:0; font-size:13px; color:var(--ink-sub); }
+.lib-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+.lib-cover{
+  width: 64px; height: 64px; flex: 0 0 auto;
+  border-radius: 12px; overflow: hidden; background: #f1f5f9;
+}
+.lib-cover img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+.lib-title{ margin: 0 0 4px; font: 800 16px/1.1 system-ui, sans-serif; color: var(--ink); }
+.lib-author{ margin: 0; font: 13px/1.35 system-ui, sans-serif; color: #334155; }
 
-/* ========== 7) Main column (panels + search + cards) ========== */
-.nini-main{ display:flex; flex-direction:column; gap:24px; }
-.panel{ padding:18px; }
-.panel-head{ display:flex; align-items:center; justify-content:space-between; margin:8px 2px 4px; }
-.panel-head h2{ margin:0; font-size:18px; }
-.seeall{ color:#047857; font-weight:700; text-decoration:none; } .seeall:hover{ text-decoration:underline; }
+/* ---------- 6) Cột phải: Reader (trình đọc) ---------- */
+.nini-main{ display: flex; flex-direction: column; gap: 24px; }
+.panel{ padding: 18px; }
 
-/* Search */
-.search{ position:relative; }
-.search input{
-  width:100%; padding:12px 14px 12px 40px; border-radius:16px;
-  background:rgba(255,255,255,.7); border:1px solid rgba(255,255,255,.4);
-  color:var(--ink); box-shadow:0 4px 10px rgba(0,0,0,.03);
+.panel-head{
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 4px 2px 12px;
 }
-.search .ico{ position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#64748b; }
+.panel-head h2{ margin: 0; font-size: 18px; color: var(--ink); }
 
-/* Quick actions */
-.quick{ margin-top:14px; display:grid; gap:12px; grid-template-columns:repeat(8,minmax(100px,1fr)); }
-@media (max-width:1100px){ .quick{ grid-template-columns:repeat(6,1fr); } }
-@media (max-width:800px){  .quick{ grid-template-columns:repeat(4,1fr); } }
-@media (max-width:560px){  .quick{ grid-template-columns:repeat(2,1fr); } }
+.reader-controls{ display: flex; gap: 8px; align-items: center; }
+.btn.small{
+  padding: 6px 10px; border-radius: 10px; border: 1px solid var(--ring);
+  background: rgba(255,255,255,.65); font-weight: 700; cursor: pointer;
+}
+.btn.small.active{ background: rgba(255,255,255,.85); }
 
-.qa{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  height:84px; border-radius:16px; background:rgba(255,255,255,.65);
-  border:1px solid rgba(255,255,255,.35); box-shadow:var(--shadow);
+/* --- khung ảnh 16:9 chuẩn --- */
+.reader-stage{ display: grid; gap: 12px; }
+.reader-image{
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0,0,0,.06);
 }
-.qa-ico{ font-size:20px; }
-.qa-txt{ margin-top:6px; font-size:12px; font-weight:600; color:var(--ink-sub); }
+.reader-image > img#reader_img{
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;       /* fill khung, crop nhẹ cho đẹp */
+}
 
-/* Recents cards */
-.recents{ margin-top:12px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-@media (max-width:900px){ .recents{ grid-template-columns:repeat(2,1fr); } }
-@media (max-width:560px){ .recents{ grid-template-columns:1fr; } }
-.card{
-  overflow:hidden; border-radius:18px; background:rgba(255,255,255,.35);
-  backdrop-filter: blur(12px); border:1px solid rgba(255,255,255,.25); box-shadow:var(--shadow);
-}
-.card .thumb{ aspect-ratio:16/9; background:#f1f5f9; overflow:hidden; }
-.card img{ width:100%; height:100%; object-fit:cover; display:block; }
-.card .meta{ padding:12px; }
-.card .ttl{ margin:0; font-weight:700; color:var(--ink) !important; }
-.card .sub{ margin:6px 0 0; font-size:12px; color:#64748b; }
-
-/* Empty state */
-.empty{ border:1px dashed #cbd5e1; border-radius:16px; padding:28px; background:#fff; text-align:center; }
-.empty h3{ margin:0 0 6px; }
-
-/* ========== 8) Story detail (preview nhỏ – nếu dùng) ========== */
-.story-detail .lib-detail{ display:grid; grid-template-columns:120px 1fr; gap:16px; }
-.story-detail .lib-detail-cover{ width:120px; height:160px; border-radius:14px; overflow:hidden; background:#f1f5f9; }
-.story-detail .lib-detail-cover img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-/* ========== 9) Khung ảnh chuẩn (dùng lại mọi nơi) ========== */
-/* NOTE: dùng cho Reader, card cover… để ảnh luôn đầy khung chuẩn */
-.media-frame{
-  width:100%;
-  aspect-ratio:16 / 9;              /* NOTE: đổi tỉ lệ tại đây */
-  border-radius:14px;
-  overflow:hidden;
-  background:rgba(0,0,0,.06);
-  position:relative;
-}
-.media-frame > img{
-  display:block; width:100%; height:100%;
-  max-width:none; object-fit:cover;  /* NOTE: đổi sang contain nếu không muốn crop */
-}
-/* Fallback cho trình duyệt không có aspect-ratio */
-@supports not (aspect-ratio: 16 / 9) {
-  .media-frame{ height:0; padding-top:56.25%; }
-  .media-frame > img{ position:absolute; inset:0; }
-}
-/* Biến thể không crop */
-.media-frame.fit-contain > img{ object-fit:contain; background:#fff; }
-
-/* ========== 10) Reader (cột phải) – dùng khung chuẩn ========== */
-.story-reader .reader-stage{ display:grid; gap:12px; }
-/* Dùng khung chuẩn cho ảnh */
-.story-reader .reader-image{
-  width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:rgba(0,0,0,.06);
-}
-.story-reader .reader-image > img{
-  display:block; width:100%; height:100%; max-width:none; object-fit:cover;
-}
-@supports not (aspect-ratio: 16 / 9) {
-  .story-reader .reader-image{ height:0; padding-top:56.25%; position:relative; }
-  .story-reader .reader-image > img{ position:absolute; inset:0; }
-}
-.story-reader .reader-controls{ display:flex; gap:8px; align-items:center; }
-.story-reader .btn.small{ padding:6px 10px; border-radius:10px; font-weight:700; }
-.story-reader .btn.small.active{ background:rgba(255,255,255,.85); }
 .reader-text{
-  font-size:16px; line-height:1.6; color:var(--ink);
-  background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.35);
-  padding:12px; border-radius:14px;
+  font-size: 16px; line-height: 1.6; color: var(--ink);
+  background: rgba(255,255,255,.55);
+  border: 1px solid var(--ring);
+  border-radius: 14px;
+  padding: 12px;
 }
-.reader-nav{ display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
-.page-indicator{ font-weight:800; color:var(--ink); }
 
-/* ========== 11) Misc ========== */
-h2, .ttl, .seeall{ color:var(--ink) !important; }
-.body-auth-open .nini-canvas{ filter: blur(2px) brightness(.98); }
-.nini-promo{ display:none !important; } /* ẩn dải tím mặc định */
+/* Điều hướng trang */
+.reader-nav{
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px;
+}
+.page-indicator{ font-weight: 800; color: var(--ink); }
+
+/* ---------- 7) Tiện ích nhỏ ---------- */
+h2, .ttl, .seeall{ color: var(--ink); }
+.nini-promo{ display: none !important; } /* nếu có dải promo cũ */

@@ -218,5 +218,30 @@ h2, .ttl, .seeall{ color:#0f172a !important; }  /* tăng tương phản chữ */
   max-width: none;
 }
 
+/* ==== Reader image: full width 16:9 ==== */
+.story-reader .reader-stage{
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.story-reader .reader-image{
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  margin: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  background: rgba(0,0,0,.06) !important;
+}
+
+/* Ảnh fill toàn bộ khung 16:9 */
+.story-reader .reader-image > img#reader_img{
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover !important;   /* cover cho “đầy khung” */
+  border-radius: 0 !important;    /* bo góc đã do .reader-image quản */
+}
+
 
 

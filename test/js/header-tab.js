@@ -1,6 +1,6 @@
-﻿/* ===== NiNi — Header Tabs (logo+slogan + Storybook/Video/Game/Shop) =====
+﻿/* ===== NiNi — Header Tabs (logo+slogan + Gioithieu/Luatchoi/Diandan/Lienhe) =====
    - Render header vào #nini_header
-   - Điều hướng bằng hash: #/story | #/video | #/game | #/shop
+   - Điều hướng bằng hash: #/Gioithieu | #/Luatchoi | #/Diendan | #/Lienhe
    - Render nội dung vào khung card ở giữa (tự tạo nếu chưa có)
 =========================================================================== */
 
@@ -10,10 +10,10 @@
   N._wiredHeaderTabs = true;
 
   const ROUTES = {
-    gioithieu : { title: 'Giới thiệu', hash: '#/gioithieu' },
-    luatchoi : { title: 'Luật chơi',      hash: '#/luatchoi' },
-    diendan  : { title: 'Diễn đàn',       hash: '#/diendan'  },
-    Lienhe  : { title: 'Liên hệ',       hash: '#/lienhe'  },
+    Gioithieu : { title: 'Giới thiệu', hash: '#/Gioithieu' },
+    Luatchoi : { title: 'Luật chơi',      hash: '#/Luatchoi' },
+    Diendan  : { title: 'Diễn đàn',       hash: '#/Diendan'  },
+    Lienhe  : { title: 'Liên hệ',       hash: '#/Lienhe'  },
   };
 
   // ---------- ensure stage card ----------
@@ -43,16 +43,16 @@
 
     root.innerHTML = `
       <div class="bar">
-        <a class="brand" href="/#/story" title="NiNi — Funny">
+        <a class="brand" href="/#/Gioithieu" title="NiNi — Funny">
           <span class="logo" aria-hidden="true"></span>
           <span class="slogan">chơi mê ly, bứt phá tư duy</span>
         </a>
 
         <nav class="tabs" aria-label="NiNi sections">
-          <a class="tab" data-tab="gioithieu" href="${ROUTES.gioithieu.hash}">Gioi thieu</a>
-          <a class="tab" data-tab="luatchoi" href="${ROUTES.luatchoi.hash}">Luat choi</a>
-          <a class="tab" data-tab="diendan"  href="${ROUTES.diendan.hash}">Dien dan</a>
-          <a class="tab" data-tab="lienhe"  href="${ROUTES.lienhe.hash}">Lien he</a>
+          <a class="tab" data-tab="Gioithieu" href="${ROUTES.Gioithieu.hash}">Gioi thieu</a>
+          <a class="tab" data-tab="Luatchoi" href="${ROUTES.Luatchoi.hash}">Luat choi</a>
+          <a class="tab" data-tab="Diendan"  href="${ROUTES.Giendan.hash}">Dien dan</a>
+          <a class="tab" data-tab="Lienhe"  href="${ROUTES.Lienhe.hash}">Lien he</a>
         </nav>
       </div>
     `;
@@ -60,9 +60,9 @@
 
   // ---------- view templates ----------
   const TPL = {
-    story(){
+    Gioithieu(){
       return `
-        <h2>📖 Storybook</h2>
+        <h2>📖 Giới thiệu</h2>
         <div class="grid cols-2">
           <div class="card">
             <h3>Chiến binh rừng xanh</h3>
@@ -77,9 +77,9 @@
         </div>
       `;
     },
-    video(){
+    Luatchoi(){
       return `
-        <h2>🎬 Video</h2>
+        <h2>🎬 Luật chơi</h2>
         <div class="grid cols-2">
           <div class="video-wrap">
             <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video 1" allowfullscreen></iframe>
@@ -90,9 +90,9 @@
         </div>
       `;
     },
-    game(){
+    Diendan(){
       return `
-        <h2>🎮 Game</h2>
+        <h2>🎮 Diễn đàn</h2>
         <div class="grid cols-3">
           <div class="card">
             <h3>Ghép hình nhanh</h3>
@@ -112,9 +112,9 @@
         </div>
       `;
     },
-    shop(){
+    Lienhe(){
       return `
-        <h2>🛍️ Shop</h2>
+        <h2>🛍️ Liên hệ</h2>
         <div class="grid cols-3">
           <div class="card">
             <h3>Sticker NiNi</h3>
@@ -170,4 +170,5 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 

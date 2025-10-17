@@ -34,7 +34,6 @@
           <a class="brand" href="#/home" aria-label="NiNi — Funny">
             <img class="brand-logo" src="/public/assets/icons/logo_text.webp" alt="" />
             <div class="brand-text">
-              <strong class="brand-name">NiNi — Funny</strong>
               <span class="brand-slogan">chơi mê ly, bứt phá tư duy</span>
             </div>
           </a>
@@ -85,3 +84,4 @@
     console.warn('[header-tab] Không thấy #nini_header');
   }
 })();
+

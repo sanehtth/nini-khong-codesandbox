@@ -1,18 +1,19 @@
 /* =========================================================================
- *  stage.js — Trang Home kiểu Canva (HTML + JS thuần)
- *  - Sidebar icon (dùng /public/assets/icons/...)
- *  - Storybook hiển thị ở cột giữa, click truyện => xem ở cột phải
- *  - Vẫn còn mock Recent designs (có thể thay bằng dữ liệu thật sau)
+ * stage.js — Trang Home kiểu Canva (JS thuần)
+ * Mục tiêu:
+ *  1) Sidebar chỉ icon
+ *  2) Click icon "Storybook" => CỘT GIỮA hiển thị danh sách truyện (cover+title+author)
+ *  3) Click tên truyện trong CỘT GIỮA => CỘT PHẢI hiển thị panel chi tiết
+ *  4) Bỏ panel "Shop"
  * ========================================================================= */
 
 ;(() => {
   const N = window.NINI || {};
 
   /* -----------------------------------------------------------------------
-   * [A] CẤU HÌNH — ICON SIDEBAR & DỮ LIỆU STORYBOOK
-   * ----------------------------------------------------------------------- */
-
-  // Sidebar items (icon + nhãn + href)
+   * [A] CẤU HÌNH CỐ ĐỊNH
+   * --------------------------------------------------------------------- */
+  // Sidebar: icon + label + link (dùng path /public/...)
   const SIDE_ITEMS = [
     { key: "storybook", label: "Storybook", icon: "/public/assets/icons/book.webp",    href: "#/home"     },
     { key: "video",     label: "Video",     icon: "/public/assets/icons/video.webp",   href: "#/video"    },
@@ -24,44 +25,25 @@
     { key: "user",      label: "Cá nhân",   icon: "/public/assets/icons/user.webp",    href: "#/profile"  },
   ];
 
-  // Dữ liệu demo Storybook
-  const STORIES = [
-    {
-      id: "forest-warrior",
-      title: "Chiến binh rừng xanh",
-      summary: "NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.",
-      body: `
-        <p>Chương 1 — Bước vào cánh rừng: NiNi nhận được tấm bản đồ với 4 biểu tượng mùa Xuân/Hạ/Thu/Đông.</p>
-        <p>Chương 2 — Cửa ải đầu tiên: NiNi giải câu đố ánh sáng để mở đường tới thác nước.</p>
-        <p>Chương 3 — Bạn đồng hành: Gặp Cú Mèo, học cách ghép ký tự để mở kho báu.</p>
-      `
-    },
-    {
-      id: "secret-of-stars",
-      title: "Bí mật của những vì sao",
-      summary: "Những thử thách nhỏ giúp bé luyện tập tư duy và tưởng tượng.",
-      body: `
-        <p>Chương 1 — Bầu trời đêm: Tạo chòm sao bằng cách nối các điểm sáng.</p>
-        <p>Chương 2 — Tín hiệu từ xa: Giải mã thông điệp bằng bảng thay thế chữ cái.</p>
-        <p>Chương 3 — Ước mơ của NiNi: Viết điều ước và gửi lên dải ngân hà.</p>
-      `
-    }
-  ];
+  // Đường dẫn manifest thư viện truyện
+  const LIB_URL = "/public/content/storybook/library-manifest.json";
 
+  // Demo data cho “Recent designs” ở cột phải (giữ lại để lấp content)
   const RECENTS = [
     {title:"Food & Restaurant FAQs Doc in Green", type:"Doc",    edited:"2 days ago", img:"https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop"},
     {title:"One Pager Doc in Black and White",    type:"Doc",    edited:"2 days ago", img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?q=80&w=800&auto=format&fit=crop"},
     {title:"Classroom Fun Poster",                type:"Design", edited:"2 days ago", img:"https://images.unsplash.com/photo-1516387938699-a93567ec168e?q=80&w=800&auto=format&fit=crop"},
   ];
 
-  /* --------------------------- HẾT PHẦN [A] ------------------------------ */
-
-
   /* -----------------------------------------------------------------------
-   * [B] HÀM HỖ TRỢ RENDER
-   * ----------------------------------------------------------------------- */
+   * [B] HELPER: fetch JSON + template nhỏ
+   * --------------------------------------------------------------------- */
+  async function fetchJSON(url){
+    const res = await fetch(url, { cache: "no-store" });
+    if(!res.ok) throw new Error("Fetch failed " + res.status + " @ " + url);
+    return await res.json();
+  }
 
-  // HTML: 1 card recent
   const recentCard = (x) => `
     <article class="card">
       <div class="thumb"><img src="${x.img}" alt=""></div>
@@ -72,175 +54,130 @@
     </article>
   `;
 
-  // HTML: list Storybook (ở cột giữa)
-  const storyListHTML = (items) => `
-    <section class="panel glass storybook">
-      <div class="sb-head">📚 Storybook</div>
-      <div class="sb-grid">
-        ${items.map(s => `
-          <article class="sb-card">
-            <h4 class="sb-title" data-story="${s.id}">${s.title}</h4>
-            <p>${s.summary}</p>
-            <button class="btn sb-open" data-story="${s.id}">Đọc ngay</button>
-          </article>
-        `).join("")}
-      </div>
-    </section>
-  `;
-
-  // HTML: shop panel (cột giữa, phía dưới)
-  const shopHTML = () => `
-    <section class="panel glass shop">
-      <div class="sb-head">🛍️ Shop</div>
-      <div class="shop-grid">
-        <article class="shop-card"><h4>Sticker NiNi</h4><p>Bộ 20 sticker dễ thương.</p><a href="#/shop/sticker" class="btn">Xem</a></article>
-        <article class="shop-card"><h4>Sổ tay giải đố</h4><p>100 thử thách tư duy.</p><a href="#/shop/notebook" class="btn">Xem</a></article>
-        <article class="shop-card"><h4>Áo thun NiNi</h4><p>Cotton mềm, unisex.</p><a href="#/shop/tshirt" class="btn">Xem</a></article>
-      </div>
-    </section>
-  `;
-
-  // HTML: khung hiển thị truyện chi tiết (ở cột phải, trên “Recent”)
-  const storyDetailHTML = (s) => `
-    <section class="panel glass story-detail">
-      <div class="panel-head">
-        <h2>${s.title}</h2>
-        <button class="seeall sb-close">Đóng ›</button>
-      </div>
-      <div class="story-body">${s.body}</div>
-    </section>
-  `;
-
-  /* --------------------------- HẾT PHẦN [B] ------------------------------ */
-
-// URL manifest thư viện
-const LIB_URL = "/public/content/storybook/library-manifest.json";
-
-// fetch JSON (không cache)
-async function fetchJSON(url){
-  const res = await fetch(url, { cache: "no-store" });
-  if(!res.ok) throw new Error("Fetch failed: " + res.status);
-  return await res.json();
-}
-// List thư viện (render ở CỘT GIỮA)
-function libraryListHTML(books){
-  return `
-    <section class="panel glass storybook">
-      <div class="sb-head">📚 Storybook</div>
-      <div class="lib-grid">
-        ${books.map(b => `
-          <article class="lib-card" data-book="${b.id}">
-            <div class="lib-cover">
-              <img src="${b.cover}" alt="${b.title_vi}" loading="lazy"/>
-            </div>
-            <div class="lib-meta">
-              <h4 class="lib-title" data-open="${b.id}" title="${b.title_vi}">
-                ${b.title_vi}
-              </h4>
-              <p class="lib-author">Tác giả: ${b.author || "—"}</p>
-            </div>
-          </article>
-        `).join("")}
-      </div>
-    </section>
-  `;
-}
-
-// Panel chi tiết truyện (render ở CỘT PHẢI)
-function storyDetailHTML(book){
-  return `
-    <section class="panel glass story-detail">
-      <div class="panel-head">
-        <h2>${book.title_vi}</h2>
-        <button class="seeall sb-close">Đóng ›</button>
-      </div>
-      <div class="lib-detail">
-        <div class="lib-detail-cover">
-          <img src="${book.cover}" alt="${book.title_vi}"/>
+  /* -----------------------------------------------------------------------
+   * [C] STORYBOOK UI
+   *  - Render danh sách (CỘT GIỮA)
+   *  - Render chi tiết (CỘT PHẢI)
+   *  - Gắn sự kiện click
+   * --------------------------------------------------------------------- */
+  // 1) Danh sách thư viện (render ở CỘT GIỮA)
+  function libraryListHTML(books){
+    return `
+      <section class="panel glass storybook">
+        <div class="sb-head">📚 Storybook</div>
+        <div class="lib-grid">
+          ${books.map(b => `
+            <article class="lib-card">
+              <div class="lib-cover">
+                <img src="${b.cover}" alt="${b.title_vi}" loading="lazy"/>
+              </div>
+              <div class="lib-meta">
+                <!-- Nút mở chi tiết: data-open để attach click -->
+                <h4 class="lib-title" data-open="${b.id}" title="${b.title_vi}">
+                  ${b.title_vi}
+                </h4>
+                <p class="lib-author">Tác giả: ${b.author || "—"}</p>
+              </div>
+            </article>
+          `).join("")}
         </div>
-        <div class="lib-detail-info">
-          <p><strong>Tác giả:</strong> ${book.author || "—"}</p>
-          <p><strong>Thiết kế:</strong> ${book.design || "—"}</p>
-          <p><strong>Số trang:</strong> ${book.pages_count ?? "—"}</p>
-        </div>
-      </div>
-    </section>
-  `;
-}
-
-// Gắn click ở CỘT GIỮA để mở truyện sang CỘT PHẢI
-function attachLibraryListEvents(root, books){
-  const mainHolder = root.querySelector("#detail-holder"); // ở cột phải
-  const mid = root.querySelector(".nini-middle");
-
-  mid.querySelectorAll('[data-open]').forEach(el=>{
-    el.addEventListener("click", ()=>{
-      const id = el.getAttribute("data-open");
-      const book = books.find(b => String(b.id) === String(id));
-      if(!book) return;
-
-      mainHolder.innerHTML = storyDetailHTML(book);
-      // nút đóng
-      const closeBtn = mainHolder.querySelector(".sb-close");
-      if (closeBtn) closeBtn.addEventListener("click", ()=> mainHolder.innerHTML = "");
-      // cuộn tới panel chi tiết
-      mainHolder.scrollIntoView({behavior:"smooth", block:"start"});
-    });
-  });
-}
-
-// Tải manifest và render list vào CỘT GIỮA
-async function loadLibraryIntoMiddle(root){
-  const mid = root.querySelector(".nini-middle");
-  mid.innerHTML = `<section class="panel glass"><p>Đang tải thư viện…</p></section>`;
-  try{
-    const data = await fetchJSON(LIB_URL);
-    const books = (data && data.books) || [];
-    mid.innerHTML = libraryListHTML(books);
-    attachLibraryListEvents(root, books);
-  }catch(e){
-    console.error(e);
-    mid.innerHTML = `<section class="panel glass"><p style="color:#b91c1c">Lỗi tải thư viện.</p></section>`;
+      </section>
+    `;
   }
-}
+
+  // 2) Panel chi tiết (render ở CỘT PHẢI – phía trên “Recent designs”)
+  function storyDetailHTML(book){
+    return `
+      <section class="panel glass story-detail">
+        <div class="panel-head">
+          <h2>${book.title_vi}</h2>
+          <button class="seeall sb-close">Đóng ›</button>
+        </div>
+        <div class="lib-detail">
+          <div class="lib-detail-cover">
+            <img src="${book.cover}" alt="${book.title_vi}"/>
+          </div>
+          <div class="lib-detail-info">
+            <p><strong>Tác giả:</strong> ${book.author || "—"}</p>
+            <p><strong>Thiết kế:</strong> ${book.design || "—"}</p>
+            <p><strong>Số trang:</strong> ${book.pages_count ?? "—"}</p>
+            <!-- Bạn có thể thêm nút Đọc ở đây nếu có file nội dung từng trang -->
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  // 3) Gắn click vào CỘT GIỮA để đẩy chi tiết sang CỘT PHẢI
+  function attachLibraryListEvents(root, books){
+    const mainHolder = root.querySelector("#detail-holder"); // CỘT PHẢI – nơi hiển thị chi tiết
+    const mid = root.querySelector(".nini-middle");
+
+    mid.querySelectorAll('[data-open]').forEach(el=>{
+      el.addEventListener("click", ()=>{
+        const id = el.getAttribute("data-open");
+        const book = books.find(b => String(b.id) === String(id));
+        if(!book) return;
+
+        // Render panel chi tiết ở CỘT PHẢI
+        mainHolder.innerHTML = storyDetailHTML(book);
+
+        // Nút Đóng => xóa panel chi tiết
+        const closeBtn = mainHolder.querySelector(".sb-close");
+        if (closeBtn) closeBtn.addEventListener("click", ()=> mainHolder.innerHTML = "");
+
+        // Cuộn tới khu chi tiết cho người dùng thấy ngay
+        mainHolder.scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+  }
+
+  // 4) Tải manifest và render list vào CỘT GIỮA
+  async function loadLibraryIntoMiddle(root){
+    const mid = root.querySelector(".nini-middle");
+    mid.innerHTML = `<section class="panel glass"><p>Đang tải thư viện…</p></section>`;
+    try{
+      const data = await fetchJSON(LIB_URL);
+      const books = (data && data.books) || [];
+      mid.innerHTML = libraryListHTML(books);
+      attachLibraryListEvents(root, books);
+    }catch(e){
+      console.error(e);
+      mid.innerHTML = `<section class="panel glass"><p style="color:#b91c1c">Lỗi tải thư viện.</p></section>`;
+    }
+  }
 
   /* -----------------------------------------------------------------------
-   * [C] RENDER TRANG
-   * ----------------------------------------------------------------------- */
+   * [D] RENDER TRANG CHÍNH
+   * --------------------------------------------------------------------- */
   function renderStage(root) {
     root.innerHTML = `
       <div class="nini-canvas">
-        <div class="nini-layout">
+        <div class="nini-layout"><!-- 3 cột: Sidebar | Middle | Main -->
 
-          <!-- SIDEBAR ICON -->
+          <!-- SIDEBAR ICON (chỉ icon; tooltip/label xử lý bởi CSS bạn đã thêm) -->
           <aside class="nini-side glass">
-  <div class="side-icons">
-    ${SIDE_ITEMS.map((it, i) => `
-      <a href="${it.href}" class="icon-btn ${i===0?'active':''}"
-         data-key="${it.key}" aria-label="${it.label}" title="${it.label}">
-        <span class="icon">
-          <img src="${it.icon}" alt="${it.label}" width="28" height="28" loading="lazy"
-               onerror="this.onerror=null; this.src='/public/assets/icons/fallback.png'"/>
-        </span>
-        <span class="lbl">${it.label}</span>
-      </a>
-    `).join("")}
-  </div>
-</aside>
+            <div class="side-icons">
+              ${SIDE_ITEMS.map((it,i)=>`
+                <a href="${it.href}" class="icon-btn ${i===0?'active':''}"
+                   data-key="${it.key}" aria-label="${it.label}" title="${it.label}">
+                  <span class="icon"><img src="${it.icon}" alt="${it.label}" loading="lazy" width="28" height="28"/></span>
+                  <span class="lbl">${it.label}</span><!-- dùng như tooltip -->
+                </a>
+              `).join("")}
+            </div>
+          </aside>
 
-          <!-- CỘT GIỮA: STORYBOOK + SHOP -->
-          <section class="nini-middle">
-            ${storyListHTML(STORIES)}
-            ${shopHTML()}
-          </section>
+          <!-- CỘT GIỮA (ban đầu rỗng; sẽ nạp Storybook khi bấm icon) -->
+          <section class="nini-middle"></section>
 
-          <!-- CỘT PHẢI: SEARCH + QUICK + (STORY DETAIL) + RECENT + ASSIGNMENTS -->
+          <!-- CỘT PHẢI (MAIN) -->
           <main class="nini-main">
 
-            <!-- chỗ sẽ render truyện chi tiết khi click -->
+            <!-- Vùng đặt panel chi tiết TRUYỆN -->
             <div id="detail-holder"></div>
 
-            <!-- Search + Quick + Recent -->
+            <!-- Panel: Search + Quick Actions + Recent -->
             <section class="panel glass">
               <div class="search">
                 <input type="text" placeholder="Mô tả ý tưởng, mình sẽ giúp bạn tạo..." />
@@ -266,7 +203,7 @@ async function loadLibraryIntoMiddle(root){
               <div id="recent_grid" class="recents"></div>
             </section>
 
-            <!-- Assignments -->
+            <!-- Panel: Assignments -->
             <section class="panel glass">
               <div class="panel-head">
                 <h2>Assignments</h2>
@@ -284,59 +221,29 @@ async function loadLibraryIntoMiddle(root){
 
     // Active theo hash hiện tại
     const cur = (location.hash.split("/")[1] || "home");
-    document.querySelectorAll(".icon-btn").forEach(a=>{
+    root.querySelectorAll(".icon-btn").forEach(a=>{
       a.classList.toggle("active", a.getAttribute("href").includes(cur));
     });
 
-    // Render recents
+    // Render Recents
     const grid = root.querySelector('#recent_grid');
     grid.innerHTML = RECENTS.map(recentCard).join('');
 
-    // GẮN SỰ KIỆN: click Storybook ở sidebar => nạp lại danh sách story
+    // Gắn event: click icon Storybook => nạp list vào CỘT GIỮA
     root.querySelectorAll('.icon-btn[data-key="storybook"]').forEach(btn=>{
       btn.addEventListener('click', (e)=>{
-        // Ngăn trang nhảy hash nếu muốn
-        // e.preventDefault();
-        const mid = root.querySelector('.nini-middle');
-        if (mid) {
-          mid.innerHTML = storyListHTML(STORIES) + shopHTML(); // story + shop
-          attachStoryEvents(root); // gắn lại click cho tiêu đề/btn "Đọc ngay"
-        }
+        // e.preventDefault(); // bật nếu muốn giữ hash yên
+        loadLibraryIntoMiddle(root);
       });
     });
 
-    // Gắn sự kiện cho các tiêu đề/btn trong Storybook lần đầu
-    attachStoryEvents(root);
-  }
-
-  // Gắn click vào tiêu đề/btn truyện -> render chi tiết bên phải
-  function attachStoryEvents(root){
-    root.querySelectorAll('.sb-title, .sb-open').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const id = el.getAttribute('data-story');
-        const story = STORIES.find(s=>s.id===id);
-        if (!story) return;
-        const holder = root.querySelector('#detail-holder');
-        if (holder){
-          holder.innerHTML = storyDetailHTML(story);
-
-          // nút đóng chi tiết
-          const closeBtn = holder.querySelector('.sb-close');
-          if (closeBtn){
-            closeBtn.addEventListener('click', ()=>{
-              holder.innerHTML = ''; // xóa panel chi tiết
-            });
-          }
-          // Cuộn lên chỗ chi tiết (tùy)
-          holder.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      });
-    });
+    // (Tuỳ chọn) nếu đang ở /#/home thì tự load list khi vào trang
+    if (cur === "home") loadLibraryIntoMiddle(root);
   }
 
   /* -----------------------------------------------------------------------
-   * [D] Thanh chọn mùa (nếu bạn còn dùng)
-   * ----------------------------------------------------------------------- */
+   * [E] (Tuỳ chọn) Thanh chọn mùa cũ – giữ để tương thích giao diện cũ
+   * --------------------------------------------------------------------- */
   function renderSeasonsNav(nav){
     nav.innerHTML = `
       <button data-season="spring">Xuân</button>
@@ -352,8 +259,8 @@ async function loadLibraryIntoMiddle(root){
   }
 
   /* -----------------------------------------------------------------------
-   * [E] Mount
-   * ----------------------------------------------------------------------- */
+   * [F] MOUNT
+   * --------------------------------------------------------------------- */
   if (typeof N.mountOnce === 'function') {
     N.mountOnce('#stage', renderStage);
     N.mountOnce('#season_nav', renderSeasonsNav);
@@ -364,6 +271,3 @@ async function loadLibraryIntoMiddle(root){
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
-
-
-

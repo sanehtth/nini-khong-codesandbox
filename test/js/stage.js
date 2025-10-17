@@ -299,7 +299,8 @@ function imageCandidatesFor(lang){
       }
       list.innerHTML = books.map(b=>`
         <article class="lib-card" data-id="${b.id}">
-          <div class="lib-cover"><img src="${b.cover}" alt=""></div>
+          <div class="lib-cover media-frame">
+              <img src="${b.cover}" alt=""></div>
           <div>
             <h4 class="lib-title">${b.title_vi || b.title_en || 'No title'}</h4>
             <p class="lib-author">Tác giả: ${b.author || 'N/A'}</p>
@@ -363,5 +364,6 @@ function imageCandidatesFor(lang){
   }
   if (N.mountOnce) N.mountOnce('#season_nav', renderSeasonsNav);
 })();
+
 
 

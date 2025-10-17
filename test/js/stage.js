@@ -161,41 +161,53 @@
   const btnLangs= holder.querySelectorAll(".lang");
 
   const clampIdx = i => Math.min(Math.max(i, 0), Math.max(0, state.pages.length - 1));
-  const pageObj  = () => state.pages[state.idx] || {};
+  const pg = () => state.pages[state.idx] || {};
 
-  // ---- NEW: helper dò nhiều biến thể key ----
-  const pick = (obj, keys) => {
-    for (const k of keys) if (obj && obj[k]) return obj[k];
-    return "";
+  // ---- Helper: lấy giá trị theo nhiều biến thể key
+  const pick = (obj, keys) => { for (const k of keys) if (obj && obj[k]) return obj[k]; return ""; };
+
+  const textFor = (lang) => pick(pg(), [
+    `noidung_${lang}`, `content_${lang}`, `text_${lang}`,
+    "noidung", "content", "text"
+  ]);
+
+  const soundFor = (lang) => pick(pg(), [
+    `L_sound_${lang}`, `sound_${lang}`, `audio_${lang}`,
+    "L_sound", "sound", "audio"
+  ]);
+
+  // Quan trọng: file của bạn dùng L_image_pr => đưa vào đầu danh sách fallback
+  const imageCandidatesFor = (lang) => {
+    const other = (lang === "vi" ? "en" : "vi");
+    const v = pg();
+    return [
+      v[`L_image_${lang}`], v[`image_${lang}`], v[`img_${lang}`],
+      v[`L_image_${other}`], v[`image_${other}`], v[`img_${other}`],
+      v["L_image_pr"],                      // <<< khóa đặc thù của bạn
+      v["L_image"], v["image"], v["img"]
+    ].filter(Boolean);
   };
-  function imageFor(lang) {
-    const p = pageObj();
-    const alt = lang === "vi" ? "vn" : "en";
-    return pick(p, [
-      `L_image_${lang}`, `image_${lang}`, `img_${lang}`,
-      `L_image_${alt}`,  `image_${alt}`,  `img_${alt}`, // phòng khi file chỉ có 1 biến thể
-      "L_image", "image", "img", "L_image_pr"           // một số tên bạn đang dùng
-    ]);
+
+  // Thử lần lượt nhiều URL (src, bỏ /public, thêm origin)
+  function tryLoadImage(urls){
+    if (!urls || !urls.length){ imgEl.removeAttribute("src"); imgEl.style.display="none"; return; }
+    const [first, ...rest] = urls;
+    const variants = [
+      first,
+      first.replace(/^\/public(\/|$)/, "/"),                       // bỏ /public
+      location.origin + first,                                     // tuyệt đối
+      location.origin + first.replace(/^\/public(\/|$)/, "/")      // tuyệt đối + bỏ /public
+    ];
+    let idx = 0;
+    imgEl.style.display = "block";
+    imgEl.onerror = () => {
+      idx++;
+      if (idx < variants.length) imgEl.src = variants[idx];
+      else if (rest.length) tryLoadImage(rest);
+      else { imgEl.removeAttribute("src"); imgEl.style.display="none"; }
+    };
+    imgEl.src = variants[idx];
   }
-  function soundFor(lang) {
-    const p = pageObj();
-    const alt = lang === "vi" ? "vn" : "en";
-    return pick(p, [
-      `L_sound_${lang}`, `sound_${lang}`, `audio_${lang}`,
-      `L_sound_${alt}`,  `sound_${alt}`,  `audio_${alt}`,
-      "L_sound", "sound", "audio"
-    ]);
-  }
-  function textFor(lang) {
-    const p = pageObj();
-    const alt = lang === "vi" ? "vn" : "en";
-    return pick(p, [
-      `noidung_${lang}`, `content_${lang}`, `text_${lang}`,
-      `noidung_${alt}`,  `content_${alt}`,  `text_${alt}`,
-      "noidung", "content", "text"
-    ]);
-  }
-  // -------------------------------------------
 
   function stopAudio(){
     if (state.audio){
@@ -206,15 +218,16 @@
   }
 
   function renderPage(){
-    const imgSrc = imageFor(state.lang);
-    const text   = textFor(state.lang);
+    const texts = textFor(state.lang) || "";
+    const imgs  = imageCandidatesFor(state.lang);  // mảng URL có thứ tự ưu tiên
 
-    if (imgSrc) { imgEl.src = imgSrc; imgEl.style.display = "block"; }
-    else        { imgEl.removeAttribute("src"); imgEl.style.display = "none"; }
+    // Ảnh (tự fallback)
+    tryLoadImage(imgs);
 
-    // Giữ xuống dòng đúng như trong JSON
-    textEl.textContent = text || "";
+    // Nội dung (giữ xuống dòng đúng như JSON)
+    textEl.textContent = texts;
 
+    // UI
     pageEl.textContent = `${state.idx+1}/${Math.max(1,state.pages.length)}`;
     btnLangs.forEach(b => b.classList.toggle("active", b.dataset.lang === state.lang));
     btnPrev.disabled = (state.idx === 0);
@@ -229,7 +242,7 @@
   btnLangs.forEach(b=>{
     b.addEventListener("click", ()=>{
       stopAudio();
-      state.lang = b.dataset.lang === "en" ? "en" : "vi";
+      state.lang = (b.dataset.lang === "en") ? "en" : "vi";
       renderPage();
     });
   });
@@ -246,16 +259,15 @@
     }catch(e){ state.audio=null; }
   });
 
+  // Keyboard
   holder.addEventListener("keydown", (ev)=>{
     if (ev.key === "ArrowLeft"){ btnPrev.click(); }
     if (ev.key === "ArrowRight"){ btnNext.click(); }
   });
 
   renderPage();
-  holder.tabIndex = 0;
-  holder.focus();
+  holder.tabIndex = 0; holder.focus();
 }
-
 
   async function openBookReader(root, bookMeta){
     const mainHolder = root.querySelector("#detail-holder");
@@ -400,4 +412,5 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+
 

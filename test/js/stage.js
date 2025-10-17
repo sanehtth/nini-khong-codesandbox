@@ -27,9 +27,8 @@
         </div>
 
         <div class="reader-stage">
-          <div class="reader-image">
-            <!-- 👉 GIỮ thẻ img này. Ảnh sẽ được gán bằng JS -->
-            <img id="reader_img" alt="${meta.title_vi || meta.title_en || ''}">
+          <div class="reader-image media-frame">
+            <img id="reader_img" alt="${meta.title_vi}" />
           </div>
           <div class="reader-text" id="reader_text"></div>
         </div>
@@ -364,4 +363,5 @@ function imageCandidatesFor(lang){
   }
   if (N.mountOnce) N.mountOnce('#season_nav', renderSeasonsNav);
 })();
+
 

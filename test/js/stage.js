@@ -113,6 +113,96 @@
 
   /* --------------------------- HẾT PHẦN [B] ------------------------------ */
 
+// URL manifest thư viện
+const LIB_URL = "/public/content/storybook/library-manifest.json";
+
+// fetch JSON (không cache)
+async function fetchJSON(url){
+  const res = await fetch(url, { cache: "no-store" });
+  if(!res.ok) throw new Error("Fetch failed: " + res.status);
+  return await res.json();
+}
+// List thư viện (render ở CỘT GIỮA)
+function libraryListHTML(books){
+  return `
+    <section class="panel glass storybook">
+      <div class="sb-head">📚 Storybook</div>
+      <div class="lib-grid">
+        ${books.map(b => `
+          <article class="lib-card" data-book="${b.id}">
+            <div class="lib-cover">
+              <img src="${b.cover}" alt="${b.title_vi}" loading="lazy"/>
+            </div>
+            <div class="lib-meta">
+              <h4 class="lib-title" data-open="${b.id}" title="${b.title_vi}">
+                ${b.title_vi}
+              </h4>
+              <p class="lib-author">Tác giả: ${b.author || "—"}</p>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </section>
+  `;
+}
+
+// Panel chi tiết truyện (render ở CỘT PHẢI)
+function storyDetailHTML(book){
+  return `
+    <section class="panel glass story-detail">
+      <div class="panel-head">
+        <h2>${book.title_vi}</h2>
+        <button class="seeall sb-close">Đóng ›</button>
+      </div>
+      <div class="lib-detail">
+        <div class="lib-detail-cover">
+          <img src="${book.cover}" alt="${book.title_vi}"/>
+        </div>
+        <div class="lib-detail-info">
+          <p><strong>Tác giả:</strong> ${book.author || "—"}</p>
+          <p><strong>Thiết kế:</strong> ${book.design || "—"}</p>
+          <p><strong>Số trang:</strong> ${book.pages_count ?? "—"}</p>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// Gắn click ở CỘT GIỮA để mở truyện sang CỘT PHẢI
+function attachLibraryListEvents(root, books){
+  const mainHolder = root.querySelector("#detail-holder"); // ở cột phải
+  const mid = root.querySelector(".nini-middle");
+
+  mid.querySelectorAll('[data-open]').forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const id = el.getAttribute("data-open");
+      const book = books.find(b => String(b.id) === String(id));
+      if(!book) return;
+
+      mainHolder.innerHTML = storyDetailHTML(book);
+      // nút đóng
+      const closeBtn = mainHolder.querySelector(".sb-close");
+      if (closeBtn) closeBtn.addEventListener("click", ()=> mainHolder.innerHTML = "");
+      // cuộn tới panel chi tiết
+      mainHolder.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  });
+}
+
+// Tải manifest và render list vào CỘT GIỮA
+async function loadLibraryIntoMiddle(root){
+  const mid = root.querySelector(".nini-middle");
+  mid.innerHTML = `<section class="panel glass"><p>Đang tải thư viện…</p></section>`;
+  try{
+    const data = await fetchJSON(LIB_URL);
+    const books = (data && data.books) || [];
+    mid.innerHTML = libraryListHTML(books);
+    attachLibraryListEvents(root, books);
+  }catch(e){
+    console.error(e);
+    mid.innerHTML = `<section class="panel glass"><p style="color:#b91c1c">Lỗi tải thư viện.</p></section>`;
+  }
+}
 
   /* -----------------------------------------------------------------------
    * [C] RENDER TRANG
@@ -274,5 +364,6 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+
 
 

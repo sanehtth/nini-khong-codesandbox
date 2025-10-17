@@ -195,3 +195,25 @@ h2, .ttl, .seeall{ color:#0f172a !important; }  /* tăng tương phản chữ */
 .body-auth-open .nini-canvas{ filter: blur(2px) brightness(.98); }
 .nini-promo{ display:none !important; }         /* ẩn dải tím mặc định */
 
+/* ==== Reader image full width (no crop) ==== */
+.story-reader .reader-stage{ 
+  display: grid; 
+  gap: 12px;
+}
+
+.story-reader .reader-image{
+  width: 100%;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;          /* bo góc ảnh */
+  background: rgba(0,0,0,.06);
+}
+
+.story-reader .reader-image img#reader_img{
+  display: block;
+  width: 100%;
+  height: auto;              /* giữ tỉ lệ gốc, không crop */
+  max-width: none;           /* tránh bất kỳ max-width nào trước đó */
+  border-radius: 0;          /* bo góc do .reader-image quản lý rồi */
+}
+

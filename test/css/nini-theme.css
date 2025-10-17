@@ -401,5 +401,33 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   text-shadow: 0 1px 2px rgba(0,0,0,.5);
 }
 
+/* Khung ảnh 16:9 cố định + ảnh fill tuyệt đối (không bị lệch) */
+.reader-stage{
+  display: grid;
+  gap: 12px;
+}
+
+.reader-image{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;          /* cắt phần thừa cho bo góc */
+  background: rgba(0,0,0,.06);
+  margin: 0 auto;            /* luôn căn giữa theo chiều ngang */
+}
+
+/* Ảnh fill toàn bộ khung — không bị ảnh hưởng bởi rule height:auto cũ */
+.reader-image > img#reader_img{
+  position: absolute;
+  inset: 0;                  /* top:0; right:0; bottom:0; left:0 */
+  width: 100% !important;
+  height: 100% !important;   /* quan trọng: ép cao đúng khung */
+  max-width: none !important;
+  object-fit: cover;         /* đẹp, có thể crop nhẹ */
+  display: block;            /* bỏ khoảng trống baseline của img */
+  border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
+}
+
 
 

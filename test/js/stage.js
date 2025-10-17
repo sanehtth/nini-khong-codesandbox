@@ -127,9 +127,10 @@
             <div class="side-icons">
               ${SIDE_ITEMS.map((it,i)=>`
                 <a href="${it.href}" class="icon-btn ${i===0?'active':''}" data-key="${it.key}" aria-label="${it.label}">
-                  <span class="icon"><img src="${it.icon}" alt="${it.label}" loading="lazy"/></span>
-                  <span class="lbl">${it.label}</span>
-                </a>
+                  <!-- Đặt width/height rõ ràng + fallback PNG nếu WebP lỗi -->
+<span class="icon"><img src="/public/assets/icons/book.webp" alt="Storybook" width="22" height="22" loading="lazy" onerror="this.onerror=null; this.src='/public/assets/icons/book.png'" />
+</span>
+                  </a>
               `).join("")}
             </div>
           </aside>
@@ -270,3 +271,4 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+

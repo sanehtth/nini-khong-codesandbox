@@ -10,10 +10,10 @@
   N._wiredHeaderTabs = true;
 
   const ROUTES = {
-    story : { title: 'Storybook', hash: '#/story' },
-    video : { title: 'Video',      hash: '#/video' },
-    game  : { title: 'Game',       hash: '#/game'  },
-    shop  : { title: 'Shop',       hash: '#/shop'  },
+    gioithieu : { title: 'Giới thiệu', hash: '#/gioithieu' },
+    luatchoi : { title: 'Luật chơi',      hash: '#/luatchoi' },
+    diendan  : { title: 'Diễn đàn',       hash: '#/diendan'  },
+    Lienhe  : { title: 'Liên hệ',       hash: '#/lienhe'  },
   };
 
   // ---------- ensure stage card ----------
@@ -49,10 +49,10 @@
         </a>
 
         <nav class="tabs" aria-label="NiNi sections">
-          <a class="tab" data-tab="story" href="${ROUTES.story.hash}">Storybook</a>
-          <a class="tab" data-tab="video" href="${ROUTES.video.hash}">Video</a>
-          <a class="tab" data-tab="game"  href="${ROUTES.game.hash}">Game</a>
-          <a class="tab" data-tab="shop"  href="${ROUTES.shop.hash}">Shop</a>
+          <a class="tab" data-tab="gioithieu" href="${ROUTES.gioithieu.hash}">Gioi thieu</a>
+          <a class="tab" data-tab="luatchoi" href="${ROUTES.luatchoi.hash}">Luat choi</a>
+          <a class="tab" data-tab="diendan"  href="${ROUTES.diendan.hash}">Dien dan</a>
+          <a class="tab" data-tab="lienhe"  href="${ROUTES.lienhe.hash}">Lien he</a>
         </nav>
       </div>
     `;
@@ -170,3 +170,4 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+

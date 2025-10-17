@@ -347,3 +347,42 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 /* tránh lớp trang trí chặn click */
 .stage::before, .stage::after,
 .panel::before, .panel::after { pointer-events:none !important; }
+
+/* ==== Sidebar icons: tròn + glass trong ==== */
+.nini-side{
+  background: rgba(255,255,255,.12);    /* trong hơn */
+  border: 1px solid rgba(255,255,255,.28);
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
+}
+
+.side-icons{ gap: 16px; }
+
+.icon-btn{
+  padding: 0;                           /* bỏ padding cho khung tròn “sạch” */
+}
+
+.icon-btn .icon{
+  width: 52px;                          /* lớn hơn một chút */
+  height: 52px;
+  border-radius: 999px;                 /* tròn 100% */
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.18);    /* glass nhẹ */
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow: 0 6px 16px rgba(0,0,0,.10) inset,
+              0 8px 20px rgba(0,0,0,.08);
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+.icon-btn .icon:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.26);
+  box-shadow: 0 4px 12px rgba(0,0,0,.08) inset,
+              0 10px 24px rgba(0,0,0,.10);
+}
+
+.icon-btn img{
+  width: 26px; height: 26px;            /* icon bên trong */
+  object-fit: contain; display: block;
+}
+
+/* Tooltip giữ nguyên như cũ */

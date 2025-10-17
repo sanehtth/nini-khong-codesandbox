@@ -76,19 +76,6 @@
     Luatchoi(){
       return `
         <h2>🎬 Luật chơi</h2>
-        <div class="grid cols-2">
-          <div class="video-wrap">
-            <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
-          </div>
-          <div class="video-wrap">
-            <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
-          </div>
-        </div>
-      `;
-    },
-    Diendan(){
-      return `
-        <h2>🎮 Diễn đàn</h2>
         <h1>Luật chơi cơ bản</h1>
     <ol>
       <li>Đăng nhập để lưu tiến độ & điểm.</li>
@@ -97,6 +84,13 @@
       <li>Đổi điểm lấy huy hiệu hoặc quà tặng theo event.</li>
     </ol>
     <p>Mọi hành vi gian lận sẽ bị hệ thống từ chối điểm thưởng.</p>
+      `;
+    },
+    Diendan(){
+      return `
+        <h2>🎮 Diễn đàn</h2>
+        <h1>cung choi nao</h1>
+    
       `;
     },
     Lienhe(){
@@ -157,6 +151,7 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 
 

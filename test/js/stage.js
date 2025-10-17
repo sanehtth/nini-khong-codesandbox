@@ -435,6 +435,157 @@ function go(route) {
   });
 }
 
+/* ========================= Storybook Loader + Reader ===================== */
+/* Tiny helpers */
+async function fetchJSON(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(`${url} -> ${r.status}`);
+  return r.json();
+}
+function qs(s, r = document) { return r.querySelector(s); }
+
+/* State cho reader */
+window.NiNiStory = {
+  book: null,        // JSON cuốn hiện tại
+  pages: [],         // mảng trang
+  idx: 0,            // page index
+  lang: "vi"         // 'vi' | 'en'
+};
+
+/* 1) Tải & dựng danh sách sách vào cột giữa */
+async function loadLibraryTo(selector) {
+  const host = "/public/content/storybook";
+  let manifest;
+  try {
+    manifest = await fetchJSON(`${host}/library-manifest.json`);
+  } catch {
+    // phòng trường hợp bạn để nhầm tên file
+    manifest = await fetchJSON(`${host}/library-menifest.json`);
+  }
+
+  const listEl = qs(selector);
+  if (!manifest?.books?.length) {
+    listEl.innerHTML = `<div class="lib-card"><div class="lib-cover"></div>
+      <div><h4 class="lib-title">Chưa có sách</h4><p class="lib-author muted">Hãy thêm vào manifest.</p></div></div>`;
+    return;
+  }
+
+  listEl.innerHTML = manifest.books.map(b => `
+    <div class="lib-card" data-id="${b.id}">
+      <div class="lib-cover">
+        <img src="${b.cover.startsWith('/') ? b.cover : '/' + b.cover}" alt="${b.title_vi || b.title_en || b.id}">
+      </div>
+      <div>
+        <h4 class="lib-title">${b.title_vi || b.title_en || b.id}</h4>
+        <p class="lib-author">Tác giả: ${b.author || '—'}</p>
+      </div>
+    </div>
+  `).join("");
+
+  // Click 1 cuốn => mở ở cột phải
+  listEl.addEventListener("click", async (e) => {
+    const card = e.target.closest(".lib-card");
+    if (!card) return;
+    await openBook(card.dataset.id);
+  });
+}
+
+/* 2) Khởi tạo hành vi reader ở cột phải (nút ngôn ngữ, prev/next, đọc to) */
+function initReaderBehavior() {
+  const langBtns = document.querySelectorAll('.reader-controls .btn.small[data-lang]');
+  langBtns.forEach(btn => {
+    btn.onclick = () => {
+      window.NiNiStory.lang = btn.dataset.lang;
+      renderCurrentPage();
+      // active state
+      langBtns.forEach(b => b.classList.toggle('active', b === btn));
+    };
+  });
+
+  const prev = qs('#prev_page');
+  const next = qs('#next_page');
+  if (prev) prev.onclick = () => { changePage(-1); };
+  if (next) next.onclick = () => { changePage(+1); };
+
+  const speak = qs('#speak_btn');
+  if (speak) speak.onclick = speakCurrent;
+}
+
+/* 3) Mở 1 cuốn sách theo id trong manifest: B001 => /public/content/storybook/B001.json */
+async function openBook(bookId) {
+  const path = `/public/content/storybook/${bookId}.json`;
+  const data = await fetchJSON(path);
+
+  window.NiNiStory.book = data;
+  window.NiNiStory.pages = Array.isArray(data.pages) ? data.pages : [];
+  window.NiNiStory.idx = 0;
+
+  // Cập nhật tiêu đề
+  const title = (data.title_vi || data.title_en || data.id || 'Story');
+  const ttlEl = qs('#reader_title');
+  if (ttlEl) ttlEl.textContent = title;
+
+  renderCurrentPage();
+}
+
+/* 4) Dựng trang hiện tại */
+function renderCurrentPage() {
+  const st = window.NiNiStory;
+  const page = st.pages[st.idx] || {};
+
+  // Ảnh: bắt tất cả key có thể có
+  const imgPath = page.L_image_pr || page.L_image_P || page.L_image || page.image || "";
+  const imgEl = qs('#reader_img');
+  if (imgEl) {
+    if (imgPath) {
+      imgEl.src = imgPath.startsWith('/') ? imgPath : '/' + imgPath;
+      imgEl.alt = st.book?.title_vi || st.book?.title_en || 'page';
+    } else {
+      imgEl.removeAttribute('src');
+    }
+  }
+
+  // Nội dung theo ngôn ngữ
+  const text = st.lang === 'en' ? (page.noidung_en || page.text_en || '') 
+                                : (page.noidung_vi || page.text_vi || '');
+  const textEl = qs('#reader_text');
+  if (textEl) textEl.textContent = text || '…';
+
+  // Chỉ số trang
+  const pi = qs('#reader_page');
+  if (pi) pi.textContent = `${st.idx + 1}/${Math.max(st.pages.length, 1)}`;
+
+  // Vô hiệu nút đầu/cuối
+  const prev = qs('#prev_page'), next = qs('#next_page');
+  if (prev) prev.disabled = st.idx <= 0;
+  if (next) next.disabled = st.idx >= st.pages.length - 1;
+}
+
+/* 5) Chuyển trang */
+function changePage(step) {
+  const st = window.NiNiStory;
+  const n = st.idx + step;
+  if (n < 0 || n >= st.pages.length) return;
+  st.idx = n;
+  renderCurrentPage();
+}
+
+/* 6) Đọc to trang hiện tại */
+function speakCurrent() {
+  const st = window.NiNiStory;
+  const page = st.pages[st.idx] || {};
+  const text = st.lang === 'en' ? (page.noidung_en || page.text_en || '')
+                                : (page.noidung_vi || page.text_vi || '');
+  if (!('speechSynthesis' in window)) {
+    alert('Trình duyệt không hỗ trợ đọc to.');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = (st.lang === 'en') ? 'en-US' : 'vi-VN';
+  window.speechSynthesis.speak(u);
+}
+
 /* --------------------------- [7] BOOT ----------------------------------- */
 (function boot(){
   const root = document.getElementById('stage');
@@ -444,3 +595,4 @@ function go(route) {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+

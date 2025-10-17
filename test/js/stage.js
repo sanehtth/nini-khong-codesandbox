@@ -78,16 +78,29 @@
     ]);
 
     // 👉 ƯU TIÊN L_image_pr (đúng cấu trúc JSON của bạn)
-    const imageCandidatesFor = (lang) => {
-      const other = (lang === "vi" ? "en" : "vi");
-      const v = pg();
-      return [
-        v[`L_image_${lang}`], v[`image_${lang}`], v[`img_${lang}`],
-        v[`L_image_${other}`], v[`image_${other}`], v[`img_${other}`],
-        v["L_image_pr"],
-        v["L_image"], v["image"], v["img"]
-      ].filter(Boolean);
-    };
+    // 👉 Lấy candidate URL ảnh cho trang hiện tại, rất “chịu chơi”
+// - Ưu tiên: L_image_vi/en  → L_image_pr → image/img (có/không đuôi _vi/_en)
+// - Sau đó: quét tất cả keys, gom mọi string trỏ tới *.webp|*.png|*.jpg|*.jpeg|*.gif
+function imageCandidatesFor(lang){
+  const v = pg();
+  if (!v || typeof v !== 'object') return [];
+
+  const prioritized = [
+    v[`L_image_${lang}`], v[`image_${lang}`], v[`img_${lang}`],
+    v[`L_image_${lang === "vi" ? "en" : "vi"}`], v[`image_${lang === "vi" ? "en" : "vi"}`], v[`img_${lang === "vi" ? "en" : "vi"}`],
+    v["L_image_pr"], v["L_image"], v["image"], v["img"]
+  ].filter(Boolean);
+
+  // Quét toàn bộ keys xem có chuỗi kết thúc bằng đuôi ảnh hay không
+  const extra = Object.values(v).filter(s => {
+    return (typeof s === "string") && /\.(webp|png|jpe?g|gif)(\?|$)/i.test(s);
+  });
+
+  // Hợp nhất + bỏ trùng
+  const seen = new Set();
+  return [...prioritized, ...extra].filter(u => (seen.has(u) ? false : (seen.add(u), true)));
+}
+
 
     // 👉 Thử nhiều biến thể URL; log lỗi; hiện gợi ý kiểm tra khi fail
     function tryLoadImage(urls){
@@ -351,3 +364,4 @@
   }
   if (N.mountOnce) N.mountOnce('#season_nav', renderSeasonsNav);
 })();
+

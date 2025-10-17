@@ -16,14 +16,14 @@
    * - Đường dẫn icon: đổi /assets/... -> /public/assets/... nếu cần
    * ----------------------------------------------------------------------- */
   const SIDE_ITEMS = [
-    { key: "storybook", label: "Storybook", icon: "/assets/icons/book.webp",   href: "#/home"     },
-    { key: "video",     label: "Video",     icon: "/assets/icons/video.webp",  href: "#/video"    },
-    { key: "game",      label: "Game",      icon: "/assets/icons/game.webp",   href: "#/game"     },
-    { key: "shop",      label: "Shop",      icon: "/assets/icons/shop.webp",   href: "#/shop"     },
-    { key: "note",      label: "Thông báo", icon: "/assets/icons/note.webp",   href: "#/notify"   },
-    { key: "chat",      label: "Chat",      icon: "/assets/icons/chat.webp",   href: "#/chat"     },
-    { key: "setting",   label: "Cài đặt",   icon: "/assets/icons/setting.webp",href: "#/settings" },
-    { key: "user",      label: "Cá nhân",   icon: "/assets/icons/user.webp",   href: "#/profile"  },
+    { key: "storybook", label: "Storybook", icon: "/public/assets/icons/book.webp",   href: "#/home"     },
+    { key: "video",     label: "Video",     icon: "/public/assets/icons/video.webp",  href: "#/video"    },
+    { key: "game",      label: "Game",      icon: "/public/assets/icons/game.webp",   href: "#/game"     },
+    { key: "shop",      label: "Shop",      icon: "/public/assets/icons/shop.webp",   href: "#/shop"     },
+    { key: "note",      label: "Thông báo", icon: "/public/assets/icons/note.webp",   href: "#/notify"   },
+    { key: "chat",      label: "Chat",      icon: "/public/assets/icons/chat.webp",   href: "#/chat"     },
+    { key: "setting",   label: "Cài đặt",   icon: "/public/assets/icons/setting.webp",href: "#/settings" },
+    { key: "user",      label: "Cá nhân",   icon: "/public/assets/icons/user.webp",   href: "#/profile"  },
   ];
   /* --------------------------- HẾT PHẦN [A] ------------------------------ */
 
@@ -209,3 +209,4 @@
   /* --------------------------- HẾT PHẦN [D] ------------------------------ */
 
 })();
+

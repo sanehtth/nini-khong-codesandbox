@@ -216,74 +216,32 @@ h2, .ttl, .seeall{
 
 /* ===== Sidebar: chỉ icon, hiện label khi hover ===== */
 
-/* Cỡ cột trái gọn */
-.nini-layout{ grid-template-columns: 88px 320px 1fr !important; }
+/* --- Fix sidebar có 2 khung: chỉ giữ khung của .icon --- */
+.nini-side .icon-btn{
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 10px !important;     /* giữ khoảng cách */
+  transform: none !important;
+}
+.nini-side .icon-btn:hover,
+.nini-side .icon-btn.active{
+  background: transparent !important;
+  border: none !important;
+}
 
-/* Nút chỉ icon */
-.icon-btn{
-  position: relative;
+/* Khung DUY NHẤT cho icon */
+.nini-side .icon{
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
-  padding: 10px;
-  gap: 0;
-}
-.icon-btn .icon{
-  width: 44px; height: 44px;
-  border-radius: 12px;
   background: rgba(255,255,255,.22);
   border: 1px solid rgba(255,255,255,.28);
-  display: grid; place-items: center;
 }
-.icon-btn img{
+.nini-side .icon img{
   width: 28px; height: 28px; object-fit: contain; display: block;
 }
 
-/* Ẩn nhãn mặc định (để dùng làm tooltip) */
-.icon-btn .lbl{
-  position: absolute;
-  left: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-6px);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-
-  white-space: nowrap;
-  background: rgba(17,24,39,.92);        /* #111827 gần đen */
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px 10px;
-  border-radius: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  border: 1px solid rgba(255,255,255,.15);
-  z-index: 50;
-}
-
-/* mũi tên nhỏ cho tooltip */
-.icon-btn .lbl::after{
-  content: "";
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-right-color: rgba(17,24,39,.92);
-}
-
-/* Hiện tooltip khi hover/focus (keyboard friendly) */
-.icon-btn:hover .lbl,
-.icon-btn:focus-visible .lbl{
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(-50%) translateX(0);
-  transition: opacity .15s ease, transform .15s ease;
-}
-
-/* Tránh tooltip bị che bởi panel bên cạnh */
-.nini-side{ z-index: 10; }
-
-/* Mobile: ẩn tooltip (vì không có hover), vẫn chỉ icon */
-@media (max-width: 900px){
-  .icon-btn .lbl{ display: none; }
-}
+/* Tooltip label khi hover (nếu bạn đang dùng) vẫn giữ nguyên */

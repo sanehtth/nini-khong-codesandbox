@@ -49,10 +49,10 @@
     { key: 'storybook', label: 'Storybook', icon: '/public/assets/icons/book.webp' },
     { key: 'video',     label: 'Video',      icon: '/public/assets/icons/video.webp' },
     { key: 'game',      label: 'Game',       icon: '/public/assets/icons/game.webp' },
-    { key: 'shop',      label: 'Shop',       icon: '/public/assets/icons/store.webp' },
-    { key: 'bell',      label: 'Thông báo',  icon: '/public/assets/icons/bell.webp' },
+    { key: 'shop',      label: 'Shop',       icon: '/public/assets/icons/shop.webp' },
+    { key: 'bell',      label: 'Thông báo',  icon: '/public/assets/icons/note.webp' },
     { key: 'chat',      label: 'Chat',       icon: '/public/assets/icons/chat.webp' },
-    { key: 'settings',  label: 'Cài đặt',    icon: '/public/assets/icons/gear.webp' },
+    { key: 'settings',  label: 'Cài đặt',    icon: '/public/assets/icons/setting.webp' },
     { key: 'profile',   label: 'Cá nhân',    icon: '/public/assets/icons/user.webp' },
   ];
 
@@ -348,3 +348,4 @@
   /* --------------------------- HẾT PHẦN BOOTSTRAP ------------------------ */
 
 })();
+

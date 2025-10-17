@@ -47,82 +47,78 @@
    *  - Quan trọng: hỗ trợ khóa ảnh L_image_pr trong JSON
    *  - Tự thử URL: giữ /public → bỏ /public → tuyệt đối theo origin
    * ------------------------------------------------------- */
-  function bindReaderBehavior(holder, meta, bookData){
-    const state = {
-      idx: 0,
-      lang: "vi",
-      audio: null,
-      pages: Array.isArray(bookData.pages) ? bookData.pages : []
-    };
+  // ---- Thử nạp ảnh với nhiều biến thể đường dẫn, có hiển thị lỗi hữu ích
 
-    // Elements
-    const imgEl   = holder.querySelector("#reader_img");
-    const textEl  = holder.querySelector("#reader_text");
-    const pageEl  = holder.querySelector("#reader_page");
-    const btnPrev = holder.querySelector(".prev");
-    const btnNext = holder.querySelector(".next");
-    const btnAudio= holder.querySelector(".audio");
-    const btnLangs= holder.querySelectorAll(".lang");
-    const btnClose= holder.querySelector(".reader-close");
+   function tryLoadImage(urls){
+       if (!urls || !urls.length){
+    imgEl.removeAttribute("src");
+    imgEl.style.display = "none";
+    imgEl.parentElement.style.minHeight = "0";
+       return;
+  }
 
-    // Helper
-    const clampIdx = i => Math.min(Math.max(i, 0), Math.max(0, state.pages.length - 1));
-    const pg = () => state.pages[state.idx] || {};
-    const pick = (obj, keys) => { for (const k of keys) if (obj && obj[k]) return obj[k]; return ""; };
+  // chuẩn hoá 1 URL → sinh các biến thể
+  const makeVariants = (u) => {
+    if (!u) return [];
+    const hasLeading = u.startsWith("/");
+    const noPublic = u.replace(/^\/public(\/|$)/, "/");
+    const withSlash = hasLeading ? u : "/"+u.replace(/^\.?\//,"");
+    const withSlashNoPublic = withSlash.replace(/^\/public(\/|$)/,"/");
+    const originAbs = location.origin + withSlash;
+    const originAbsNoPublic = location.origin + withSlashNoPublic;
 
-    // Text theo ngôn ngữ
-    const textFor = (lang) => pick(pg(), [
-      `noidung_${lang}`, `content_${lang}`, `text_${lang}`,
-      "noidung", "content", "text"
-    ]);
+    // bust cache để tránh CDN giữ 404 cũ
+    const bust = v => v + (v.includes("?") ? "&" : "?") + "v=" + Date.now();
 
-    // Audio theo ngôn ngữ
-    const soundFor = (lang) => pick(pg(), [
-      `L_sound_${lang}`, `sound_${lang}`, `audio_${lang}`,
-      "L_sound", "sound", "audio"
-    ]);
+    return [
+      u, withSlash, noPublic, withSlashNoPublic,
+      originAbs, originAbsNoPublic
+    ].filter(Boolean).map(bust);
+  };
 
-    // NOTE: JSON của bạn dùng L_image_pr → đưa vào ưu tiên
-    const imageCandidatesFor = (lang) => {
-      const other = (lang === "vi" ? "en" : "vi");
-      const v = pg();
-      return [
-        v[`L_image_${lang}`], v[`image_${lang}`], v[`img_${lang}`],
-        v[`L_image_${other}`], v[`image_${other}`], v[`img_${other}`],
-        v["L_image_pr"],          // <<< quan trọng
-        v["L_image"], v["image"], v["img"]
-      ].filter(Boolean);
-    };
+  // danh sách biến thể cho tất cả URL đầu vào
+  const queue = [];
+  urls.forEach(u => queue.push(...makeVariants(u)));
 
-    // Thử nhiều biến thể URL
-    function tryLoadImage(urls){
-      if (!urls || !urls.length){
-        imgEl.removeAttribute("src");
-        imgEl.style.display="none";
-        return;
-      }
-      const [first, ...rest] = urls;
-      const variants = [
-        first,
-        first.replace(/^\/public(\/|$)/, "/"),
-        location.origin + first,
-        location.origin + first.replace(/^\/public(\/|$)/, "/")
-      ];
-      let vidx = 0;
-      imgEl.style.display = "block";
-      imgEl.onerror = () => {
-        vidx++;
-        if (vidx < variants.length){
-          imgEl.src = variants[vidx];
-        } else if (rest.length){
-          tryLoadImage(rest);
-        } else {
-          imgEl.removeAttribute("src");
-          imgEl.style.display = "none";
-        }
-      };
-      imgEl.src = variants[vidx];
+  // xoá trùng để thử mỗi URL 1 lần
+  const seen = new Set();
+  const finalQueue = queue.filter(u => (seen.has(u) ? false : (seen.add(u), true)));
+
+  let i = 0;
+  imgEl.style.display = "block";
+  imgEl.parentElement.style.minHeight = "160px";      // để khung không xẹp khi đang thử
+
+  function setErrorUI(last){
+    imgEl.removeAttribute("src");
+    imgEl.style.display = "none";
+    imgEl.parentElement.style.minHeight = "0";
+    // Hiện khung nhỏ báo lỗi + link kiểm tra nhanh
+    const err = document.createElement("div");
+    err.style.cssText = "background:rgba(0,0,0,.05);border:1px dashed rgba(0,0,0,.25);padding:8px;border-radius:10px;font:12px/1.4 system-ui;color:#111;";
+    err.innerHTML = `Không tải được ảnh.<br><a href="${last}" target="_blank" rel="noreferrer">Mở thử URL cuối</a>`;
+    const holder = imgEl.parentElement;
+    // xoá thông báo cũ nếu có
+    holder.querySelectorAll(".img-error-tip").forEach(n=>n.remove());
+    err.className = "img-error-tip";
+    holder.appendChild(err);
+  }
+
+  imgEl.onerror = () => {
+    if (i >= finalQueue.length){
+      console.error("[Reader] Image failed. Tried:", finalQueue);
+      setErrorUI(finalQueue[finalQueue.length-1] || "");
+      return;
     }
+    const next = finalQueue[i++];
+    console.warn("[Reader] retry image:", next);
+    imgEl.src = next;
+  };
+
+  // bắt đầu thử
+  i = 1;
+  imgEl.src = finalQueue[0];
+}
+
 
     function stopAudio(){
       if (state.audio){
@@ -320,3 +316,4 @@
   }
   if (N.mountOnce) N.mountOnce('#season_nav', renderSeasonsNav);
 })();
+

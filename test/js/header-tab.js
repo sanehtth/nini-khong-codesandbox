@@ -139,10 +139,10 @@
   // ---------- router ----------
   function getRouteFromHash(){
     const h = (location.hash || '').toLowerCase();
-    if (h.startsWith('#/video')) return 'video';
-    if (h.startsWith('#/game'))  return 'game';
-    if (h.startsWith('#/shop'))  return 'shop';
-    return 'story';
+    if (h.startsWith('#/Luatchoi')) return 'Luatchoi';
+    if (h.startsWith('#/Diendan'))  return 'Diendan';
+    if (h.startsWith('#/Lienhe'))  return 'Lienhe';
+    return 'Gioithieu';
   }
 
   function setActiveTab(name){
@@ -170,5 +170,6 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 

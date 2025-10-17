@@ -43,7 +43,7 @@
 
     root.innerHTML = `
       <div class="bar">
-        <a class="brand" href="/#/Gioithieu" title="NiNi — Funny">
+        <a class="brand" title="NiNi — Funny">
           <span class="logo" aria-hidden="true"></span>
           <span class="slogan">chơi mê ly, bứt phá tư duy</span>
         </a>
@@ -65,7 +65,7 @@
         <h2>📖 Giới thiệu</h2>
         <div class="grid cols-2">
           <div class="card">
-            <h3>Chiến binh rừng xanh</h3>
+            <h3>Chao mung den the gioi Nini</h3>
             <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
             <a class="btn" href="#">Đọc ngay</a>
           </div>
@@ -82,10 +82,10 @@
         <h2>🎬 Luật chơi</h2>
         <div class="grid cols-2">
           <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Video 1" allowfullscreen></iframe>
+            <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
           </div>
           <div class="video-wrap">
-            <iframe src="https://www.youtube.com/embed/oHg5SJYRHA0" title="Video 2" allowfullscreen></iframe>
+            <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
           </div>
         </div>
       `;
@@ -170,6 +170,7 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 
 

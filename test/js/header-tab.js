@@ -89,23 +89,14 @@
     Diendan(){
       return `
         <h2>🎮 Diễn đàn</h2>
-        <div class="grid cols-3">
-          <div class="card">
-            <h3>Ghép hình nhanh</h3>
-            <p>Rèn phản xạ và quan sát.</p>
-            <a class="btn" href="#">Chơi</a>
-          </div>
-          <div class="card">
-            <h3>Số học vui</h3>
-            <p>Cộng trừ nhân chia cực chill.</p>
-            <a class="btn" href="#">Chơi</a>
-          </div>
-          <div class="card">
-            <h3>Đường rừng</h3>
-            <p>Dẫn NiNi qua mê cung rừng xanh.</p>
-            <a class="btn" href="#">Chơi</a>
-          </div>
-        </div>
+        <h1>Luật chơi cơ bản</h1>
+    <ol>
+      <li>Đăng nhập để lưu tiến độ & điểm.</li>
+      <li>Chọn “mùa” để vào màn chơi tương ứng.</li>
+      <li>Hoàn thành nhiệm vụ mini-game để nhận điểm.</li>
+      <li>Đổi điểm lấy huy hiệu hoặc quà tặng theo event.</li>
+    </ol>
+    <p>Mọi hành vi gian lận sẽ bị hệ thống từ chối điểm thưởng.</p>
       `;
     },
     Lienhe(){
@@ -166,6 +157,7 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 
 

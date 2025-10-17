@@ -116,33 +116,32 @@
    *  - Audio: theo ngôn ngữ
    * --------------------------------------------------------------------- */
   function readerShellHTML(meta){
-    return `
-      <section class="panel glass story-reader">
-        <div class="panel-head">
-          <h2>${meta.title_vi}</h2>
-          <div class="reader-controls">
-            <button class="btn small lang" data-lang="vi">VI</button>
-            <button class="btn small lang" data-lang="en">EN</button>
-            <button class="btn small audio" title="Phát/Dừng âm thanh">🔊</button>
-            <button class="seeall reader-close" title="Đóng">Đóng ›</button>
-          </div>
+  return `
+    <section class="panel glass story-reader">
+      <div class="panel-head">
+        <h2>${meta.title_vi}</h2>
+        <div class="reader-controls">
+          <button class="btn small lang" data-lang="vi">VI</button>
+          <button class="btn small lang" data-lang="en">EN</button>
+          <button class="btn small audio" title="Phát/Dừng âm thanh">🔊</button>
+          <button class="seeall reader-close" title="Đóng">Đóng ›</button>
         </div>
+      </div>
 
-        <div class="reader-stage">
-          <div class="reader-image">
-            <img id="reader_img" alt="${meta.title_vi}" />
-          </div>
-          <div class="reader-text" id="reader_text"></div>
-        </div>
+      <div class="reader-stage">
+        <div class="reader-image"><img id="reader_img" alt="${meta.title_vi}"></div>
+        <div class="reader-text" id="reader_text"></div>
+      </div>
 
-        <div class="reader-nav">
-          <button class="btn prev">◀ Trang trước</button>
-          <div class="page-indicator" id="reader_page">1/1</div>
-          <button class="btn next">Trang sau ▶</button>
-        </div>
-      </section>
-    `;
-  }
+      <div class="reader-nav">
+        <button class="btn prev">◀ Trang trước</button>
+        <div class="page-indicator" id="reader_page">1/1</div>
+        <button class="btn next">Trang sau ▶</button>
+      </div>
+    </section>
+  `;
+}
+
 
   function bindReaderBehavior(holder, meta, bookData){
   const state = {
@@ -380,6 +379,7 @@
     if (navEl) renderSeasonsNav(navEl);
   }
 })();
+
 
 
 

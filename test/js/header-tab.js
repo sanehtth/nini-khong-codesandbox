@@ -62,19 +62,15 @@
   const TPL = {
     Gioithieu(){
       return `
-        <h2>📖 Giới thiệu</h2>
-        <div class="grid cols-2">
-          <div class="card">
-            <h3>Chao mung den the gioi Nini</h3>
-            <p>Câu chuyện về NiNi khám phá khu rừng trí tuệ, giải đố qua từng mùa.</p>
-            <a class="btn" href="#">Đọc ngay</a>
-          </div>
-          <div class="card">
-            <h3>Bí mật của những vì sao</h3>
-            <p>Những thử thách nhỏ giúp bé luyện tập tư duy và tưởng tượng.</p>
-            <a class="btn" href="#">Đọc ngay</a>
-          </div>
-        </div>
+        <h1>Giới thiệu</h1>
+    <p>Bạn có nghĩ việc học tiếng Anh là một thử thách khó nhằn và đầy áp lực không? Hãy quên đi cách học truyền thống và khám phá một thế giới hoàn toàn mới với <strong>NiNi — Funny</strong>!</p>
+    <p>Với slogan "Chơi mê ly, bứt phá tư duy", NiNi-Funny không chỉ là một trò chơi giải trí, mà còn là công cụ giúp bạn:</p>
+    <ul>
+      <li>Đắm chìm vào cuộc phiêu lưu: Khám phá những màn chơi đầy màu sắc, giải đố những câu chuyện hấp dẫn và chinh phục các thử thách ngôn ngữ một cách tự nhiên.</li>
+      <li>Học mà như chơi: Mở rộng vốn từ vựng, rèn luyện ngữ pháp và tăng khả năng phản xạ tiếng Anh thông qua các mini-game vui nhộn và sáng tạo.</li>
+      <li>Phát triển bản thân: Bứt phá khỏi những giới hạn của bản thân, tư duy logic và kỹ năng giải quyết vấn đề của bạn sẽ được nâng cao một cách đáng kể.</li>
+    </ul>
+      <p>Hãy tải <strong>NiNi — Funny</strong> ngay hôm nay và bắt đầu hành trình biến tiếng Anh thành một niềm vui bất tận.</p>
       `;
     },
     Luatchoi(){
@@ -170,6 +166,7 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 
 

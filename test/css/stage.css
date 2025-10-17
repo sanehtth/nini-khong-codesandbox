@@ -213,3 +213,57 @@ h2, .ttl, .seeall{
   .nini-main{ order: 2; }
   .nini-middle{ order: 3; }
 }
+
+/* === Sidebar icon style (Canva-like) === */
+.nini-side{ padding: 12px; }
+.side-icons{
+  display: grid;
+  grid-auto-rows: min-content;
+  gap: 10px;
+  padding: 4px;
+}
+
+/* Nút icon */
+.icon-btn{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.15);
+  text-decoration:none;
+  color:#f0fdf4;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+  will-change: transform;
+}
+.icon-btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.16); }
+.icon-btn.active{ background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.28); }
+
+/* Hộp icon */
+.icon-btn .icon{
+  width:32px; height:32px; border-radius:10px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,0.22);
+  border:1px solid rgba(255,255,255,0.25);
+  overflow:hidden;
+}
+.icon-btn img{ width:22px; height:22px; object-fit:contain; display:block; }
+
+/* Nhãn */
+.icon-btn .lbl{
+  font-size: 13px; font-weight: 700; letter-spacing:.2px;
+  color: #ecfeff;
+}
+
+/* Mobile: chỉ hiện icon, ẩn nhãn cho gọn */
+@media (max-width: 900px){
+  .nini-layout{ grid-template-columns: 72px 320px 1fr !important; }
+  .icon-btn{ justify-content:center; padding:10px; }
+  .icon-btn .lbl{ display:none; }
+  .nini-side{ padding:8px; }
+}
+
+/* Khi nền sidebar đậm, tăng tương phản nhãn */
+.nini-side.glass{
+  background: rgba(20,83,45,0.55) !important;
+  color:#eafff8;
+}

@@ -1,239 +1,350 @@
-/* =========================================================
-   NiNi — Stage (Home) : Sidebar + Storybook + Reader
-   - Single-render skeleton
-   - One-time event binding
-   - Replace content per page
-   ========================================================= */
-(() => {
-  const N = window.NINI;                             // tiện viết
-  const $ = (sel, ctx=document) => ctx.querySelector(sel);
-  const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+/* =========================================================================
+   NiNi — stage.js
+   Mô-đun dựng layout 3 cột + Storybook Library + Reader.
+   Không phụ thuộc lib ngoài; chỉ dùng fetch + DOM.
+   ========================================================================= */
 
-  /* ---------- 0) STATE chia sẻ ---------- */
-  const PATHS = {
-    manifest: "/public/content/storybook/library-manifest.json",
-    book: (id) => `/public/content/storybook/${id}.json`
+(function () {
+  // ──────────────────────────────────────────────────────────────────────────
+  // 0) Chắn chạy đúp (nếu script vô tình gắn 2 lần)
+  // ──────────────────────────────────────────────────────────────────────────
+  if (window.__NINI_STAGE_INIT__) return;
+  window.__NINI_STAGE_INIT__ = true;
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1) Helpers nhỏ
+  // ──────────────────────────────────────────────────────────────────────────
+  const $  = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+  const h  = (html) => {
+    const t = document.createElement('template');
+    t.innerHTML = html.trim();
+    return t.content.firstElementChild;
   };
 
-  let LIB = [];                                      // danh mục sách
-  let CUR = { bookMeta: null, bookData: null, page: 0, lang: "vi" };
-  let player = new Audio();                          // âm thanh dùng chung
-  player.preload = "auto";
+  // Join path an toàn (tránh “//”)
+  const join = (...parts) =>
+    parts
+      .map((p, i) => (i === 0 ? String(p || '') : String(p || '').replace(/^\/+/, '')))
+      .join('/')
+      .replace(/([^:])\/{2,}/g, '$1/');
 
-  /* ---------- 1) SKELETON: render 1 lần ---------- */
-  function renderStage(root) {
-    root.innerHTML = `
+  // Đường dẫn nội dung
+  const CONTENT_ROOT = '/public/content/storybook';
+
+  // Trạng thái module
+  const State = {
+    books: [],       // từ library-manifest.json
+    current: null,   // meta cuốn đang đọc
+    data: null,      // JSON nội dung cuốn (pages[])
+    index: 0,        // trang hiện tại
+    lang: 'vi',      // 'vi' | 'en'
+    mounted: false,  // đã render stage layout chưa
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 2) Sidebar items (tối giản – chỉ bật Storybook)
+  // ──────────────────────────────────────────────────────────────────────────
+  const SIDE_ITEMS = [
+    { key: 'storybook', label: 'Storybook', icon: '/public/assets/icons/book.webp' },
+    { key: 'video',     label: 'Video',      icon: '/public/assets/icons/video.webp' },
+    { key: 'game',      label: 'Game',       icon: '/public/assets/icons/game.webp' },
+    { key: 'shop',      label: 'Shop',       icon: '/public/assets/icons/store.webp' },
+    { key: 'bell',      label: 'Thông báo',  icon: '/public/assets/icons/bell.webp' },
+    { key: 'chat',      label: 'Chat',       icon: '/public/assets/icons/chat.webp' },
+    { key: 'settings',  label: 'Cài đặt',    icon: '/public/assets/icons/gear.webp' },
+    { key: 'profile',   label: 'Cá nhân',    icon: '/public/assets/icons/user.webp' },
+  ];
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3) HTML blocks
+  // ──────────────────────────────────────────────────────────────────────────
+
+  // [A] Shell 3 cột
+  function stageShellHTML() {
+    const side = SIDE_ITEMS.map((it, i) => {
+      return `
+        <a class="icon-btn" href="javascript:void(0)" data-key="${it.key}" aria-label="${it.label}">
+          <span class="icon">
+            <img src="${it.icon}" width="28" height="28" alt="${it.label}"
+                 onerror="this.onerror=null;this.src='${it.icon.replace('.webp','.png')}';" />
+          </span>
+          <span class="lbl">${it.label}</span>
+        </a>
+      `;
+    }).join('');
+
+    return `
       <div class="nini-layout">
-        <!-- Sidebar: icon only -->
+        <!-- Cột trái: Sidebar -->
         <aside class="nini-side glass">
-          <div class="side-icons" id="side_icons">
-            ${[
-              {k:"storybook", lbl:"Storybook", ico:"/public/assets/icons/book.webp"},
-              {k:"video",     lbl:"Video",     ico:"/public/assets/icons/video.webp"},
-              {k:"game",      lbl:"Game",      ico:"/public/assets/icons/game.webp"},
-              {k:"shop",      lbl:"Shop",      ico:"/public/assets/icons/shop.webp"},
-              {k:"note",      lbl:"Thông báo", ico:"/public/assets/icons/note.webp"},
-              {k:"chat",      lbl:"Chat",      ico:"/public/assets/icons/chat.webp"},
-              {k:"setting",   lbl:"Cài đặt",   ico:"/public/assets/icons/setting.webp"},
-              {k:"user",      lbl:"Cá nhân",   ico:"/public/assets/icons/user.webp"},
-            ].map(item => `
-              <button class="icon-btn" data-key="${item.k}" aria-label="${item.lbl}">
-                <span class="icon">
-                  <img src="${item.ico}" alt="${item.lbl}" width="28" height="28"
-                       onerror="this.onerror=null;this.src='${item.ico.replace('.webp','.png')}'">
-                </span>
-                <span class="lbl">${item.lbl}</span>
-              </button>
-            `).join("")}
-          </div>
+          <div class="side-icons">${side}</div>
         </aside>
 
-        <!-- Middle: Storybook list -->
+        <!-- Cột giữa: Storybook Library -->
         <section class="nini-middle">
-          <section class="panel glass storybook">
-            <div class="sb-head">📚 Storybook</div>
+          <div class="panel glass storybook">
+            <div class="sb-head">
+              <span style="font-weight:800">📚 Storybook</span>
+            </div>
             <div id="lib_list" class="lib-grid"></div>
-          </section>
+            <div id="lib_hint" class="muted" style="font-size:13px;display:none">Không có sách...</div>
+          </div>
         </section>
 
-        <!-- Right: Reader (cố định khung, chỉ thay nội dung) -->
-        <main class="nini-main">
-          <section class="panel glass story-reader" id="reader_panel" hidden>
-            <div class="panel-head">
-              <h2 id="reader_title">NiNi</h2>
-              <div class="reader-controls">
-                <button class="btn small" data-lang="vi" id="btn_vi">VI</button>
-                <button class="btn small" data-lang="en" id="btn_en">EN</button>
-                <button class="btn small" id="btn_speak" title="Phát/ dừng âm thanh">🔊</button>
-                <button class="btn small" id="btn_close" title="Đóng">Đóng</button>
-              </div>
-            </div>
-
-            <div class="reader-stage">
-              <figure class="reader-image">
-                <img id="reader_img" alt="" decoding="async" loading="lazy">
-              </figure>
-              <div class="reader-text" id="reader_text"></div>
-              <div class="reader-nav">
-                <div>
-                  <button class="btn small" id="btn_prev">‹ Trang trước</button>
-                  <span class="page-indicator" id="page_info">1/1</span>
-                </div>
-                <button class="btn small" id="btn_next">Trang sau ›</button>
-              </div>
-            </div>
-          </section>
-        </main>
+        <!-- Cột phải: Reader -->
+        <section class="nini-main">
+          <div id="reader_holder"></div>
+        </section>
       </div>
     `;
-
-    bindSidebar(root);
-    loadLibraryAndRender();
-    bindReaderOnce(root);   // gắn event cho các nút reader – chỉ 1 lần
   }
+  /* --------------------------- HẾT PHẦN [A] ------------------------------ */
 
-  /* ---------- 2) Sidebar ---------- */
-  function bindSidebar(root){
-    const side = $("#side_icons", root);
-    side.addEventListener("click", (e) => {
-      const btn = e.target.closest(".icon-btn");
-      if (!btn) return;
-      const key = btn.dataset.key;
-
-      // Chỉ xử lý "storybook" ở trang home
-      if (key === "storybook") {
-        $("#reader_panel").hidden = true;            // ẩn reader khi chưa chọn truyện
-        return;
-      }
-      // Các mục khác: tuỳ bạn route (giữ nguyên anchor)
-      // location.hash = `#/${key}`;
-    });
-  }
-
-  /* ---------- 3) Library list ---------- */
-  async function loadLibraryAndRender(){
-    try {
-      const res = await fetch(PATHS.manifest, {cache:"no-store"});
-      const data = await res.json();
-      LIB = (data.books || []);
-      renderLibraryList();
-    } catch (err){
-      console.error("Load manifest error:", err);
-      $("#lib_list").innerHTML = `<div class="lib-card">Không tải được thư viện.</div>`;
-    }
-  }
-
-  function renderLibraryList(){
-    const list = $("#lib_list");
-    list.innerHTML = LIB.map(b => `
+  // [B] Card 1 cuốn sách trong danh sách
+  function bookCardHTML(b) {
+    const cover = join('/', b.cover || '');
+    return `
       <article class="lib-card" data-id="${b.id}">
-        <div class="lib-cover"><img src="${b.cover}" alt="${escapeHtml(b.title_vi)}"></div>
-        <div>
-          <h4 class="lib-title">${escapeHtml(b.title_vi)}</h4>
-          <p class="lib-author">Tác giả: ${escapeHtml(b.author || "—")}</p>
+        <div class="lib-cover">
+          <img src="${cover}" alt="${b.title_vi || b.title_en || 'Book'}"
+               onerror="this.onerror=null;this.src='${cover.replace('.webp','.png')}';" />
+        </div>
+        <div class="lib-info">
+          <h4 class="lib-title">${b.title_vi || b.title_en || 'No title'}</h4>
+          <p class="lib-author">Tác giả: ${b.author || '—'}</p>
         </div>
       </article>
-    `).join("");
+    `;
+  }
+  /* --------------------------- HẾT PHẦN [B] ------------------------------ */
 
-    list.addEventListener("click", async (e)=>{
-      const card = e.target.closest(".lib-card");
-      if (!card) return;
-      await openBook(card.dataset.id);
-    }, { once: true }); // chỉ gắn 1 lần cho list; sau lần đầu có thể reload list nếu cần
+  // [C] Reader shell (khung phải)
+  function readerShellHTML(meta) {
+    return `
+      <div class="panel glass story-reader" id="reader_panel">
+        <div class="panel-head">
+          <h2 style="margin:0">${meta?.title_vi || meta?.title_en || 'Story'}</h2>
+          <div class="reader-controls">
+            <button class="btn small" id="btn_lang_vi" data-lang="vi">VI</button>
+            <button class="btn small" id="btn_lang_en" data-lang="en">EN</button>
+            <button class="btn small" id="btn_close">Đóng</button>
+          </div>
+        </div>
+
+        <div class="reader-stage">
+          <div class="reader-image">
+            <img id="reader_img" alt="${meta?.title_vi || 'story'}" />
+          </div>
+          <div class="reader-text" id="reader_text">...</div>
+          <div class="reader-nav">
+            <button class="btn small" id="btn_prev">‹ Trang trước</button>
+            <div class="page-indicator" id="reader_page">1/1</div>
+            <button class="btn small" id="btn_next">Trang sau ›</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  /* --------------------------- HẾT PHẦN [C] ------------------------------ */
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4) Fetch helpers
+  // ──────────────────────────────────────────────────────────────────────────
+  async function getJSON(url) {
+    const res = await fetch(url, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error(`Fetch failed: ${url} (${res.status})`);
+    return res.json();
   }
 
-  /* ---------- 4) Open book + render page ---------- */
-  async function openBook(bookId){
-    stopAudio();
-    CUR.bookMeta = LIB.find(x => String(x.id) === String(bookId)) || null;
-    $("#reader_title").textContent = (CUR.bookMeta?.title_vi || "NiNi");
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5) Library: tải & render danh sách
+  // ──────────────────────────────────────────────────────────────────────────
+  async function loadLibrary() {
+    const listEl = $('#lib_list');
+    const hintEl = $('#lib_hint');
+    if (!listEl) return;
 
-    try{
-      const res = await fetch(PATHS.book(bookId), {cache:"no-store"});
-      CUR.bookData = await res.json();
-      CUR.page = 0;
-      $("#reader_panel").hidden = false;
-      renderPage();
-    }catch(err){
-      console.error("Load book error:", err);
-      $("#reader_text").textContent = "Không tải được nội dung truyện.";
-      $("#reader_img").removeAttribute("src");
-      $("#reader_panel").hidden = false;
+    listEl.innerHTML = ''; hintEl.style.display = 'none';
+
+    try {
+      const manifestUrl = join(CONTENT_ROOT, 'library-manifest.json');
+      const json = await getJSON(manifestUrl);
+      const books = Array.isArray(json?.books) ? json.books : [];
+      State.books = books;
+
+      if (!books.length) {
+        hintEl.style.display = 'block';
+        return;
+      }
+
+      const html = books.map(bookCardHTML).join('');
+      listEl.innerHTML = html;
+
+      // Gắn click → openBook
+      $$('.lib-card', listEl).forEach(card => {
+        card.addEventListener('click', () => {
+          const id = card.getAttribute('data-id');
+          const meta = books.find(b => String(b.id) === String(id));
+          if (meta) openBook(meta);
+        });
+      });
+
+    } catch (err) {
+      console.error('[library] error:', err);
+      hintEl.style.display = 'block';
+      hintEl.textContent = 'Không tải được danh sách sách.';
     }
   }
+  /* --------------------------- HẾT PHẦN LIBRARY -------------------------- */
 
-  function renderPage(){
-    if (!CUR.bookData) return;
-    const p = CUR.bookData.pages[CUR.page];
-    if (!p) return;
+  // ──────────────────────────────────────────────────────────────────────────
+  // 6) Reader: set trang, fallback ảnh, đổi ngôn ngữ, prev/next
+  // ──────────────────────────────────────────────────────────────────────────
+  function setReaderPage(meta, bookData, pageIndex, lang) {
+    const page = bookData?.pages?.[pageIndex];
+    const imgEl  = $('#reader_img');
+    const textEl = $('#reader_text');
+    const indEl  = $('#reader_page');
 
-    const lang = CUR.lang === "en" ? "en" : "vi";
-    const textKey = lang === "en" ? "noidung_en" : "noidung_vi";
-    const imgKey  = lang === "en" ? "_L_image_en" : "_L_image_vi";
-    const sndKey  = lang === "en" ? "_L_sound_en" : "_L_sound_vi";
+    if (!page || !imgEl || !textEl || !indEl) return;
 
-    // Ảnh: luôn replace
-    const img = $("#reader_img");
-    img.src = p[imgKey] || "";
-    img.alt = CUR.bookMeta?.title_vi || "Story image";
+    const imgKey  = lang === 'en' ? 'l_image_en'  : 'l_image_vi';
+    const textKey = lang === 'en' ? 'noidung_en'  : 'noidung_vi';
 
-    // Text
-    $("#reader_text").textContent = p[textKey] || "";
+    let src = page[imgKey] || page.l_image_vi || page.l_image_en || page.image || '';
+    textEl.textContent = page[textKey] || '';
 
-    // Page indicator
-    $("#page_info").textContent = `${CUR.page + 1}/${CUR.bookData.pages.length}`;
+    imgEl.alt = meta?.title_vi || 'story page';
+    imgEl.onerror = function () {
+      try {
+        if (imgEl.src.endsWith('.webp')) {
+          imgEl.onerror = null;
+          imgEl.src = imgEl.src.replace(/\.webp(\?.*)?$/i, '.png$1');
+        }
+      } catch(_) {}
+    };
+    imgEl.src = src || '';
 
-    // Lưu đường dẫn audio trang hiện tại (không auto play)
-    player.src = p[sndKey] || "";
+    indEl.textContent = `${pageIndex + 1}/${bookData.pages.length}`;
   }
 
-  /* ---------- 5) Reader controls (gắn 1 lần) ---------- */
-  function bindReaderOnce(root){
-    const panel   = $("#reader_panel", root);
-    const btnVI   = $("#btn_vi", panel);
-    const btnEN   = $("#btn_en", panel);
-    const btnSpk  = $("#btn_speak", panel);
-    const btnPrev = $("#btn_prev", panel);
-    const btnNext = $("#btn_next", panel);
-    const btnClose= $("#btn_close", panel);
+  function bindReaderBehavior(holder, meta, bookData) {
+    State.index = 0;
+    State.lang = 'vi';
 
-    btnVI.addEventListener("click", () => { CUR.lang = "vi"; renderPage(); });
-    btnEN.addEventListener("click", () => { CUR.lang = "en"; renderPage(); });
+    const btnVi   = $('#btn_lang_vi', holder);
+    const btnEn   = $('#btn_lang_en', holder);
+    const btnPrev = $('#btn_prev', holder);
+    const btnNext = $('#btn_next', holder);
+    const btnClose= $('#btn_close', holder);
 
-    btnSpk.addEventListener("click", () => {
-      if (!player.src) return;
-      if (player.paused) player.play().catch(()=>{});
-      else stopAudio();
+    // lần đầu
+    setReaderPage(meta, bookData, State.index, State.lang);
+
+    // ngôn ngữ
+    btnVi?.addEventListener('click', () => {
+      State.lang = 'vi';
+      btnVi.classList.add('active');
+      btnEn.classList.remove('active');
+      setReaderPage(meta, bookData, State.index, State.lang);
+    });
+    btnEn?.addEventListener('click', () => {
+      State.lang = 'en';
+      btnEn.classList.add('active');
+      btnVi.classList.remove('active');
+      setReaderPage(meta, bookData, State.index, State.lang);
     });
 
-    btnPrev.addEventListener("click", () => {
-      if (!CUR.bookData) return;
-      if (CUR.page > 0) { CUR.page--; stopAudio(); renderPage(); }
+    // prev / next
+    btnPrev?.addEventListener('click', () => {
+      if (State.index > 0) {
+        State.index--;
+        setReaderPage(meta, bookData, State.index, State.lang);
+      }
     });
-    btnNext.addEventListener("click", () => {
-      if (!CUR.bookData) return;
-      const max = CUR.bookData.pages.length - 1;
-      if (CUR.page < max) { CUR.page++; stopAudio(); renderPage(); }
+    btnNext?.addEventListener('click', () => {
+      if (State.index < bookData.pages.length - 1) {
+        State.index++;
+        setReaderPage(meta, bookData, State.index, State.lang);
+      }
     });
 
-    btnClose.addEventListener("click", () => {
-      stopAudio();
-      $("#reader_panel").hidden = true;
+    // đóng reader
+    btnClose?.addEventListener('click', () => {
+      $('#reader_holder')?.replaceChildren();
+      State.current = null;
+      State.data = null;
+      State.index = 0;
     });
-
-    // Dọn audio khi rời trang
-    window.addEventListener("beforeunload", stopAudio);
   }
+  /* --------------------------- HẾT PHẦN READER --------------------------- */
 
-  function stopAudio(){
-    try{ player.pause(); player.currentTime = 0; }catch{}
+  // ──────────────────────────────────────────────────────────────────────────
+  // 7) Mở 1 cuốn: render reader + fetch JSON nội dung
+  // ──────────────────────────────────────────────────────────────────────────
+  async function openBook(meta) {
+    const holder = $('#reader_holder');
+    if (!holder) return;
+
+    holder.innerHTML = readerShellHTML(meta);
+
+    try {
+      // File JSON nội dung: /public/content/storybook/B001.json ...
+      const file = `${meta.id}.json`.replace(/\.json$/i, '') + '.json';
+      const url = join(CONTENT_ROOT, file);
+      const data = await getJSON(url);
+
+      State.current = meta;
+      State.data = data;
+
+      bindReaderBehavior(holder, meta, data);
+    } catch (err) {
+      console.error('[openBook] error:', err);
+      $('#reader_text')?.replaceChildren(
+        document.createTextNode('Không tải được nội dung truyện.')
+      );
+    }
   }
+  /* --------------------------- HẾT PHẦN OPEN BOOK ------------------------ */
 
-  /* ---------- 6) Utils ---------- */
-  function escapeHtml(s=""){
-    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  // ──────────────────────────────────────────────────────────────────────────
+  // 8) Render stage vào #stage + gắn sự kiện sidebar
+  // ──────────────────────────────────────────────────────────────────────────
+  function renderStage(root) {
+    if (!root) return;
+    root.innerHTML = stageShellHTML();
+
+    // Gắn sự kiện cho sidebar
+    $$('.icon-btn[data-key]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-key');
+        // Đánh dấu active (visual tuỳ CSS)
+        $$('.icon-btn').forEach(b => b.classList.toggle('active', b === btn));
+
+        if (key === 'storybook') {
+          loadLibrary();
+        } else {
+          // Các mục khác: clear giữa/phải
+          $('#lib_list')?.replaceChildren();
+          $('#reader_holder')?.replaceChildren();
+        }
+      });
+    });
+
+    // Mặc định mở Storybook lần đầu
+    const first = $('.icon-btn[data-key="storybook"]');
+    if (first) first.click();
   }
+  /* --------------------------- HẾT PHẦN RENDER --------------------------- */
 
-  /* ---------- 7) Mount ---------- */
-  N.mountOnce?.("#stage", renderStage) || renderStage($("#stage"));
+  // ──────────────────────────────────────────────────────────────────────────
+  // 9) Khởi động
+  // ──────────────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const mountPoint = document.getElementById('stage');
+    renderStage(mountPoint);
+  });
+  /* --------------------------- HẾT PHẦN BOOTSTRAP ------------------------ */
+
 })();

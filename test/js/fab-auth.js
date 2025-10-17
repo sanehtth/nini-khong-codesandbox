@@ -1,32 +1,24 @@
-/* fab-auth.js — Nút nổi Đăng nhập ở góc trái dưới.
-   - Tự chèn nút nếu chưa có
-   - Khi bấm => mở NiNiAuth.open('login')
-   - Nếu đã đăng nhập: ẩn nút nổi
-*/
+// /test/js/fab-auth.js
+(function(){
+  if (window.__FAB_AUTH_INIT__) return; window.__FAB_AUTH_INIT__ = true;
 
-(function () {
-  const $ = (s, r = document) => r.querySelector(s);
+  // FAB nổi (dùng icon /public/assets/icons/login.webp)
+  const fab = document.createElement('button');
+  fab.className = 'nini-fab-login';
+  fab.title = 'Đăng nhập';
+  fab.innerHTML = `<img src="/public/assets/icons/login.webp" alt="login">`;
+  document.body.appendChild(fab);
+  fab.addEventListener('click', ()=> window.NiNiAuth?.open('login'));
 
-  let fab = $('#authFab');
-  if (!fab) {
-    fab = document.createElement('button');
-    fab.id = 'authFab';
-    fab.type = 'button';
-    fab.className = 'fab-auth glass';
-    fab.innerHTML = '<span class="ico">👤</span><span class="txt">Đăng nhập</span>';
-    document.body.appendChild(fab);
-  }
+  // Gắn vào icon User trong sidebar (nếu có)
+  // giả sử nút User có data-role="user" trên .icon-btn
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.icon-btn[data-role="user"]');
+    if (btn) { e.preventDefault(); window.NiNiAuth?.open('login'); }
+  });
 
-  fab.addEventListener('click', () => window.NiNiAuth?.open('login'));
-
-  // Theo dõi trạng thái đăng nhập (Firebase đã bọc ở window.NiNi.fb)
-  const apply = (u) => {
-    fab.style.display = u ? 'none' : 'inline-flex';
-  };
-
-  // Nếu core đã có user hiện tại:
-  apply(window.NiNi?.user || null);
-
-  // Lắng nghe thay đổi user do core phát
-  window.addEventListener('NiNi:user-changed', (e) => apply(e.detail));
+  // Khi đăng nhập xong, ẩn FAB (tuỳ ý)
+  window.N?.on?.('auth:login', ()=>{
+    fab.style.display = 'none';
+  });
 })();

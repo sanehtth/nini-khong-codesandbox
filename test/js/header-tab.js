@@ -51,7 +51,7 @@
         <nav class="tabs" aria-label="NiNi sections">
           <a class="tab" data-tab="Gioithieu" href="${ROUTES.Gioithieu.hash}">Gioi thieu</a>
           <a class="tab" data-tab="Luatchoi" href="${ROUTES.Luatchoi.hash}">Luat choi</a>
-          <a class="tab" data-tab="Diendan"  href="${ROUTES.Giendan.hash}">Dien dan</a>
+          <a class="tab" data-tab="Diendan"  href="${ROUTES.Diendan.hash}">Dien dan</a>
           <a class="tab" data-tab="Lienhe"  href="${ROUTES.Lienhe.hash}">Lien he</a>
         </nav>
       </div>
@@ -170,6 +170,7 @@
   if (document.readyState !== 'loading') boot();
   else document.addEventListener('DOMContentLoaded', boot);
 })();
+
 
 
 

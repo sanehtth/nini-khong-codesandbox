@@ -1,48 +1,92 @@
-/* auth-modal.css — style gọn cho modal kính mờ */
-.auth-modal[hidden]{ display:none; }
+/* /test/css/auth-modal.css */
+/* ===== Base ===== */
+#authBackdrop[hidden], #authModal[hidden]{ display:none !important; }
 
-.auth-modal .auth-backdrop{
-  position:fixed; inset:0; background:rgba(0,0,0,.35);
-  backdrop-filter: blur(2px);
+#authBackdrop{
+  position:fixed; inset:0; z-index:998;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  opacity:0; transition:opacity .18s ease;
+  pointer-events:none;
+}
+body.body-auth-open #authBackdrop{ opacity:1; pointer-events:auto; }
+
+/* ===== Panel ===== */
+#authModal{
+  position:fixed; inset:0; z-index:999;
+  display:grid; place-items:center;
+}
+.auth-panel{
+  width:min(680px,92vw);
+  border-radius:18px;
+  background:rgba(255,255,255,.22);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 20px 50px rgba(0,0,0,.28);
+  padding:18px;
 }
 
-.auth-modal .auth-box{
-  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:min(560px, calc(100vw - 24px));
-  background:rgba(20,25,22,.75); color:#e8f6ee;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35);
-  padding:16px 16px 18px;
+/* header */
+.auth-hd{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-bottom:10px;
+}
+.auth-title{ font-weight:800; color:#0f172a; }
+.auth-close{
+  width:36px; height:36px; border-radius:10px;
+  display:grid; place-items:center;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.6);
+  cursor:pointer; font-weight:900;
 }
 
-.auth-modal .auth-head{
-  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+/* tabs */
+.auth-tabs{ display:inline-flex; gap:6px; padding:4px; border-radius:999px;
+  background:rgba(255,255,255,.55); border:1px solid rgba(255,255,255,.35);
 }
-.auth-modal .auth-head .tab{
-  padding:6px 10px; border-radius:999px; border:1px solid transparent;
-  background:rgba(255,255,255,.06); color:#cfe9dd; cursor:pointer;
+.auth-tab{
+  padding:6px 12px; border-radius:999px; cursor:pointer; font-weight:700;
+  color:#0f172a; border:1px solid transparent; background:transparent;
 }
-.auth-modal .auth-head .tab.in{ background:#2fb36d; color:#072; }
+.auth-tab.active{ background:#fff; border-color:rgba(0,0,0,.06); }
 
-.auth-modal .auth-head .x{
-  margin-left:auto; width:28px; height:28px; border-radius:8px;
-  background:rgba(255,255,255,.08); color:#fff; border:none; cursor:pointer;
+/* body */
+.auth-body{ display:grid; gap:12px; }
+
+/* form */
+.auth-form{ display:grid; gap:10px; }
+.auth-input{
+  width:100%; padding:10px 12px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.75);
+  color:#0f172a; outline:none;
+}
+.auth-btn{
+  padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer;
+  border:0; background:#10b981; color:#052e1a;
+  box-shadow:0 10px 26px rgba(16,185,129,.35);
+}
+.auth-btn:hover{ transform: translateY(-1px); transition: .12s; }
+
+/* Google btn */
+.auth-btn.google{
+  background:#fff; color:#0f172a; border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 10px 26px rgba(0,0,0,.08);
+  display:flex; align-items:center; gap:8px; justify-content:center;
 }
 
-.auth-modal .pane{ display:none; }
-.auth-modal .pane.in{ display:block; }
-
-.auth-modal label{ display:block; font-size:13px; opacity:.85; margin:8px 0 4px; }
-.auth-modal input{
-  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
-  background:rgba(0,0,0,.25); color:#fff;
+/* message box */
+.auth-msg{
+  padding:10px 12px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.65);
+  color:#0f172a; display:none;
 }
-.auth-modal .primary{
-  width:100%; margin-top:12px; padding:10px 12px;
-  background:#2fb36d; color:#072; border:none; border-radius:12px; font-weight:700; cursor:pointer;
-}
+.auth-msg.show{ display:block; }
+.auth-msg.ok{ background:rgba(16,185,129,.15); border-color:rgba(16,185,129,.5);}
+.auth-msg.err{ background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.5);}
 
-.auth-modal .msg{ min-height:20px; font-size:13px; color:#c8ffd8; margin:4px 0 6px; }
-
-/* body blur chỉ khi mở modal */
-.body-auth-open .stage-card{ filter:blur(3px); }
+/* tiny note */
+.auth-note{ font-size:12px; opacity:.85; }

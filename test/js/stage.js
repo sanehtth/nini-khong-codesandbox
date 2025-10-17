@@ -1,369 +1,341 @@
-/* =========================================================
-   NiNi — stage.js (FULL)
-   3 cột: Sidebar (icon) | Storybook (giữa) | Reader (phải)
-   - Sidebar: chỉ icon, hover hiện label (CSS bạn đã có)
-   - Storybook: đọc /public/content/storybook/library-manifest.json
-   - Reader: đọc /public/content/storybook/<ID>.json
-   - Ảnh trang: hỗ trợ khóa L_image_pr + fallback URL (có/không /public)
-   ========================================================= */
 (() => {
-  const N = window.NINI || {};
+  const N = window.NINI || { mountOnce: (sel, fn) => fn(document.querySelector(sel)) };
 
-  /* ---------------------------------------------
-   * [A] Khung Reader bên phải (HTML shell)
-   * Ảnh + nội dung sẽ do bindReaderBehavior nạp động
-   * --------------------------------------------- */
-  function readerShellHTML(meta){
+  /* =========================================================
+   * 0) STATE & CONSTS
+   * ======================================================= */
+  const PATHS = {
+    manifest: '/public/content/storybook/library-manifest.json',   // danh mục truyện
+    book: (id) => `/public/content/storybook/${id}.json`,          // nội dung 1 truyện
+  };
+
+  const STATE = {
+    lang: 'vi',         // 'vi' | 'en'
+    books: [],          // manifest.books[]
+    currentBook: null,  // dữ liệu B00X.json
+    pageIndex: 0,       // 0..pages-1
+    audio: null,        // Audio instance
+  };
+  // ----- END STATE & CONSTS -----
+
+
+  /* =========================================================
+   * 1) HTML HELPERS (TEMPLATE STRINGS)
+   * ======================================================= */
+
+  // 1.1) Layout tổng: Sidebar | Middle | Main(Reader)
+  function layoutHTML() {
     return `
-      <section class="panel glass story-reader" tabindex="0" aria-label="Story Reader">
+      <div class="nini-layout">
+        <!-- ============ Sidebar (chỉ icon) ============ -->
+        <aside class="nini-side glass">
+          <div class="side-icons" id="side_icons">
+            ${sideItem('storybook', '/public/assets/icons/book.webp', 'Storybook', '#/home')}
+            ${sideItem('video',     '/public/assets/icons/video.webp', 'Video',     '#/video')}
+            ${sideItem('game',      '/public/assets/icons/game.webp',  'Game',      '#/game')}
+            ${sideItem('shop',      '/public/assets/icons/shop.webp',  'Shop',      '#/shop')}
+            ${sideItem('note',      '/public/assets/icons/note.webp',  'Thông báo', '#/notify')}
+            ${sideItem('chat',      '/public/assets/icons/chat.webp',  'Chat',      '#/chat')}
+            ${sideItem('setting',   '/public/assets/icons/setting.webp','Cài đặt',  '#/settings')}
+            ${sideItem('user',      '/public/assets/icons/user.webp',  'Cá nhân',   '#/profile')}
+          </div>
+        </aside>
+        <!-- ===== END Sidebar ===== -->
+
+        <!-- ============ Middle: Storybook list ============ -->
+        <section class="nini-middle">
+          <section class="panel glass storybook">
+            <div class="sb-head">📚 <strong>Storybook</strong></div>
+            <div id="story_list" class="lib-grid">
+              <!-- danh sách truyện sẽ render sau khi load manifest -->
+              <div class="lib-card" style="opacity:.7">Nhấn biểu tượng <b>Storybook</b> ở thanh bên để tải danh sách…</div>
+            </div>
+          </section>
+        </section>
+        <!-- ===== END Middle ===== -->
+
+        <!-- ============ Main: Reader (cột phải) ============ -->
+        <main class="nini-main">
+          <section id="reader_holder"></section>
+        </main>
+        <!-- ===== END Main ===== -->
+      </div>
+    `;
+  }
+  // ----- END layoutHTML -----
+
+
+  // 1.2) 1 item icon ở sidebar (có tooltip label)
+  function sideItem(key, icon, label, href) {
+    return `
+      <a href="${href}" class="icon-btn" data-key="${key}" aria-label="${label}" title="${label}">
+        <span class="icon"><img src="${icon}" alt="" width="28" height="28" loading="lazy"
+              onerror="this.onerror=null;this.src='${icon.replace('.webp','.png')}'" /></span>
+        <span class="lbl">${label}</span>
+      </a>
+    `;
+  }
+  // ----- END sideItem -----
+
+
+  // 1.3) List truyện cho cột giữa
+  function storyListHTML(books) {
+    if (!books?.length) {
+      return `<div class="lib-card">Chưa có truyện nào.</div>`;
+    }
+    return books.map(b => `
+      <article class="lib-card" data-bookid="${b.id}">
+        <div class="lib-cover">
+          <img src="${b.cover}" alt="" loading="lazy"
+               onerror="this.onerror=null;this.src='${(b.cover||'').replace('.webp','.png')}'" />
+        </div>
+        <div>
+          <h4 class="lib-title">${b.title_vi}</h4>
+          <p class="lib-author">Tác giả: ${b.author || '—'}</p>
+        </div>
+      </article>
+    `).join('');
+  }
+  // ----- END storyListHTML -----
+
+
+  // 1.4) Khung Reader (cột phải)
+  function readerShellHTML(meta) {
+    return `
+      <section class="panel glass story-reader">
         <div class="panel-head">
-          <h2>${meta.title_vi || meta.title_en || "Truyện"}</h2>
+          <h2 style="margin:0">${meta.title_vi}</h2>
           <div class="reader-controls">
-            <button class="btn small lang ${meta.default_lang==='vi'?'active':''}" data-lang="vi" title="Tiếng Việt">VI</button>
-            <button class="btn small lang ${meta.default_lang==='en'?'active':''}" data-lang="en" title="English">EN</button>
-            <button class="btn small audio" title="Phát/Dừng âm thanh">🔊</button>
-            <button class="btn small reader-close" title="Đóng">Đóng ›</button>
+            <button class="btn small lang" data-lang="vi"  aria-pressed="${STATE.lang==='vi'}">VI</button>
+            <button class="btn small lang" data-lang="en"  aria-pressed="${STATE.lang==='en'}">EN</button>
+            <button class="btn small" id="btn_audio" title="Phát/Dừng âm thanh">🔈</button>
+            <button class="btn small seeall reader-close" id="btn_close" title="Đóng">Đóng</button>
           </div>
         </div>
 
         <div class="reader-stage">
-          <div class="reader-image media-frame">
+          <div class="reader-image reader-frame">
             <img id="reader_img" alt="${meta.title_vi}" />
           </div>
-          <div class="reader-text" id="reader_text"></div>
-        </div>
 
-        <div class="reader-nav">
-          <button class="btn small prev">‹ Trang trước</button>
-          <div class="page-indicator" id="reader_page">1/1</div>
-          <button class="btn small next">Trang sau ›</button>
+          <div class="reader-text" id="reader_text"></div>
+
+          <div class="reader-nav">
+            <button class="btn small" id="btn_prev">‹ Trang trước</button>
+            <div class="page-indicator" id="reader_page">1/1</div>
+            <button class="btn small" id="btn_next">Trang sau ›</button>
+          </div>
         </div>
       </section>
     `;
   }
-
-  /* -------------------------------------------------------
-   * [B] Nạp nội dung + xử lý Reader
-   *  - Tự bắt đúng khóa ảnh L_image_pr
-   *  - Fallback URL (có/không /public, tuyệt đối theo origin)
-   * ------------------------------------------------------- */
-  function bindReaderBehavior(holder, meta, bookData){
-    const state = {
-      idx: 0,
-      lang: meta.default_lang || "vi",
-      audio: null,
-      pages: Array.isArray(bookData.pages) ? bookData.pages : []
-    };
-
-    const imgEl   = holder.querySelector("#reader_img");
-    const textEl  = holder.querySelector("#reader_text");
-    const pageEl  = holder.querySelector("#reader_page");
-    const btnPrev = holder.querySelector(".prev");
-    const btnNext = holder.querySelector(".next");
-    const btnAudio= holder.querySelector(".audio");
-    const btnLangs= holder.querySelectorAll(".lang");
-    const btnClose= holder.querySelector(".reader-close");
-
-    const clampIdx = i => Math.min(Math.max(i, 0), Math.max(0, state.pages.length - 1));
-    const pg = () => state.pages[state.idx] || {};
-    const pick = (obj, keys) => { for (const k of keys) if (obj && obj[k]) return obj[k]; return ""; };
-
-    const textFor = (lang) => pick(pg(), [
-      `noidung_${lang}`, `content_${lang}`, `text_${lang}`, "noidung", "content", "text"
-    ]);
-
-    const soundFor = (lang) => pick(pg(), [
-      `L_sound_${lang}`, `sound_${lang}`, `audio_${lang}`, "L_sound", "sound", "audio"
-    ]);
-
-    // 👉 ƯU TIÊN L_image_pr (đúng cấu trúc JSON của bạn)
-    // 👉 Lấy candidate URL ảnh cho trang hiện tại, rất “chịu chơi”
-// - Ưu tiên: L_image_vi/en  → L_image_pr → image/img (có/không đuôi _vi/_en)
-// - Sau đó: quét tất cả keys, gom mọi string trỏ tới *.webp|*.png|*.jpg|*.jpeg|*.gif
-function imageCandidatesFor(lang){
-  const v = pg();
-  if (!v || typeof v !== 'object') return [];
-
-  const prioritized = [
-    v[`L_image_${lang}`], v[`image_${lang}`], v[`img_${lang}`],
-    v[`L_image_${lang === "vi" ? "en" : "vi"}`], v[`image_${lang === "vi" ? "en" : "vi"}`], v[`img_${lang === "vi" ? "en" : "vi"}`],
-    v["L_image_pr"], v["L_image"], v["image"], v["img"]
-  ].filter(Boolean);
-
-  // Quét toàn bộ keys xem có chuỗi kết thúc bằng đuôi ảnh hay không
-  const extra = Object.values(v).filter(s => {
-    return (typeof s === "string") && /\.(webp|png|jpe?g|gif)(\?|$)/i.test(s);
-  });
-
-  // Hợp nhất + bỏ trùng
-  const seen = new Set();
-  return [...prioritized, ...extra].filter(u => (seen.has(u) ? false : (seen.add(u), true)));
-}
+  // ----- END readerShellHTML -----
 
 
-    // 👉 Thử nhiều biến thể URL; log lỗi; hiện gợi ý kiểm tra khi fail
-    function tryLoadImage(urls){
-      if (!urls || !urls.length){
-        imgEl.removeAttribute("src");
-        imgEl.style.display = "none";
-        imgEl.parentElement.style.minHeight = "0";
-        return;
+  /* =========================================================
+   * 2) DATA HELPERS (fetch JSON + fallback)
+   * ======================================================= */
+
+  async function fetchJSON(url) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+      return await res.json();
+    } catch (e) {
+      console.error('fetchJSON error:', url, e);
+      return null;
+    }
+  }
+  // ----- END fetchJSON -----
+
+
+  /* =========================================================
+   * 3) RENDERERS & BINDERS
+   * ======================================================= */
+
+  // 3.1) Render toàn trang (layout) + bind các sự kiện sidebar
+  function renderStage(root) {
+    root.innerHTML = layoutHTML();
+
+    // Bắt sự kiện sidebar
+    const bar = root.querySelector('#side_icons');
+    bar.addEventListener('click', async (e) => {
+      const a = e.target.closest('.icon-btn');
+      if (!a) return;
+
+      const key = a.dataset.key;
+      if (key === 'storybook') {
+        await loadLibraryAndRenderList(root);
       }
+      // các key khác (video, game, …) hiện chưa xử lý
+      e.preventDefault();
+    });
 
-      const makeVariants = (u) => {
-        if (!u) return [];
-        const hasLeading = u.startsWith("/");
-        const noPublic = u.replace(/^\/public(\/|$)/, "/");
-        const withSlash = hasLeading ? u : ("/" + u.replace(/^\.?\//,""));
-        const withSlashNoPublic = withSlash.replace(/^\/public(\/|$)/,"/");
-        const originAbs = location.origin + withSlash;
-        const originAbsNoPublic = location.origin + withSlashNoPublic;
-        const bust = v => v + (v.includes("?") ? "&" : "?") + "v=" + Date.now();
-        return [u, withSlash, noPublic, withSlashNoPublic, originAbs, originAbsNoPublic]
-          .filter(Boolean).map(bust);
-      };
+    // Nếu muốn tự động tải Storybook khi vào trang: bật dòng dưới
+    // loadLibraryAndRenderList(root);
+  }
+  // ----- END renderStage -----
 
-      const queue = [];
-      urls.forEach(u => queue.push(...makeVariants(u)));
 
-      const seen = new Set();
-      const finalQueue = queue.filter(u => (seen.has(u) ? false : (seen.add(u), true)));
+  // 3.2) Load manifest & render list vào cột giữa
+  async function loadLibraryAndRenderList(root) {
+    const listEl = root.querySelector('#story_list');
+    listEl.innerHTML = `<div class="lib-card" style="opacity:.7">Đang tải thư viện…</div>`;
 
-      let i = 0;
-      imgEl.style.display = "block";
-      imgEl.parentElement.style.minHeight = "160px";
-
-      function setErrorUI(last){
-        imgEl.removeAttribute("src");
-        imgEl.style.display = "none";
-        imgEl.parentElement.style.minHeight = "0";
-        const holderBox = imgEl.parentElement;
-        holderBox.querySelectorAll(".img-error-tip").forEach(n=>n.remove());
-        const tip = document.createElement("div");
-        tip.className = "img-error-tip";
-        tip.style.cssText = "background:rgba(0,0,0,.05);border:1px dashed rgba(0,0,0,.25);padding:8px;border-radius:10px;font:12px/1.4 system-ui;color:#111;";
-        tip.innerHTML = `Không tải được ảnh.<br><a href="${last}" target="_blank" rel="noreferrer">Mở thử URL cuối</a>`;
-        holderBox.appendChild(tip);
-      }
-
-      imgEl.onerror = () => {
-        if (i >= finalQueue.length){
-          console.error("[Reader] Image failed. Tried:", finalQueue);
-          setErrorUI(finalQueue[finalQueue.length-1] || "");
-          return;
-        }
-        const next = finalQueue[i++];
-        console.warn("[Reader] retry image:", next);
-        imgEl.src = next;
-      };
-
-      i = 1;
-      imgEl.src = finalQueue[0];
+    const data = await fetchJSON(PATHS.manifest);
+    if (!data?.books?.length) {
+      listEl.innerHTML = `<div class="lib-card">Không đọc được thư viện.</div>`;
+      return;
     }
 
-    function stopAudio(){
-      if (state.audio){
-        state.audio.pause();
-        state.audio.currentTime = 0;
-        state.audio = null;
-      }
+    STATE.books = data.books;
+    listEl.innerHTML = storyListHTML(STATE.books);
+
+    // Click 1 truyện để mở Reader
+    listEl.addEventListener('click', async (e) => {
+      const card = e.target.closest('[data-bookid]');
+      if (!card) return;
+      const id = card.dataset.bookid;
+      await openBook(root, id);
+    }, { once: true }); // bind một lần, danh sách không quá lớn
+  }
+  // ----- END loadLibraryAndRenderList -----
+
+
+  // 3.3) Mở 1 cuốn truyện → render Reader + bind điều khiển
+  async function openBook(root, bookId) {
+    const holder = root.querySelector('#reader_holder');
+    holder.innerHTML = `<section class="panel glass"><div>Đang tải nội dung…</div></section>`;
+
+    const bookData = await fetchJSON(PATHS.book(bookId));
+    if (!bookData?.pages?.length) {
+      holder.innerHTML = `<section class="panel glass"><div>Không đọc được nội dung truyện.</div></section>`;
+      return;
     }
 
-    function renderPage(){
-      const imgs = imageCandidatesFor(state.lang);
-      tryLoadImage(imgs);                    // 👉 BẮT BUỘC: nạp ảnh
-      textEl.textContent = textFor(state.lang) || "";
-      pageEl.textContent = `${state.idx+1}/${Math.max(1,state.pages.length)}`;
-      btnLangs.forEach(b => b.classList.toggle("active", b.dataset.lang === state.lang));
-      btnPrev.disabled = (state.idx === 0);
-      btnNext.disabled = (state.idx >= state.pages.length - 1);
-    }
+    STATE.currentBook = bookData;
+    STATE.pageIndex = 0;
 
-    // Events
-    btnPrev.addEventListener("click", ()=>{ stopAudio(); state.idx = clampIdx(state.idx - 1); renderPage(); });
-    btnNext.addEventListener("click", ()=>{ stopAudio(); state.idx = clampIdx(state.idx + 1); renderPage(); });
+    // Hiển thị khung Reader
+    holder.innerHTML = readerShellHTML(bookData);
+    bindReaderBehavior(holder, bookData);
+    renderPage(holder);  // hiển thị trang đầu
+  }
+  // ----- END openBook -----
 
-    btnLangs.forEach(b=>{
-      b.addEventListener("click", ()=>{
-        stopAudio();
-        state.lang = (b.dataset.lang === "en") ? "en" : "vi";
-        renderPage();
+
+  // 3.4) Gắn sự kiện cho Reader (ngôn ngữ, audio, prev/next, đóng)
+  function bindReaderBehavior(holder, bookData) {
+    // Ngôn ngữ
+    const langBtns = holder.querySelectorAll('.btn.small.lang');
+    langBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        STATE.lang = btn.dataset.lang;
+        langBtns.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+        renderPage(holder);
       });
     });
 
-    btnAudio.addEventListener("click", ()=>{
-      if (state.audio){ stopAudio(); return; }
-      const src = soundFor(state.lang);
-      if (!src) return;
-      try{
-        state.audio = new Audio(src);
-        state.audio.addEventListener("ended", ()=>{ state.audio=null; });
-        state.audio.play().catch(()=>{ state.audio=null; });
-      }catch(e){ state.audio=null; }
-    });
-
-    holder.addEventListener("keydown", (ev)=>{
-      if (ev.key === "ArrowLeft"){ btnPrev.click(); }
-      if (ev.key === "ArrowRight"){ btnNext.click(); }
-    });
-
-    btnClose.addEventListener("click", ()=>{
-      stopAudio();
-      const mount = holder.parentElement;
-      if (mount) mount.innerHTML = "";
-    });
-
-    renderPage();
-    holder.focus();
-  }
-
-  /* ---------------------------------------------
-   * [C] Render TRANG 3 CỘT
-   * --------------------------------------------- */
-  function renderStage(root){
-    root.innerHTML = `
-      <div class="nini-layout">
-        <!-- Sidebar (icon) -->
-        <aside class="nini-side glass">
-          <div class="side-icons" id="side_icons"></div>
-        </aside>
-
-        <!-- Cột giữa: Storybook -->
-        <section class="nini-middle">
-          <section id="lib_panel" class="panel glass storybook">
-            <div class="sb-head">📚 Storybook</div>
-            <div id="lib_list" class="lib-grid"></div>
-          </section>
-        </section>
-
-        <!-- Cột phải: Reader -->
-        <main class="nini-main">
-          <div id="reader_mount"></div>
-        </main>
-      </div>
-    `;
-
-    // Sidebar icons
-    const SIDE_ITEMS = [
-      {key:"storybook", label:"Storybook", icon:"/public/assets/icons/book.webp"},
-      {key:"video",     label:"Video",     icon:"/public/assets/icons/video.webp"},
-      {key:"game",      label:"Game",      icon:"/public/assets/icons/game.webp"},
-      {key:"shop",      label:"Shop",      icon:"/public/assets/icons/shop.webp"},
-      {key:"note",      label:"Thông báo", icon:"/public/assets/icons/note.webp"},
-      {key:"chat",      label:"Chat",      icon:"/public/assets/icons/chat.webp"},
-      {key:"setting",   label:"Cài đặt",   icon:"/public/assets/icons/setting.webp"},
-      {key:"user",      label:"Cá nhân",   icon:"/public/assets/icons/user.webp"},
-    ];
-
-    const iconsEl = root.querySelector('#side_icons');
-    iconsEl.innerHTML = SIDE_ITEMS.map(i=>`
-      <button class="icon-btn" data-key="${i.key}" title="${i.label}">
-        <span class="icon"><img src="${i.icon}" alt=""></span>
-        <span class="lbl">${i.label}</span>
-      </button>
-    `).join('');
-
-    // Mặc định mở Storybook
-    openLibrary();
-
-    // Click sidebar
-    iconsEl.addEventListener('click', e=>{
-      const btn = e.target.closest('.icon-btn'); if(!btn) return;
-      if (btn.dataset.key === 'storybook') openLibrary();
-      // mục khác bạn bổ sung sau
-    });
-
-    /* ------------ FUNCTIONS ------------ */
-
-    // [1] Load manifest
-    function openLibrary(){
-      const manifest = '/public/content/storybook/library-manifest.json'; // 👉 Đúng tên file
-      fetch(manifest)
-        .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-        .then(data => renderLibraryList(data.books || []))
-        .catch(err => {
-          console.error("[Library] manifest error:", err);
-          root.querySelector('#lib_list').innerHTML = `
-            <div class="sb-card">Không tải được danh sách truyện.<br>
-              <small>Kiểm tra đường dẫn: <code>${manifest}</code></small>
-            </div>`;
-        });
-    }
-
-    // [2] Vẽ danh sách sách
-    function renderLibraryList(books){
-      const list = root.querySelector('#lib_list');
-      if (!books.length){
-        list.innerHTML = `<div class="sb-card">Chưa có truyện.</div>`;
-        return;
+    // Prev / Next
+    holder.querySelector('#btn_prev').addEventListener('click', () => {
+      if (STATE.pageIndex > 0) {
+        STATE.pageIndex--;
+        renderPage(holder);
       }
-      list.innerHTML = books.map(b=>`
-        <article class="lib-card" data-id="${b.id}">
-          <div class="lib-cover media-frame">
-              <img src="${b.cover}" alt=""></div>
-          <div>
-            <h4 class="lib-title">${b.title_vi || b.title_en || 'No title'}</h4>
-            <p class="lib-author">Tác giả: ${b.author || 'N/A'}</p>
-          </div>
-        </article>
-      `).join('');
+    });
+    holder.querySelector('#btn_next').addEventListener('click', () => {
+      const total = STATE.currentBook.pages.length;
+      if (STATE.pageIndex < total - 1) {
+        STATE.pageIndex++;
+        renderPage(holder);
+      }
+    });
 
-      list.onclick = (ev)=>{
-        const card = ev.target.closest('.lib-card'); if(!card) return;
-        openReader(card.dataset.id);
-      };
-    }
+    // Audio
+    holder.querySelector('#btn_audio').addEventListener('click', () => {
+      toggleAudioForCurrentPage();
+    });
 
-    // [3] Mở 1 cuốn ở cột phải
-    function openReader(bookId){
-      const url = `/public/content/storybook/${bookId}.json`;
-      fetch(url)
-        .then(r => { if(!r.ok) throw new Error(r.status); return r.json(); })
-        .then(bookData=>{
-          const mount = root.querySelector('#reader_mount');
-          mount.innerHTML = readerShellHTML({
-            title_vi: bookData.title_vi || 'Truyện',
-            title_en: bookData.title_en || '',
-            default_lang: 'vi'
-          });
-          bindReaderBehavior(mount, {title_vi: bookData.title_vi, default_lang:'vi'}, bookData);
-          mount.scrollIntoView({behavior:'smooth', block:'start'});
-        })
-        .catch(err=>{
-          console.error("[Reader] open error:", err);
-          root.querySelector('#reader_mount').innerHTML = `
-            <div class="panel glass">Không tải được truyện <code>${bookId}</code>.<br>
-            <small>Kiểm tra đường dẫn: <code>${url}</code></small></div>`;
-        });
-    }
-  }
-
-  /* ---------------------------------------------
-   * [D] Mount
-   * --------------------------------------------- */
-  if (N.mountOnce){
-    N.mountOnce('#stage', renderStage);
-  } else {
-    const root = document.querySelector('#stage');
-    if (root) renderStage(root);
-  }
-
-  // (tuỳ chọn) bộ đổi mùa
-  function renderSeasonsNav(nav){
-    nav.innerHTML = `
-      <button data-season="spring">Xuân</button>
-      <button data-season="summer">Hạ</button>
-      <button data-season="autumn">Thu</button>
-      <button data-season="winter">Đông</button>
-    `;
-    nav.addEventListener('click', (e)=>{
-      const btn = e.target.closest('[data-season]');
-      if (!btn || !N.setSeason) return;
-      N.setSeason(btn.dataset.season);
+    // Đóng Reader
+    holder.querySelector('#btn_close').addEventListener('click', () => {
+      stopAudio();
+      holder.innerHTML = ''; // ẩn khung reader
     });
   }
-  if (N.mountOnce) N.mountOnce('#season_nav', renderSeasonsNav);
+  // ----- END bindReaderBehavior -----
+
+
+  // 3.5) Render 1 trang của Reader theo STATE.pageIndex & STATE.lang
+  function renderPage(holder) {
+    const { currentBook, pageIndex, lang } = STATE;
+    const page = currentBook.pages[pageIndex];
+
+    const img = holder.querySelector('#reader_img');
+    const text = holder.querySelector('#reader_text');
+    const ind = holder.querySelector('#reader_page');
+
+    // ảnh theo ngôn ngữ (ưu tiên VI, nếu không có thì dùng EN)
+    const imgSrc = (lang === 'vi' ? page.L_image_vi : page.L_image_en) || page.L_image_vi || page.L_image_en || '';
+    img.src = imgSrc;
+    img.loading = 'lazy';
+    img.onerror = function () {
+      this.onerror = null;
+      if (this.src.endsWith('.webp')) this.src = this.src.replace('.webp', '.png');
+    };
+
+    // nội dung
+    const t = (lang === 'vi' ? page.noidung_vi : page.noidung_en) || '';
+    text.textContent = t;
+
+    // chỉ số trang
+    ind.textContent = `${pageIndex + 1}/${currentBook.pages.length}`;
+
+    // nếu đang phát audio → chuyển sang audio của trang mới
+    if (STATE.audio && !STATE.audio.paused) {
+      startAudioForPage(page);
+    }
+  }
+  // ----- END renderPage -----
+
+
+  /* =========================================================
+   * 4) AUDIO HELPERS
+   * ======================================================= */
+
+  function stopAudio() {
+    if (STATE.audio) {
+      STATE.audio.pause();
+      STATE.audio.currentTime = 0;
+    }
+  }
+
+  function startAudioForPage(page) {
+    stopAudio();
+    const src = (STATE.lang === 'vi' ? page.L_sound_vi : page.L_sound_en) || page.L_sound_vi || page.L_sound_en;
+    if (!src) return;
+
+    const a = STATE.audio = new Audio(src);
+    a.play().catch(() => {/* autoplay bị chặn thì bỏ qua */});
+  }
+
+  function toggleAudioForCurrentPage() {
+    const page = STATE.currentBook?.pages?.[STATE.pageIndex];
+    if (!page) return;
+
+    // Nếu đã có audio và đang phát → pause
+    if (STATE.audio && !STATE.audio.paused) {
+      STATE.audio.pause();
+      return;
+    }
+    // Nếu chưa có / đã pause → phát lại audio của trang hiện tại
+    startAudioForPage(page);
+  }
+  // ----- END AUDIO HELPERS -----
+
+
+  /* =========================================================
+   * 5) MOUNT
+   * ======================================================= */
+  N.mountOnce('#stage', renderStage);
+  // ----- END MOUNT -----
 })();
-
-
-

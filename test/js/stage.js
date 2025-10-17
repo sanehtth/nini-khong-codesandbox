@@ -40,15 +40,18 @@
 
           <!-- [B1] SIDEBAR ICON (TRÁI) - BẮT ĐẦU -->
           <aside class="nini-side glass">
-            <div class="side-icons">
-              ${SIDE_ITEMS.map((it, i) => `
-                <a href="${it.href}" class="icon-btn ${i===0 ? 'active' : ''}" data-key="${it.key}" aria-label="${it.label}">
-                  <span class="icon"><img src="${it.icon}" alt="${it.label}" loading="lazy"/></span>
-                  <span class="lbl">${it.label}</span>
-                </a>
-              `).join("")}
-            </div>
-          </aside>
+  <div class="side-icons">
+    ${SIDE_ITEMS.map((it, i) => `
+      <a href="${it.href}" class="icon-btn ${i===0?'active':''}" data-key="${it.key}" aria-label="${it.label}">
+        <span class="icon">
+          <img src="${it.icon}" alt="${it.label}" loading="lazy"/>
+        </span>
+        <span class="lbl">${it.label}</span>
+      </a>
+    `).join("")}
+  </div>
+</aside>
+
           <!-- [B1] SIDEBAR ICON (TRÁI) - KẾT THÚC -->
 
           <!-- [B2] CỘT GIỮA: STORYBOOK + SHOP - BẮT ĐẦU -->
@@ -209,4 +212,5 @@
   /* --------------------------- HẾT PHẦN [D] ------------------------------ */
 
 })();
+
 

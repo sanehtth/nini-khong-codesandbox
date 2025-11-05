@@ -462,28 +462,68 @@ function renderNotifRight(nf){
 }
 
 /* 5.6 Hồ sơ cá nhân */
+// Lấy current user an toàn từ wrapper fb
+function getCurrentUser(){
+  const fb = (window.NiNi && window.NiNi.fb) || (window.NINI && window.NINI.fb);
+  if (!fb) return null;
+  try{
+    return (typeof fb.currentUser === 'function') ? fb.currentUser() : (fb.currentUser || null);
+  }catch(_){ return null; }
+}
+
+// render cot giua va cot phai profile
 function renderProfileMid(){
   const u = getCurrentUser();
-  if (!u) { document.getElementById('col-mid').innerHTML = gatePanel('Hồ sơ'); mountGateButton(); return; }
+
+  // Chưa đăng nhập → hiển thị khung "Hồ sơ" + nút mở modal
+  if (!u){
+    document.getElementById('col-mid').innerHTML = gatePanel('Hồ sơ');
+    mountGateButton(); // nút "Đăng nhập" của bạn
+    return;
+  }
+
+  // Đã đăng nhập
+  const email = u.email || '—';
+  const display = u.displayName || (u.providerData && u.providerData[0]?.displayName) || '—';
+
   document.getElementById('col-mid').innerHTML = `
     <div class="panel">
       <h3>Thông tin cá nhân</h3>
-      <p><b>Email:</b> ${(u.email) || '—'}</p>
-      <p><b>Tên hiển thị:</b> ${(u.displayName) || '—'}</p>
-    </div>`;
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Tên hiển thị:</b> ${display}</p>
+    </div>
+  `;
 }
+
 function renderProfileRight(){
   const u = getCurrentUser();
-  if (!u) { document.getElementById('col-right').innerHTML = gatePanel('Thành tích'); mountGateButton(); return; }
+
+  // Chưa đăng nhập → panel "Thành tích" + nút đăng nhập
+  if (!u){
+    document.getElementById('col-right').innerHTML = gatePanel('Thành tích');
+    mountGateButton();
+    return;
+  }
+
+  // Đã đăng nhập (demo tĩnh giống trước)
   document.getElementById('col-right').innerHTML = `
     <div class="panel">
-      <h2>Thành tích</h2>
+      <h3>Thành tích</h3>
       <ul class="prose">
         <li>Đọc xong 2 sách</li>
         <li>Hoàn thành 5 nhiệm vụ</li>
       </ul>
-    </div>`;
+    </div>
+  `;
 }
+// Re-render Profile khi user thay đổi
+document.addEventListener('NiNi:user-changed', () => {
+  const route = String(location.hash || '').replace('#/', '').toLowerCase();
+  if (route === 'profile'){
+    try { renderProfileMid(); renderProfileRight(); } catch(_){}
+  }
+});
+
 
 /* --------------------------- [6] ROUTER --------------------------------- */
 const ROUTES = {
@@ -675,6 +715,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

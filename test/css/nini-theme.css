@@ -311,28 +311,37 @@ body::after{
 .input::placeholder{ color:#cfeee3; }
 
 /* Tabs playlist – cùng chất kính, cho phép xuống dòng */
+/* Tabs – style thống nhất, lấy màu từ token */
 .tabs{
-  display:flex; flex-wrap:wrap; gap:8px; padding:6px;
+  display:flex;
+  gap:8px;
+  padding:6px;
   background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.22);
-  border-radius:16px; margin-bottom:10px;
+  border-radius:12px;
 }
-.tabs .break{ flex-basis:100%; height:0; }
-
 .tab{
   display:inline-flex; align-items:center; justify-content:center;
-  padding:6px 12px; border-radius:999px;
-  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25);
-  color:#eafff7; font-weight:800; font-size:13px; cursor:pointer;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.25);
+  color:var(--pill-text);
+  font-weight:800; font-size:13px; line-height:1;
+  cursor:pointer;
   transition:transform .12s ease, background .12s ease, border-color .12s ease;
 }
 .tab:hover{ transform:translateY(-1px); background:rgba(255,255,255,.20); }
 .tab--active{
-  background:rgba(34,197,94,.18); border-color:rgba(34,197,94,.45);
-  box-shadow:0 0 0 1px rgba(34,197,94,.25) inset;
+  background:color-mix(in oklab, var(--brand) 18%, transparent);
+  border-color:color-mix(in oklab, var(--brand) 45%, transparent);
+  box-shadow:0 0 0 1px color-mix(in oklab, var(--brand) 25%, transparent) inset;
 }
 
-/* Đảm bảo card video khớp style Storybook (đã có sẵn trong CSS của bạn) */
+/* Modifier & utility – tái dùng ở bất kỳ nơi nào cần */
+.tabs--wrap{ flex-wrap:wrap; }        /* cho phép xuống dòng */
+.u-break{ flex-basis:100%; height:0; }/* phần tử ngắt dòng */
+
 /* .lib-grid, .lib-card, .lib-cover, .lib-title, .lib-author — dùng nguyên như hiện tại */
 
 
@@ -448,6 +457,7 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   display: block;            /* bỏ khoảng trống baseline của img */
   border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
 }
+
 
 
 

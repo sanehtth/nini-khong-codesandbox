@@ -1,0 +1,21 @@
+﻿{
+  "playlists": [
+    {
+      "id": "pl_ai",
+      "title": "AI",
+      "desc": "Các video về AI",
+      "items": [
+        { "id": "ai1", "title": "AI có mơ chăng?", "url": "https://youtu.be/StFihkKIywo" }
+      ]
+    },
+    {
+      "id": "pl_nini",
+      "title": "Trải nghiệm của NiNi",
+      "desc": "Nhật ký NiNi",
+      "items": [
+        { "id": "nn1", "title": "Cá nằm trên thớt", "url": "https://www.youtube.com/watch?v=xxxxxxx1111" },
+        { "id": "nn2", "title": "Vịt chạy bờ ao",   "url": "https://youtu.be/yyyyyyy2222" }
+      ]
+    }
+  ]
+}

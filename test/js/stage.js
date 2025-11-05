@@ -14,9 +14,18 @@
 /* --------------------------- [0] Demo data (mock) ----------------------- */
 // Dữ liệu demo: bạn thay bằng data thật khi có API / Firestore
 const DEMO_VIDEOS = [
-  { id: 'v1', title: 'AI có mơ chăng?', url: 'https://youtu.be/StFihkKIywo' },
-  { id: 'v2', title: 'Tua video 2', url: 'https://www.youtube.com/embed/oHg5SJYRHA0' },
+  {
+    id: 'v1',
+    title: 'AI có mơ chăng?',
+    url: 'https://www.youtube.com/embed/StFihkKIywo?si=7QSX371UAAXk-seX'  // ✅
+  },
+  {
+    id: 'v2',
+    title: 'Tua video 2',
+    url: 'https://www.youtube.com/embed/ohq5S9YRHA0'
+  }
 ];
+
 
 const DEMO_GAMES = [
   { id: 'g1', name: 'Puzzle Forest', url: '/game/puzzle.html' },
@@ -595,6 +604,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

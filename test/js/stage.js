@@ -208,41 +208,93 @@ function renderContactRight(){
 
 /* --------------------------- [5] ROUTES yêu cầu đăng nhập --------------- */
 /* 5.1 Video */
-function renderVideoMid() {
-  const u = getCurrentUser();
-  if (!u) { document.getElementById('col-mid').innerHTML = gatePanel('Video'); mountGateButton(); return; }
+// Chuẩn hoá link YouTube => /embed/{id}
+function toEmbed(u){
+  try{
+    const url = new URL(u);
+    if (url.hostname === 'youtu.be') return `https://www.youtube.com/embed/${url.pathname.slice(1)}`;
+    if (url.hostname.includes('youtube')){
+      if (url.pathname.startsWith('/embed/')) return u;
+      const id = url.searchParams.get('v'); if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+  }catch(e){}
+  return u;
+}
+function ytThumb(u){
+  const em = toEmbed(u);
+  const id = em.split('/embed/')[1]?.split(/[?&#]/)[0] || '';
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+}
+
+// State
+let VIDEO_DATA = { playlists: [] };
+let CUR_PL = null;
+
+// Tải JSON 1 lần
+async function loadVideoData(){
+  if (VIDEO_DATA.playlists.length) return;
+  const res = await fetch('/public/content/video/videos.json', { cache: 'no-cache' });
+  VIDEO_DATA = await res.json();
+  CUR_PL = VIDEO_DATA.playlists[0]?.id || null;
+}
+
+// UI
+async function renderVideoLeft(){
+  await loadVideoData();
+  const pls = VIDEO_DATA.playlists;
+  const cur = CUR_PL || (pls[0] && pls[0].id);
+
   document.getElementById('col-mid').innerHTML = `
-    <div class="panel"><h3>Danh sách Video</h3>
-      <div class="list" id="video_list">
-        ${DEMO_VIDEOS.map(v => `
-          <div class="list__item" data-id="${v.id}">
-            <span class="list__title">${v.title}</span>
-            //<span class="list__meta">YouTube</span>
-          </div>`).join('')}
+    <div class="panel2">
+      <h3>Danh sách Video</h3>
+
+      <div id="pl_tabs" class="tabs">
+        ${pls.map(p => `<button class="tab ${p.id===cur?'active':''}" data-pl="${p.id}">${p.title}</button>`).join('')}
       </div>
-    </div>`;
-  // chọn video -> phát ở cột phải
+
+      <div class="list" id="video_list">
+        ${pls.find(p=>p.id===cur)?.items.map(v => `
+          <div class="list__item" data-id="${v.id}">
+            <img src="${ytThumb(v.url)}" alt="" style="width:120px;height:68px;object-fit:cover;border-radius:8px;margin-right:8px">
+            <span class="list__title">${v.title}</span>
+          </div>
+        `).join('') || ''}
+      </div>
+    </div>
+  `;
+
+  // đổi playlist
+  document.getElementById('pl_tabs').onclick = (e)=>{
+    const b = e.target.closest('.tab'); if(!b) return;
+    CUR_PL = b.dataset.pl;
+    renderVideoLeft(); // render lại list theo playlist mới
+  };
+
+  // click video -> phát
   document.getElementById('video_list').onclick = (e)=>{
     const row = e.target.closest('.list__item'); if(!row) return;
-    const video = DEMO_VIDEOS.find(x=>x.id===row.dataset.id);
-    playVideoRight(video);
+    const pl = VIDEO_DATA.playlists.find(p=>p.id===CUR_PL);
+    const v  = pl.items.find(x=>x.id===row.dataset.id);
+    playVideoRight(v);
   };
 }
-function renderVideoRight() {
-  const u = getCurrentUser();
-  if (!u) { document.getElementById('col-right').innerHTML = gatePanel('Xem video'); mountGateButton(); return; }
+
+function renderVideoRight(){
   document.getElementById('col-right').innerHTML = `
-    <div class="panel">
+    <div class="panel2">
       <h2 id="vid_ttl">Chọn video để xem</h2>
-      <div style="aspect-ratio:16/9; background:#000; border-radius:14px; overflow:hidden">
-        <iframe id="vid_frame" src="" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      <div style="aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden">
+        <iframe id="vid_frame" src="" width="100%" height="100%" frameborder="0"
+                allow="autoplay; encrypted-media" allowfullscreen></iframe>
       </div>
-    </div>`;
+    </div>
+  `;
 }
+
 function playVideoRight(v){
   const f = document.getElementById('vid_frame');
   const t = document.getElementById('vid_ttl');
-  if (f && t && v) { f.src = v.url; t.textContent = v.title; }
+  if (f && v){ f.src = toEmbed(v.url); t.textContent = v.title; }
 }
 
 /* 5.2 Game */
@@ -604,6 +656,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

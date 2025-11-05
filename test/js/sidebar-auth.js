@@ -1,12 +1,15 @@
-// /test/js/sidebar-auth.js
-(() => {
-  const $ = (s, r=document) => r.querySelector(s);
+;(() => {
+  const $ = (s, r = document) => r.querySelector(s);
 
-  function ensureSlot(){
-    const list = $('.nini-side .side-icons');
+  function getList() {
+    return $('.nini-side .side-icons');
+  }
+
+  function ensureSlot() {
+    const list = getList();
     if (!list) return null;
     let slot = $('#sb-auth-slot', list);
-    if (!slot){
+    if (!slot) {
       slot = document.createElement('div');
       slot.id = 'sb-auth-slot';
       list.appendChild(slot);
@@ -14,45 +17,57 @@
     return slot;
   }
 
-  function renderSidebarAuth(){
-    const slot = ensureSlot();
-    if (!slot) return; // sidebar chưa có -> Observer sẽ gọi lại
+  function render() {
+    try {
+      const slot = ensureSlot();
+      if (!slot) return; // sidebar chưa có -> Observer sẽ gọi lại khi xuất hiện
 
-   const u = window.NiNi?.user || null;
+      const u = (window.NiNi && window.NiNi.user) || null;
 
-// Dùng 2 file riêng để không nhầm với icon user của trang Profile
-const imgSrc = u
-  ? '/public/assets/icons/logout.webp'   // đã đăng nhập -> hiện icon Đăng xuất
-  : '/public/assets/icons/login.webp';   // chưa đăng nhập -> hiện icon Đăng nhập
+      // KHÔNG dùng icon "user" để khỏi nhầm với Profile
+      const imgSrc = u
+        ? '/public/assets/icons/logout.webp'
+        : '/public/assets/icons/login.webp';
 
+      slot.innerHTML = `
+        <a class="icon-btn" id="sb-auth-btn" href="javascript:void(0)">
+          <span class="icon"><img src="${imgSrc}" alt=""></span>
+          <span class="lbl">${u ? 'Đăng xuất' : 'Đăng nhập'}</span>
+        </a>
+      `;
 
-    slot.innerHTML = `
-      <a class="icon-btn" id="sb-auth-btn" href="javascript:void(0)">
-        <span class="icon"><img src="${imgSrc}" alt=""></span>
-        <span class="lbl">${u ? 'Đăng xuất' : 'Đăng nhập'}</span>
-      </a>
-    `;
-
-    $('#sb-auth-btn', slot).onclick = async () => {
-      try{
-        if (window.NiNi?.user) { await window.N?.fb?.signOut?.(); }
-        else { window.NiNiAuth?.open?.('login'); }
-      }catch(e){ console.error(e); }
-    };
+      const btn = $('#sb-auth-btn', slot);
+      if (btn) {
+        btn.onclick = async () => {
+          try {
+            if (window.NiNi && window.NiNi.user) {
+              if (window.N && window.N.fb && typeof window.N.fb.signOut === 'function') {
+                await window.N.fb.signOut();
+              }
+            } else {
+              if (window.NiNiAuth && typeof window.NiNiAuth.open === 'function') {
+                window.NiNiAuth.open('login');
+              }
+            }
+          } catch (e) {
+            console.error('sidebar auth btn error:', e);
+          }
+        };
+      }
+    } catch (e) {
+      console.error('sidebar-auth render error:', e);
+    }
   }
 
-  // chạy ngay & khi DOM sẵn sàng
-  renderSidebarAuth();
-  document.addEventListener('DOMContentLoaded', renderSidebarAuth);
-  setTimeout(renderSidebarAuth, 0);
+  // Render ngay & khi DOM sẵn sàng
+  render();
+  document.addEventListener('DOMContentLoaded', render);
 
-  // cập nhật khi trạng thái user đổi (kênh mới + kênh cũ)
-  window.addEventListener('NiNi:user-changed', renderSidebarAuth);
-  document.addEventListener('auth:changed', renderSidebarAuth);
+  // Cập nhật khi trạng thái user đổi (kênh mới + kênh cũ)
+  window.addEventListener('NiNi:user-changed', render);
+  document.addEventListener('auth:changed', render);
 
-  // nếu sidebar render sau (do router), quan sát và render khi xuất hiện
-  const obs = new MutationObserver(() => {
-    if (ensureSlot()) renderSidebarAuth();
-  });
-  obs.observe(document.body, { childList:true, subtree:true });
+  // Nếu sidebar xuất hiện trễ do router, quan sát DOM và render khi có
+  const obs = new MutationObserver(() => { if (getList()) render(); });
+  obs.observe(document.documentElement, { childList: true, subtree: true });
 })();

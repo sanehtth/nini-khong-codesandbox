@@ -241,45 +241,59 @@ async function loadVideoData(){
 // UI
 async function renderVideoLeft(){
   await loadVideoData();
+
   const pls = VIDEO_DATA.playlists;
-  const cur = CUR_PL || (pls[0] && pls[0].id);
+  const cur = CUR_PL || pls[0]?.id;
+  const curPl = pls.find(p => p.id === cur) || { title: '', items: [] };
 
   document.getElementById('col-mid').innerHTML = `
-    <div class="panel2">
-      <h3>Danh sách Video</h3>
-      <div id="pl_tabs" class="tabs">
-      ${
-        VIDEO_DATA.playlists.map((p, i) => `
-          <button class="chip ${p.id===CUR_PL?'active':''}" data-pl="${p.id}">
-            ${p.title}
-          </button>
-          ${i===0 ? '<span class="break"></span>' : ''}   <!-- xuống dòng sau tab đầu -->
-        `).join('')
-      }
-    </div>
-      <div class="list" id="video_list">
-        ${pls.find(p=>p.id===cur)?.items.map(v => `
-          <div class="list__item" data-id="${v.id}">
-            <img src="${ytThumb(v.url)}" alt="" style="width:120px;height:68px;object-fit:cover;border-radius:8px;margin-right:8px">
-            <span class="list__title">${v.title}</span>
-          </div>
-        `).join('') || ''}
+    <div class="panel" id="video_panel">
+
+      <!-- BLOCK 1: PLAYLIST -->
+      <div class="pane">
+        <h4 class="pane-title">Playlist</h4>
+        <div id="pl_tabs" class="tabs tabs--wrap">
+          ${pls.map((p, i) => `
+            <button class="tab ${p.id === cur ? 'tab--active' : ''}" data-pl="${p.id}">
+              ${p.title}
+            </button>
+            ${i === 0 ? '<span class="u-break"></span>' : ''}  <!-- xuống dòng giữa AI & NiNi -->
+          `).join('')}
+        </div>
       </div>
+
+      <!-- BLOCK 2: DANH SÁCH VIDEO -->
+      <div class="pane">
+        <h4 class="pane-title">Danh sách Video</h4>
+        <div class="lib-grid" id="video_list">
+          ${curPl.items.map(v => `
+            <article class="lib-card list__item" data-id="${v.id}">
+              <div class="lib-cover">
+                <img src="${ytThumb(v.url)}" alt="${v.title}">
+              </div>
+              <div>
+                <h4 class="lib-title">${v.title}</h4>
+                <p class="lib-author">${curPl.title}</p>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      </div>
+
     </div>
   `;
 
   // đổi playlist
-  document.getElementById('pl_tabs').onclick = (e)=>{
-    const b = e.target.closest('.tab'); if(!b) return;
+  document.getElementById('pl_tabs').onclick = (e) => {
+    const b = e.target.closest('.tab'); if (!b) return;
     CUR_PL = b.dataset.pl;
-    renderVideoLeft(); // render lại list theo playlist mới
+    renderVideoLeft();                    // render lại list theo playlist mới
   };
 
-  // click video -> phát
-  document.getElementById('video_list').onclick = (e)=>{
-    const row = e.target.closest('.list__item'); if(!row) return;
-    const pl = VIDEO_DATA.playlists.find(p=>p.id===CUR_PL);
-    const v  = pl.items.find(x=>x.id===row.dataset.id);
+  // click video -> phát bên phải
+  document.getElementById('video_list').onclick = (e) => {
+    const row = e.target.closest('.list__item'); if (!row) return;
+    const v = curPl.items.find(x => x.id === row.dataset.id);
     playVideoRight(v);
   };
 }
@@ -661,6 +675,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

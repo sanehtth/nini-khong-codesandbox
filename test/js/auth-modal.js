@@ -103,40 +103,51 @@
       const say = (m, ok=false)=>{ if(msgEl){ msgEl.textContent = m; msgEl.style.color = ok?'#065f46':'#7f1d1d'; } };
 
       try{
-        // Login
-        if (t.matches('[data-login]')) {
-          const email = vEmail(); const pass = vPass();
-          if (!isEmail(email) || !pass) { say('Email/mật khẩu chưa hợp lệ'); return; }
-          say('Đang đăng nhập...');
-          const cred = await window.N.fb.signIn(email, pass); // từ nini-fb.mjs
-          say('Đăng nhập thành công!', true);
+      // helper: lấy currentUser an toàn (có thể là prop hoặc function)
+const getCurrentUser = () => {
+  const fb = window.N?.fb;
+  if (!fb) return null;
+  return (typeof fb.currentUser === 'function')
+    ? fb.currentUser()
+    : (fb.currentUser || null);
+};
 
-          // PHÁT SỰ KIỆN CHO TOÀN SITE (để sidebar đổi nút)
-          const user = cred?.user || null;
-          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user })); // kênh mới
-          window.N.emit?.('auth:changed', user);                                         // kênh cũ (compat)
+// --- ĐĂNG NHẬP EMAIL/PASS ---
+if (t.matches('[data-login]')) {
+  const email = vEmail(); const pass = vPass();
+  if (!isEmail(email) || !pass) { say('Email/mật khẩu chưa hợp lệ'); return; }
+  say('Đang đăng nhập...');
 
-          setTimeout(closeModal, 350);
-          window.N.emit?.('auth:login', user); // nếu nơi khác còn nghe 'auth:login' thì giữ lại
-          return;
+  const cred = await window.N.fb.signIn(email, pass);   // từ nini-fb.mjs
+  const user = cred?.user ?? getCurrentUser();
 
-        }
+  say('Đăng nhập thành công!', true);
 
-        // Google
-        if (t.matches('[data-google]')) {
-          say('Đang mở Google...');
-          const cred = await window.N.fb.signInGoogle?.();
-          say('Đăng nhập Google thành công!', true);
+  // PHÁT SỰ KIỆN CHO TOÀN SITE (để sidebar đổi nút, v.v.)
+  document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user })); // kênh mới
+  window.N?.emit?.('auth:changed', user);                                         // kênh cũ (compat)
+  window.N?.emit?.('auth:login', user);                                           // nếu nơi khác còn nghe
 
-          const user = cred?.user || null;
-          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user })); // kênh mới
-          window.N.emit?.('auth:changed', user);                                         // kênh cũ (compat)
+  setTimeout(closeModal, 250);
+  return;
+}
 
-          setTimeout(closeModal, 350);
-          window.N.emit?.('auth:login', user);
-          return;
+// --- ĐĂNG NHẬP GOOGLE ---
+if (t.matches('[data-google]')) {
+  say('Đang mở Google...');
+  const cred = await window.N.fb.signInGoogle?.();
+  const user = cred?.user ?? getCurrentUser();
 
-        }
+  say('Đăng nhập Google thành công!', true);
+
+  document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user }));
+  window.N?.emit?.('auth:changed', user);
+  window.N?.emit?.('auth:login', user);
+
+  setTimeout(closeModal, 250);
+  return;
+}
+
 
         // Đăng ký (gửi mail xác minh + auto-create user nếu cần)
         if (t.matches('[data-signup]')) {
@@ -181,4 +192,5 @@
   // Sự kiện nền: click nền để đóng
   document.getElementById(BACKDROP_ID)?.addEventListener('click', closeModal);
 })();
+
 

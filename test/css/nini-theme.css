@@ -309,12 +309,32 @@ body::after{
   background:rgba(255,255,255,.08); color:#eafff7; border:1px solid rgba(255,255,255,.22); outline:none;
 }
 .input::placeholder{ color:#cfeee3; }
+
+/* Tabs playlist – cùng chất kính, cho phép xuống dòng */
 .tabs{
-  display:inline-flex; padding:4px; gap:4px;
-  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22); border-radius:999px;
+  display:flex; flex-wrap:wrap; gap:8px; padding:6px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:16px; margin-bottom:10px;
 }
-.tab{ padding:6px 10px; border-radius:999px; color:#eafff7; cursor:pointer; }
-.tab--active{ background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.5); }
+.tabs .break{ flex-basis:100%; height:0; }
+
+.tab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:6px 12px; border-radius:999px;
+  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25);
+  color:#eafff7; font-weight:800; font-size:13px; cursor:pointer;
+  transition:transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.tab:hover{ transform:translateY(-1px); background:rgba(255,255,255,.20); }
+.tab--active{
+  background:rgba(34,197,94,.18); border-color:rgba(34,197,94,.45);
+  box-shadow:0 0 0 1px rgba(34,197,94,.25) inset;
+}
+
+/* Đảm bảo card video khớp style Storybook (đã có sẵn trong CSS của bạn) */
+/* .lib-grid, .lib-card, .lib-cover, .lib-title, .lib-author — dùng nguyên như hiện tại */
+
 
 /* Backdrop & blur khi mở auth (tương thích glue hiện có) */
 #authBackdrop[hidden], #authModal[hidden]{ display:none !important; }
@@ -429,49 +449,8 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
 }
 
-/* container tabs */
-.tabs {
-  display: flex;
-  flex-wrap: wrap;       /* cho phép xuống dòng */
-  gap: 8px;              /* khoảng cách giữa chip */
-  margin-bottom: 10px;
-}
 
-/* phần tử tạo ngắt dòng */
-.tabs .break { 
-  flex-basis: 100%; 
-  height: 0; 
-}
 
-/* chip (pill) */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  border: 1px solid rgba(255,255,255,.25);
-  background: rgba(255,255,255,.08);
-  color: #fff;
-  font-weight: 600;
-  font-size: 13px;
-  line-height: 1;
-  backdrop-filter: blur(4px);
-  cursor: pointer;
-  transition: transform .06s ease, background .2s ease, border-color .2s;
-}
-
-.chip:hover { 
-  transform: translateY(-1px); 
-  border-color: rgba(255,255,255,.4);
-  background: rgba(255,255,255,.12);
-}
-
-.chip.active {
-  color: #1d3;                           /* xanh hợp theme rừng của bạn */
-  background: rgba(50,255,120,.16);
-  border-color: rgba(50,255,120,.45);
-  box-shadow: 0 0 0 1px rgba(50,255,120,.25) inset;
-}
 
 
 

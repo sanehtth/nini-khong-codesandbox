@@ -25,13 +25,13 @@
   };
 })();
 
-// ==== NiNi auth bridge (cuối core.js) ====
+/* ===== NiNi auth bridge — dán ở CUỐI core.js ===== */
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
 
-  // Thống nhất 2 biến global
+  // Thống nhất 2 biến global (nếu nơi khác dùng NINI hoặc NiNi)
   window.NiNi = window.NiNi || window.NINI || {};
-  window.NINI  = window.NiNi;
+  window.NINI = window.NiNi;
 
   function emitUser(u) {
     const user = u || null;
@@ -43,18 +43,17 @@
   }
 
   function tryHookFirebase() {
-    const fb =
-      (window.NiNi && window.NiNi.fb) ||
-      (window.N && window.N.fb) || null;
+    // fb có thể ở window.NiNi.fb hoặc window.N.fb
+    const fb = (window.NiNi && window.NiNi.fb) || (window.N && window.N.fb) || null;
     if (!fb) return false;
 
     // currentUser có thể là property HOẶC function
     const getCurrentUser = () =>
-      typeof fb.currentUser === 'function' ? fb.currentUser() : fb.currentUser || null;
+      (typeof fb.currentUser === 'function') ? fb.currentUser() : (fb.currentUser || null);
 
     if (typeof fb.onAuthStateChanged === 'function') {
       fb.onAuthStateChanged(u => emitUser(u));
-      emitUser(getCurrentUser());   // bắn trạng thái hiện tại ngay
+      emitUser(getCurrentUser()); // bắn trạng thái hiện tại ngay
       return true;
     }
     if (typeof fb.onUserChanged === 'function') {
@@ -65,19 +64,18 @@
     return false;
   }
 
+  // Hook ngay; nếu fb chưa sẵn sàng thì đợi sự kiện NiNi:fb-ready
   if (!tryHookFirebase()) {
     document.addEventListener('NiNi:fb-ready', tryHookFirebase, { once: true });
   }
 
+  // Cập nhật nút FAB cũ (nếu còn)
   window.NiNi.updateAuthUI = function () {
-    const fab = document.querySelector('#authFab');
+    const fab = $('#authFab');
     if (fab) fab.style.display = window.NiNi.user ? 'none' : 'inline-flex';
   };
-
   window.addEventListener('NiNi:user-changed', window.NiNi.updateAuthUI);
-})();
+})(); // <-- CHỈ 1 lần đóng IIFE
 
 
-  window.addEventListener('NiNi:user-changed', window.NiNi.updateAuthUI);
-})();
 

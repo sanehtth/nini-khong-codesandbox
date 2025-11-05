@@ -209,7 +209,6 @@ function renderContactRight(){
 /* --------------------------- [5] ROUTES yêu cầu đăng nhập --------------- */
 /* 5.1 Video */
 // Chuẩn hoá link YouTube => /embed/{id}
-function renderVideoMid(){
 function toEmbed(u){
   try{
     const url = new URL(u);
@@ -238,7 +237,7 @@ async function loadVideoData(){
   VIDEO_DATA = await res.json();
   CUR_PL = VIDEO_DATA.playlists[0]?.id || null;
 }
-
+//function renderVideoMid(){
 // UI
 async function renderVideoLeft(){
   await loadVideoData();
@@ -279,7 +278,7 @@ async function renderVideoLeft(){
     playVideoRight(v);
   };
 }
-}
+
 function renderVideoRight(){
   document.getElementById('col-right').innerHTML = `
     <div class="panel2">
@@ -475,7 +474,7 @@ const ROUTES = {
   Diendan  : { mid: renderForumMid,    right: renderForumRight },
   Lienhe   : { mid: renderContactMid,  right: renderContactRight },
 
-  Video    : { mid: renderVideoMid,    right: renderVideoRight },
+  Video    : { mid: renderVideoLeft,    right: renderVideoRight },
   Game     : { mid: renderGameMid,     right: () => renderGameRight(null) },
   Shop     : { mid: renderShopMid,     right: () => renderShopRight(null) },
   Chat     : { mid: renderChatMid,     right: () => renderChatRight(null) },
@@ -657,6 +656,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

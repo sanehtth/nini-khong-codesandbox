@@ -513,14 +513,26 @@ function renderProfileRight(){
     </div>
   `;
 }
-// Re-render Profile khi user thay đổi
-document.addEventListener('NiNi:user-changed', () => {
-  const route = String(location.hash || '').replace('#/', '').toLowerCase();
-  if (route === 'profile'){
-    try { renderProfileMid(); renderProfileRight(); } catch(_){}
+function rerenderProfileIfActive(){
+  const route = String(location.hash || '').replace('#/','').toLowerCase();
+  if (route === 'profile') {
+    try { renderProfileMid(); renderProfileRight(); } catch {}
   }
-});
+}
 
+// Nghe cả 2 kênh: document & window
+document.addEventListener('NiNi:user-changed', rerenderProfileIfActive);
+window.addEventListener('NiNi:user-changed', rerenderProfileIfActive);
+
+// Fallback: nếu wrapper có onAuthStateChanged thì hook luôn
+setTimeout(() => {
+  try { window.NiNi?.fb?.onAuthStateChanged?.(() => rerenderProfileIfActive()); } catch {}
+}, 0);
+
+// Khi vừa vào /#/Profile mà user chưa sẵn sàng → re-render trễ 1 nhịp
+if ((location.hash || '').toLowerCase().endsWith('/profile') && !getCurrentUser()) {
+  setTimeout(rerenderProfileIfActive, 300);
+}
 
 /* --------------------------- [6] ROUTER --------------------------------- */
 const ROUTES = {
@@ -712,6 +724,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

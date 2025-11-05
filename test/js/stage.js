@@ -237,7 +237,7 @@ async function loadVideoData(){
   VIDEO_DATA = await res.json();
   CUR_PL = VIDEO_DATA.playlists[0]?.id || null;
 }
-//function renderVideoMid(){
+
 // UI
 async function renderVideoLeft(){
   await loadVideoData();
@@ -247,11 +247,16 @@ async function renderVideoLeft(){
   document.getElementById('col-mid').innerHTML = `
     <div class="panel2">
       <h3>Danh sách Video</h3>
-
       <div id="pl_tabs" class="tabs">
-        ${pls.map(p => `<button class="tab ${p.id===cur?'active':''}" data-pl="${p.id}">${p.title}</button>`).join('')}
-      </div>
-
+      ${
+        VIDEO_DATA.playlists.map((p, i) => `
+          <button class="chip ${p.id===CUR_PL?'active':''}" data-pl="${p.id}">
+            ${p.title}
+          </button>
+          ${i===0 ? '<span class="break"></span>' : ''}   <!-- xuống dòng sau tab đầu -->
+        `).join('')
+      }
+    </div>
       <div class="list" id="video_list">
         ${pls.find(p=>p.id===cur)?.items.map(v => `
           <div class="list__item" data-id="${v.id}">
@@ -656,6 +661,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

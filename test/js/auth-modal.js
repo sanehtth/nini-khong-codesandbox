@@ -1,94 +1,37 @@
 // /test/js/auth-modal.js
-// ===== NiNi Auth Modal: render + hành vi =====
-// Phụ thuộc: window.N (core bus), window.N.fb (nini-fb.mjs)
+// NiNi Auth Modal (render + hành vi). Dựa trên window.N.fb (đã có alias).
 
-(function () {
-  const MODAL_ID = "authModal";
-  const BACKDROP_ID = "authBackdrop";
-  const SVERI = "/.netlify/functions/send-verification-email";
-  const SRESET = "/.netlify/functions/send-reset";
+(function(){
+  const MODAL_ID = 'authModal';
+  const BACKDROP_ID = 'authBackdrop';
+  const SVERI = '/.netlify/functions/send-verification-email';
+  const SRESET = '/.netlify/functions/send-reset';
 
-  // Avoid double init
   if (window.NiNiAuth) return;
 
-  // ---------- utils ----------
-  const qs = (sel, el = document) => el.querySelector(sel);
-  const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
-  const sayTo = (root) => {
-    const el = qs("#auth_msg", root);
-    return (m, ok = false) => {
-      if (!el) return;
-      el.textContent = m;
-      el.style.color = ok ? "#065f46" : "#7f1d1d";
-    };
-  };
+  const qs = (sel, el=document)=>el.querySelector(sel);
+  const isEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||'').trim());
 
-  // Lấy currentUser an toàn (bao bọc để wrapper là prop hay func đều ok)
-  function getCurrentUser() {
-    const fb = window.N?.fb;
-    if (!fb) return null;
-    return typeof fb.currentUser === "function" ? fb.currentUser() : fb.currentUser || null;
-  }
-
-  // Chuẩn hoá phản hồi gửi mail (tránh “đã gửi nhưng vẫn báo lỗi 500”)
-  function handleMailResponse(r, js, say) {
-    if (r.ok) {
-      say("Đã gửi email. Vui lòng kiểm tra hộp thư.", true);
-      return;
-    }
-    const msg = (js && (js.error || js.message || js.reason)) || "";
-    const up = String(msg).toUpperCase();
-
-    // Firebase throttling → coi như đã gửi gần đây
-    if (up.includes("TOO_MANY_ATTEMPTS_TRY_LATER") || up.includes("TOO_MANY_REQUESTS")) {
-      say("Bạn vừa yêu cầu gần đây. Nếu email tồn tại, hệ thống đã gửi thư. Hãy kiểm tra hộp thư / Spam.", true);
-      return;
-    }
-
-    throw new Error(msg || "SEND_FAILED");
-  }
-
-  // Khoá nút chống spam (tuỳ chọn)
-  function cooldown(btn, sec = 60) {
-    if (!btn) return;
-    btn.disabled = true;
-    const txt = btn.textContent;
-    let t = sec;
-    const id = setInterval(() => {
-      btn.textContent = `${txt} (${t--}s)`;
-      if (t < 0) {
-        clearInterval(id);
-        btn.disabled = false;
-        btn.textContent = txt;
-      }
-    }, 1000);
-  }
-
-  function openModal(tab = "login") {
-    const back = qs("#" + BACKDROP_ID);
-    const host = qs("#" + MODAL_ID);
+  function openModal(tab='login'){
+    const back = qs('#'+BACKDROP_ID);
+    const host = qs('#'+MODAL_ID);
     if (!back || !host) return;
-    document.body.classList.add("body-auth-open");
-    back.hidden = false;
-    host.hidden = false;
-    host.classList.add("open");
+    document.body.classList.add('body-auth-open');
+    back.hidden = false; host.hidden = false; host.classList.add('open');
     host.innerHTML = renderHTML(tab);
     bindBehavior(host);
   }
-
-  function closeModal() {
-    const back = qs("#" + BACKDROP_ID);
-    const host = qs("#" + MODAL_ID);
+  function closeModal(){
+    const back = qs('#'+BACKDROP_ID);
+    const host = qs('#'+MODAL_ID);
     if (!back || !host) return;
-    document.body.classList.remove("body-auth-open");
-    back.hidden = true;
-    host.hidden = true;
-    host.classList.remove("open");
-    host.innerHTML = "";
+    document.body.classList.remove('body-auth-open');
+    back.hidden = true; host.hidden = true; host.classList.remove('open');
+    host.innerHTML = '';
   }
 
-  function renderHTML(active = "login") {
-    const is = (k) => (k === active ? "active" : "");
+  function renderHTML(active='login'){
+    const is = k => k===active ? 'active' : '';
     return `
       <div class="auth-panel glass" role="dialog" aria-modal="true">
         <div class="auth-head">
@@ -97,13 +40,13 @@
         </div>
 
         <div class="auth-tabs" role="tablist">
-          <button class="auth-tab ${is("login")}" data-tab="login">Đăng nhập</button>
-          <button class="auth-tab ${is("signup")}" data-tab="signup">Đăng ký</button>
-          <button class="auth-tab ${is("forgot")}" data-tab="forgot">Quên mật khẩu</button>
+          <button class="auth-tab ${is('login')}"  data-tab="login">Đăng nhập</button>
+          <button class="auth-tab ${is('signup')}" data-tab="signup">Đăng ký</button>
+          <button class="auth-tab ${is('forgot')}" data-tab="forgot">Quên mật khẩu</button>
         </div>
 
         <div class="auth-body" data-view="${active}">
-          ${active === "login" ? viewLogin() : active === "signup" ? viewSignup() : viewForgot()}
+          ${active==='login' ? viewLogin() : active==='signup' ? viewSignup() : viewForgot()}
         </div>
       </div>`;
   }
@@ -140,124 +83,67 @@
       <span class="auth-msg" id="auth_msg"></span>
     </div>`;
 
-  // ---------- behavior ----------
-  function bindBehavior(root) {
-    const setTab = (tab) => {
-      root.innerHTML = renderHTML(tab);
-      bindBehavior(root);
-    };
-    const say = sayTo(root);
+  function bindBehavior(root){
+    const setTab = (tab) => { root.innerHTML = renderHTML(tab); bindBehavior(root); };
 
-    root.addEventListener("click", async (ev) => {
+    root.addEventListener('click', async (ev)=>{
       const t = ev.target;
-      if (t.matches("[data-x]")) {
-        closeModal();
-        return;
-      }
-      if (t.matches(".auth-tab")) {
-        setTab(t.dataset.tab);
-        return;
-      }
+      if (t.matches('[data-x]')) { closeModal(); return; }
+      if (t.matches('.auth-tab')) { setTab(t.dataset.tab); return; }
 
-      const vEmail = () => qs("#auth_email", root)?.value.trim().toLowerCase();
-      const vPass = () => qs("#auth_pass", root)?.value;
+      const vEmail = () => qs('#auth_email', root)?.value.trim().toLowerCase();
+      const vPass  = () => qs('#auth_pass', root)?.value;
+      const msgEl  = qs('#auth_msg', root);
+      const say = (m, ok=false)=>{ if(msgEl){ msgEl.textContent = m; msgEl.style.color = ok?'#065f46':'#7f1d1d'; } };
 
-      try {
-        // --- ĐĂNG NHẬP EMAIL/PASS ---
-        if (t.matches("[data-login]")) {
-          const email = vEmail();
-          const pass = vPass();
-          if (!isEmail(email) || !pass) {
-            say("Email/mật khẩu chưa hợp lệ");
-            return;
-          }
-          say("Đang đăng nhập...");
-          const cred = await window.N.fb.signIn(email, pass);
-          const user = cred?.user ?? getCurrentUser();
-          say("Đăng nhập thành công!", true);
-
-          // Phát sự kiện cho toàn site
-          document.dispatchEvent(new CustomEvent("NiNi:user-changed", { detail: user }));
-          window.N?.emit?.("auth:changed", user);
-          window.N?.emit?.("auth:login", user);
-
+      try{
+        // Đăng nhập email/pass
+        if (t.matches('[data-login]')) {
+          const email = vEmail(); const pass = vPass();
+          if (!isEmail(email) || !pass) { say('Email/mật khẩu chưa hợp lệ'); return; }
+          say('Đang đăng nhập...');
+          const user = await window.N?.fb?.signInEmailPass?.(email, pass);
+          say('Đăng nhập thành công!', true);
+          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user || null }));
           setTimeout(closeModal, 250);
           return;
         }
-
-        // --- ĐĂNG NHẬP GOOGLE ---
-        if (t.matches("[data-google]")) {
-          say("Đang mở Google...");
-          const cred = await window.N.fb.signInGoogle?.();
-          const user = cred?.user ?? getCurrentUser();
-          say("Đăng nhập Google thành công!", true);
-
-          document.dispatchEvent(new CustomEvent("NiNi:user-changed", { detail: user }));
-          window.N?.emit?.("auth:changed", user);
-          window.N?.emit?.("auth:login", user);
-
+        // Đăng nhập Google
+        if (t.matches('[data-google]')) {
+          say('Đang mở Google...');
+          const user = await window.N?.fb?.signInGoogle?.();
+          say('Đăng nhập Google thành công!', true);
+          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user || null }));
           setTimeout(closeModal, 250);
           return;
         }
-
-        // --- GỬI EMAIL XÁC MINH (Đăng ký) ---
-        if (t.matches("[data-signup]")) {
-          const email = vEmail();
-          if (!isEmail(email)) {
-            say("Email không hợp lệ");
-            return;
-          }
-          say("Đang gửi thư xác minh...");
-          cooldown(t, 60);
-          const r = await fetch(SVERI, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, createIfMissing: true }),
-          });
-          const js = await r.json().catch(() => ({}));
-          try {
-            handleMailResponse(r, js, say);
-          } catch (err) {
-            say(`Lỗi: ${err.message || err}`);
-          }
+        // Đăng ký email-only (gửi mail xác minh)
+        if (t.matches('[data-signup]')) {
+          const email = vEmail(); if (!isEmail(email)) { say('Email không hợp lệ'); return; }
+          say('Đang gửi thư xác minh...');
+          const r = await fetch(SVERI, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, createIfMissing:true })});
+          const js = await r.json().catch(()=>({}));
+          if (!js || js.ok === false) { throw new Error(js?.error || 'SEND_FAILED'); }
+          say('Đã gửi email xác minh. Vui lòng kiểm tra hộp thư.', true);
           return;
         }
-
-        // --- GỬI LINK ĐẶT LẠI MẬT KHẨU ---
-        if (t.matches("[data-forgot]")) {
-          const email = vEmail();
-          if (!isEmail(email)) {
-            say("Email không hợp lệ");
-            return;
-          }
-          say("Đang gửi liên kết đặt lại...");
-          cooldown(t, 60);
-          const r = await fetch(SRESET, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          });
-          const js = await r.json().catch(() => ({}));
-          try {
-            handleMailResponse(r, js, say);
-          } catch (err) {
-            say(`Lỗi: ${err.message || err}`);
-          }
+        // Quên mật khẩu
+        if (t.matches('[data-forgot]')) {
+          const email = vEmail(); if (!isEmail(email)) { say('Email không hợp lệ'); return; }
+          say('Đang gửi liên kết đặt lại...');
+          const r = await fetch(SRESET, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email })});
+          const js = await r.json().catch(()=>({}));
+          if (!js || js.ok === false) { throw new Error(js?.error || 'SEND_FAILED'); }
+          say('Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư.', true);
           return;
         }
-      } catch (err) {
+      }catch(err){
         console.error(err);
         say(`Lỗi: ${err.message || err}`);
       }
     });
   }
 
-  // ---------- expose ----------
-  window.NiNiAuth = {
-    open: (tab) => openModal(tab),
-    close: closeModal,
-  };
-
-  // Sự kiện nền: click nền để đóng
-  document.getElementById(BACKDROP_ID)?.addEventListener("click", closeModal);
+  window.NiNiAuth = { open: openModal, close: closeModal };
+  document.getElementById(BACKDROP_ID)?.addEventListener('click', closeModal);
 })();

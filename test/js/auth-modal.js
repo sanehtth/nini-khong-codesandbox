@@ -110,9 +110,16 @@
           say('Đang đăng nhập...');
           const cred = await window.N.fb.signIn(email, pass); // từ nini-fb.mjs
           say('Đăng nhập thành công!', true);
+
+          // PHÁT SỰ KIỆN CHO TOÀN SITE (để sidebar đổi nút)
+          const user = cred?.user || null;
+          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user })); // kênh mới
+          window.N.emit?.('auth:changed', user);                                         // kênh cũ (compat)
+
           setTimeout(closeModal, 350);
-          window.N.emit?.('auth:login', cred?.user);
+          window.N.emit?.('auth:login', user); // nếu nơi khác còn nghe 'auth:login' thì giữ lại
           return;
+
         }
 
         // Google
@@ -120,9 +127,15 @@
           say('Đang mở Google...');
           const cred = await window.N.fb.signInGoogle?.();
           say('Đăng nhập Google thành công!', true);
+
+          const user = cred?.user || null;
+          document.dispatchEvent(new CustomEvent('NiNi:user-changed', { detail: user })); // kênh mới
+          window.N.emit?.('auth:changed', user);                                         // kênh cũ (compat)
+
           setTimeout(closeModal, 350);
-          window.N.emit?.('auth:login', cred?.user);
+          window.N.emit?.('auth:login', user);
           return;
+
         }
 
         // Đăng ký (gửi mail xác minh + auto-create user nếu cần)
@@ -168,3 +181,4 @@
   // Sự kiện nền: click nền để đóng
   document.getElementById(BACKDROP_ID)?.addEventListener('click', closeModal);
 })();
+

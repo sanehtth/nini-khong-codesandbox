@@ -217,7 +217,7 @@ function renderVideoMid() {
         ${DEMO_VIDEOS.map(v => `
           <div class="list__item" data-id="${v.id}">
             <span class="list__title">${v.title}</span>
-            <span class="list__meta">YouTube</span>
+            //<span class="list__meta">YouTube</span>
           </div>`).join('')}
       </div>
     </div>`;
@@ -604,6 +604,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

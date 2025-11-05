@@ -458,6 +458,10 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
 }
 #sb-auth-slot .icon img{
-  width: 26px; height: 26px; border-radius: 999px; object-fit: cover;
+  width:26px; height:26px;
+  border-radius:8px;          /* vuông bo nhẹ để khác avatar tròn */
+  object-fit:cover;
 }
+
+
 

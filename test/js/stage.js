@@ -209,6 +209,7 @@ function renderContactRight(){
 /* --------------------------- [5] ROUTES yêu cầu đăng nhập --------------- */
 /* 5.1 Video */
 // Chuẩn hoá link YouTube => /embed/{id}
+function renderVideoMid(){
 function toEmbed(u){
   try{
     const url = new URL(u);
@@ -278,7 +279,7 @@ async function renderVideoLeft(){
     playVideoRight(v);
   };
 }
-
+}
 function renderVideoRight(){
   document.getElementById('col-right').innerHTML = `
     <div class="panel2">
@@ -656,6 +657,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

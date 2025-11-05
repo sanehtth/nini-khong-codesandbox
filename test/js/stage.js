@@ -14,7 +14,7 @@
 /* --------------------------- [0] Demo data (mock) ----------------------- */
 // Dữ liệu demo: bạn thay bằng data thật khi có API / Firestore
 const DEMO_VIDEOS = [
-  { id: 'v1', title: 'Tua video 1', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+  { id: 'v1', title: 'AI có mơ chăng?', url: 'https://www.youtube.com/watch?v=StFihkKIywo' },
   { id: 'v2', title: 'Tua video 2', url: 'https://www.youtube.com/embed/oHg5SJYRHA0' },
 ];
 
@@ -595,4 +595,5 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 

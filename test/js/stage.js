@@ -47,24 +47,31 @@ const DEMO_NOTIFS = [
 ];
 
 /* --------------------------- [1] Auth helpers --------------------------- */
+
+// Lấy user từ cache bridge (NiNi.user), fallback Firebase wrapper
 function getCurrentUser() {
-  // Tuỳ môi trường của bạn, cố gắng phát hiện current user
-  return (
-    (window.NiNiAuth && NiNiAuth.user) ||
-    (window.N && N.fb && N.fb.currentUser) ||
-    (window.firebase && firebase.auth && firebase.auth().currentUser) ||
-    null
-  );
+  // ưu tiên cache do core.js bridge
+  const cached = window.NiNi?.user;
+  if (cached) return cached;
+
+  // fallback sang wrapper fb
+  const fb = window.NiNi?.fb || window.NINI?.fb;
+  if (!fb) return null;
+  try {
+    return (typeof fb.currentUser === 'function')
+      ? fb.currentUser()
+      : (fb.currentUser || null);
+  } catch { return null; }
 }
+
 function openLoginModal() {
-  // Gọi modal đăng nhập của bạn nếu có
   if (window.NiNiAuth && typeof NiNiAuth.open === 'function') {
     NiNiAuth.open('login');
     return;
   }
-  // Fallback: phát event để nơi khác mở modal
   document.dispatchEvent(new CustomEvent('nini:open-login'));
 }
+
 function gatePanel(title, desc = 'Bạn cần đăng nhập để sử dụng tính năng này.') {
   return `
     <div class="panel glass">
@@ -462,16 +469,6 @@ function renderNotifRight(nf){
 }
 
 /* 5.6 Hồ sơ cá nhân */
-// Lấy current user an toàn từ wrapper fb
-function getCurrentUser(){
-  const fb = (window.NiNi && window.NiNi.fb) || (window.NINI && window.NINI.fb);
-  if (!fb) return null;
-  try{
-    return (typeof fb.currentUser === 'function') ? fb.currentUser() : (fb.currentUser || null);
-  }catch(_){ return null; }
-}
-
-// render cot giua va cot phai profile
 function renderProfileMid(){
   const u = getCurrentUser();
 
@@ -715,6 +712,7 @@ function speakCurrent() {
   // hashchange
   window.addEventListener('hashchange', () => go(getRoute()));
 })();
+
 
 
 

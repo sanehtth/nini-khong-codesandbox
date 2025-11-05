@@ -429,5 +429,49 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
 }
 
+/* container tabs */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;       /* cho phép xuống dòng */
+  gap: 8px;              /* khoảng cách giữa chip */
+  margin-bottom: 10px;
+}
+
+/* phần tử tạo ngắt dòng */
+.tabs .break { 
+  flex-basis: 100%; 
+  height: 0; 
+}
+
+/* chip (pill) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,.25);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  transition: transform .06s ease, background .2s ease, border-color .2s;
+}
+
+.chip:hover { 
+  transform: translateY(-1px); 
+  border-color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.12);
+}
+
+.chip.active {
+  color: #1d3;                           /* xanh hợp theme rừng của bạn */
+  background: rgba(50,255,120,.16);
+  border-color: rgba(50,255,120,.45);
+  box-shadow: 0 0 0 1px rgba(50,255,120,.25) inset;
+}
+
 
 

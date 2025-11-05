@@ -457,10 +457,7 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   display: block;            /* bỏ khoảng trống baseline của img */
   border-radius: 0;          /* bo góc đã do .reader-image đảm nhiệm */
 }
-
-
-
-
-
-
+#sb-auth-slot .icon img{
+  width: 26px; height: 26px; border-radius: 999px; object-fit: cover;
+}
 

@@ -27,22 +27,24 @@
   <div id="authModal" class="auth-modal" hidden aria-modal="true" role="dialog"></div>
 
   <!-- JS: CHỈ DÙNG /test/js THEO THỨ TỰ NÀY -->
-  <script src="/test/js/core.js"></script>
+  <script src="/test/js/core.js"> defer</script>
   <!-- UI & modal -->
-  <script src="/test/js/stage.js"></script>
-<script src="/test/js/header-tab.js"></script>
+  <script src="/test/js/stage.js" defer></script>
+<script src="/test/js/header-tab.js" defer></script>
 
 <script type="module" src="/test/js/nini-fb.mjs"></script>
-<script src="/test/js/auth-modal.js"></script>
-<script src="/test/js/auth-glue.js"></script>
+<script src="/test/js/auth-modal.js" defer></script>
+<script src="/test/js/auth-glue.js" defer></script>
 
-<!-- THÊM script mới -->
-<script src="/test/js/sidebar-auth.js"></script>
+<!-- cuối cùng: -->
+<script src="/test/js/sidebar-auth.js" defer></script>
+
   
   <!-- (tuỳ chọn) -->
   <!-- <script src="/test/js/effects.js"></script> -->
 </body>
 </html>
+
 
 
 

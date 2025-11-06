@@ -1,6 +1,6 @@
 [build]
-  publish = "public"            # thư mục build (tuỳ dự án bạn)
-  command = "npm run build"     # hoặc "vite build" / "" nếu không cần build
+  command = ""          # KHÔNG chạy build
+  publish = "."         # hoặc "public" nếu bạn phục vụ từ /public
 
 [functions]
   directory = "netlify/functions"
@@ -12,5 +12,6 @@
   to   = "/.netlify/functions/:splat"
   status = 200
   force  = true
+
 
 

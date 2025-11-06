@@ -3,186 +3,134 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tạo Nhân Vật AI — Miễn phí & Trả phí</title>
+  <title>Tạo Nhân Vật AI — 3 Chế Độ</title>
   <style>
-    :root{ --bg1:#1e3c72; --bg2:#2a5298; --accent:#ff6b6b; --glass:rgba(0,0,0,.18) }
-    html,body{height:100%}
-    body{font-family:system-ui,"Segoe UI",sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff;margin:0}
-    .wrap{max-width:1000px;margin:0 auto;padding:28px}
-    .card{background:var(--glass);backdrop-filter:blur(8px);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:22px}
-    h1{margin:0 0 6px;font-size:clamp(22px,3vw,34px)}
-    .muted{opacity:.85}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .seg{display:flex;gap:10px;margin:12px 0 18px}
-    .seg .opt{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.12);cursor:pointer;border:1px solid rgba(255,255,255,.15)}
-    .seg .opt.active{box-shadow:0 0 0 2px rgba(255,255,255,.22) inset}
-    .badge{font-size:12px;padding:3px 7px;border-radius:999px;background:#1f8b24}
-    .badge.warn{background:#b85c00}
-    input,select,button{padding:12px 14px;border:none;border-radius:10px;font-size:16px}
-    input[type="text"]{min-width:min(720px,92vw);outline:none}
-    button{background:var(--accent);color:#fff;cursor:pointer}
-    #status{margin:6px 0 12px;display:none}
-    .pill{background:rgba(255,255,255,.15);padding:8px 10px;border-radius:999px}
-    .pane{display:none}
+    body{font-family:"Segoe UI",sans-serif;background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;margin:0;padding:20px;text-align:center}
+    h1{font-size:2em;margin-bottom:10px}
+    .mode-select{display:flex;justify-content:center;gap:10px;margin:20px auto;flex-wrap:wrap}
+    .opt{padding:12px 20px;border-radius:10px;background:rgba(255,255,255,0.1);cursor:pointer;transition:.2s;border:1px solid rgba(255,255,255,0.2)}
+    .opt.active{background:#ff6b6b}
+    .pane{display:none;margin-top:20px}
     .pane.show{display:block}
-    .iframe-wrap{border-radius:14px;overflow:hidden;background:rgba(0,0,0,.12)}
-    .iframe-wrap iframe{width:100%;height:72vh;border:0;display:block}
-    #thumb{max-width:100%;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
-    .center{display:flex;justify-content:center;gap:10px;margin-top:10px}
+    input,select,button{padding:10px;margin:6px;border:none;border-radius:8px;font-size:1em}
+    button{background:#ff6b6b;color:white;cursor:pointer}
+    button:hover{background:#ff5252}
+    iframe{width:100%;height:70vh;border-radius:12px;border:none}
+    .status{margin-top:10px;font-style:italic;color:#ffd93d}
+    img{max-width:100%;border-radius:10px;margin-top:20px;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
-      <div class="muted">Chọn chế độ: <b>Miễn phí</b> (không tốn API) hoặc <b>Trả phí</b> (chất lượng cao).</div>
 
-      <!-- CHỌN CHẾ ĐỘ -->
-      <div class="seg" id="modeSeg">
-        <label class="opt" data-mode="free">
-          <input type="radio" name="mode" value="free" hidden />
-          <div>
-            <div><b>Miễn phí</b> <span class="badge">0đ cho bạn</span></div>
-            <small class="muted">Chạy trên trình duyệt/Space — tốc độ & ổn định phụ thuộc máy/Space</small>
-          </div>
-        </label>
-        <label class="opt" data-mode="paid">
-          <input type="radio" name="mode" value="paid" hidden />
-          <div>
-            <div><b>Trả phí</b> <span class="badge warn">chất lượng cao</span></div>
-            <small class="muted">Gọi GPU cloud qua API (Replicate) — tốn credit</small>
-          </div>
-        </label>
-      </div>
+  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy (3 chế độ)</h1>
 
-      <!-- PANE MIỄN PHÍ -->
-      <div id="paneFree" class="pane">
-        <div class="muted" style="margin:8px 0 10px">
-          Chế độ miễn phí: nhúng Space sẵn có (không cần API). Bạn có thể thay URL bên dưới.
-        </div>
-        <div class="iframe-wrap">
-          <!-- TODO: thay Space này bằng Space bạn thích (vd: SDXL/Flux demo) -->
-          <iframe id="freeFrame"
-            src="https://huggingface.co/spaces/hysts/SDXL"
-            title="Free Space (HF)" loading="lazy"></iframe>
-        </div>
-      </div>
+  <div class="mode-select" id="modeSelect">
+    <div class="opt" data-mode="free">Miễn phí</div>
+    <div class="opt" data-mode="hf">HuggingFace API</div>
+    <div class="opt" data-mode="replicate">Replicate API</div>
+  </div>
 
-      <!-- PANE TRẢ PHÍ -->
-      <div id="panePaid" class="pane">
-        <p class="muted">Nhập mô tả → AI vẽ. Sử dụng Replicate qua Netlify Functions (bảo mật key).</p>
-        <div class="row">
-          <input id="prompt" type="text" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
-        </div>
-        <div class="row">
-          <select id="model">
-            <option value="black-forest-labs/flux-1.1-pro">Flux 1.1 Pro (Replicate) — đẹp</option>
-            <option value="stability-ai/sdxl">Stable Diffusion XL (Replicate) — ổn</option>
-          </select>
-          <button id="btnGen">Tạo Nhân Vật!</button>
-        </div>
-        <div id="status" class="pill"></div>
-        <div id="result"></div>
-        <div class="muted" style="margin-top:6px">Ảnh tạo bởi mô hình AI trên Replicate qua Netlify Functions • Có tính phí theo credit.</div>
-      </div>
-    </div>
+  <!-- MODE 1: FREE -->
+  <div id="paneFree" class="pane show">
+    <p>Dùng Hugging Face Space miễn phí (iframe, không cần API).</p>
+    <iframe src="https://huggingface.co/spaces/hysts/SDXL/embed" title="HF Free Space"></iframe>
+  </div>
+
+  <!-- MODE 2: HUGGING FACE API -->
+  <div id="paneHF" class="pane">
+    <p>Gọi trực tiếp model qua Hugging Face API (token hf_...)</p>
+    <input type="text" id="hfPrompt" placeholder="VD: cô gái tóc trắng, ánh sáng huyền ảo..." size="50"/>
+    <br>
+    <button onclick="generateHF()">Tạo Ảnh (HF)</button>
+    <div id="hfStatus" class="status"></div>
+    <div id="hfResult"></div>
+  </div>
+
+  <!-- MODE 3: REPLICATE -->
+  <div id="paneReplicate" class="pane">
+    <p>Gọi Replicate API (token r8_...) - chất lượng cao.</p>
+    <input type="text" id="repPrompt" placeholder="VD: nhân vật nam phong cách Pixar, áo giáp vàng..." size="50"/>
+    <br>
+    <button onclick="generateReplicate()">Tạo Ảnh (Replicate)</button>
+    <div id="repStatus" class="status"></div>
+    <div id="repResult"></div>
   </div>
 
   <script>
-    // ======= Mode Switcher =======
-    const $ = s=>document.querySelector(s);
-    const seg = $("#modeSeg");
-    const paneFree = $("#paneFree");
-    const panePaid = $("#panePaid");
-
-    function setMode(mode){
-      localStorage.setItem("avatar_mode", mode);
-      [...seg.querySelectorAll(".opt")].forEach(o=>{
-        o.classList.toggle("active", o.dataset.mode===mode);
-        const i = o.querySelector('input[type="radio"]');
-        if(i) i.checked = (o.dataset.mode===mode);
+    // === Mode switching ===
+    const modes = document.querySelectorAll(".opt");
+    const panes = {
+      free: document.getElementById("paneFree"),
+      hf: document.getElementById("paneHF"),
+      replicate: document.getElementById("paneReplicate")
+    };
+    modes.forEach(opt=>{
+      opt.addEventListener("click",()=>{
+        modes.forEach(o=>o.classList.remove("active"));
+        opt.classList.add("active");
+        const mode = opt.dataset.mode;
+        Object.keys(panes).forEach(k=>panes[k].classList.toggle("show",k===mode));
       });
-      paneFree.classList.toggle("show", mode==="free");
-      panePaid.classList.toggle("show", mode==="paid");
-    }
-    seg.addEventListener("click", e=>{
-      const opt = e.target.closest(".opt"); if(!opt) return;
-      setMode(opt.dataset.mode);
     });
+    modes[0].classList.add("active");
 
-    setMode(localStorage.getItem("avatar_mode") || "free"); // mặc định Free
-
-    // ======= Paid flow (Replicate) =======
-    const statusBox = $("#status");
-    const resultDiv = $("#result");
-    $("#btnGen").addEventListener("click", generate);
-
-    function setStatus(text){
-      if(!text){ statusBox.style.display="none"; statusBox.textContent=""; return; }
-      statusBox.textContent = text; statusBox.style.display="inline-block";
+    // === Hugging Face API ===
+    async function generateHF(){
+      const prompt=document.getElementById("hfPrompt").value.trim();
+      if(!prompt){alert("Nhập mô tả!");return;}
+      const status=document.getElementById("hfStatus");
+      const result=document.getElementById("hfResult");
+      status.textContent="⏳ Đang tạo ảnh (HuggingFace)...";
+      result.innerHTML="";
+      try{
+        const resp=await fetch("/.netlify/functions/hf-proxy",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            model:"black-forest-labs/FLUX.1.1-pro",
+            input:{inputs:prompt}
+          })
+        });
+        if(!resp.ok) throw new Error("HTTP "+resp.status);
+        const data=await resp.json();
+        if(data.error) throw new Error(data.error);
+        status.textContent="✅ Hoàn tất!";
+        result.innerHTML=`<img src="${data.url||data.output?.[0]}" alt="HF result"/>`;
+      }catch(e){
+        status.textContent="❌ Lỗi: "+e.message;
+      }
     }
 
-    async function generate(){
-      const prompt = $("#prompt").value.trim();
-      const model  = $("#model").value;
-      if(!prompt){ alert("Hãy nhập mô tả!"); return; }
-
-      resultDiv.innerHTML = "";
-      setStatus("Đang gửi yêu cầu…");
-
+    // === Replicate API ===
+    async function generateReplicate(){
+      const prompt=document.getElementById("repPrompt").value.trim();
+      if(!prompt){alert("Nhập mô tả!");return;}
+      const status=document.getElementById("repStatus");
+      const result=document.getElementById("repResult");
+      status.textContent="⏳ Đang gửi yêu cầu Replicate...";
+      result.innerHTML="";
       try{
-        // Chuẩn hóa input theo model
-        let input;
-        if (model.includes("flux")) {
-          input = { prompt, aspect_ratio: "1:1", output_format: "png", num_inference_steps: 28, guidance: 3.5 };
-        } else if (model.includes("sdxl")) {
-          input = { prompt, width: 1024, height: 1024, num_inference_steps: 30, guidance_scale: 7 };
-        } else {
-          input = { prompt };
-        }
-
-        // Tạo prediction qua proxy
-        const resp = await fetch("/.netlify/functions/replicate-proxy", {
+        const start=await fetch("/.netlify/functions/replicate-proxy",{
           method:"POST",
-          headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ model, input })
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            model:"black-forest-labs/flux-1.1-pro",
+            input:{prompt}
+          })
         });
-
-        if (!resp.ok) {
-          const txt = await resp.text();
-          throw new Error(`Replicate ${resp.status}: ${txt}`);
+        if(!start.ok) throw new Error("HTTP "+start.status);
+        const job=await start.json();
+        let data=job;
+        while(["starting","processing","queued"].includes(data.status)){
+          await new Promise(r=>setTimeout(r,2000));
+          const poll=await fetch("/.netlify/functions/replicate-get?id="+job.id);
+          data=await poll.json();
         }
-        const start = await resp.json();
-        if(!start?.id) throw new Error(start?.error || "Không tạo được job");
-
-        // Poll
-        let data = start, tries = 0;
-        while (["starting","processing","queued"].includes(data.status)) {
-          setStatus(`Đang xử lý (${data.status})…`);
-          await new Promise(r=>setTimeout(r, 1500));
-          const r = await fetch("/.netlify/functions/replicate-get?id="+start.id);
-          if (!r.ok) throw new Error("Lỗi khi lấy kết quả");
-          data = await r.json();
-          if (++tries>240) throw new Error("Quá thời gian chờ");
-        }
-        if (data.status !== "succeeded") throw new Error(data?.error || "Job không thành công");
-
-        setStatus("Hoàn tất ✓");
-        const outs = Array.isArray(data.output) ? data.output : [data.output];
-        resultDiv.innerHTML = outs.filter(Boolean).map((u,i)=>`
-          <div>
-            <img id="thumb" src="${u}" alt="Kết quả #${i+1}"/>
-            <div class="center">
-              <a class="pill" href="${u}" target="_blank" rel="noopener">Mở ảnh gốc</a>
-              <a class="pill" download="avatar-ai-${Date.now()}.png" href="${u}">Tải ảnh</a>
-            </div>
-          </div>
-        `).join("");
-
-      }catch(err){
-        console.error(err);
-        setStatus("");
-        resultDiv.innerHTML = `<p class="pill" style="background:#6d1d20">Lỗi: ${err.message || err}</p>`;
+        if(data.status!=="succeeded") throw new Error(data.error||"Job fail");
+        status.textContent="✅ Hoàn tất!";
+        result.innerHTML=`<img src="${data.output[0]}" alt="Replicate result"/>`;
+      }catch(e){
+        status.textContent="❌ Lỗi: "+e.message;
       }
     }
   </script>

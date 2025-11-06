@@ -1,10 +1,11 @@
 {
   "name": "nini-funny",
   "private": true,
-  "engines": { "node": "18.x" },
+  "engines": { "node": ">=18.x" },
   "dependencies": {
     "firebase-admin": "^12.5.0",
     "nodemailer": "^6.9.14",
-    "node-fetch": "^2.6.11"
+    "bcryptjs": "^2.4.3",
+    "@netlify/blobs": "^6.4.0"
   }
 }

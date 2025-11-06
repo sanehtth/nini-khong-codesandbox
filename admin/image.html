@@ -1,262 +1,67 @@
-﻿﻿<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nén ảnh offline (WebP/JPEG)</title>
-<style>
-  :root{ --ink:#111; --card:#fff; --muted:#666; --brand:#f24f7c }
-  html,body{height:100%;margin:0}
-  body{
-    font:15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    color:var(--ink); background:#0f1115; display:grid; place-items:center;
-  }
-  .wrap{ width:min(980px, 94vw); margin:24px; }
-  .card{
-    background:var(--card); border-radius:14px; padding:18px 18px;
-    box-shadow:0 20px 60px rgba(0,0,0,.25)
-  }
-  h1{margin:.25rem 0 0 0; font-size:22px}
-  .muted{color:var(--muted); font-size:13px}
-  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
-  .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap:12px}
-  .ctrl{display:grid; gap:6px}
-  input[type="number"], select { padding:.5rem .6rem; border-radius:10px; border:1px solid #ddd; width:100% }
-  .btn{
-    display:inline-block; padding:.6rem 1rem; border-radius:10px; border:1px solid #ddd;
-    background:#fff; text-decoration:none; color:#111; cursor:pointer; transition:.15s ease
-  }
-  .btn:hover{ transform: translateY(-1px); box-shadow:0 6px 18px rgba(0,0,0,.12) }
-  .brand{ background:var(--brand); color:#fff; border-color:transparent }
-  .drop{
-    margin:12px 0; padding:22px; border:2px dashed #cfcfcf; border-radius:12px; text-align:center;
-    color:#555; background:#fafafa
-  }
-  .drop.drag{ background:#eef6ff; border-color:#7bb3ff; color:#2b5ea8 }
-  .list{ margin-top:14px; display:grid; gap:10px }
-  .item{
-    display:grid; grid-template-columns: 80px 1fr auto; gap:12px; align-items:center;
-    border:1px solid #ececec; border-radius:10px; padding:10px
-  }
-  .thumb{width:80px; height:60px; object-fit:cover; border-radius:8px; background:#eee}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px}
-  .ok{color:#0a7d34} .bad{color:#b00020}
-  footer{margin-top:10px; color:#666; font-size:12px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tạo Nhân Vật AI</title>
+  <style>
+    body {font-family: 'Segoe UI', sans-serif;background: linear-gradient(135deg, #1e3c72, #2a5298);color: white;text-align: center;padding: 40px;}
+    h1 {font-size: 2.5em;margin-bottom: 10px;}
+    input, button {padding: 12px;margin: 10px;font-size: 1.1em;border: none;border-radius: 8px;}
+    input {width: 70%;max-width: 500px;}
+    button {background: #ff6b6b;color: white;cursor: pointer;transition: 0.3s;}
+    button:hover {background: #ff5252;}
+    #result {margin-top: 30px;}
+    img {max-width: 100%;border-radius: 12px;box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
+    .loading {color: #ffd93d;font-style: italic;}
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>Nén ảnh offline (WebP/JPEG)</h1>
-      <div class="muted">Chạy hoàn toàn <b>offline</b>. Kéo-thả nhiều ảnh để nén. Xuất ra WebP/JPEG với mục tiêu dung lượng KB và/hoặc giới hạn kích thước.</div>
 
-      <div class="grid" style="margin-top:12px">
-        <div class="ctrl">
-          <label>Định dạng xuất</label>
-          <select id="format">
-            <option value="image/webp">WebP (khuyên dùng)</option>
-            <option value="image/jpeg">JPEG</option>
-          </select>
-        </div>
-        <div class="ctrl">
-          <label>Mục tiêu dung lượng (KB, có thể để trống)</label>
-          <input id="targetKB" type="number" placeholder="VD: 300" min="10" step="10">
-        </div>
-        <div class="ctrl">
-          <label>Max width (px)</label>
-          <input id="maxW" type="number" value="1920" min="200" step="20">
-        </div>
-        <div class="ctrl">
-          <label>Max height (px)</label>
-          <input id="maxH" type="number" value="1080" min="200" step="20">
-        </div>
-        <div class="ctrl">
-          <label>Giảm kích thước mạnh (nếu vẫn vượt KB)</label>
-          <select id="aggr">
-            <option value="false">Tắt (giữ kích thước tốt nhất)</option>
-            <option value="true">Bật (co nhỏ thêm để đạt KB)</option>
-          </select>
-        </div>
-      </div>
+  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
+  <p>Nhập mô tả → AI vẽ ngay!</p>
 
-      <div class="row" style="margin-top:10px">
-        <label class="btn">
-          <input id="picker" type="file" multiple accept="image/*" hidden>
-          Chọn ảnh…
-        </label>
-        <button id="clear" class="btn">Xoá danh sách</button>
-        <button id="start" class="btn brand">Nén & Tải</button>
-      </div>
+  <input type="text" id="prompt" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
+  <br/>
+  <button onclick="taoAnh()">Tạo Nhân Vật!</button>
 
-      <div id="drop" class="drop">Kéo ảnh vào đây hoặc bấm “Chọn ảnh”.</div>
-      <div id="list" class="list"></div>
+  <div id="result"></div>
 
-      <footer>Gợi ý: WebP 200–400KB, 1920×1080 (desktop) là hợp lý cho ảnh nền. Sau khi tải ảnh đã nén, chép vào <code class="mono">assets/images/bg/</code>.</footer>
-    </div>
-  </div>
+  <script>
+    async function taoAnh() {
+      const prompt = document.getElementById("prompt").value.trim();
+      if (!prompt) {alert("Hãy nhập mô tả nhân vật!");return;}
 
-<script>
-  const $ = s => document.querySelector(s);
-  const list = $('#list');
-  const drop = $('#drop');
-  const picker = $('#picker');
-  const startBtn = $('#start');
-  const clearBtn = $('#clear');
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = `<p class="loading">Đang vẽ nhân vật... ⏳</p>`;
 
-  let files = [];
+      try {
+        const response = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer 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",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: prompt + ", anime style, highly detailed, fantasy character, sharp focus, vibrant colors",
+          }),
+        });
 
-  function fmtBytes(b){
-    if(!Number.isFinite(b)) return '-';
-    const u=['B','KB','MB','GB']; let i=0; while(b>=1024 && i<u.length-1){b/=1024;i++}
-    return (i?b.toFixed(b<10?2:1):b|0)+' '+u[i];
-  }
+        if (!response.ok) throw new Error("API lỗi. Thử lại sau 10s.");
 
-  function addFiles(newFiles){
-    for(const f of newFiles){
-      if(!f.type.startsWith('image/')) continue;
-      files.push(f);
-      const url = URL.createObjectURL(f);
-      const row = document.createElement('div');
-      row.className = 'item';
-      row.innerHTML = `
-        <img class="thumb" src="${url}">
-        <div>
-          <div class="mono">${f.name}</div>
-          <div class="muted mono">gốc: ${fmtBytes(f.size)}</div>
-          <div class="muted mono" data-progress>đang chờ…</div>
-        </div>
-        <div class="mono" data-result></div>
-      `;
-      row.file = f;
-      list.appendChild(row);
-    }
-  }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
 
-  // drag & drop
-  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
-  drop.addEventListener('drop', e => {
-    e.preventDefault(); drop.classList.remove('drag');
-    addFiles(e.dataTransfer.files);
-  });
-
-  picker.addEventListener('change', e => addFiles(e.target.files));
-
-  clearBtn.addEventListener('click', ()=>{
-    files = []; list.innerHTML='';
-  });
-
-  // Core: nén 1 ảnh
-  async function compressImage(file, opts){
-    const {maxW, maxH, format, targetBytes, aggressive} = opts;
-
-    // Đọc ảnh
-    const bitmap = await createImageBitmap(file);
-    let w = bitmap.width, h = bitmap.height;
-
-    // Co theo maxW/H
-    const r = Math.min(1, maxW / w, maxH / h);
-    if(r < 1){ w = Math.round(w * r); h = Math.round(h * r); }
-
-    // Vẽ lên canvas
-    let canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    let ctx = canvas.getContext('2d');
-    ctx.drawImage(bitmap, 0, 0, w, h);
-
-    // Helper xuất blob theo quality
-    const encode = (q) => new Promise(res => canvas.toBlob(b => res(b), format, q));
-
-    // Nếu không có target, xuất 0.8 là ổn
-    if(!targetBytes){
-      const q = 0.8;
-      const blob = await encode(q);
-      return {blob, width:w, height:h, quality:q};
-    }
-
-    // Tìm quality bằng binary search
-    let lo = 0.3, hi = 0.95, best = {blob: await encode(hi), q: hi};
-    if(best.blob.size <= targetBytes) return {blob:best.blob, width:w, height:h, quality:hi};
-
-    for(let i=0;i<18;i++){
-      const mid = (lo+hi)/2;
-      const b = await encode(mid);
-      if(b.size > targetBytes){ // còn to
-        hi = mid;
-      }else{
-        best = {blob:b, q:mid};
-        lo = mid;
-      }
-      if(Math.abs(b.size - targetBytes) < 8*1024) break; // trong ~8KB coi như đạt
-    }
-
-    // Nếu vẫn to hơn target đáng kể và bật aggressive: co kích thước rồi lặp lại
-    if(best.blob.size > targetBytes && aggressive){
-      let scale = Math.sqrt(targetBytes / best.blob.size); // ước lượng tỉ lệ theo diện tích
-      scale = Math.max(0.6, Math.min(0.95, scale));       // kìm trong biên hợp lý
-      const nw = Math.max(320, Math.round(w * scale));
-      const nh = Math.max(320, Math.round(h * scale));
-      if(nw < w && nh < h){
-        // vẽ lại canvas nhỏ hơn
-        canvas = document.createElement('canvas');
-        canvas.width = nw; canvas.height = nh;
-        ctx = canvas.getContext('2d');
-        ctx.drawImage(bitmap, 0, 0, nw, nh);
-
-        // lại binary search
-        lo = 0.3; hi = 0.95; best = {blob: await encode(hi), q: hi};
-        for(let i=0;i<18;i++){
-          const mid = (lo+hi)/2;
-          const b = await encode(mid);
-          if(b.size > targetBytes){ hi = mid; }
-          else { best = {blob:b, q:mid}; lo = mid; }
-          if(Math.abs(b.size - targetBytes) < 8*1024) break;
-        }
-        return {blob:best.blob, width:nw, height:nh, quality:best.q};
-      }
-    }
-
-    return {blob:best.blob, width:w, height:h, quality:best.q};
-  }
-
-  // Chạy nén hàng loạt
-  startBtn.addEventListener('click', async ()=>{
-    if(files.length === 0) return alert('Chưa chọn ảnh nào.');
-
-    const opts = {
-      format : $('#format').value,
-      maxW   : Math.max(200, +$('#maxW').value || 1920),
-      maxH   : Math.max(200, +$('#maxH').value || 1080),
-      targetBytes: Math.max(0, (+$('#targetKB').value||0) * 1024),
-      aggressive : $('#aggr').value === 'true'
-    };
-
-    for(const row of list.children){
-      const f = row.file;
-      const prog = row.querySelector('[data-progress]');
-      const result = row.querySelector('[data-result]');
-      prog.textContent = 'Đang nén…';
-
-      try{
-        const out = await compressImage(f, opts);
-        const ext = opts.format === 'image/webp' ? 'webp' : 'jpg';
-        const base = f.name.replace(/\.[^.]+$/,'');
-        const name = `${base}-compressed.${ext}`;
-        const url = URL.createObjectURL(out.blob);
-
-        result.innerHTML = `
-          <div class="mono ${out.blob.size <= (opts.targetBytes||Infinity) ? 'ok':'bad'}">
-            ${fmtBytes(out.blob.size)} — ${out.width}×${out.height} — q=${out.quality?.toFixed(2) ?? '0.80'}
-          </div>
-          <a class="btn" download="${name}" href="${url}">Tải ảnh</a>
+        resultDiv.innerHTML = `
+          <p>✅ Hoàn tất!</p>
+          <img src="${url}" alt="Nhân vật AI" />
+          <br/><button onclick="window.open('${url}')">📥 Tải ảnh</button>
         `;
-        prog.textContent = `gốc: ${fmtBytes(f.size)}`;
-      }catch(err){
-        prog.textContent = 'Lỗi nén ảnh';
-        result.textContent = err?.message || 'Error';
+      } catch (err) {
+        resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
       }
     }
-  });
-</script>
+  </script>
+
 </body>
 </html>

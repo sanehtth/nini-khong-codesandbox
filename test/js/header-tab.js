@@ -2,6 +2,7 @@
  * - Render vào #nini_header
  * - Không gắn trùng listener / không render nhiều lần
  * - Điều hướng qua hash: #/Gioithieu | #/Luatchoi | #/Diendan | #/Lienhe
+ * - [ADMIN] Alt + A để hiện/ẩn nút Admin; click → /admin/login.html
  */
 (() => {
   const GUARD = '__NINI_HEADER_INIT__';
@@ -10,6 +11,10 @@
 
   const N = window.NINI || (window.NINI = {});
   const ROOT_ID = 'nini_header';
+
+  // [ADMIN] cấu hình
+  const ADMIN_HREF = '/admin/login.html';
+  const HOTKEY_KEY = 'a';
 
   const TABS = [
     { key: 'Gioithieu', label: 'Giới thiệu', href: '#/Gioithieu' },
@@ -20,7 +25,6 @@
 
   function activeKeyFromHash() {
     const h = location.hash || '';
-    // #/Abc → Abc
     const m = h.match(/^#\/([^/?#]+)/);
     return m ? m[1] : 'Gioithieu';
   }
@@ -41,9 +45,15 @@
 
         <nav class="nh-nav" aria-label="Điều hướng chính">
           ${TABS.map(t => `
-            <a class="pill ${t.key === active ? 'active' : ''}" 
+            <a class="pill ${t.key === active ? 'active' : ''}"
                data-key="${t.key}" href="${t.href}">${t.label}</a>
           `).join('')}
+          <!-- [ADMIN] nút admin ẩn mặc định -->
+          <a id="adminPill"
+             class="pill admin"
+             href="${ADMIN_HREF}"
+             style="display:none"
+             aria-label="Trang quản trị">Admin</a>
         </nav>
 
         <div class="nh-right" id="headerAuthDock">
@@ -54,25 +64,48 @@
   }
 
   function bind(root) {
-    // Event delegation cho pills
+    // Event delegation cho pills (hash tabs)
     root.addEventListener('click', (e) => {
       const a = e.target.closest('.nh-nav .pill');
       if (!a) return;
-      // để cho router xử lý hash, nhưng vẫn set active ngay để mượt
+
+      // Nếu là nút admin thì để trình duyệt điều hướng sang /admin/login.html
+      if (a.id === 'adminPill') return;
+
+      // Còn lại là hash tabs → đặt active ngay để mượt
       const key = a.dataset.key;
+      if (!key) return;
       root.querySelectorAll('.nh-nav .pill').forEach(el => {
-        el.classList.toggle('active', el.dataset.key === key);
+        if (el.id !== 'adminPill') {
+          el.classList.toggle('active', el.dataset.key === key);
+        }
       });
-      // Không chặn default; hash sẽ thay đổi → app-shell bắt sự kiện
     });
 
-    // Đồng bộ “active” khi người dùng gõ hash tay / back-forward
+    // Đồng bộ “active” khi hash đổi
     window.addEventListener('hashchange', () => {
       const key = activeKeyFromHash();
       root.querySelectorAll('.nh-nav .pill').forEach(el => {
-        el.classList.toggle('active', el.dataset.key === key);
+        if (el.id !== 'adminPill') {
+          el.classList.toggle('active', el.dataset.key === key);
+        }
       });
     }, { passive: true });
+
+    // [ADMIN] Hotkey Alt + A để toggle nút Admin
+    const adminPill = root.querySelector('#adminPill');
+    document.addEventListener('keydown', (e) => {
+      // tránh khi đang gõ trong input/textarea/contenteditable
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
+
+      if (e.altKey && e.key.toLowerCase() === HOTKEY_KEY) {
+        e.preventDefault();
+        if (!adminPill) return;
+        const show = adminPill.style.display === 'none';
+        adminPill.style.display = show ? 'inline-flex' : 'none';
+      }
+    }, { passive: false });
   }
 
   // Mount một lần
@@ -84,4 +117,3 @@
     console.warn('[header-tab] Không thấy #nini_header');
   }
 })();
-

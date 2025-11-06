@@ -1,81 +1,122 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tạo Nhân Vật AI</title>
   <style>
-    body {font-family: 'Segoe UI', sans-serif;background: linear-gradient(135deg, #1e3c72, #2a5298);color: white;text-align: center;padding: 40px;}
-    h1 {font-size: 2.5em;margin-bottom: 10px;}
-    input, button {padding: 12px;margin: 10px;font-size: 1.1em;border: none;border-radius: 8px;}
-    input {width: 70%;max-width: 500px;}
-    button {background: #ff6b6b;color: white;cursor: pointer;transition: 0.3s;}
-    button:hover {background: #ff5252;}
-    #result {margin-top: 30px;}
-    img {max-width: 100%;border-radius: 12px;box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
-    .loading {color: #ffd93d;font-style: italic;}
+    :root { --bg1:#1e3c72; --bg2:#2a5298; --accent:#ff6b6b; }
+    body {font-family: system-ui, "Segoe UI", sans-serif; background: linear-gradient(135deg,var(--bg1),var(--bg2)); color:#fff; text-align:center; padding:32px;}
+    h1 {font-size: clamp(22px, 3vw, 34px); margin: 0 0 6px}
+    p.muted {opacity:.85; margin: 0 0 18px}
+    .card {max-width:980px;margin:0 auto;background:rgba(0,0,0,.18);border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.25);backdrop-filter: blur(8px);}
+    .row {display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0 18px}
+    input, select, button {padding:12px 14px;font-size:16px;border:none;border-radius:10px}
+    input[type="text"]{min-width: min(720px, 92vw); outline:none}
+    button {background:var(--accent); color:#fff; cursor:pointer; transition:.2s}
+    button:hover {filter:brightness(1.05)}
+    .loading {color:#ffd93d; font-style:italic}
+    #thumb {max-width: 100%; border-radius:14px; box-shadow:0 8px 20px rgba(0,0,0,.35)}
+    .grid {display:grid; grid-template-columns: 1fr; gap:14px}
+    .foot {margin-top:10px; opacity:.85}
+    .pill {background: rgba(255,255,255,.15); padding: 8px 10px; border-radius: 999px}
+    .hide {display:none !important}
   </style>
 </head>
 <body>
+  <div class="card">
+    <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
+    <p class="muted">Nhập mô tả → AI vẽ ngay!</p>
 
-  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
-  <p>Nhập mô tả → AI vẽ ngay!</p>
+    <div class="row">
+      <input id="prompt" type="text" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
+    </div>
+    <div class="row">
+      <select id="model">
+        <!-- Bạn có thể thay model tùy ý; FLUX-1.1-pro cho kết quả tốt -->
+        <option value="black-forest-labs/flux-1.1-pro">Flux 1.1 Pro (Replicate)</option>
+        <option value="stability-ai/sdxl">Stable Diffusion XL (Replicate)</option>
+      </select>
+      <button id="btnGen">Tạo Nhân Vật!</button>
+    </div>
 
-  <input type="text" id="prompt" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
-  <br/>
-  <button onclick="taoAnh()">Tạo Nhân Vật!</button>
+    <div id="status" class="pill hide"></div>
 
-  <div id="result"></div>
+    <div id="result" class="grid">
+      <!-- Ảnh kết quả -->
+    </div>
 
- <script>
-async function taoAnh() {
-  const prompt = document.getElementById("prompt").value.trim();
-  if (!prompt) { alert("Hãy nhập mô tả!"); return; }
+    <div class="foot">
+      <small class="muted">Ảnh tạo bởi mô hình AI trên Replicate qua Netlify Functions • Không lộ API key</small>
+    </div>
+  </div>
 
-  const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = `<p class="loading">Đang vẽ... ⏳</p>`;
+  <script>
+    const $ = (s)=>document.querySelector(s);
+    const statusBox = $("#status");
+    const resultDiv = $("#result");
+    $("#btnGen").addEventListener("click", generate);
 
-  try {
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer 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", // Lấy ở replicate.com/account
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        version: "stability-ai/stable-diffusion:ac732df83cea7fff18b8472768c88ad041fa750ff7682a21bdea9ed1743e3fae",
-        input: { prompt: prompt + ", fantasy character, detailed, vibrant, anime style" }
-      })
-    });
-
-    const data = await response.json();
-    const predictionId = data.id;
-
-    // Polling kết quả
-    let result;
-    do {
-      await new Promise(r => setTimeout(r, 2000));
-      const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
-        headers: { "Authorization": "Token r8_YourToken" }
-      });
-      result = await poll.json();
-    } while (result.status !== "succeeded" && result.status !== "failed");
-
-    if (result.status === "succeeded") {
-      const imgUrl = result.output[0];
-      resultDiv.innerHTML = `
-        <p>Hoàn tất!</p>
-        <img src="${imgUrl}" />
-        <br/><button onclick="window.open('${imgUrl}')">Tải ảnh</button>
-      `;
-    } else {
-      throw new Error("Tạo ảnh thất bại");
+    function setStatus(text){ 
+      if(!text){ statusBox.classList.add("hide"); statusBox.textContent=""; return; }
+      statusBox.textContent = text; statusBox.classList.remove("hide");
     }
-  } catch (err) {
-    resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
-  }
-}
-</script>
-</body>
 
+    async function generate(){
+      const prompt = $("#prompt").value.trim();
+      const model  = $("#model").value;
+      if(!prompt){ alert("Hãy nhập mô tả!"); return; }
+
+      resultDiv.innerHTML = "";
+      setStatus("Đang gửi yêu cầu…");
+
+      try{
+        // 1) Tạo prediction qua proxy serverless
+        const start = await fetch("/.netlify/functions/replicate-proxy", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({
+            model,
+            // input chuẩn cho mỗi model: mình để mặc định width/height 1024
+            input: { prompt, width: 1024, height: 1024, guidance: 3.5, num_inference_steps: 28 }
+          })
+        }).then(r=>r.json());
+
+        if(!start?.id) throw new Error(start?.error || "Không tạo được job");
+
+        // 2) Poll tới khi xong
+        let data = start, tries = 0;
+        while (["starting","processing","queued"].includes(data.status)) {
+          setStatus(`Đang xử lý (${data.status})…`);
+          await new Promise(r=>setTimeout(r, 1500));
+          data = await fetch("/.netlify/functions/replicate-get?id="+start.id).then(r=>r.json());
+          if (++tries>240) throw new Error("Quá thời gian chờ");
+        }
+
+        if (data.status !== "succeeded") {
+          throw new Error(data?.error || "Job không thành công");
+        }
+
+        setStatus("Hoàn tất ✓");
+
+        // 3) Hiển thị kết quả (Replicate trả về mảng URL)
+        const urls = Array.isArray(data.output) ? data.output : [data.output];
+        resultDiv.innerHTML = urls.filter(Boolean).map((u,i)=>`
+          <div>
+            <img id="thumb" src="${u}" alt="Kết quả #${i+1}" />
+            <div class="row" style="justify-content:center;margin-top:10px">
+              <a class="pill" href="${u}" target="_blank" rel="noopener">Mở ảnh gốc</a>
+              <a class="pill" download="avatar-ai-${Date.now()}.png" href="${u}">Tải ảnh</a>
+            </div>
+          </div>
+        `).join("");
+
+      }catch(err){
+        console.error(err);
+        setStatus("");
+        resultDiv.innerHTML = `<p class="loading" style="color:#ff9e9e">Lỗi: ${err.message || err}</p>`;
+      }
+    }
+  </script>
+</body>
 </html>

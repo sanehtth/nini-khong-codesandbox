@@ -14,6 +14,9 @@ exports.handler = async (event) => {
     // --- lấy & làm sạch token ---
     let token = (process.env.REPLICATE_API_TOKEN || "").trim();
     token = token.replace(/^Bearer\s+/i, "").replace(/^Token\s+/i, "");
+    // trong replicate-proxy.js, ngay sau khi lấy token & strip:
+    const masked = token ? token.slice(0,3) + "***" + token.slice(-3) : "(empty)";
+    console.log("[replicate-proxy] token prefix:", token.slice(0,3)); // sẽ là 'r8_'
 
     if (!/^r8_[A-Za-z0-9]+$/.test(token)) {
       // báo rõ để bạn biết env đang sai định dạng
@@ -46,3 +49,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: cors, body: JSON.stringify({ ok:false, error: e.message }) };
   }
 };
+

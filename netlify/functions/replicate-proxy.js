@@ -7,40 +7,34 @@ const cors = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+// ... phần đầu giữ nguyên
 exports.handler = async (event) => {
-  // preflight
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 204, headers: cors };
-  }
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers: cors };
 
   try {
-    if (!process.env.REPLICATE_API_TOKEN) {
+    const token = process.env.REPLICATE_API_TOKEN;
+    if (!token) {
       return { statusCode: 500, headers: cors, body: JSON.stringify({ ok:false, error:"Missing REPLICATE_API_TOKEN" }) };
     }
 
     const body = JSON.parse(event.body || "{}");
-    // body nên gồm { model, prompt, ... } tuỳ luồng bạn dùng
-    const payload = {
-      model: body.model || "black-forest-labs/flux-1.1-pro",
-      input: { prompt: body.prompt, ...body.input },
-    };
+    const modelId = body.model || "black-forest-labs/flux-1.1-pro";
+    const payload = { model: modelId, input: body.input || {} };
 
-    // 1) Tạo prediction
     const r = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
-        "Authorization": `Token ${process.env.REPLICATE_API_TOKEN}`,
+        "Authorization": `Token ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
 
-    const data = await r.json();
-
-    // 2) (tuỳ bạn) Có thể poll tiếp tại /v1/predictions/:id trong client qua function khác,
-    // hoặc trả thẳng data để client tự poll bằng function GET dưới đây.
-    return { statusCode: r.status, headers: cors, body: JSON.stringify(data) };
+    const text = await r.text(); // đọc thô để thấy thông điệp lỗi của Replicate
+    // Trả thẳng status + body từ Replicate (để bạn nhìn được lỗi thật)
+    return { statusCode: r.status, headers: cors, body: text };
   } catch (e) {
     return { statusCode: 500, headers: cors, body: JSON.stringify({ ok:false, error: e.message }) };
   }
 };
+

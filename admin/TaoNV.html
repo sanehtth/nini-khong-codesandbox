@@ -27,41 +27,55 @@
 
   <div id="result"></div>
 
-  <script>
-    async function taoAnh() {
-      const prompt = document.getElementById("prompt").value.trim();
-      if (!prompt) {alert("Hãy nhập mô tả nhân vật!");return;}
+ <script>
+async function taoAnh() {
+  const prompt = document.getElementById("prompt").value.trim();
+  if (!prompt) { alert("Hãy nhập mô tả!"); return; }
 
-      const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = `<p class="loading">Đang vẽ nhân vật... ⏳</p>`;
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = `<p class="loading">Đang vẽ... ⏳</p>`;
 
-      try {
-        const response = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer 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",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: prompt + ", anime style, highly detailed, fantasy character, sharp focus, vibrant colors",
-          }),
-        });
+  try {
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer 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", // Lấy ở replicate.com/account
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        version: "stability-ai/stable-diffusion:ac732df83cea7fff18b8472768c88ad041fa750ff7682a21bdea9ed1743e3fae",
+        input: { prompt: prompt + ", fantasy character, detailed, vibrant, anime style" }
+      })
+    });
 
-        if (!response.ok) throw new Error("API lỗi. Thử lại sau 10s.");
+    const data = await response.json();
+    const predictionId = data.id;
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+    // Polling kết quả
+    let result;
+    do {
+      await new Promise(r => setTimeout(r, 2000));
+      const poll = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+        headers: { "Authorization": "Token r8_YourToken" }
+      });
+      result = await poll.json();
+    } while (result.status !== "succeeded" && result.status !== "failed");
 
-        resultDiv.innerHTML = `
-          <p>✅ Hoàn tất!</p>
-          <img src="${url}" alt="Nhân vật AI" />
-          <br/><button onclick="window.open('${url}')">📥 Tải ảnh</button>
-        `;
-      } catch (err) {
-        resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
-      }
+    if (result.status === "succeeded") {
+      const imgUrl = result.output[0];
+      resultDiv.innerHTML = `
+        <p>Hoàn tất!</p>
+        <img src="${imgUrl}" />
+        <br/><button onclick="window.open('${imgUrl}')">Tải ảnh</button>
+      `;
+    } else {
+      throw new Error("Tạo ảnh thất bại");
     }
-  </script>
-
+  } catch (err) {
+    resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
+  }
+}
+</script>
 </body>
+
 </html>

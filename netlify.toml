@@ -1,8 +1,15 @@
 [build]
-  functions = "netlify/functions"
+  publish = "public"            # thư mục build (tuỳ dự án bạn)
+  command = "npm run build"     # hoặc "vite build" / "" nếu không cần build
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 
 [[redirects]]
   from = "/api/*"
   to   = "/.netlify/functions/:splat"
   status = 200
   force  = true
+

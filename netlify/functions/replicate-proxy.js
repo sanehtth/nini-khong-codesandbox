@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     const masked = token ? token.slice(0,3) + "***" + token.slice(-3) : "(empty)";
     console.log("[replicate-proxy] token prefix:", token.slice(0,3)); // sẽ là 'r8_'
 
-    if (!/^r8_[A-Za-z0-9]+$/.test(token)) {
+    if (!/^r\d?_[A-Za-z0-9]+$/.test(token)) { 
       // báo rõ để bạn biết env đang sai định dạng
       return {
         statusCode: 500,
@@ -49,4 +49,5 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers: cors, body: JSON.stringify({ ok:false, error: e.message }) };
   }
 };
+
 

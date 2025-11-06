@@ -6,6 +6,15 @@
   <title>NiNi — Admin Dashboard</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/test/css/nini-theme.css" />
+  <style>
+    .tabs { display:flex; gap:.5rem; flex-wrap:wrap; margin:.5rem 0 1rem }
+    .tabs .tab { padding:.5rem .8rem; border-radius:12px; cursor:pointer; border:1px solid rgba(255,255,255,.2) }
+    .tabs .tab.active { font-weight:600; backdrop-filter:blur(6px); box-shadow:0 0 0 2px rgba(255,255,255,.15) inset }
+    .hidden { display:none !important }
+    .iframe-wrap { border-radius:16px; overflow:hidden; background:rgba(0,0,0,.08) }
+    .iframe-wrap iframe { width:100%; height:70vh; border:0; display:block }
+    .row .muted { margin-left:.5rem }
+  </style>
 </head>
 <body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
   <header class="site-header">
@@ -20,35 +29,66 @@
 
   <main class="page-hero">
     <section class="panel">
-      <h2>Bảng điểm (theo ngày)</h2>
-      <div class="row">
-        <input id="pickDate" type="date" class="input underline"/>
-        <button id="btnLoad" class="btn">Tải dữ liệu</button>
-        <button id="btnCsv"  class="btn">Tải CSV</button>
-        <span id="stat" class="muted"></span>
+      <h2>Admin Dashboard</h2>
+
+      <!-- TABS -->
+      <nav class="tabs" id="tabs"></nav>
+
+      <!-- VIEW: Bảng điểm -->
+      <div id="viewScores" class="view">
+        <h3>Bảng điểm (theo ngày)</h3>
+        <div class="row">
+          <input id="pickDate" type="date" class="input underline"/>
+          <button id="btnLoad" class="btn">Tải dữ liệu</button>
+          <button id="btnCsv"  class="btn">Tải CSV</button>
+          <span id="stat" class="muted"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Thời gian (UTC)</th>
+                <th>User</th>
+                <th>Tên</th>
+                <th>Game</th>
+                <th>Session</th>
+                <th>Điểm</th>
+                <th>Tối đa</th>
+                <th>Giây</th>
+              </tr>
+            </thead>
+            <tbody id="grid"></tbody>
+          </table>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Thời gian (UTC)</th>
-              <th>User</th>
-              <th>Tên</th>
-              <th>Game</th>
-              <th>Session</th>
-              <th>Điểm</th>
-              <th>Tối đa</th>
-              <th>Giây</th>
-            </tr>
-          </thead>
-          <tbody id="grid"></tbody>
-        </table>
+
+      <!-- VIEW: Công cụ -->
+      <div id="viewTools" class="view hidden">
+        <h3>Công cụ</h3>
+        <div class="row" style="gap:.5rem; margin:.5rem 0 1rem">
+          <select id="toolSelect" class="input">
+            <!-- cập nhật đường dẫn tool của bạn ở đây -->
+            <option value="/admin/tools/index.html">Bộ công cụ (mặc định)</option>
+            <option value="/admin/tools/reports.html">Báo cáo</option>
+            <option value="/admin/tools/users.html">Quản lý user</option>
+          </select>
+          <button id="btnOpenTool" class="btn">Mở</button>
+        </div>
+        <div class="iframe-wrap">
+          <iframe id="toolFrame" title="Admin tools"></iframe>
+        </div>
+      </div>
+
+      <!-- VIEW: Cấu hình (placeholder) -->
+      <div id="viewSettings" class="view hidden">
+        <h3>Cấu hình</h3>
+        <p class="muted">Khu vực cấu hình hệ thống (điền sau).</p>
       </div>
     </section>
   </main>
 
   <script>
-    // Guard phiên
+    // ====== Guard phiên ======
     (async () => {
       try{
         const r = await fetch("/.netlify/functions/admin-auth/check", { credentials: "include" });
@@ -59,71 +99,130 @@
       }
     })();
 
-    // Logout
+    // ====== Logout ======
     document.getElementById("btnLogout").onclick = async () => {
       try{ await fetch("/.netlify/functions/admin-auth/logout", { method:"POST", credentials:"include" }); }catch(_){}
       location.replace("/admin/login.html");
     };
 
-    // Bảng điểm (mẫu)
+    // ====== TABS (hash router) ======
+    const TABS = [
+      { key:'scores',   label:'Bảng điểm', view:'viewScores'  },
+      { key:'tools',    label:'Công cụ',   view:'viewTools'   },
+      { key:'settings', label:'Cấu hình',  view:'viewSettings'}
+    ];
+
     const $ = s => document.querySelector(s);
-    const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
-    const today = new Date().toISOString().slice(0,10); pick.value = today;
+    const tabsEl = $("#tabs");
 
-    $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
-    let rows = [];
+    tabsEl.innerHTML = TABS.map(t => `<button class="tab" data-key="${t.key}">${t.label}</button>`).join('');
 
-    async function load(){
-      stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
-      try{
-        const d = pick.value || today;
-        const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
-        const j = await r.json();
-        if (!j.ok) throw new Error(j.error || "Lỗi");
-        rows = j.events || [];
-        stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
-        render(rows);
-      }catch(e){
-        stat.textContent = "Không tải được dữ liệu.";
+    function getTabFromHash(){
+      const m = location.hash.match(/tab=([a-z0-9_-]+)/i);
+      return m ? m[1] : 'scores';
+    }
+    function activateTab(key){
+      // bật/tắt nút
+      tabsEl.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.key===key));
+      // bật/tắt view
+      TABS.forEach(t => {
+        const v = document.getElementById(t.view);
+        if (v) v.classList.toggle('hidden', t.key!==key);
+      });
+      // lazy init cho từng tab
+      if (key==='scores') ensureScoresInited();
+      if (key==='tools')  ensureToolsInited();
+    }
+
+    tabsEl.addEventListener('click', (e)=>{
+      const b = e.target.closest('.tab'); if(!b) return;
+      const key = b.dataset.key;
+      if (!key) return;
+      if (!location.hash.includes('tab=')) {
+        location.hash = `#tab=${key}`;
+      } else {
+        history.replaceState(null,'',location.pathname + location.search + `#tab=${key}`);
+        activateTab(key);
       }
-    }
-    function render(list){
-      grid.innerHTML = list.map(e=>{
-        const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
-        return `<tr>
-          <td>${t}</td>
-          <td>${esc(e.userId)}</td>
-          <td>${esc(e.displayName)}</td>
-          <td>${esc(e.gameId)}</td>
-          <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
-          <td>${e.score}</td>
-          <td>${e.maxScore}</td>
-          <td>${e.durationSec ?? ""}</td>
-        </tr>`;
-      }).join('');
-    }
-    function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));}
-    function toCSV(arr){
-      if(!arr.length) return "";
-      const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
-      const wrap = s => s==null ? "" : /[",\n]/.test(s = String(s)) ? `"${s.replace(/"/g,'""')}"` : s;
-      return [cols.join(","), ...arr.map(o => cols.map(c=>wrap(o[c])).join(","))].join("\n");
-    }
-    function downloadCsv(){
-      if (!rows.length) return alert("Chưa có dữ liệu.");
-      const csv = toCSV(rows);
-      const d = (pick.value || today).replace(/-/g,"");
-      const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `nini-scores-${d}.csv`;
-      document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    });
+    window.addEventListener('hashchange', ()=>activateTab(getTabFromHash()));
+
+    // ====== Tab "Bảng điểm" ======
+    let scoresInit = false, rows = [];
+    function ensureScoresInited(){
+      if (scoresInit) return; scoresInit = true;
+
+      const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
+      const today = new Date().toISOString().slice(0,10); pick.value = today;
+      $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
+
+      async function load(){
+        stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
+        try{
+          const d = pick.value || today;
+          const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
+          const j = await r.json();
+          if (!j.ok) throw new Error(j.error || "Lỗi");
+          rows = j.events || [];
+          stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
+          render(rows);
+        }catch(e){
+          stat.textContent = "Không tải được dữ liệu.";
+        }
+      }
+      function render(list){
+        grid.innerHTML = list.map(e=>{
+          const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
+          return `<tr>
+            <td>${t}</td>
+            <td>${esc(e.userId)}</td>
+            <td>${esc(e.displayName)}</td>
+            <td>${esc(e.gameId)}</td>
+            <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
+            <td>${e.score}</td>
+            <td>${e.maxScore}</td>
+            <td>${e.durationSec ?? ""}</td>
+          </tr>`;
+        }).join('');
+      }
+      function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));}
+      function toCSV(arr){
+        if(!arr.length) return "";
+        const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
+        const wrap = s => s==null ? "" : /[",\n]/.test(s = String(s)) ? `"${s.replace(/"/g,'""')}"` : s;
+        return [cols.join(","), ...arr.map(o => cols.map(c=>wrap(o[c])).join(","))].join("\n");
+      }
+      function downloadCsv(){
+        if (!rows.length) return alert("Chưa có dữ liệu.");
+        const csv = toCSV(rows);
+        const d = (pick.value || today).replace(/-/g,"");
+        const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `nini-scores-${d}.csv`;
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      }
+
+      // auto load khi mở tab
+      load();
     }
 
-    // tự tải lần đầu
-    load();
+    // ====== Tab "Công cụ" (iframe) ======
+    let toolsInit = false;
+    function ensureToolsInited(){
+      if (toolsInit) return; toolsInit = true;
+      const sel = document.getElementById('toolSelect');
+      const frm = document.getElementById('toolFrame');
+      const open = ()=> frm.src = sel.value;
+
+      document.getElementById('btnOpenTool').onclick = open;
+      // mở tool mặc định ngay
+      open();
+    }
+
+    // ====== Khởi động theo hash hiện tại ======
+    activateTab(getTabFromHash());
   </script>
 </body>
 </html>
-

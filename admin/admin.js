@@ -30,7 +30,7 @@ const TOOL_REGISTRY = {
   title: "Tạo hình nhân vật",
   url: "/admin/tools/character.html",
   note: "Form → ghép prompt → xem thử → lưu vào Firebase"
-  }
+  },
   hotspot: {
     title: "Tạo điểm ảnh",
     url: "/admin/tools/hotspot.html",               // bạn đã có file này
@@ -141,5 +141,6 @@ window.addEventListener("keydown", (e) => {
     document.getElementById("btnLogout").click();
   }
 });
+
 
 

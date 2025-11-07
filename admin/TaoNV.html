@@ -181,8 +181,143 @@ async function generateReplicate() {
     status.textContent = "❌ Lỗi: " + e.message;
   }
 }
+// ====== Fallback Orchestrator ======
+// Cấu hình
+const FALLBACK_ORDER = ["hf", "replicate", "free"]; // thứ tự dự phòng
+const MODE_LABEL = { hf: "Hugging Face API", replicate: "Replicate API", free: "Miễn phí (Space)" };
+const PER_STEP_TIMEOUT_MS = 20000; // 20s/ chế độ, bạn chỉnh tùy ý
+
+// Helper timeout Promise
+function withTimeout(promise, ms, label = "timeout") {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label)), ms))
+  ]);
+}
+
+// Gói lại 2 hàm hiện có thành Promise trả về URL ảnh (nếu thành công)
+async function tryHF(prompt) {
+  // Gần như bản generateHF nhưng trả về URL ảnh, ném Error khi lỗi
+  const resp = await fetch("/api/hf-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "stabilityai/sdxl-turbo", // ưu tiên model nhanh/nhẹ cho free-tier
+      input: { inputs: prompt, num_inference_steps: 6, guidance_scale: 0 }
+    })
+  });
+  if (!resp.ok) {
+    const msg = await resp.text();
+    throw new Error(`HF HTTP ${resp.status} — ${msg.slice(0,200)}`);
+  }
+  const ct = (resp.headers.get("content-type") || "").toLowerCase();
+  if (ct.startsWith("image/")) {
+    const blob = await resp.blob();
+    return URL.createObjectURL(blob);
+  }
+  const text = await resp.text();
+  try {
+    const data = JSON.parse(text);
+    const url = data.url || (Array.isArray(data.output) ? data.output[0] : data.output);
+    if (!url) throw new Error(data.error || "HF không trả URL ảnh");
+    return url;
+  } catch {
+    if (text.startsWith("data:")) return text;
+    throw new Error(text.slice(0,200));
+  }
+}
+
+async function tryReplicate(prompt) {
+  const start = await fetch("/api/replicate-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "black-forest-labs/flux-1.1-pro",
+      input: { prompt, aspect_ratio: "1:1", output_format: "png" }
+    })
+  });
+  if (!start.ok) throw new Error(`Replicate start HTTP ${start.status}`);
+  const job = await start.json();
+
+  let data = job, tries = 0;
+  while (["starting", "processing", "queued"].includes(data.status)) {
+    await new Promise(r => setTimeout(r, 1500));
+    const r = await fetch("/api/replicate-get?id=" + job.id);
+    if (!r.ok) throw new Error("Replicate poll fail");
+    data = await r.json();
+    if (++tries > 180) throw new Error("Replicate timeout");
+  }
+  if (data.status !== "succeeded") throw new Error(data.error || "Replicate job fail");
+  const url = Array.isArray(data.output) ? data.output[0] : data.output;
+  if (!url) throw new Error("Replicate không trả URL ảnh");
+  return url;
+}
+
+// Hiển thị ảnh vào khối kết quả hiện có (ưu tiên pane đang mở)
+function showImage(url) {
+  // ưu tiên render vào HF pane nếu đang mở, ngược lại thử Replicate pane
+  const targets = [
+    document.getElementById("hfResult"),
+    document.getElementById("repResult")
+  ].filter(Boolean);
+
+  targets.forEach(el => el.innerHTML = ""); // clear
+  const el = targets.find(t => t.closest(".pane").classList.contains("show")) || targets[0] || document.body;
+  el.innerHTML = `<img src="${url}" alt="AI result"/>` +
+                 `<div class="status" style="margin-top:6px">Nguồn ảnh: ${url.includes("blob:") ? "Hugging Face" : (url.includes("replicate") ? "Replicate" : "AI")}</div>`;
+}
+
+// Bật pane theo key
+function switchPane(modeKey) {
+  const panesMap = { free: paneFree, hf: paneHF, replicate: paneReplicate };
+  Object.entries(panesMap).forEach(([k, node]) => node && node.classList.toggle("show", k === modeKey));
+  // tô active button
+  document.querySelectorAll(".opt").forEach(o => o.classList.toggle("active", o.dataset.mode === modeKey));
+}
+
+// Orchestrator: thử lần lượt theo FALLBACK_ORDER
+async function generateAuto() {
+  const autoStatus = document.getElementById("autoStatus");
+  const prompt = (document.getElementById("hfPrompt") || document.getElementById("repPrompt")).value.trim();
+  if (!prompt) { alert("Nhập mô tả trước đã nhé!"); return; }
+
+  autoStatus.textContent = "Bắt đầu (Auto)…";
+  // Xoá kết quả cũ
+  const hfRes = document.getElementById("hfResult"); if (hfRes) hfRes.innerHTML = "";
+  const rpRes = document.getElementById("repResult"); if (rpRes) rpRes.innerHTML = "";
+
+  const errors = [];
+  for (const mode of FALLBACK_ORDER) {
+    try {
+      autoStatus.textContent = `Đang thử: ${MODE_LABEL[mode]}…`;
+      if (mode === "free") {
+        // Free không thể tự sinh ảnh qua code → bật tab Free để bạn thao tác thủ công
+        switchPane("free");
+        autoStatus.textContent = "Đã chuyển sang Miễn phí (Space). Hãy dùng khung iframe để tạo ảnh.";
+        return;
+      }
+      // hf / replicate có thể tự sinh
+      const run = mode === "hf" ? tryHF(prompt) : tryReplicate(prompt);
+      const url = await withTimeout(run, PER_STEP_TIMEOUT_MS, "Quá thời gian chờ");
+      showImage(url);
+      autoStatus.textContent = `✅ Thành công với ${MODE_LABEL[mode]}`;
+      // bật pane tương ứng
+      switchPane(mode);
+      return;
+    } catch (e) {
+      errors.push(`${mode}: ${e.message || e}`);
+      autoStatus.textContent = `⚠️ Thất bại ở ${MODE_LABEL[mode]} — thử chế độ kế tiếp…`;
+    }
+  }
+  autoStatus.textContent = "❌ Tất cả chế độ đều lỗi.\n" + errors.join(" | ");
+}
+
+// Gắn sự kiện cho nút Auto (nếu bạn đã thêm)
+const btnAuto = document.getElementById("btnAuto");
+if (btnAuto) btnAuto.addEventListener("click", generateAuto);
 
   </script>
 </body>
 </html>
+
 

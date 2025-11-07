@@ -1,67 +1,351 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tạo Nhân Vật AI</title>
+  <title>Tạo Nhân Vật AI — 3 Chế Độ</title>
   <style>
-    body {font-family: 'Segoe UI', sans-serif;background: linear-gradient(135deg, #1e3c72, #2a5298);color: white;text-align: center;padding: 40px;}
-    h1 {font-size: 2.5em;margin-bottom: 10px;}
-    input, button {padding: 12px;margin: 10px;font-size: 1.1em;border: none;border-radius: 8px;}
-    input {width: 70%;max-width: 500px;}
-    button {background: #ff6b6b;color: white;cursor: pointer;transition: 0.3s;}
-    button:hover {background: #ff5252;}
-    #result {margin-top: 30px;}
-    img {max-width: 100%;border-radius: 12px;box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
-    .loading {color: #ffd93d;font-style: italic;}
+    body{font-family:"Segoe UI",sans-serif;background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;margin:0;padding:20px;text-align:center}
+    h1{font-size:2em;margin-bottom:10px}
+    .mode-select{display:flex;justify-content:center;gap:10px;margin:20px auto;flex-wrap:wrap}
+    .opt{padding:12px 20px;border-radius:10px;background:rgba(255,255,255,0.1);cursor:pointer;transition:.2s;border:1px solid rgba(255,255,255,0.2)}
+    .opt.active{background:#ff6b6b}
+    .pane{display:none;margin-top:20px}
+    .pane.show{display:block}
+    input,select,button{padding:10px;margin:6px;border:none;border-radius:8px;font-size:1em}
+    button{background:#ff6b6b;color:white;cursor:pointer}
+    button:hover{background:#ff5252}
+    iframe{width:100%;height:70vh;border-radius:12px;border:none}
+    .status{margin-top:10px;font-style:italic;color:#ffd93d}
+    img{max-width:100%;border-radius:10px;margin-top:20px;box-shadow:0 6px 20px rgba(0,0,0,0.4)}
   </style>
 </head>
 <body>
 
-  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
-  <p>Nhập mô tả → AI vẽ ngay!</p>
+  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy (3 chế độ)</h1>
 
-  <input type="text" id="prompt" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
-  <br/>
-  <button onclick="taoAnh()">Tạo Nhân Vật!</button>
+  <div class="mode-select" id="modeSelect">
+    <div class="opt" data-mode="free">Miễn phí</div>
+    <div class="opt" data-mode="hf">HuggingFace API</div>
+    <div class="opt" data-mode="replicate">Replicate API</div>
+  </div>
 
-  <div id="result"></div>
+  <!-- MODE 1: FREE -->
+  <div id="paneFree" class="pane show">
+    <p>Dùng Hugging Face Space miễn phí (iframe, không cần API).</p>
+   <div id="freeWrap">
+  <iframe id="freeIframe"
+    src="https://hf.space/embed/hysts/SDXL/+/ ?__theme=light"
+    title="HF Free Space"
+    style="width:100%;height:70vh;border:none;border-radius:12px">
+  </iframe>
+  <div id="freeFallback" class="status" style="display:none;margin-top:8px">
+    Không nhúng được Space. <a id="freeOpen" target="_blank" rel="noopener">Mở trong tab mới</a>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const url = "https://hf.space/embed/hysts/SDXL/+/ ?__theme=light";
+    const iframe = document.getElementById("freeIframe");
+    const fb = document.getElementById("freeFallback");
+    const open = document.getElementById("freeOpen");
+    open.href = url;
+
+    // Nếu 6 giây không load xong → coi như fail (do XFO/CSP, 404…)
+    const t = setTimeout(() => {
+      fb.style.display = "block";
+    }, 6000);
+
+    iframe.addEventListener("load", () => clearTimeout(t));
+  })();
+</script>
+
+
+  </div>
+
+  <!-- MODE 2: HUGGING FACE API -->
+  <div id="paneHF" class="pane">
+    <p>Gọi trực tiếp model qua Hugging Face API (token hf_...)</p>
+    <input type="text" id="hfPrompt" placeholder="VD: cô gái tóc trắng, ánh sáng huyền ảo..." size="50"/>
+    <br>
+    <button onclick="generateHF()">Tạo Ảnh (HF)</button>
+    <div id="hfStatus" class="status"></div>
+    <div id="hfResult"></div>
+  </div>
+
+  <!-- MODE 3: REPLICATE -->
+  <div id="paneReplicate" class="pane">
+    <p>Gọi Replicate API (token r8_...) - chất lượng cao.</p>
+    <input type="text" id="repPrompt" placeholder="VD: nhân vật nam phong cách Pixar, áo giáp vàng..." size="50"/>
+    <br>
+    <button onclick="generateReplicate()">Tạo Ảnh (Replicate)</button>
+    <div id="repStatus" class="status"></div>
+    <div id="repResult"></div>
+  </div>
 
   <script>
-    async function taoAnh() {
-      const prompt = document.getElementById("prompt").value.trim();
-      if (!prompt) {alert("Hãy nhập mô tả nhân vật!");return;}
+    // === Mode switching ===
+    const modes = document.querySelectorAll(".opt");
+    const panes = {
+      free: document.getElementById("paneFree"),
+      hf: document.getElementById("paneHF"),
+      replicate: document.getElementById("paneReplicate")
+    };
+    modes.forEach(opt=>{
+      opt.addEventListener("click",()=>{
+        modes.forEach(o=>o.classList.remove("active"));
+        opt.classList.add("active");
+        const mode = opt.dataset.mode;
+        Object.keys(panes).forEach(k=>panes[k].classList.toggle("show",k===mode));
+      });
+    });
+    modes[0].classList.add("active");
 
-      const resultDiv = document.getElementById("result");
-      resultDiv.innerHTML = `<p class="loading">Đang vẽ nhân vật... ⏳</p>`;
+    // === Hugging Face API (sửa URL + đọc ảnh/binary/JSON) ===
+async function generateHF() {
+  const prompt = document.getElementById("hfPrompt").value.trim();
+  if (!prompt) { alert("Nhập mô tả!"); return; }
 
-      try {
-        const response = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer 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",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            inputs: prompt + ", anime style, highly detailed, fantasy character, sharp focus, vibrant colors",
-          }),
-        });
+  const status = document.getElementById("hfStatus");
+  const result = document.getElementById("hfResult");
+  status.textContent = "⏳ Đang tạo ảnh (HuggingFace)...";
+  result.innerHTML = "";
 
-        if (!response.ok) throw new Error("API lỗi. Thử lại sau 10s.");
+  try {
+    const resp = await fetch("/api/hf-proxy", {              // 👈 đổi sang /api/...
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "black-forest-labs/FLUX.1.1-pro",
+        input: { inputs: prompt }                             // HF thường dùng key "inputs"
+      })
+    });
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+    if (!resp.ok) {
+      // lỗi HTTP nhưng body có thể vẫn là JSON báo lỗi
+      const msg = await resp.text();
+      throw new Error(`HTTP ${resp.status} — ${msg.slice(0, 300)}`);
+    }
 
-        resultDiv.innerHTML = `
-          <p>✅ Hoàn tất!</p>
-          <img src="${url}" alt="Nhân vật AI" />
-          <br/><button onclick="window.open('${url}')">📥 Tải ảnh</button>
-        `;
-      } catch (err) {
-        resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
+    const ct = (resp.headers.get("content-type") || "").toLowerCase();
+    if (ct.startsWith("image/")) {
+      // Proxy trả ảnh binary
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      status.textContent = "✅ Hoàn tất!";
+      result.innerHTML = `<img src="${url}" alt="HF result"/>`;
+      return;
+    }
+
+    // Không phải image → đọc text, thử parse JSON
+    const text = await resp.text();
+    try {
+      const data = JSON.parse(text);
+      if (data.error) throw new Error(data.error);
+      // Một số model/adapter trả về output dạng mảng URL
+      const url = data.url || data.output?.[0];
+      if (url) {
+        status.textContent = "✅ Hoàn tất!";
+        result.innerHTML = `<img src="${url}" alt="HF result"/>`;
+      } else {
+        // fallback: nếu trả về data URL
+        if (text.startsWith("data:")) {
+          status.textContent = "✅ Hoàn tất!";
+          result.innerHTML = `<img src="${text}" alt="HF result"/>`;
+        } else {
+          throw new Error("Không nhận được ảnh từ HF.");
+        }
+      }
+    } catch {
+      // Không phải JSON: có thể là dataURL (base64) hoặc text thuần
+      if (text.startsWith("data:")) {
+        status.textContent = "✅ Hoàn tất!";
+        result.innerHTML = `<img src="${text}" alt="HF result"/>`;
+      } else {
+        throw new Error(text.slice(0, 300));
       }
     }
-  </script>
+  } catch (e) {
+    status.textContent = "❌ Lỗi: " + e.message;
+  }
+}
 
+
+   // === Replicate API (đổi URL sang /api/...) ===
+async function generateReplicate() {
+  const prompt = document.getElementById("repPrompt").value.trim();
+  if (!prompt) { alert("Nhập mô tả!"); return; }
+
+  const status = document.getElementById("repStatus");
+  const result = document.getElementById("repResult");
+  status.textContent = "⏳ Đang gửi yêu cầu Replicate...";
+  result.innerHTML = "";
+
+  try {
+    const start = await fetch("/api/replicate-proxy", {      // 👈 đổi sang /api/...
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "black-forest-labs/flux-1.1-pro",
+        input: { prompt }
+      })
+    });
+    if (!start.ok) throw new Error("HTTP " + start.status);
+    const job = await start.json();
+
+    let data = job;
+    while (["starting", "processing", "queued"].includes(data.status)) {
+      await new Promise(r => setTimeout(r, 2000));
+      const poll = await fetch("/api/replicate-get?id=" + job.id);  // 👈 đổi sang /api/...
+      data = await poll.json();
+    }
+
+    if (data.status !== "succeeded") throw new Error(data.error || "Job fail");
+    status.textContent = "✅ Hoàn tất!";
+    const url = Array.isArray(data.output) ? data.output[0] : data.output;
+    result.innerHTML = `<img src="${url}" alt="Replicate result"/>`;
+  } catch (e) {
+    status.textContent = "❌ Lỗi: " + e.message;
+  }
+}
+// ====== Fallback Orchestrator ======
+// Cấu hình
+const FALLBACK_ORDER = ["hf", "replicate", "free"]; // thứ tự dự phòng
+const MODE_LABEL = { hf: "Hugging Face API", replicate: "Replicate API", free: "Miễn phí (Space)" };
+const PER_STEP_TIMEOUT_MS = 20000; // 20s/ chế độ, bạn chỉnh tùy ý
+
+// Helper timeout Promise
+function withTimeout(promise, ms, label = "timeout") {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label)), ms))
+  ]);
+}
+
+// Gói lại 2 hàm hiện có thành Promise trả về URL ảnh (nếu thành công)
+async function tryHF(prompt) {
+  // Gần như bản generateHF nhưng trả về URL ảnh, ném Error khi lỗi
+  const resp = await fetch("/api/hf-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "stabilityai/sdxl-turbo", // ưu tiên model nhanh/nhẹ cho free-tier
+      input: { inputs: prompt, num_inference_steps: 6, guidance_scale: 0 }
+    })
+  });
+  if (!resp.ok) {
+    const msg = await resp.text();
+    throw new Error(`HF HTTP ${resp.status} — ${msg.slice(0,200)}`);
+  }
+  const ct = (resp.headers.get("content-type") || "").toLowerCase();
+  if (ct.startsWith("image/")) {
+    const blob = await resp.blob();
+    return URL.createObjectURL(blob);
+  }
+  const text = await resp.text();
+  try {
+    const data = JSON.parse(text);
+    const url = data.url || (Array.isArray(data.output) ? data.output[0] : data.output);
+    if (!url) throw new Error(data.error || "HF không trả URL ảnh");
+    return url;
+  } catch {
+    if (text.startsWith("data:")) return text;
+    throw new Error(text.slice(0,200));
+  }
+}
+
+async function tryReplicate(prompt) {
+  const start = await fetch("/api/replicate-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "black-forest-labs/flux-1.1-pro",
+      input: { prompt, aspect_ratio: "1:1", output_format: "png" }
+    })
+  });
+  if (!start.ok) throw new Error(`Replicate start HTTP ${start.status}`);
+  const job = await start.json();
+
+  let data = job, tries = 0;
+  while (["starting", "processing", "queued"].includes(data.status)) {
+    await new Promise(r => setTimeout(r, 1500));
+    const r = await fetch("/api/replicate-get?id=" + job.id);
+    if (!r.ok) throw new Error("Replicate poll fail");
+    data = await r.json();
+    if (++tries > 180) throw new Error("Replicate timeout");
+  }
+  if (data.status !== "succeeded") throw new Error(data.error || "Replicate job fail");
+  const url = Array.isArray(data.output) ? data.output[0] : data.output;
+  if (!url) throw new Error("Replicate không trả URL ảnh");
+  return url;
+}
+
+// Hiển thị ảnh vào khối kết quả hiện có (ưu tiên pane đang mở)
+function showImage(url) {
+  // ưu tiên render vào HF pane nếu đang mở, ngược lại thử Replicate pane
+  const targets = [
+    document.getElementById("hfResult"),
+    document.getElementById("repResult")
+  ].filter(Boolean);
+
+  targets.forEach(el => el.innerHTML = ""); // clear
+  const el = targets.find(t => t.closest(".pane").classList.contains("show")) || targets[0] || document.body;
+  el.innerHTML = `<img src="${url}" alt="AI result"/>` +
+                 `<div class="status" style="margin-top:6px">Nguồn ảnh: ${url.includes("blob:") ? "Hugging Face" : (url.includes("replicate") ? "Replicate" : "AI")}</div>`;
+}
+
+// Bật pane theo key
+function switchPane(modeKey) {
+  const panesMap = { free: paneFree, hf: paneHF, replicate: paneReplicate };
+  Object.entries(panesMap).forEach(([k, node]) => node && node.classList.toggle("show", k === modeKey));
+  // tô active button
+  document.querySelectorAll(".opt").forEach(o => o.classList.toggle("active", o.dataset.mode === modeKey));
+}
+
+// Orchestrator: thử lần lượt theo FALLBACK_ORDER
+async function generateAuto() {
+  const autoStatus = document.getElementById("autoStatus");
+  const prompt = (document.getElementById("hfPrompt") || document.getElementById("repPrompt")).value.trim();
+  if (!prompt) { alert("Nhập mô tả trước đã nhé!"); return; }
+
+  autoStatus.textContent = "Bắt đầu (Auto)…";
+  // Xoá kết quả cũ
+  const hfRes = document.getElementById("hfResult"); if (hfRes) hfRes.innerHTML = "";
+  const rpRes = document.getElementById("repResult"); if (rpRes) rpRes.innerHTML = "";
+
+  const errors = [];
+  for (const mode of FALLBACK_ORDER) {
+    try {
+      autoStatus.textContent = `Đang thử: ${MODE_LABEL[mode]}…`;
+      if (mode === "free") {
+        // Free không thể tự sinh ảnh qua code → bật tab Free để bạn thao tác thủ công
+        switchPane("free");
+        autoStatus.textContent = "Đã chuyển sang Miễn phí (Space). Hãy dùng khung iframe để tạo ảnh.";
+        return;
+      }
+      // hf / replicate có thể tự sinh
+      const run = mode === "hf" ? tryHF(prompt) : tryReplicate(prompt);
+      const url = await withTimeout(run, PER_STEP_TIMEOUT_MS, "Quá thời gian chờ");
+      showImage(url);
+      autoStatus.textContent = `✅ Thành công với ${MODE_LABEL[mode]}`;
+      // bật pane tương ứng
+      switchPane(mode);
+      return;
+    } catch (e) {
+      errors.push(`${mode}: ${e.message || e}`);
+      autoStatus.textContent = `⚠️ Thất bại ở ${MODE_LABEL[mode]} — thử chế độ kế tiếp…`;
+    }
+  }
+  autoStatus.textContent = "❌ Tất cả chế độ đều lỗi.\n" + errors.join(" | ");
+}
+
+// Gắn sự kiện cho nút Auto (nếu bạn đã thêm)
+const btnAuto = document.getElementById("btnAuto");
+if (btnAuto) btnAuto.addEventListener("click", generateAuto);
+
+  </script>
 </body>
 </html>
+
+

@@ -1,0 +1,122 @@
+﻿// ---- Guard phiên (giữ như bạn đang có) ----
+(async () => {
+  try{
+    const r = await fetch("/.netlify/functions/admin-auth/check", { credentials: "include" });
+    const j = await r.json().catch(()=>({}));
+    if (!j || !j.ok) location.replace("/admin/login.html");
+  }catch(_){
+    location.replace("/admin/login.html");
+  }
+})();
+document.getElementById("btnLogout").onclick = async () => {
+  try{ await fetch("/.netlify/functions/admin-auth/logout", { method:"POST", credentials:"include" }); }catch(_){}
+  location.replace("/admin/login.html");
+};
+
+// ---- Danh mục công cụ: mỗi tool -> trang HTML nội bộ ----
+// Bạn có thể đổi URL theo cấu trúc site của bạn
+const TOOL_REGISTRY = {
+  scores: {
+    title: "Bảng điểm (theo ngày)",
+    url: "/admin/index-scores.html", // <- nếu bạn đã có sẵn trang bảng điểm hiện tại, đặt file riêng
+    note: "Xem & tải dữ liệu điểm"
+  },
+  avatar: {
+    title: "Tạo ảnh nhân vật",
+    url: "/admin/taonv.html",
+    note: "Ba chế độ: Miễn phí • HuggingFace API • Replicate API"
+  },
+  storybook: {
+    title: "Tạo Storybook",
+    url: "/admin/storybook.html",
+    note: "Biên soạn truyện tranh / sách ảnh"
+  },
+  users: {
+    title: "Quản lý User",
+    url: "/admin/users.html",
+    note: "Tìm kiếm, khóa/mở, reset email"
+  }
+};
+
+// ---- Phần tử UI ----
+const sidebar = document.querySelector(".admin-nav");
+const buttons = [...sidebar.querySelectorAll(".nav-btn")];
+const frame   = document.getElementById("toolFrame");
+const empty   = document.getElementById("toolEmpty");
+const titleEl = document.getElementById("toolTitle");
+const metaEl  = document.getElementById("toolMeta");
+
+// ---- Hàm nạp tool ----
+function loadTool(toolKey, pushHash = true) {
+  const conf = TOOL_REGISTRY[toolKey];
+  if (!conf) return;
+
+  // active state
+  buttons.forEach(b => b.classList.toggle("active", b.dataset.tool === toolKey));
+
+  // set heading
+  titleEl.textContent = conf.title;
+  metaEl.textContent = conf.note || "";
+
+  // show iframe
+  frame.hidden = false;
+  empty.hidden = true;
+  frame.src = conf.url;
+
+  // đồng bộ hash để refresh/back-forward
+  if (pushHash) {
+    const h = new URL(location.href);
+    h.hash = `#/tool/${toolKey}`;
+    history.pushState({toolKey}, "", h);
+  }
+}
+
+// ---- Click trên sidebar ----
+sidebar.addEventListener("click", (e) => {
+  const btn = e.target.closest(".nav-btn");
+  if (!btn) return;
+  loadTool(btn.dataset.tool);
+});
+
+// ---- Hash/back-forward ----
+window.addEventListener("popstate", () => {
+  const m = (location.hash || "").match(/#\/tool\/([a-z0-9_-]+)/i);
+  if (m) loadTool(m[1], /*pushHash*/ false);
+});
+
+// ---- Khởi động theo hash hoặc mặc định ----
+(function boot() {
+  const m = (location.hash || "").match(/#\/tool\/([a-z0-9_-]+)/i);
+  const key = m?.[1] || "scores";
+  // đảm bảo nút tồn tại
+  if (!TOOL_REGISTRY[key]) return;
+  loadTool(key, /*pushHash*/ false);
+})();
+
+// ---- Phím tắt: Alt+↑/↓ để chọn tool; Enter để mở; Alt+L logout ----
+let focusIndex = buttons.findIndex(b => b.classList.contains("active"));
+if (focusIndex < 0) focusIndex = 0;
+
+function focusButton(i) {
+  focusIndex = (i + buttons.length) % buttons.length;
+  buttons.forEach((b, idx)=> b.classList.toggle("active", idx === focusIndex));
+  // chỉ đổi highlight ở sidebar, chưa load tool tới khi Enter
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.altKey && (e.key === "ArrowDown" || e.key === "Down")) {
+    e.preventDefault();
+    focusButton(focusIndex + 1);
+  }
+  if (e.altKey && (e.key === "ArrowUp" || e.key === "Up")) {
+    e.preventDefault();
+    focusButton(focusIndex - 1);
+  }
+  if (e.key === "Enter") {
+    const btn = buttons[focusIndex];
+    if (btn) loadTool(btn.dataset.tool);
+  }
+  if (e.altKey && (e.key.toLowerCase() === "l")) {
+    document.getElementById("btnLogout").click();
+  }
+});

@@ -26,8 +26,13 @@ const TOOL_REGISTRY = {
     url: "/admin/tools/avatar.html",               // bạn đã có file này
     note: "tạo avatar nhân vật"
   },
+  character: {
+  title: "Tạo hình nhân vật",
+  url: "/admin/tools/character.html",
+  note: "Form → ghép prompt → xem thử → lưu vào Firebase"
+  }
   hotspot: {
-    title: "Tạo avatar nhân vật",
+    title: "Tạo điểm ảnh",
     url: "/admin/tools/hotspot.html",               // bạn đã có file này
     note: "tạo điểm ảnh"
   },
@@ -136,4 +141,5 @@ window.addEventListener("keydown", (e) => {
     document.getElementById("btnLogout").click();
   }
 });
+
 

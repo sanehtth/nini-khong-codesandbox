@@ -3,21 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Admin Dashboard</title>
+  <title>NiNi — Admin</title>
   <link rel="icon" href="/public/assets/icons/logonini.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/test/css/nini-theme.css" />
   <style>
-    .tabs { display:flex; gap:.5rem; flex-wrap:wrap; margin:.5rem 0 1rem }
-    .tabs .tab { padding:.5rem .8rem; border-radius:12px; cursor:pointer; border:1px solid rgba(255,255,255,.2) }
-    .tabs .tab.active { font-weight:600; backdrop-filter:blur(6px); box-shadow:0 0 0 2px rgba(255,255,255,.15) inset }
-    .hidden { display:none !important }
-    .iframe-wrap { border-radius:16px; overflow:hidden; background:rgba(0,0,0,.08) }
-    .iframe-wrap iframe { width:100%; height:70vh; border:0; display:block }
-    .row .muted { margin-left:.5rem }
+    /* Bổ sung rất ít để ghép với nini-theme.css */
+    :root {
+      --sidebar-w: 280px;
+    }
+    body { min-height: 100dvh; }
+
+    .admin-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    .admin-sidebar {
+      display: flex; flex-direction: column; gap: 12px;
+      height: calc(100dvh - 32px);
+    }
+    .admin-nav {
+      overflow: auto; padding: 8px; gap: 6px;
+      display: flex; flex-direction: column;
+    }
+    .admin-nav .nav-btn {
+      justify-content: flex-start; width: 100%;
+    }
+    .admin-content {
+      min-height: calc(100dvh - 32px);
+      padding: 0;
+    }
+    .admin-content .panel-body {
+      padding: 0; height: calc(100dvh - 32px - 64px); /* trừ title */
+    }
+    .tool-host {
+      width: 100%; height: 100%; border: 0; border-radius: 12px;
+      background: transparent;
+    }
+    .tool-empty {
+      height: 100%; display: grid; place-items: center;
+      color: var(--muted-2); font-style: italic;
+    }
+    .admin-header {
+      display:flex; align-items:center; gap:12px;
+    }
+    .admin-header .spacer{flex:1}
+    .badge {background:var(--brand-4); color:white; padding:2px 8px; border-radius:10px; font-size:12px}
   </style>
 </head>
 <body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
-  <header class="site-header">
+
+<header class="site-header glass">
+  <div class="admin-header">
     <a class="brand" href="/#home" aria-label="NiNi — Funny">
       <img class="brand__logo" src="/public/assets/icons/logo_text.webp" alt="NiNi Funny" />
       <div class="brand__slogan">Chơi mê ly, bứt phá tư duy</div>
@@ -25,208 +63,54 @@
     <div class="spacer"></div>
     <a class="btn" href="/">↩ Trang chủ</a>
     <button id="btnLogout" class="btn">Đăng xuất</button>
-  </header>
+  </div>
+</header>
 
-  <main class="page-hero">
-    <section class="panel">
-      <h2>Admin Dashboard</h2>
-
-      <!-- TABS -->
-      <nav class="tabs" id="tabs"></nav>
-
-      <!-- VIEW: Bảng điểm -->
-      <div id="viewScores" class="view">
-        <h3>Bảng điểm (theo ngày)</h3>
-        <div class="row">
-          <input id="pickDate" type="date" class="input underline"/>
-          <button id="btnLoad" class="btn">Tải dữ liệu</button>
-          <button id="btnCsv"  class="btn">Tải CSV</button>
-          <span id="stat" class="muted"></span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Thời gian (UTC)</th>
-                <th>User</th>
-                <th>Tên</th>
-                <th>Game</th>
-                <th>Session</th>
-                <th>Điểm</th>
-                <th>Tối đa</th>
-                <th>Giây</th>
-              </tr>
-            </thead>
-            <tbody id="grid"></tbody>
-          </table>
-        </div>
+<main class="admin-shell">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <section class="panel glass">
+      <div class="panel-head">
+        <h3 class="title">Công cụ</h3>
+        <div class="muted">Chọn để mở trong khung bên phải</div>
       </div>
+      <div class="panel-body">
+        <div class="admin-nav">
+          <!-- Mỗi nút tương ứng 1 tool id (khóa) -->
+          <button class="btn nav-btn pill active" data-tool="scores">📊 Bảng điểm</button>
+          <button class="btn nav-btn pill" data-tool="avatar">🧑‍🎨 Tạo ảnh nhân vật</button>
+          <button class="btn nav-btn pill" data-tool="storybook">📚 Tạo storybook</button>
+          <button class="btn nav-btn pill" data-tool="users">👥 Quản lý user</button>
 
-      <!-- VIEW: Công cụ -->
-      <div id="viewTools" class="view hidden">
-        <h3>Công cụ</h3>
-        <div class="row" style="gap:.5rem; margin:.5rem 0 1rem">
-          <select id="toolSelect" class="input">
-            <!-- cập nhật đường dẫn tool của bạn ở đây -->
-            <option value="/admin/storybook.html">Tạo storybook (mặc định)</option>
-            <option value="/admin/avatar.html">Tạo Avatar</option>
-            <option value="/admin/TaoNV.html">Tạo ảnh nhân vật</option>
-            <option value="/admin/image.html">Nén ảnh</option>
-          </select>
-          <button id="btnOpenTool" class="btn">Mở</button>
+          <div class="muted" style="margin-top:10px">Phím tắt: <span class="badge">Alt+↑/↓</span>, 
+            <span class="badge">Enter</span> mở, 
+            <span class="badge">Alt+L</span> đăng xuất
+          </div>
         </div>
-        <div class="iframe-wrap">
-          <iframe id="toolFrame" title="Admin tools"></iframe>
-        </div>
-      </div>
-
-      <!-- VIEW: Cấu hình (placeholder) -->
-      <div id="viewSettings" class="view hidden">
-        <h3>Cấu hình</h3>
-        <p class="muted">Khu vực cấu hình hệ thống (điền sau).</p>
       </div>
     </section>
-  </main>
+  </aside>
 
-  <script>
-    // ====== Guard phiên ======
-    (async () => {
-      try{
-        const r = await fetch("/.netlify/functions/admin-auth/check", { credentials: "include" });
-        const j = await r.json().catch(()=>({}));
-        if (!j || !j.ok) location.replace("/admin/login.html");
-      }catch(_){
-        location.replace("/admin/login.html");
-      }
-    })();
+  <!-- KHUNG NỘI DUNG -->
+  <section class="admin-content">
+    <div class="panel glass">
+      <div class="panel-head">
+        <h3 class="title" id="toolTitle">Chưa chọn công cụ</h3>
+        <div id="toolMeta" class="muted"></div>
+      </div>
+      <div class="panel-body">
+        <!-- iFrame host cho công cụ -->
+        <iframe id="toolFrame" class="tool-host" title="Admin Tool" hidden></iframe>
 
-    // ====== Logout ======
-    document.getElementById("btnLogout").onclick = async () => {
-      try{ await fetch("/.netlify/functions/admin-auth/logout", { method:"POST", credentials:"include" }); }catch(_){}
-      location.replace("/admin/login.html");
-    };
+        <!-- placeholder khi chưa có tool -->
+        <div id="toolEmpty" class="tool-empty">
+          Chọn một công cụ ở thanh bên trái để bắt đầu.
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
 
-    // ====== TABS (hash router) ======
-    const TABS = [
-      { key:'scores',   label:'Bảng điểm', view:'viewScores'  },
-      { key:'tools',    label:'Công cụ',   view:'viewTools'   },
-      { key:'settings', label:'Cấu hình',  view:'viewSettings'}
-    ];
-
-    const $ = s => document.querySelector(s);
-    const tabsEl = $("#tabs");
-
-    tabsEl.innerHTML = TABS.map(t => `<button class="tab" data-key="${t.key}">${t.label}</button>`).join('');
-
-    function getTabFromHash(){
-      const m = location.hash.match(/tab=([a-z0-9_-]+)/i);
-      return m ? m[1] : 'scores';
-    }
-    function activateTab(key){
-      // bật/tắt nút
-      tabsEl.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.key===key));
-      // bật/tắt view
-      TABS.forEach(t => {
-        const v = document.getElementById(t.view);
-        if (v) v.classList.toggle('hidden', t.key!==key);
-      });
-      // lazy init cho từng tab
-      if (key==='scores') ensureScoresInited();
-      if (key==='tools')  ensureToolsInited();
-    }
-
-    tabsEl.addEventListener('click', (e)=>{
-      const b = e.target.closest('.tab'); if(!b) return;
-      const key = b.dataset.key;
-      if (!key) return;
-      if (!location.hash.includes('tab=')) {
-        location.hash = `#tab=${key}`;
-      } else {
-        history.replaceState(null,'',location.pathname + location.search + `#tab=${key}`);
-        activateTab(key);
-      }
-    });
-    window.addEventListener('hashchange', ()=>activateTab(getTabFromHash()));
-
-    // ====== Tab "Bảng điểm" ======
-    let scoresInit = false, rows = [];
-    function ensureScoresInited(){
-      if (scoresInit) return; scoresInit = true;
-
-      const grid = $("#grid"), stat = $("#stat"), pick = $("#pickDate");
-      const today = new Date().toISOString().slice(0,10); pick.value = today;
-      $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
-
-      async function load(){
-        stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
-        try{
-          const d = pick.value || today;
-          const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
-          const j = await r.json();
-          if (!j.ok) throw new Error(j.error || "Lỗi");
-          rows = j.events || [];
-          stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
-          render(rows);
-        }catch(e){
-          stat.textContent = "Không tải được dữ liệu.";
-        }
-      }
-      function render(list){
-        grid.innerHTML = list.map(e=>{
-          const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
-          return `<tr>
-            <td>${t}</td>
-            <td>${esc(e.userId)}</td>
-            <td>${esc(e.displayName)}</td>
-            <td>${esc(e.gameId)}</td>
-            <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
-            <td>${e.score}</td>
-            <td>${e.maxScore}</td>
-            <td>${e.durationSec ?? ""}</td>
-          </tr>`;
-        }).join('');
-      }
-      function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));}
-      function toCSV(arr){
-        if(!arr.length) return "";
-        const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
-        const wrap = s => s==null ? "" : /[",\n]/.test(s = String(s)) ? `"${s.replace(/"/g,'""')}"` : s;
-        return [cols.join(","), ...arr.map(o => cols.map(c=>wrap(o[c])).join(","))].join("\n");
-      }
-      function downloadCsv(){
-        if (!rows.length) return alert("Chưa có dữ liệu.");
-        const csv = toCSV(rows);
-        const d = (pick.value || today).replace(/-/g,"");
-        const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `nini-scores-${d}.csv`;
-        document.body.appendChild(a); a.click();
-        setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
-      }
-
-      // auto load khi mở tab
-      load();
-    }
-
-    // ====== Tab "Công cụ" (iframe) ======
-    let toolsInit = false;
-    function ensureToolsInited(){
-      if (toolsInit) return; toolsInit = true;
-      const sel = document.getElementById('toolSelect');
-      const frm = document.getElementById('toolFrame');
-      const open = ()=> frm.src = sel.value;
-
-      document.getElementById('btnOpenTool').onclick = open;
-      // mở tool mặc định ngay
-      open();
-    }
-
-    // ====== Khởi động theo hash hiện tại ======
-    activateTab(getTabFromHash());
-  </script>
+<script src="/admin/admin.js" type="module"></script>
 </body>
 </html>
-
-
-

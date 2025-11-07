@@ -1,0 +1,116 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Bảng điểm</title>
+  <link rel="stylesheet" href="/test/css/nini-theme.css" />
+  <style>
+    .wrap { padding:16px }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap }
+    .table-wrap { overflow:auto; margin-top:12px }
+    table { width:100%; border-collapse:collapse }
+    th,td { padding:8px 10px; border-bottom:1px solid var(--muted-3) }
+    thead th { position: sticky; top:0; background:var(--glass-2) }
+  </style>
+</head>
+<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+  <main class="wrap">
+    <section class="panel glass">
+      <div class="panel-head">
+        <h3 class="title">Bảng điểm (theo ngày)</h3>
+        <div class="muted"><a href="/admin/index.html#tool/scores">Xem trong Admin</a></div>
+      </div>
+      <div class="panel-body">
+        <div class="row">
+          <input id="pickDate" type="date" class="input underline"/>
+          <button id="btnLoad" class="btn pill">Tải dữ liệu</button>
+          <button id="btnCsv"  class="btn pill">Tải CSV</button>
+          <span id="stat" class="muted"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Thời gian (UTC)</th>
+                <th>User</th>
+                <th>Tên</th>
+                <th>Game</th>
+                <th>Session</th>
+                <th>Điểm</th>
+                <th>Tối đa</th>
+                <th>Giây</th>
+              </tr>
+            </thead>
+            <tbody id="grid"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // (Tuỳ chọn) Guard phiên: bỏ nếu iFrame đã check ở trang cha
+    (async () => {
+      try{
+        const r = await fetch("/.netlify/functions/admin-auth/check",{credentials:"include"});
+        const j = await r.json().catch(()=>({}));
+        if(!j?.ok) location.replace("/admin/login.html");
+      }catch(_){ location.replace("/admin/login.html"); }
+    })();
+
+    const $ = s => document.querySelector(s);
+    const grid = $("#grid"), stat=$("#stat"), pick=$("#pickDate");
+    const today = new Date().toISOString().slice(0,10); pick.value = today;
+    let rows=[];
+
+    $("#btnLoad").onclick = load; $("#btnCsv").onclick = downloadCsv;
+    load();
+
+    async function load(){
+      stat.textContent = "Đang tải…"; grid.innerHTML = ""; rows = [];
+      try{
+        const d = pick.value || today;
+        const r = await fetch(`/.netlify/functions/get-scores?date=${d}`, { credentials:"include" });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || "Lỗi");
+        rows = j.events || [];
+        stat.textContent = `Ngày ${d} — ${rows.length} lượt`;
+        render(rows);
+      } catch(e){ stat.textContent = "Không tải được dữ liệu."; }
+    }
+    function render(list){
+      grid.innerHTML = list.map(e=>{
+        const t = new Date(e.ts).toISOString().replace('T',' ').replace('Z','');
+        return `<tr>
+          <td>${t}</td>
+          <td>${esc(e.userId)}</td>
+          <td>${esc(e.displayName)}</td>
+          <td>${esc(e.gameId)}</td>
+          <td title="${esc(e.sessionId)}">${esc((e.sessionId||'').slice(0,8))}…</td>
+          <td>${e.score}</td>
+          <td>${e.maxScore}</td>
+          <td>${e.durationSec ?? ""}</td>
+        </tr>`;
+      }).join('');
+    }
+    function esc(s){ return s==null ? "" : String(s).replace(/[&<>"']/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;" }[c]));}
+    function toCSV(arr){
+      if(!arr.length) return "";
+      const cols = ["ts","userId","displayName","gameId","sessionId","score","maxScore","durationSec"];
+      const wrap = s => s==null ? "" : /[",\n]/.test(s = String(s)) ? `"${s.replace(/"/g,'""')}"` : s;
+      return [cols.join(","), ...arr.map(o => cols.map(c=>wrap(o[c])).join(","))].join("\n");
+    }
+    function downloadCsv(){
+      if (!rows.length) return alert("Chưa có dữ liệu.");
+      const csv = toCSV(rows);
+      const d = (pick.value || today).replace(/-/g,"");
+      const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = `nini-scores-${d}.csv`;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    }
+  </script>
+</body>
+</html>

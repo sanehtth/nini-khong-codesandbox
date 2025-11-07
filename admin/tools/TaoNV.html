@@ -31,38 +31,32 @@
   </div>
 
   <!-- MODE 1: FREE -->
-  <div id="paneFree" class="pane show">
-    <p>Dùng Hugging Face Space miễn phí (iframe, không cần API).</p>
-   <div id="freeWrap">
-  <iframe id="freeIframe"
-    src="https://hf.space/embed/hysts/SDXL/+/ ?__theme=light"
-    title="HF Free Space"
-    style="width:100%;height:70vh;border:none;border-radius:12px">
-  </iframe>
-  <div id="freeFallback" class="status" style="display:none;margin-top:8px">
-    Không nhúng được Space. <a id="freeOpen" target="_blank" rel="noopener">Mở trong tab mới</a>
+ <!-- MODE 1: FREE (cập nhật) -->
+<div id="paneFree" class="pane show">
+  <div style="margin-bottom:10px">
+    <select id="freeSelect"></select>
+    <input id="freeCustom" type="url" placeholder="Hoặc dán URL Space (https://huggingface.co/spaces/…)" style="width:48%;max-width:520px">
+    <button id="btnFreeLoad">Mở</button>
+  </div>
+
+  <div id="freeNote" class="muted" style="margin:8px 0 12px; display:none"></div>
+
+  <div class="frame-wrap" style="position:relative;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.1)">
+    <iframe id="freeFrame" src="about:blank" title="HF Free Space"
+      style="width:100%;height:70vh;border:0"></iframe>
+
+    <!-- Overlay khi bị chặn iframe -->
+    <div id="freeBlocked" style="display:none;position:absolute;inset:0;backdrop-filter:blur(2px);
+      background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px">
+      <div style="font-weight:600;font-size:18px;margin-bottom:8px">Không nhúng được Space này</div>
+      <div style="opacity:.9;margin-bottom:12px">
+        Máy chủ của Space chặn nhúng bằng <code>X-Frame-Options</code>. Bạn vẫn có thể mở ở tab mới.
+      </div>
+      <a id="freeOpen" class="btn" target="_blank" rel="noopener"
+         style="background:#ff6b6b;color:#fff;padding:10px 16px;border-radius:8px">Mở trong tab mới</a>
+    </div>
   </div>
 </div>
-
-<script>
-  (function() {
-    const url = "https://hf.space/embed/hysts/SDXL/+/ ?__theme=light";
-    const iframe = document.getElementById("freeIframe");
-    const fb = document.getElementById("freeFallback");
-    const open = document.getElementById("freeOpen");
-    open.href = url;
-
-    // Nếu 6 giây không load xong → coi như fail (do XFO/CSP, 404…)
-    const t = setTimeout(() => {
-      fb.style.display = "block";
-    }, 6000);
-
-    iframe.addEventListener("load", () => clearTimeout(t));
-  })();
-</script>
-
-
-  </div>
 
   <!-- MODE 2: HUGGING FACE API -->
   <div id="paneHF" class="pane">
@@ -101,6 +95,99 @@
       });
     });
     modes[0].classList.add("active");
+
+/* ===== Free (iframe) ===== */
+const FREE_SPACES = [
+  // Bạn có thể đổi các Space này. Nhiều Space cộng đồng chặn nhúng; vài Space/“share” sẽ cho.
+  { name: "Flux (ví dụ demo)", url: "https://huggingface.co/spaces/hysts/SDXL" },
+  { name: "Playground v2 (ví dụ)", url: "https://huggingface.co/spaces/hysts/StableDiffusion" }
+  // => Tự thêm Space bạn có quyền (hoặc chạy Space của bạn và bật embed)
+];
+
+const freeSel   = document.getElementById('freeSelect');
+const freeInp   = document.getElementById('freeCustom');
+const freeBtn   = document.getElementById('btnFreeLoad');
+const freeFrame = document.getElementById('freeFrame');
+const freeNote  = document.getElementById('freeNote');
+const freeBlock = document.getElementById('freeBlocked');
+const freeOpen  = document.getElementById('freeOpen');
+
+// Fill select
+function initFreeList(){
+  freeSel.innerHTML = '';
+  FREE_SPACES.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = s.url;
+    opt.textContent = s.name;
+    freeSel.appendChild(opt);
+  });
+  // Load từ localStorage
+  const saved = localStorage.getItem('nini_free_space');
+  if (saved) {
+    if (![...FREE_SPACES].some(s => s.url === saved)) {
+      freeInp.value = saved;
+    } else {
+      freeSel.value = saved;
+    }
+  }
+}
+initFreeList();
+
+// Helper: thêm ?embed=true nếu có thể
+function withEmbed(u){
+  try {
+    const url = new URL(u);
+    if (!url.searchParams.has('embed')) url.searchParams.set('embed','true');
+    return url.toString();
+  } catch { return u; }
+}
+
+// Tải URL vào iframe + phát hiện bị chặn
+function loadFree(u){
+  freeNote.style.display = 'block';
+  freeNote.textContent = '⏳ Đang mở Space…';
+  freeBlock.style.display = 'none';
+
+  const url = withEmbed(u);
+  freeFrame.src = 'about:blank';
+  // trễ 1 tick để src đổi sạch
+  setTimeout(() => {
+    freeFrame.src = url;
+
+    // Khi load xong, thử “đụng” vào document để xem có bị chặn không
+    freeFrame.onload = () => {
+      let blocked = false;
+      try {
+        // Nếu bị X-Frame-Options chặn, truy cập document sẽ ném lỗi
+        void freeFrame.contentWindow.document;
+      } catch(_e) {
+        blocked = true;
+      }
+      if (blocked) {
+        freeNote.style.display = 'none';
+        freeBlock.style.display = 'flex';
+        freeOpen.href = url;
+      } else {
+        freeNote.textContent = '✅ Đã mở Space. Nếu khung trống, thử nút “Mở trong tab mới”.';
+      }
+    };
+  }, 0);
+
+  // Lưu lại
+  localStorage.setItem('nini_free_space', u);
+}
+
+freeBtn.addEventListener('click', () => {
+  const pick = freeInp.value.trim() || freeSel.value;
+  if (!pick) { alert('Chọn hoặc dán URL Space trước đã'); return; }
+  loadFree(pick);
+});
+
+// Tự mở theo lần trước (nếu có)
+(function autoload(){
+  const saved = localStorage.getItem('nini_free_space');
+  if (saved) loadFree(saved);
+})();
 
     // === Hugging Face API (sửa URL + đọc ảnh/binary/JSON) ===
 async function generateHF() {
@@ -347,5 +434,6 @@ if (btnAuto) btnAuto.addEventListener("click", generateAuto);
   </script>
 </body>
 </html>
+
 
 

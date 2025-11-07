@@ -18,25 +18,41 @@ document.getElementById("btnLogout").onclick = async () => {
 const TOOL_REGISTRY = {
   scores: {
     title: "Bảng điểm (theo ngày)",
-    url: "/admin/index-scores.html", // <- nếu bạn đã có sẵn trang bảng điểm hiện tại, đặt file riêng
+    url: "/admin/tools/scores.html",
     note: "Xem & tải dữ liệu điểm"
   },
   avatar: {
-    title: "Tạo ảnh nhân vật",
-    url: "/admin/taonv.html",
-    note: "Ba chế độ: Miễn phí • HuggingFace API • Replicate API"
+    title: "Tạo avatar nhân vật",
+    url: "/admin/tools/avatar.html",               // bạn đã có file này
+    note: "tạo avatar nhân vật"
+  },
+  hotspot: {
+    title: "Tạo avatar nhân vật",
+    url: "/admin/tools/hotspot.html",               // bạn đã có file này
+    note: "tạo điểm ảnh"
   },
   storybook: {
     title: "Tạo Storybook",
-    url: "/admin/storybook.html",
+    url: "/admin/tools/storybook.html",     // hoặc "/admin/storybook.html" nếu đã có
     note: "Biên soạn truyện tranh / sách ảnh"
+  },
+  image: {
+    title: "Tạo ảnh",
+    url: "/admin/tools/TaoNV.html",
+    note: "Tạo ảnh Miễn phí • HuggingFace API • Replicate API"
+  },
+  zip: {
+    title: "Nén ảnh",
+    url: "/admin/tools/image.html",
+    note: "nén ảnh"
   },
   users: {
     title: "Quản lý User",
-    url: "/admin/users.html",
+    url: "/admin/tools/users.html",
     note: "Tìm kiếm, khóa/mở, reset email"
   }
 };
+
 
 // ---- Phần tử UI ----
 const sidebar = document.querySelector(".admin-nav");
@@ -120,3 +136,4 @@ window.addEventListener("keydown", (e) => {
     document.getElementById("btnLogout").click();
   }
 });
+

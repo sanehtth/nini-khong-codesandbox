@@ -33,7 +33,35 @@
   <!-- MODE 1: FREE -->
   <div id="paneFree" class="pane show">
     <p>Dùng Hugging Face Space miễn phí (iframe, không cần API).</p>
-    <iframe src="https://huggingface.co/spaces/hysts/SDXL/embed" title="HF Free Space"></iframe>
+   <div id="freeWrap">
+  <iframe id="freeIframe"
+    src="https://hf.space/embed/hysts/SDXL/+/ ?__theme=light"
+    title="HF Free Space"
+    style="width:100%;height:70vh;border:none;border-radius:12px">
+  </iframe>
+  <div id="freeFallback" class="status" style="display:none;margin-top:8px">
+    Không nhúng được Space. <a id="freeOpen" target="_blank" rel="noopener">Mở trong tab mới</a>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const url = "https://hf.space/embed/hysts/SDXL/+/ ?__theme=light";
+    const iframe = document.getElementById("freeIframe");
+    const fb = document.getElementById("freeFallback");
+    const open = document.getElementById("freeOpen");
+    open.href = url;
+
+    // Nếu 6 giây không load xong → coi như fail (do XFO/CSP, 404…)
+    const t = setTimeout(() => {
+      fb.style.display = "block";
+    }, 6000);
+
+    iframe.addEventListener("load", () => clearTimeout(t));
+  })();
+</script>
+
+
   </div>
 
   <!-- MODE 2: HUGGING FACE API -->
@@ -319,5 +347,6 @@ if (btnAuto) btnAuto.addEventListener("click", generateAuto);
   </script>
 </body>
 </html>
+
 
 

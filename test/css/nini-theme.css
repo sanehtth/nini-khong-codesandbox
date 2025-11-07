@@ -496,6 +496,10 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   .char-controls { position: static; }
 }
 
+.btn{padding:8px 12px;border-radius:8px;border:1px solid var(--brand-5);background:#fff;cursor:pointer}
+.btn.brand{background:var(--brand-4);color:#fff;border-color:transparent}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+
 
 
 

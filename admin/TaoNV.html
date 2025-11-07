@@ -74,65 +74,115 @@
     });
     modes[0].classList.add("active");
 
-    // === Hugging Face API ===
-    async function generateHF(){
-      const prompt=document.getElementById("hfPrompt").value.trim();
-      if(!prompt){alert("Nhập mô tả!");return;}
-      const status=document.getElementById("hfStatus");
-      const result=document.getElementById("hfResult");
-      status.textContent="⏳ Đang tạo ảnh (HuggingFace)...";
-      result.innerHTML="";
-      try{
-        const resp=await fetch("/.netlify/functions/hf-proxy",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            model:"black-forest-labs/FLUX.1.1-pro",
-            input:{inputs:prompt}
-          })
-        });
-        if(!resp.ok) throw new Error("HTTP "+resp.status);
-        const data=await resp.json();
-        if(data.error) throw new Error(data.error);
-        status.textContent="✅ Hoàn tất!";
-        result.innerHTML=`<img src="${data.url||data.output?.[0]}" alt="HF result"/>`;
-      }catch(e){
-        status.textContent="❌ Lỗi: "+e.message;
-      }
+    // === Hugging Face API (sửa URL + đọc ảnh/binary/JSON) ===
+async function generateHF() {
+  const prompt = document.getElementById("hfPrompt").value.trim();
+  if (!prompt) { alert("Nhập mô tả!"); return; }
+
+  const status = document.getElementById("hfStatus");
+  const result = document.getElementById("hfResult");
+  status.textContent = "⏳ Đang tạo ảnh (HuggingFace)...";
+  result.innerHTML = "";
+
+  try {
+    const resp = await fetch("/api/hf-proxy", {              // 👈 đổi sang /api/...
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "black-forest-labs/FLUX.1.1-pro",
+        input: { inputs: prompt }                             // HF thường dùng key "inputs"
+      })
+    });
+
+    if (!resp.ok) {
+      // lỗi HTTP nhưng body có thể vẫn là JSON báo lỗi
+      const msg = await resp.text();
+      throw new Error(`HTTP ${resp.status} — ${msg.slice(0, 300)}`);
     }
 
-    // === Replicate API ===
-    async function generateReplicate(){
-      const prompt=document.getElementById("repPrompt").value.trim();
-      if(!prompt){alert("Nhập mô tả!");return;}
-      const status=document.getElementById("repStatus");
-      const result=document.getElementById("repResult");
-      status.textContent="⏳ Đang gửi yêu cầu Replicate...";
-      result.innerHTML="";
-      try{
-        const start=await fetch("/.netlify/functions/replicate-proxy",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            model:"black-forest-labs/flux-1.1-pro",
-            input:{prompt}
-          })
-        });
-        if(!start.ok) throw new Error("HTTP "+start.status);
-        const job=await start.json();
-        let data=job;
-        while(["starting","processing","queued"].includes(data.status)){
-          await new Promise(r=>setTimeout(r,2000));
-          const poll=await fetch("/.netlify/functions/replicate-get?id="+job.id);
-          data=await poll.json();
+    const ct = (resp.headers.get("content-type") || "").toLowerCase();
+    if (ct.startsWith("image/")) {
+      // Proxy trả ảnh binary
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      status.textContent = "✅ Hoàn tất!";
+      result.innerHTML = `<img src="${url}" alt="HF result"/>`;
+      return;
+    }
+
+    // Không phải image → đọc text, thử parse JSON
+    const text = await resp.text();
+    try {
+      const data = JSON.parse(text);
+      if (data.error) throw new Error(data.error);
+      // Một số model/adapter trả về output dạng mảng URL
+      const url = data.url || data.output?.[0];
+      if (url) {
+        status.textContent = "✅ Hoàn tất!";
+        result.innerHTML = `<img src="${url}" alt="HF result"/>`;
+      } else {
+        // fallback: nếu trả về data URL
+        if (text.startsWith("data:")) {
+          status.textContent = "✅ Hoàn tất!";
+          result.innerHTML = `<img src="${text}" alt="HF result"/>`;
+        } else {
+          throw new Error("Không nhận được ảnh từ HF.");
         }
-        if(data.status!=="succeeded") throw new Error(data.error||"Job fail");
-        status.textContent="✅ Hoàn tất!";
-        result.innerHTML=`<img src="${data.output[0]}" alt="Replicate result"/>`;
-      }catch(e){
-        status.textContent="❌ Lỗi: "+e.message;
+      }
+    } catch {
+      // Không phải JSON: có thể là dataURL (base64) hoặc text thuần
+      if (text.startsWith("data:")) {
+        status.textContent = "✅ Hoàn tất!";
+        result.innerHTML = `<img src="${text}" alt="HF result"/>`;
+      } else {
+        throw new Error(text.slice(0, 300));
       }
     }
+  } catch (e) {
+    status.textContent = "❌ Lỗi: " + e.message;
+  }
+}
+
+
+   // === Replicate API (đổi URL sang /api/...) ===
+async function generateReplicate() {
+  const prompt = document.getElementById("repPrompt").value.trim();
+  if (!prompt) { alert("Nhập mô tả!"); return; }
+
+  const status = document.getElementById("repStatus");
+  const result = document.getElementById("repResult");
+  status.textContent = "⏳ Đang gửi yêu cầu Replicate...";
+  result.innerHTML = "";
+
+  try {
+    const start = await fetch("/api/replicate-proxy", {      // 👈 đổi sang /api/...
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "black-forest-labs/flux-1.1-pro",
+        input: { prompt }
+      })
+    });
+    if (!start.ok) throw new Error("HTTP " + start.status);
+    const job = await start.json();
+
+    let data = job;
+    while (["starting", "processing", "queued"].includes(data.status)) {
+      await new Promise(r => setTimeout(r, 2000));
+      const poll = await fetch("/api/replicate-get?id=" + job.id);  // 👈 đổi sang /api/...
+      data = await poll.json();
+    }
+
+    if (data.status !== "succeeded") throw new Error(data.error || "Job fail");
+    status.textContent = "✅ Hoàn tất!";
+    const url = Array.isArray(data.output) ? data.output[0] : data.output;
+    result.innerHTML = `<img src="${url}" alt="Replicate result"/>`;
+  } catch (e) {
+    status.textContent = "❌ Lỗi: " + e.message;
+  }
+}
+
   </script>
 </body>
 </html>
+

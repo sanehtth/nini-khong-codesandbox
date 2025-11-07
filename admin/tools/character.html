@@ -1,321 +1,397 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Tạo nhân vật</title>
   <link rel="stylesheet" href="/test/css/nini-theme.css"/>
+
   <style>
+    :root {
+      --panel-bg: rgba(255,255,255,.06);
+      --panel-br: 14px;
+    }
+    body{ --bg-url:url('/public/assets/bg/nini_home.webp') }
+
     .wrap{padding:16px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .w100{width:100%}
+    .char-shell{display:grid;grid-template-columns:360px 1fr;gap:16px}
+    .char-controls{
+      position:sticky; top:84px; align-self:start;
+      border-radius:var(--panel-br); background:var(--panel-bg);
+      backdrop-filter: blur(6px); padding:14px;
+    }
+    .char-controls h2{margin:0 0 8px}
+    .char-controls label{display:block; font-weight:600; margin-top:10px}
+    .char-controls select{width:100%; padding:8px; border-radius:10px; margin-top:6px}
+    .actions{margin-top:14px; display:flex; flex-wrap:wrap; gap:8px}
+    .actions .btn{border-radius:10px}
+
+    .char-preview .card{
+      background:var(--panel-bg); backdrop-filter: blur(6px);
+      border-radius:var(--panel-br); padding:14px; margin-bottom:14px;
+    }
+    .preview-box{display:flex; justify-content:center}
+    #charPreview{width:100%; max-width:640px; height:auto; border-radius:12px; background:#0b1220}
+    .prompt-card textarea{width:100%; min-height:110px}
+    .prompt-card small{opacity:.8}
+
+    .gallery{
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px
+    }
+    .thumb{position:relative; border-radius:12px; overflow:hidden; background:#0b1220}
+    .thumb img{width:100%; display:block}
+    .thumb .pick{position:absolute; right:8px; bottom:8px}
+
     .muted small{opacity:.8}
-    .prompt-box{min-height:96px;white-space:pre-wrap}
-    .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-    .thumb{position:relative;border-radius:10px;overflow:hidden}
-    .thumb img{width:100%;display:block}
-    .thumb .pick{position:absolute;inset:auto 8px 8px auto}
-    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+    @media (max-width:980px){ .char-shell{grid-template-columns:1fr} .char-controls{position:static} }
   </style>
 </head>
-<body style="--bg-url:url('/public/assets/bg/nini_home.webp')">
+<body>
 <main class="wrap">
   <section class="panel glass">
     <div class="panel-head">
-      <h3 class="title">🧩 Khai báo nhân vật</h3>
-      <div class="muted">Điền thuộc tính → hệ thống ghép Prompt → tạo ảnh xem thử → chọn ảnh ưng ý & lưu.</div>
+      <h3 class="title">🧩 Tạo nhân vật</h3>
+      <div class="muted">Chọn thuộc tính ở cột trái → xem trước tức thì ở cột phải (không tốn AI). Khi ưng, bấm “Tạo ảnh AI” để render mượt mà hơn, rồi “Lưu”.</div>
     </div>
-    <div class="panel-body">
-      <div class="grid">
-        <!-- Cột trái: Form -->
-        <div>
-          <div class="row">
-            <label class="input underline w100">
-              <span>ID (để trống = tự sinh)</span>
-              <input id="charId" placeholder="vd: NV001"/>
-            </label>
-            <label class="input underline w100">
-              <span>Tên nhân vật</span>
-              <input id="charName" placeholder="vd: Linh Hàn Sương"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline">
-              <span>Giới tính</span>
-              <select id="gender">
-                <option value="">(không chỉ định)</option>
-                <option>nữ</option>
-                <option>nam</option>
-                <option>phi giới tính</option>
-              </select>
-            </label>
-            <label class="input underline">
-              <span>Kiểu tóc</span>
-              <input id="hairStyle" placeholder="dài, bob, búi cao…"/>
-            </label>
-            <label class="input underline">
-              <span>Màu tóc</span>
-              <input id="hairColor" placeholder="trắng bạc, đen, đỏ rượu…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline">
-              <span>Mắt</span>
-              <input id="eyeShape" placeholder="mắt to, mắt hạnh nhân…"/>
-            </label>
-            <label class="input underline">
-              <span>Màu mắt</span>
-              <input id="eyeColor" placeholder="xanh lam, hổ phách…"/>
-            </label>
-            <label class="input underline">
-              <span>Khuôn mặt</span>
-              <input id="faceShape" placeholder="trái xoan, góc cạnh…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline">
-              <span>Mũi</span>
-              <input id="nose" placeholder="cao, thon…"/>
-            </label>
-            <label class="input underline">
-              <span>Miệng</span>
-              <input id="mouth" placeholder="mỉm cười nhẹ…"/>
-            </label>
-            <label class="input underline">
-              <span>Màu da</span>
-              <input id="skinTone" placeholder="trắng sứ, bánh mật…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline w100">
-              <span>Trang phục (áo/quần/giày)</span>
-              <input id="outfit" placeholder="áo choàng xanh, giáp da nâu, ủng cao cổ…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline w100">
-              <span>Phụ kiện</span>
-              <input id="accessories" placeholder="gậy phép phát sáng, bông tai…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline w100">
-              <span>Phong cách nhân vật</span>
-              <input id="style" placeholder="anime, pixar, semi-realistic, watercolor…"/>
-            </label>
-          </div>
-          <div class="row">
-            <label class="input underline">
-              <span>Tỉ lệ khung</span>
-              <select id="ratio">
-                <option value="">1:1</option>
-                <option>3:4</option>
-                <option>4:3</option>
-                <option>16:9</option>
-                <option>9:16</option>
-              </select>
-            </label>
-            <label class="input underline">
-              <span>Seed (tuỳ chọn)</span>
-              <input id="seed" type="number" placeholder="để trống = random"/>
-            </label>
-            <label class="input underline">
-              <span>Model</span>
-              <select id="model">
-                <option value="stabilityai/sdxl-turbo">sdxl-turbo (nhanh)</option>
-                <option value="black-forest-labs/FLUX.1-schnell">FLUX.1-schnell (nhanh)</option>
-              </select>
-            </label>
-          </div>
 
-          <div class="row">
-            <button id="btnBuild" class="btn pill">🔧 Ghép Prompt</button>
-            <button id="btnPreview" class="btn pill">▶️ Tạo ảnh xem thử</button>
+    <div class="char-shell">
+      <!-- LEFT: controls -->
+      <aside class="char-controls">
+        <h2>Thuộc tính</h2>
+
+        <label>Style / Hình thể</label>
+        <select id="sel-body"></select>
+
+        <label>Tóc</label>
+        <select id="sel-hair"></select>
+
+        <label>Mắt</label>
+        <select id="sel-eyes"></select>
+
+        <label>Mũi</label>
+        <select id="sel-nose"></select>
+
+        <label>Miệng</label>
+        <select id="sel-mouth"></select>
+
+        <label>Màu da</label>
+        <select id="sel-skin"></select>
+
+        <label>Áo (Top)</label>
+        <select id="sel-top"></select>
+
+        <label>Quần / Váy (Bottom)</label>
+        <select id="sel-bottom"></select>
+
+        <label>Giày</label>
+        <select id="sel-shoes"></select>
+
+        <div class="actions">
+          <button id="btn-render" class="btn brand pill">🎨 Tạo ảnh AI</button>
+          <button id="btn-save"   class="btn pill" disabled>💾 Lưu nhân vật</button>
+          <button id="btn-open-hf" class="btn ghost pill">↗ Mở Space miễn phí</button>
+        </div>
+        <div class="muted" id="status" style="margin-top:8px"></div>
+      </aside>
+
+      <!-- RIGHT: preview + prompt + gallery -->
+      <main class="char-preview">
+        <div class="card">
+          <h4 class="title">👀 Xem trước (không AI)</h4>
+          <div class="preview-box">
+            <canvas id="charPreview" width="768" height="1024"></canvas>
           </div>
-          <div class="panel glass" style="margin-top:10px">
-            <div class="panel-head"><h4 class="title">Prompt sinh ảnh</h4></div>
-            <div id="promptOut" class="panel-body prompt-box"></div>
+          <div class="muted"><small>Tip: Hình xem trước là ghép layer PNG trong suốt theo hệ tọa độ chuẩn. Đổi lựa chọn ở trái là thấy ngay.</small></div>
+        </div>
+
+        <div class="card prompt-card">
+          <h4 class="title">🧩 Prompt sinh ra</h4>
+          <textarea id="ta-prompt" readonly></textarea>
+          <small id="ta-neg"></small>
+          <div class="row" style="margin-top:8px">
+            <button id="btn-copy" class="btn pill">📋 Copy prompt</button>
           </div>
         </div>
 
-        <!-- Cột phải: Kết quả & lưu -->
-        <div>
-          <div class="panel glass">
-            <div class="panel-head">
-              <h4 class="title">Kết quả xem thử</h4>
-              <div class="muted"><small>Tối đa 6 ảnh gần nhất</small></div>
-            </div>
-            <div class="panel-body">
-              <div id="status" class="muted"></div>
-              <div id="gallery" class="gallery" style="margin-top:10px"></div>
-              <div class="row" style="margin-top:12px">
-                <button id="btnSave" class="btn" disabled>💾 Lưu nhân vật</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel glass" style="margin-top:12px">
-            <div class="panel-head"><h4 class="title">Tuỳ chọn khác</h4></div>
-            <div class="panel-body">
-              <div class="row">
-                <button id="btnOpenHF" class="btn">↗ Mở Space miễn phí (tab mới)</button>
-              </div>
-              <div class="muted"><small>Dùng Space `.hf.space` của bạn khi muốn vẽ thủ công.</small></div>
-            </div>
-          </div>
+        <div class="card">
+          <h4 class="title">🖼️ Kết quả render (AI)</h4>
+          <div id="gallery" class="gallery"></div>
+          <div class="muted"><small>Chọn 1 ảnh để bật nút “Lưu nhân vật”. Bấm lại “Tạo ảnh AI” để tạo thêm biến thể.</small></div>
         </div>
-      </div><!-- /grid -->
+      </main>
     </div>
   </section>
 </main>
 
+<!-- ====== Catalog demo (text ↔ preview image) ====== -->
 <script>
-  // ==== Helpers ====
-  const $ = s => document.querySelector(s);
-  const byId = id => document.getElementById(id);
+/* NOTE: đổi đường dẫn preview nếu bạn để ở nơi khác.
+   Khuyến nghị: dùng pack /admin/tools/avatar-pack/ đã tạo trước đó */
+const PRE = "/admin/tools/avatar-pack"; // root preview (thay nếu cần)
 
-  function esc(s){ return s==null ? "" : String(s).trim(); }
-  function nonEmpty(parts){ return parts.filter(Boolean).join(", "); }
+const BODY_STYLE = [
+  {
+    id: "pixar_female_front",
+    label: "Pixar • Nữ • chính diện",
+    promptPose:  "full body, standing, natural hands visible, Pixar body proportion",
+    promptStyle: "Pixar style, glossy shading, soft rim light, bright color palette",
+    negative:    "deformed, extra fingers, missing fingers, bad hands, warped limbs, watermark, text, logo",
+    aspect: "3:4",
+    base: `${PRE}/samples/base/pixar_female_front.png`,
+    z: 10
+  },
+  {
+    id: "anime_male_front",
+    label: "Anime • Nam • chính diện",
+    promptPose:  "full body, standing, anime body proportion",
+    promptStyle: "anime illustration, clean lineart, cel shading",
+    negative:    "lowres, bad hands, watermark, text",
+    aspect: "3:4",
+    base: `${PRE}/samples/base/anime_male_front.png`,
+    z: 10
+  },
+  {
+    id: "chibi_front",
+    label: "Chibi • chính diện",
+    promptPose:  "chibi deformed proportion, big head, small body, full body, standing",
+    promptStyle: "kawaii pastel color, soft bloom",
+    negative:    "lowres, warped limbs, watermark, text",
+    aspect: "1:1",
+    base: `${PRE}/samples/base/chibi_front.png`,
+    z: 10
+  }
+];
 
-  function buildPrompt() {
-    const gender=esc(genderEl.value), hair=nonEmpty([esc(hairStyle.value), esc(hairColor.value)]),
-      eyes=nonEmpty([esc(eyeShape.value), esc(eyeColor.value)]),
-      face=esc(faceShape.value), nose=esc(nose.value), mouth=esc(mouth.value),
-      skin=esc(skinTone.value), outfit=esc(outfit.value), acc=esc(accessories.value),
-      style=esc(styleEl.value), ratio=esc(ratioEl.value);
+const HAIR = [
+  { id:"hair_long_straight", label:"Tóc dài duỗi", prompt:"long straight hair flowing naturally", preview:`${PRE}/samples/hair/hair_long_straight.png`, z:30 },
+  { id:"hair_twin_buns",     label:"Búi 2 bên",    prompt:"twin buns hair, neat and cute",        preview:`${PRE}/samples/hair/hair_twin_buns.png`,     z:30 },
+  { id:"hair_short",         label:"Tóc ngắn",     prompt:"short haircut",                        preview:`${PRE}/samples/hair/hair_short.png`,         z:30 },
+];
 
-    const core = nonEmpty([
-      gender && `a ${gender} character`,
-      hair && `hair: ${hair}`,
-      eyes && `eyes: ${eyes}`,
-      face && `face: ${face}`,
-      nose && `nose: ${nose}`,
-      mouth && `mouth: ${mouth}`,
-      skin && `skin tone: ${skin}`,
-      outfit && `outfit: ${outfit}`,
-      acc && `accessories: ${acc}`,
-      style && `style: ${style}`
-    ]);
+const EYES = [
+  { id:"eye_big_sparkle", label:"Mắt to long lanh", prompt:"big sparkling glossy eyes", preview:`${PRE}/samples/eyes/eyes_big.png`,   z:25 },
+  { id:"eye_small_cute",  label:"Mắt nhỏ đáng yêu", prompt:"small cute eyes",           preview:`${PRE}/samples/eyes/eyes_small.png`, z:25 },
+];
 
-    const extras = "highly detailed, soft lighting, clean background, sharp focus";
-    const prompt = [core, extras, ratio && `aspect ratio ${ratio}`].filter(Boolean).join(", ");
-    promptOut.textContent = prompt;
-    return prompt;
+const NOSE = [
+  { id:"nose_small", label:"Mũi nhỏ", prompt:"small nose", preview:`${PRE}/samples/nose/nose_small.png`, z:24 },
+];
+
+const MOUTH = [
+  { id:"mouth_smile", label:"Miệng mỉm cười", prompt:"subtle smiling mouth", preview:`${PRE}/samples/mouth/mouth_smile.png`, z:26 },
+  { id:"mouth_neutral", label:"Miệng bình thường", prompt:"neutral mouth", preview:`${PRE}/samples/mouth/mouth_neutral.png`, z:26 },
+];
+
+const SKIN = [
+  { id:"skin_fair", label:"Da sáng", prompt:"fair porcelain skin", preview:`${PRE}/samples/skin/skin_fair.png`, z:15 },
+  { id:"skin_tan",  label:"Da nâu",  prompt:"warm tan skin",       preview:`${PRE}/samples/skin/skin_tan.png`,  z:15 },
+];
+
+const TOP = [
+  { id:"top_jacket_green", label:"Áo khoác xanh", prompt:"green jacket", preview:`${PRE}/samples/top/top_jacket_green.png`, z:18 },
+  { id:"top_robe_blue",    label:"Áo choàng xanh", prompt:"blue robe",  preview:`${PRE}/samples/top/top_robe_blue.png`,    z:18 },
+];
+
+const BOTTOM = [
+  { id:"bottom_skirt_white", label:"Váy trắng", prompt:"white skirt", preview:`${PRE}/samples/bottom/bottom_skirt_white.png`, z:17 },
+  { id:"bottom_pants_black", label:"Quần đen",  prompt:"black pants", preview:`${PRE}/samples/bottom/bottom_pants_black.png`, z:17 },
+];
+
+const SHOES = [
+  { id:"shoes_sneakers", label:"Giày thể thao", prompt:"white sneakers", preview:`${PRE}/samples/shoes/shoes_sneakers.png`, z:16 },
+  { id:"shoes_boots",    label:"Boots",         prompt:"leather boots",  preview:`${PRE}/samples/shoes/shoes_boots.png`,    z:16 },
+];
+</script>
+
+<!-- ====== Logic ====== -->
+<script>
+const $ = s => document.querySelector(s);
+const byId = id => document.getElementById(id);
+
+const state = {
+  body:null, hair:null, eyes:null, nose:null, mouth:null,
+  skin:null, top:null, bottom:null, shoes:null,
+};
+const gallery = byId('gallery');
+const statusEl = byId('status');
+let pickedUrl = null;
+
+function mountSelect(id, list, onPick) {
+  const sel = byId(id);
+  sel.innerHTML = `<option value="">(không chọn)</option>` +
+    list.map(i=>`<option value="${i.id}">${i.label}</option>`).join("");
+  sel.addEventListener("change", ()=>{
+    const v = sel.value;
+    const item = list.find(x=>x.id===v) || null;
+    onPick(item);
+    renderPreview(); updatePrompt();
+  });
+}
+
+function loadImage(url){
+  return new Promise((res,rej)=>{
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = ()=>res(img);
+    img.onerror = ()=>{ console.warn("Preview not found:", url); res(new Image()); };
+    img.src = url;
+  });
+}
+
+async function renderPreview(){
+  const canvas = byId("charPreview");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // fallback nền
+  ctx.fillStyle = "#0b1220";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const layers = [
+    state.body && {preview: state.body.base, z: state.body.z},
+    state.skin, state.bottom, state.shoes, state.top,
+    state.eyes, state.nose, state.mouth, state.hair,
+  ].filter(Boolean).sort((a,b)=>(a.z||0)-(b.z||0));
+
+  for (const L of layers){
+    if (!L.preview) continue;
+    const img = await loadImage(L.preview);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+}
+
+function buildPrompt(){
+  const parts = [];
+  let negative = "lowres, blurry, watermark, text";
+  let aspect = "1:1";
+
+  if (state.body){
+    parts.push(state.body.promptPose);
+    parts.push(state.body.promptStyle);
+    negative = state.body.negative || negative;
+    aspect   = state.body.aspect  || aspect;
   }
 
-  // Bind inputs
-  const genderEl = byId('gender'), hairStyle=byId('hairStyle'), hairColor=byId('hairColor'),
-        eyeShape=byId('eyeShape'), eyeColor=byId('eyeColor'), faceShape=byId('faceShape'),
-        nose=byId('nose'), mouth=byId('mouth'), skinTone=byId('skinTone'),
-        outfit=byId('outfit'), accessories=byId('accessories'), styleEl=byId('style'),
-        ratioEl=byId('ratio'), seedEl=byId('seed'), modelEl=byId('model'),
-        promptOut=byId('promptOut'), statusEl=byId('status'), gallery=byId('gallery');
+  [state.hair, state.eyes, state.nose, state.mouth, state.skin, state.top, state.bottom, state.shoes]
+    .filter(Boolean)
+    .forEach(t => parts.push(t.prompt));
 
-  byId('btnBuild').onclick = buildPrompt;
+  parts.push("clean composition, correct anatomy, soft lighting, 4k detail");
 
-  // ==== Preview (gọi Netlify Function HF/Replicate proxy) ====
-  const MAX_KEEP = 6;
-  let pickedUrl = null, lastImageIds = []; // lưu các ảnh generate để save vào Firestore
+  return { prompt: parts.join(", "), negative, aspect };
+}
 
-  byId('btnPreview').onclick = async () => {
-    const prompt = buildPrompt();
-    if (!prompt) { alert("Chưa có prompt."); return; }
-    statusEl.textContent = "⏳ Đang tạo ảnh xem thử…";
-    pickedUrl = null; byId('btnSave').disabled = true;
+function updatePrompt(){
+  const {prompt, negative} = buildPrompt();
+  byId("ta-prompt").value = prompt;
+  byId("ta-neg").textContent = "Negative: " + negative;
+}
 
-    try{
-      const model = modelEl.value;
-      const seed = seedEl.value ? Number(seedEl.value) : null;
-      // Gọi function generate: bạn đã có pattern images-generate
-      const r = await fetch("/.netlify/functions/images-generate", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          characterId: byId('charId').value || null, // có thể null ở preview
-          prompt, model, seed
-        })
-      });
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error || `HTTP ${r.status}`);
-      const url = j.url; const imageId = j.imageId;
-      statusEl.textContent = "✅ Xong 1 ảnh. Bạn có thể bấm lại để tạo thêm biến thể.";
-
-      // Thêm vào gallery (tối đa 6)
-      const card = document.createElement('div');
-      card.className = 'thumb glass';
-      card.innerHTML = `<img src="${url}" alt="">
-        <button class="btn pick">Chọn</button>`;
-      card.querySelector('.pick').onclick = () => {
-        pickedUrl = url;
-        [...gallery.children].forEach(c => c.style.outline = "");
-        card.style.outline = "3px solid var(--brand-4)";
-        byId('btnSave').disabled = false;
-      };
-      gallery.prepend(card);
-      lastImageIds.unshift(imageId);
-      if (gallery.children.length > MAX_KEEP) gallery.lastElementChild.remove();
-      if (lastImageIds.length > MAX_KEEP) lastImageIds.length = MAX_KEEP;
-
-    }catch(e){
-      statusEl.textContent = "❌ Lỗi: " + e.message;
-    }
+function addPreviewCard(url){
+  const card = document.createElement('div');
+  card.className = 'thumb glass';
+  card.innerHTML = `<img src="${url}" alt=""><button class="btn pick pill">Chọn</button>`;
+  card.querySelector('.pick').onclick = () => {
+    pickedUrl = url;
+    [...gallery.children].forEach(c => c.style.outline="");
+    card.style.outline = "3px solid var(--brand-4)";
+    byId('btn-save').disabled = false;
   };
+  gallery.prepend(card);
+  // giữ tối đa 6 ảnh
+  while (gallery.children.length > 6) gallery.lastElementChild.remove();
+}
 
-  // ==== Save character ====
-  byId('btnSave').onclick = async () => {
-    if (!pickedUrl) { alert("Hãy chọn một ảnh trong gallery trước."); return; }
-    const id = byId('charId').value.trim();
-    const name = byId('charName').value.trim();
-    const prompt = buildPrompt();
-    if (!name || !prompt) { alert("Thiếu Tên nhân vật hoặc Prompt."); return; }
-    statusEl.textContent = "💾 Đang lưu nhân vật…";
+async function onRenderAI(){
+  const {prompt, negative, aspect} = buildPrompt();
+  if (!state.body) return alert("Chọn Style/Hình thể trước nhé.");
+  statusEl.textContent = "⏳ Đang render AI...";
+  byId('btn-render').disabled = true;
 
-    try{
-      // 1) Tạo (hoặc upsert) nhân vật
-      const r1 = await fetch("/.netlify/functions/characters-create", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          name, base_prompt: prompt, model: modelEl.value,
-          seed: seedEl.value ? Number(seedEl.value) : null,
-          // Nếu bạn muốn giữ ID tự chọn:
-          characterId: id || null
-        })
-      });
-      const j1 = await r1.json();
-      if (!j1.ok) throw new Error(j1.error || "create failed");
-      const characterId = j1.characterId;
+  try {
+    // Tuỳ hạ tầng của bạn: gọi Netlify function proxy
+    // Ví dụ HuggingFace proxy:
+    const r = await fetch("/.netlify/functions/hf-proxy", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        model: "black-forest-labs/FLUX.1.1-pro",
+        input: { inputs: prompt, negative_prompt: negative, aspect } // tuỳ model
+      })
+    });
+    const j = await r.json();
+    if (!r.ok || j.error) throw new Error(j.error || `HTTP ${r.status}`);
 
-      // 2) Gắn ảnh đã chọn vào subcollection images (nếu images-generate đã ghi rồi thì có thể bỏ bước này,
-      //    nhưng ở đây mình minh hoạ thêm endpoint save-image-url đơn giản)
-      const r2 = await fetch("/.netlify/functions/characters-save-image", {
-        method:"POST", headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          characterId,
-          url: pickedUrl,
-          prompt,
-          model: modelEl.value,
-          seed: seedEl.value ? Number(seedEl.value) : null
-        })
-      });
-      const j2 = await r2.json();
-      if (!j2.ok) throw new Error(j2.error || "save image failed");
+    const url = j.url || (Array.isArray(j.output) ? j.output[0] : null);
+    if (!url) throw new Error("Không tìm thấy URL ảnh trả về.");
 
-      statusEl.textContent = `✅ Đã lưu nhân vật #${characterId}`;
-      alert("Lưu thành công!");
+    addPreviewCard(url);
+    statusEl.textContent = "✅ Đã render 1 ảnh. Bấm lại để tạo thêm biến thể.";
+  } catch(err){
+    statusEl.textContent = "❌ Lỗi render: " + err.message;
+  } finally {
+    byId('btn-render').disabled = false;
+  }
+}
 
-      // Gán lại ID hiển thị cho người dùng
-      byId('charId').value = characterId;
+async function onSave(){
+  if (!pickedUrl) return alert("Hãy chọn 1 ảnh trong gallery trước.");
+  statusEl.textContent = "💾 Đang lưu...";
+  byId('btn-save').disabled = true;
 
-    }catch(e){
-      statusEl.textContent = "❌ Lỗi lưu: " + e.message;
-    }
-  };
+  try{
+    // Ví dụ: gửi ảnh đã chọn + prompt để lưu
+    const {prompt} = buildPrompt();
+    const r = await fetch("/.netlify/functions/characters-save-image", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        characterId: null,    // hoặc truyền ID nếu bạn muốn chỉ định
+        url: pickedUrl,
+        prompt,
+        provider: "hf",
+        model: "black-forest-labs/FLUX.1.1-pro"
+      })
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || `HTTP ${r.status}`);
 
-  // ==== Mở Space miễn phí (tab mới) ====
-  byId('btnOpenHF').onclick = () => {
-    // Link Space của bạn:
-    window.open("https://sanehuynh-taonv.hf.space/?embed=1", "_blank", "noopener");
-  };
+    statusEl.textContent = "✅ Lưu thành công!";
+  }catch(err){
+    statusEl.textContent = "❌ Lỗi lưu: " + err.message;
+  }finally{
+    byId('btn-save').disabled = false;
+  }
+}
+
+function init(){
+  // mount selects
+  mountSelect("sel-body",   BODY_STYLE, x=>state.body=x);
+  mountSelect("sel-hair",   HAIR,       x=>state.hair=x);
+  mountSelect("sel-eyes",   EYES,       x=>state.eyes=x);
+  mountSelect("sel-nose",   NOSE,       x=>state.nose=x);
+  mountSelect("sel-mouth",  MOUTH,      x=>state.mouth=x);
+  mountSelect("sel-skin",   SKIN,       x=>state.skin=x);
+  mountSelect("sel-top",    TOP,        x=>state.top=x);
+  mountSelect("sel-bottom", BOTTOM,     x=>state.bottom=x);
+  mountSelect("sel-shoes",  SHOES,      x=>state.shoes=x);
+
+  // init preview + prompt
+  renderPreview(); updatePrompt();
+
+  // actions
+  byId('btn-render').addEventListener('click', onRenderAI);
+  byId('btn-save').addEventListener('click', onSave);
+  byId('btn-copy').addEventListener('click', async ()=>{
+    await navigator.clipboard.writeText(byId('ta-prompt').value);
+  });
+  byId('btn-open-hf').addEventListener('click', ()=>{
+    // đổi sang Space của bạn nếu có
+    window.open("https://huggingface.co/spaces?card=gradio", "_blank", "noopener");
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>

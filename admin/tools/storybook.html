@@ -1,0 +1,318 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NiNi — Storybook Editor</title>
+  <link rel="icon" href="/public/assets/icons/logonini.webp" type="image/webp" />
+  <style>
+    /* ===== THEME SÁNG, NỀN MỜ (ăn khớp admin) ===== */
+    :root{
+      --ink:#243246; --ink-dim:#617892; --line:rgba(27,43,65,.18);
+      --card:#ffffff; --veil:rgba(255,255,255,.65);
+      --pill1:#7BC6FF; --pill2:#A6FFCB; --danger1:#ff9898; --danger2:#ffb1a6;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      font:15px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1400px 700px at 50% -10%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(180deg, #f4fbff, #f7fff9);
+    }
+    .wrap{max-width:1100px; margin:24px auto 80px; padding:0 16px}
+    .panel{
+      background:var(--card); border:1px solid var(--line); border-radius:14px;
+      padding:16px 16px 18px; box-shadow:0 20px 60px rgba(0,0,0,.08);
+      backdrop-filter: blur(6px); margin-bottom:14px;
+    }
+    .panel>h2{margin:0 0 10px; font-size:16px; font-weight:800; letter-spacing:.2px}
+    .muted{color:var(--ink-dim); font-size:12px}
+    .grid{display:grid; gap:12px}
+    .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media (max-width:880px){.grid-2{grid-template-columns:1fr}}
+    label{display:block; font-size:13px; color:var(--ink-dim)}
+    input,textarea{
+      width:100%; margin-top:6px; padding:10px 12px;
+      border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); outline:none;
+    }
+    input:focus,textarea:focus{box-shadow:0 0 0 3px rgba(123,198,255,.28)}
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:none; cursor:pointer; padding:10px 14px; border-radius:999px;
+      color:#0b1220; background:linear-gradient(135deg,var(--pill1),var(--pill2));
+      box-shadow:0 6px 16px rgba(123,198,255,.25);
+    }
+    .btn:hover{filter:brightness(1.05)}
+    .btn:active{transform:translateY(1px)}
+    .btn.gray{color:var(--ink); background:linear-gradient(135deg,#fff,#f6f9ff); border:1px solid var(--line); box-shadow:none}
+    .btn.danger{color:#2a0a0a; background:linear-gradient(135deg,var(--danger1),var(--danger2))}
+    .btn.sm{padding:6px 10px; font-size:13px}
+    .card{border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff}
+    .pagehead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px}
+    .pagehead strong{font-size:14px}
+    .flex-end{display:flex; gap:8px; align-items:center; justify-content:flex-end}
+    .note{padding:10px 12px; border:1px dashed var(--line); border-radius:10px; background:#fff}
+    .kbd{font:600 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas; background:#f0f5ff; border:1px solid #dbe7ff; padding:2px 6px; border-radius:6px}
+    .mono{font:12px ui-monospace, SFMono-Regular, Menlo, Consolas}
+    details > summary{cursor:pointer; user-select:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- ===================================================================
+         BOOK META
+         =================================================================== -->
+    <section class="panel">
+      <h2>Book</h2>
+      <div class="grid grid-2" id="bookForm">
+        <label>IDBook <input id="IDBook" type="text" placeholder="VD: B002"></label>
+        <label>L_imageBia (Link ảnh bìa) <input id="L_imageBia" type="text" placeholder="https://.../cover.webp"></label>
+        <label>little_vi (Tên sách VI) <input id="little_vi" type="text" placeholder="NiNi và ..."></label>
+        <label>little_en (Book title EN) <input id="little_en" type="text" placeholder="NiNi and ..."></label>
+        <label>auther <input id="auther" type="text" placeholder="Tác giả"></label>
+        <label>design <input id="design" type="text" placeholder="Thiết kế"></label>
+      </div>
+      <div class="muted" style="margin-top:6px">Tự lưu nháp vào trình duyệt (localStorage).</div>
+    </section>
+
+    <!-- ===================================================================
+         ACTIONS (Tải JSON / Import / Export)
+         =================================================================== -->
+    <section class="panel">
+      <h2>Actions</h2>
+      <div class="row">
+        <button id="btnSave" class="btn">Lưu (nháp)</button>
+        <button id="btnAdd" class="btn">Add Page</button>
+        <button id="btnDel" class="btn danger">Delete Page (cuối)</button>
+
+        <button id="btnExport" class="btn gray">Export JSON</button>
+        <button id="btnImport" class="btn gray">Import JSON</button>
+        <input id="fileImport" type="file" accept="application/json" hidden>
+
+        <span class="muted">|</span>
+
+        <button id="btnDLBook" class="btn">Tải book.json</button>
+        <button id="btnDLManifest" class="btn">Tải manifest.json</button>
+        <button id="btnDLBoth" class="btn gray">Tải cả hai</button>
+      </div>
+
+      <details style="margin-top:10px">
+        <summary class="muted">Xem nhanh snippet manifest (copy dán vào file manifest sẵn có)</summary>
+        <pre id="manifestSnippet" class="mono"></pre>
+      </details>
+    </section>
+
+    <!-- ===================================================================
+         PAGES
+         =================================================================== -->
+    <section class="panel">
+      <h2>Pages</h2>
+      <div id="pagesWrap"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Gợi ý đặt file</h2>
+      <div class="note">
+        - Đặt <span class="kbd">/public/content/storybook/<b>IDBook</b>.json</span><br>
+        - Manifest tại <span class="kbd">/public/content/storybook/library-manifest.json</span><br>
+        - Với site đang chạy, chỉ cần upload 2 file này là kệ sách nhận ra ngay.
+      </div>
+    </section>
+  </div>
+
+  <script>
+  /* =======================================================================
+     STATE + HELPERS
+     ======================================================================= */
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => document.querySelectorAll(sel);
+
+  let book = {
+    IDBook:"", little_vi:"", little_en:"",
+    auther:"", design:"", L_imageBia:"",
+    pages:[]
+  };
+
+  function emptyPage(){
+    return { TDBook:"", IDPage:"", noidung_vi:"", noidung_en:"", L_image_P:"", L_sound_vi:"", L_sound_en:"" };
+  }
+
+  function download(name, dataStr){
+    const blob = new Blob([dataStr], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  let autosaveTimer;
+  function autosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(()=>localStorage.setItem('storybook_draft_full', JSON.stringify(book)), 350);
+  }
+
+  /* =======================================================================
+     BIND BOOK INPUTS
+     ======================================================================= */
+  ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>{
+    const el = $("#"+id);
+    el.addEventListener('input', e => { book[id] = e.target.value; renderManifestSnippet(); autosave(); });
+  });
+
+  /* =======================================================================
+     RENDER PAGES
+     ======================================================================= */
+  function renderPages(){
+    const wrap = $("#pagesWrap");
+    wrap.innerHTML = "";
+
+    if(!Array.isArray(book.pages) || !book.pages.length) book.pages = [emptyPage()];
+
+    book.pages.forEach((p,idx)=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="pagehead">
+          <strong>Page #${idx+1}</strong>
+          <div class="flex-end">
+            <button class="btn sm" data-act="up">↑</button>
+            <button class="btn sm" data-act="down">↓</button>
+            <button class="btn sm danger" data-act="rm">Xoá</button>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <label>TDBook <input data-f="TDBook" type="text" placeholder="Tiêu đề trang"></label>
+          <label>IDPage <input data-f="IDPage" type="text" placeholder="P001"></label>
+          <label>noidung_vi <textarea data-f="noidung_vi" rows="3" placeholder="Nội dung VI"></textarea></label>
+          <label>noidung_en <textarea data-f="noidung_en" rows="3" placeholder="English"></textarea></label>
+          <label>L_image_P <input data-f="L_image_P" type="text" placeholder="https://.../page.webp"></label>
+          <label>L_sound_vi <input data-f="L_sound_vi" type="text" placeholder="https://.../vi.mp3"></label>
+          <label>L_sound_en <input data-f="L_sound_en" type="text" placeholder="https://.../en.mp3"></label>
+        </div>
+      `;
+      wrap.appendChild(card);
+
+      // fill & bind
+      card.querySelectorAll('[data-f]').forEach(inp=>{
+        const k = inp.dataset.f;
+        inp.value = p[k] || "";
+        inp.addEventListener('input', e=>{ book.pages[idx][k] = e.target.value; autosave(); });
+      });
+
+      // move / remove
+      const up = card.querySelector('[data-act="up"]');
+      const dn = card.querySelector('[data-act="down"]');
+      const rm = card.querySelector('[data-act="rm"]');
+      up.disabled = idx===0; dn.disabled = idx===book.pages.length-1;
+
+      up.onclick = ()=>{ if(idx===0) return; [book.pages[idx-1],book.pages[idx]]=[book.pages[idx],book.pages[idx-1]]; renderPages(); autosave(); };
+      dn.onclick = ()=>{ if(idx===book.pages.length-1) return; [book.pages[idx],book.pages[idx+1]]=[book.pages[idx+1],book.pages[idx]]; renderPages(); autosave(); };
+      rm.onclick = ()=>{ if(!confirm(`Xoá Page #${idx+1}?`)) return; book.pages.splice(idx,1); renderPages(); autosave(); };
+    });
+  }
+
+  /* =======================================================================
+     MANIFEST HELPERS
+     ======================================================================= */
+  function buildManifestEntry(){
+    // Một mục "books" trong manifest
+    return {
+      id: book.IDBook || "unknown",
+      title_vi: book.little_vi || "",
+      title_en: book.little_en || "",
+      cover: book.L_imageBia || "",
+      author: book.auther || "",
+      design: book.design || ""
+    };
+  }
+
+  function renderManifestSnippet(){
+    const entry = buildManifestEntry();
+    const snippet = {
+      books: [entry]
+    };
+    $("#manifestSnippet").textContent = JSON.stringify(snippet, null, 2);
+  }
+
+  /* =======================================================================
+     ACTION BUTTONS
+     ======================================================================= */
+  $("#btnAdd").onclick = ()=>{ book.pages.push(emptyPage()); renderPages(); autosave(); };
+  $("#btnDel").onclick = ()=>{ if(!book.pages.length) return; if(!confirm("Xoá trang cuối cùng?")) return; book.pages.pop(); renderPages(); autosave(); };
+  $("#btnSave").onclick = ()=>{ localStorage.setItem('storybook_draft_full', JSON.stringify(book)); alert("Đã lưu bản nháp vào trình duyệt."); };
+
+  // Export / Import toàn bộ book
+  $("#btnExport").onclick = ()=>{
+    const json = JSON.stringify(book, null, 2);
+    download((book.IDBook||"book") + ".json", json);
+  };
+  $("#btnImport").onclick = ()=> $("#fileImport").click();
+  $("#fileImport").addEventListener('change', async e=>{
+    const f = e.target.files[0]; if(!f) return;
+    try{
+      const data = JSON.parse(await f.text());
+      book = {
+        IDBook: data.IDBook || "",
+        little_vi: data.little_vi || "",
+        little_en: data.little_en || "",
+        auther: data.auther || "",
+        design: data.design || "",
+        L_imageBia: data.L_imageBia || "",
+        pages: Array.isArray(data.pages) ? data.pages.map(p=>({
+          TDBook: p.TDBook || "",
+          IDPage: p.IDPage || "",
+          noidung_vi: p.noidung_vi || "",
+          noidung_en: p.noidung_en || "",
+          L_image_P: p.L_image_P || "",
+          L_sound_vi: p.L_sound_vi || "",
+          L_sound_en: p.L_sound_en || ""
+        })) : []
+      };
+      // re-bind all
+      ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
+      renderPages(); renderManifestSnippet(); autosave();
+    }catch(err){ alert("Import lỗi: " + err.message); }
+    finally{ e.target.value = ""; }
+  });
+
+  // Download: chỉ book.json
+  $("#btnDLBook").onclick = ()=>{
+    if(!book.IDBook) return alert("Nhập IDBook trước!");
+    const json = JSON.stringify(book, null, 2);
+    download(`${book.IDBook}.json`, json);
+  };
+
+  // Download: manifest.json (1 mục)
+  $("#btnDLManifest").onclick = ()=>{
+    const mf = { books: [buildManifestEntry()] };
+    download(`library-manifest.json`, JSON.stringify(mf, null, 2));
+  };
+
+  // Download: cả hai
+  $("#btnDLBoth").onclick = ()=>{
+    if(!book.IDBook) return alert("Nhập IDBook trước!");
+    $("#btnDLBook").click();
+    setTimeout(()=>$("#btnDLManifest").click(), 100);
+  };
+
+  // Cảnh báo rời trang nếu có dữ liệu
+  window.addEventListener('beforeunload', (e)=>{
+    const has = (book.IDBook||book.little_vi||book.little_en||book.auther||book.design||book.L_imageBia||
+      (book.pages && book.pages.some(p=>Object.values(p).some(Boolean))));
+    if(has){ e.preventDefault(); e.returnValue=''; }
+  });
+
+  // BOOT
+  (function init(){
+    try{
+      const saved = JSON.parse(localStorage.getItem('storybook_draft_full')||"null");
+      if(saved){ book = {...book, ...saved}; if(Array.isArray(saved.pages)) book.pages = saved.pages; }
+    }catch{}
+    ["IDBook","little_vi","little_en","auther","design","L_imageBia"].forEach(id=>$("#"+id).value = book[id]||"");
+    renderPages(); renderManifestSnippet();
+  })();
+  </script>
+</body>
+</html>

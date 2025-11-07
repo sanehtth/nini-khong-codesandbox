@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tạo Nhân Vật AI</title>
+  <style>
+    body {font-family: 'Segoe UI', sans-serif;background: linear-gradient(135deg, #1e3c72, #2a5298);color: white;text-align: center;padding: 40px;}
+    h1 {font-size: 2.5em;margin-bottom: 10px;}
+    input, button {padding: 12px;margin: 10px;font-size: 1.1em;border: none;border-radius: 8px;}
+    input {width: 70%;max-width: 500px;}
+    button {background: #ff6b6b;color: white;cursor: pointer;transition: 0.3s;}
+    button:hover {background: #ff5252;}
+    #result {margin-top: 30px;}
+    img {max-width: 100%;border-radius: 12px;box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
+    .loading {color: #ffd93d;font-style: italic;}
+  </style>
+</head>
+<body>
+
+  <h1>🧙‍♂️ Tạo Nhân Vật Fantasy</h1>
+  <p>Nhập mô tả → AI vẽ ngay!</p>
+
+  <input type="text" id="prompt" placeholder="VD: nữ pháp sư băng, tóc trắng, áo choàng xanh, cầm gậy phép" />
+  <br/>
+  <button onclick="taoAnh()">Tạo Nhân Vật!</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function taoAnh() {
+      const prompt = document.getElementById("prompt").value.trim();
+      if (!prompt) {alert("Hãy nhập mô tả nhân vật!");return;}
+
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = `<p class="loading">Đang vẽ nhân vật... ⏳</p>`;
+
+      try {
+        const response = await fetch("https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer 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",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputs: prompt + ", anime style, highly detailed, fantasy character, sharp focus, vibrant colors",
+          }),
+        });
+
+        if (!response.ok) throw new Error("API lỗi. Thử lại sau 10s.");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        resultDiv.innerHTML = `
+          <p>✅ Hoàn tất!</p>
+          <img src="${url}" alt="Nhân vật AI" />
+          <br/><button onclick="window.open('${url}')">📥 Tải ảnh</button>
+        `;
+      } catch (err) {
+        resultDiv.innerHTML = `<p style="color:#ff6b6b">Lỗi: ${err.message}</p>`;
+      }
+    }
+  </script>
+
+</body>
+</html>

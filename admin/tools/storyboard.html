@@ -18,22 +18,6 @@
   <button id="btn-save-keys" class="btn">Lưu</button>
 </div>
 
-<script>
-document.getElementById('btn-save-keys').onclick = async () => {
-  const openaiKey = document.getElementById('inp-openai').value.trim();
-  const googleKey = document.getElementById('inp-google').value.trim();
-  const corsOrigin = document.getElementById('inp-cors').value.trim();
-  const token = prompt('Nhập ADMIN_TOKEN để xác thực:');
-  const r = await fetch('/admin/update-env', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json','x-admin-token': token},
-    body: JSON.stringify({ openaiKey, googleKey, corsOrigin })
-  });
-  const j = await r.json();
-  alert(j.ok ? '✅ ' + j.message : '❌ ' + j.error);
-};
-</script>
-
     <section class="panel glass">
   <div class="panel-head">
     <h3 class="title">🧠 Tạo kịch bản • Storyboard</h3>
@@ -90,6 +74,19 @@ document.getElementById('btn-save-keys').onclick = async () => {
 </section>
 
 <script>
+  document.getElementById('btn-save-keys').onclick = async () => {
+  const openaiKey = document.getElementById('inp-openai').value.trim();
+  const googleKey = document.getElementById('inp-google').value.trim();
+  const corsOrigin = document.getElementById('inp-cors').value.trim();
+  const token = prompt('Nhập ADMIN_TOKEN để xác thực:');
+  const r = await fetch('/admin/update-env', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','x-admin-token': token},
+    body: JSON.stringify({ openaiKey, googleKey, corsOrigin })
+  });
+  const j = await r.json();
+  alert(j.ok ? '✅ ' + j.message : '❌ ' + j.error);
+};
 // ==== helper nhỏ, tái dùng CSS/flow hiện tại ====
 const $ = (s, p=document) => p.querySelector(s);
 const api = (path, opts={}) =>
@@ -101,7 +98,28 @@ const download = (filename, data, mime='text/plain') => {
   a.href = URL.createObjectURL(new Blob([data], {type:mime}));
   a.download = filename; a.click();
 };
+//================== them vao =============
+function ensureUserKey() {
+  let k = localStorage.getItem('OPENAI_USER_KEY');
+  if (!k) {
+    k = prompt('Dán OpenAI API Key (sk-...) của bạn:');
+    if (k) localStorage.setItem('OPENAI_USER_KEY', k.trim());
+  }
+  return k;
+}
 
+async function api(path, body) {
+  const key = ensureUserKey(); // nếu muốn fallback env thì có thể cho phép bỏ qua
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(key ? { 'x-openai-key': key } : {})
+    },
+    body: JSON.stringify(body || {})
+  });
+  return res.json();
+}
 // ==== Hành vi các nút ====
 $('#btn-script').onclick = async () => {
   const ideaText = $('#idea').value.trim();
@@ -172,4 +190,5 @@ $('#export-csv').onclick = () => {
   </main>
 </body>
 </html>
+
 

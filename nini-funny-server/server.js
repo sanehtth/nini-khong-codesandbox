@@ -91,6 +91,34 @@ app.post('/api/send-reset', async (req, res) => {
 
 
 // ==== [ADDED by AI Story Creator] START ====
+// ==== [ADDED for per-user key] START ====
+const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
+
+function getOpenAIKey(req) {
+  // ƯU TIÊN key user gửi qua header; nếu không có -> dùng key trong env
+  const k = req.headers['x-openai-key'];
+  return (k && String(k).trim()) || process.env.OPENAI_API_KEY || '';
+}
+
+async function chatCompleteWithKey(apiKey, system, user) {
+  if (!apiKey) throw new Error('Missing OPENAI_API_KEY');
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      temperature: 0.9,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
+    })
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || 'OpenAI error');
+  return j.choices?.[0]?.message?.content || '';
+}
+// ==== [ADDED for per-user key] END ====
 
 // node-fetch (ESM) dùng trong CommonJS
 const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
@@ -303,4 +331,5 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+
 

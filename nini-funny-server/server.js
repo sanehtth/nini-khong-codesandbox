@@ -1,11 +1,12 @@
 // nini-funny-server/server.js  (CommonJS)
-// Giữ nguyên cấu trúc ban đầu của bạn + bổ sung per-user key cho OpenAI
+// Bản đã thêm: per-user key, provider OpenAI/Grok, 3 route storyboard, /admin/update-env
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const nodemailer = require('nodemailer');
 
 const app = express();
@@ -15,17 +16,17 @@ const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com';
 app.use(cors({
   origin: ALLOW_ORIGIN,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-openai-key'], // cho phép header user key
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-openai-key', 'x-grok-key', 'x-provider', 'x-admin-token'],
   credentials: false
 }));
 app.use(express.json());
 
-// Trả preflight 204 (để Chrome không chặn)
+// Trả preflight 204
 app.options('*', (req, res) => {
   res.set({
     'Access-Control-Allow-Origin': ALLOW_ORIGIN,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-openai-key',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-openai-key, x-grok-key, x-provider, x-admin-token',
   });
   return res.status(204).end();
 });
@@ -36,8 +37,7 @@ app.get('/api/ping', (req, res) => {
   return res.json({ ok: true, ts: Date.now() });
 });
 
-// ====== (Tuỳ bạn) /api/send-reset  ======
-// Giữ nguyên logic cũ của bạn ở đây. Ví dụ khung gửi mail:
+// ===== (Tuỳ bạn) /api/send-reset  =====
 const SMTP_HOST = process.env.SMTP_HOST || '';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_SECURE = (process.env.SMTP_SECURE || 'false').toLowerCase() === 'true';
@@ -55,32 +55,19 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   });
 }
 
-// Ví dụ endpoint nhận { email, resetLink } và gửi mail (nếu bạn muốn)
 app.post('/api/send-reset', async (req, res) => {
   try {
-    if (!transporter) {
-      return res.status(500).json({ error: 'SMTP not configured on server' });
-    }
+    if (!transporter) return res.status(500).json({ error: 'SMTP not configured on server' });
     const { email, resetLink } = req.body || {};
-    if (!email || !resetLink) {
-      return res.status(400).json({ error: 'Missing email or resetLink' });
-    }
+    if (!email || !resetLink) return res.status(400).json({ error: 'Missing email or resetLink' });
 
-    // đọc template nếu có
     const templatePath = path.resolve(__dirname, 'email_reset_template.html');
     let html = `<p>Reset link: <a href="${resetLink}">${resetLink}</a></p>`;
     if (fs.existsSync(templatePath)) {
       const raw = fs.readFileSync(templatePath, 'utf8');
       html = raw.replace('{{resetLink}}', resetLink).replace('{{email}}', email);
     }
-
-    await transporter.sendMail({
-      from: SMTP_EMAIL,
-      to: email,
-      subject: 'Reset your password for NiNi — funny',
-      html,
-    });
-
+    await transporter.sendMail({ from: SMTP_EMAIL, to: email, subject: 'Reset your password for NiNi — funny', html });
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ ok: true });
   } catch (e) {
@@ -89,53 +76,114 @@ app.post('/api/send-reset', async (req, res) => {
   }
 });
 
+// ==== [ADDED] Admin update env START ====
+app.post('/admin/update-env', async (req, res) => {
+  try {
+    const token = req.headers['x-admin-token'];
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const { openaiKey, googleKey, corsOrigin, grokKey } = req.body || {};
+    if (!openaiKey && !googleKey && !corsOrigin && !grokKey) {
+      return res.status(400).json({ error: 'No changes provided' });
+    }
 
-// ==== [ADDED for per-user key] START ====
+    // cập nhật RAM
+    if (openaiKey) process.env.OPENAI_API_KEY = openaiKey;
+    if (googleKey) process.env.GOOGLE_API_KEY = googleKey;
+    if (grokKey)   process.env.GROK_API_KEY = grokKey;
+    if (corsOrigin) process.env.CORS_ORIGIN = corsOrigin;
 
-// node-fetch (ESM) dùng trong CommonJS
+    // cập nhật .env (merge giữ giá trị cũ khác)
+    const envPath = path.resolve(__dirname, '.env');
+    let current = {};
+    try {
+      const txt = fs.readFileSync(envPath, 'utf8');
+      txt.split(/\r?\n/).forEach(l => {
+        if (!l.trim() || l.startsWith('#')) return;
+        const i = l.indexOf('=');
+        if (i > -1) current[l.slice(0, i)] = l.slice(i + 1);
+      });
+    } catch (_) {}
+    if (openaiKey) current.OPENAI_API_KEY = openaiKey;
+    if (googleKey) current.GOOGLE_API_KEY = googleKey;
+    if (grokKey)   current.GROK_API_KEY = grokKey;
+    if (corsOrigin) current.CORS_ORIGIN = corsOrigin;
+    if (!current.PORT && process.env.PORT) current.PORT = process.env.PORT;
+
+    const out = Object.entries(current).map(([k, v]) => `${k}=${v}`).join(os.EOL) + os.EOL;
+    fs.writeFileSync(envPath, out, 'utf8');
+
+    res.set('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
+    return res.json({ ok: true, message: 'Updated .env successfully' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'update-env failed' });
+  }
+});
+// ==== [ADDED] Admin update env END ====
+
+// ==== [ADDED: provider + grok adapter] START ====
+// ESM fetch trong CJS
 const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
 
-/**
- * Lấy OpenAI API key:
- * - ƯU TIÊN key người dùng gửi qua header 'x-openai-key'
- * - Nếu không có, fallback về OPENAI_API_KEY trong .env
- */
-function getOpenAIKey(req) {
+function getProvider(req){
+  const p = String(req.headers['x-provider'] || '').toLowerCase();
+  return (p === 'grok' || p === 'openai') ? p : 'openai';
+}
+function getOpenAIKey(req){
   const k = req.headers['x-openai-key'];
   return (k && String(k).trim()) || process.env.OPENAI_API_KEY || '';
 }
+function getGrokKey(req){
+  const k = req.headers['x-grok-key'];
+  return (k && String(k).trim()) || process.env.GROK_API_KEY || '';
+}
 
-/**
- * Gọi Chat Completions bằng apiKey truyền vào (per-user)
- */
-async function chatCompleteWithKey(apiKey, system, user) {
+// OpenAI chat
+async function chatOpenAI(apiKey, system, user){
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY');
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',   // đổi nếu bạn muốn model khác
+      model: 'gpt-4o-mini', // model rẻ - bạn có thể đổi
       temperature: 0.9,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user }
-      ]
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
     })
   });
   const j = await r.json();
   if (!r.ok) throw new Error(j.error?.message || 'OpenAI error');
   return j.choices?.[0]?.message?.content || '';
 }
-// ==== [ADDED for per-user key] END ====
+
+// Grok (xAI) chat — mẫu; nếu doc mới khác URL/model, chỉ cần sửa 2 chỗ dưới
+async function chatGrok(apiKey, system, user){
+  if (!apiKey) throw new Error('Missing GROK_API_KEY');
+  const r = await fetch('https://api.x.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'grok-2-mini', // hoặc 'grok-2'
+      temperature: 0.9,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
+    })
+  });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || 'Grok error');
+  return j.choices?.[0]?.message?.content || '';
+}
+
+async function chatCompleteUnified(req, system, user){
+  const provider = getProvider(req);
+  if (provider === 'grok') return chatGrok(getGrokKey(req), system, user);
+  return chatOpenAI(getOpenAIKey(req), system, user);
+}
+// ==== [ADDED: provider + grok adapter] END ====
 
 
 /**
  * 1) Ý tưởng -> Kịch bản
- * Body: { ideaText: string }
- * Res:  { script: string }
  */
 app.post('/api/script', async (req, res) => {
   try {
@@ -154,7 +202,7 @@ app.post('/api/script', async (req, res) => {
 Ý TƯỞNG: ${ideaText}
 Giọng điệu: chân thật, ấm áp, nhiều chi tiết hình ảnh quay được.`;
 
-    const script = await chatCompleteWithKey(getOpenAIKey(req), system, user);
+    const script = await chatCompleteUnified(req, system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ script });
   } catch (e) {
@@ -165,8 +213,6 @@ Giọng điệu: chân thật, ấm áp, nhiều chi tiết hình ảnh quay đ�
 
 /**
  * 2) Kịch bản -> Shotlist 5s/cảnh
- * Body: { script: string, durationMinutes?: number }
- * Res:  { shotlist: string }
  */
 app.post('/api/shotlist', async (req, res) => {
   try {
@@ -182,7 +228,7 @@ ${script}
 
 Phong cách quay: mộc, tự nhiên, quán cafe tone vàng ấm; cảnh mưa tone xanh lạnh.`;
 
-    const shotlist = await chatCompleteWithKey(getOpenAIKey(req), system, user);
+    const shotlist = await chatCompleteUnified(req, system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ shotlist });
   } catch (e) {
@@ -193,8 +239,6 @@ Phong cách quay: mộc, tự nhiên, quán cafe tone vàng ấm; cảnh mưa to
 
 /**
  * 3) Shotlist -> Prompt cho CẢ HAI (OpenAI & Google)
- * Body: { shotlist: string, options?: {...} }
- * Res:  { promptsBoth: string(JSON array) }
  */
 app.post('/api/prompts/both', async (req, res) => {
   try {
@@ -246,7 +290,7 @@ Chỉ trả JSON hợp lệ, không thêm text ngoài JSON.
 SHOTLIST:
 ${shotlist}`;
 
-    const promptsBoth = await chatCompleteWithKey(getOpenAIKey(req), system, user);
+    const promptsBoth = await chatCompleteUnified(req, system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ promptsBoth });
   } catch (e) {
@@ -255,8 +299,7 @@ ${shotlist}`;
   }
 });
 
-
-// 404 handler (để debug đường sai)
+// 404 handler
 app.use((req, res) => {
   res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
   return res.status(404).json({ error: 'Not Found', path: req.path });

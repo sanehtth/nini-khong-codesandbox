@@ -243,6 +243,56 @@ ${shotlist}`;
 
 // ==== [ADDED by AI Story Creator] END ====
 
+// ==== [ADDED] Admin update env START ====
+const os = require('os');
+
+// cập nhật key vào RAM + file .env
+app.post('/admin/update-env', async (req, res) => {
+  try {
+    const token = req.headers['x-admin-token'];
+    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const { openaiKey, googleKey, corsOrigin } = req.body || {};
+    if (!openaiKey && !googleKey && !corsOrigin) {
+      return res.status(400).json({ error: 'No changes provided' });
+    }
+
+    // cập nhật vào RAM
+    if (openaiKey) process.env.OPENAI_API_KEY = openaiKey;
+    if (googleKey) process.env.GOOGLE_API_KEY = googleKey;
+    if (corsOrigin) process.env.CORS_ORIGIN = corsOrigin;
+
+    // cập nhật file .env (giữ các dòng cũ)
+    const envPath = path.resolve(__dirname, '.env');
+    let current = {};
+    try {
+      const txt = fs.readFileSync(envPath, 'utf8');
+      txt.split(/\r?\n/).forEach(l => {
+        if (!l.trim() || l.startsWith('#')) return;
+        const i = l.indexOf('=');
+        if (i > -1) current[l.slice(0, i)] = l.slice(i + 1);
+      });
+    } catch (_) {}
+
+    if (openaiKey) current.OPENAI_API_KEY = openaiKey;
+    if (googleKey) current.GOOGLE_API_KEY = googleKey;
+    if (corsOrigin) current.CORS_ORIGIN = corsOrigin;
+
+    // đảm bảo PORT & SMTP… giữ nguyên nếu đã có
+    if (!current.PORT && process.env.PORT) current.PORT = process.env.PORT;
+
+    const out = Object.entries(current).map(([k, v]) => `${k}=${v}`).join(os.EOL) + os.EOL;
+    fs.writeFileSync(envPath, out, 'utf8');
+
+    res.set('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
+    return res.json({ ok: true, message: 'Updated .env successfully' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'update-env failed' });
+  }
+});
+// ==== [ADDED] Admin update env END ====
 
 
 // 404 handler (để debug đường sai)
@@ -253,3 +303,4 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+

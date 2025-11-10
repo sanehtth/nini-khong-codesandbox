@@ -1,4 +1,3 @@
-﻿
 <!doctype html>
 <html lang="vi">
 <head>
@@ -10,71 +9,73 @@
 <body>
   <main class="container">
     <h1>🎬 AI Story Creator</h1>
-<div class="card" style="margin-top:12px">
-  <h4>🔐 Cập nhật API key (không cần mở code)</h4>
-  <input id="inp-openai" class="input" placeholder="OpenAI API key (sk-...)" />
-  <input id="inp-google" class="input" placeholder="Google API key (AIza...)" />
-  <input id="inp-cors" class="input" placeholder="CORS_ORIGIN (vd https://nini-funny.com)" />
-  <button id="btn-save-keys" class="btn">Lưu</button>
-</div>
+
+    <div class="card" style="margin-top:12px">
+      <h4>🔐 Cập nhật API key (không cần mở code)</h4>
+      <input id="inp-openai" class="input" placeholder="OpenAI API key (sk-...)" />
+      <input id="inp-google" class="input" placeholder="Google API key (AIza...)" />
+      <input id="inp-cors" class="input" placeholder="CORS_ORIGIN (vd https://nini-funny.com)" />
+      <button id="btn-save-keys" class="btn">Lưu</button>
+    </div>
 
     <section class="panel glass">
-  <div class="panel-head">
-    <h3 class="title">🧠 Tạo kịch bản • Storyboard</h3>
-    <div class="muted">Nhập ý tưởng → Kịch bản → Shotlist 5s → Prompt (OpenAI & Google)</div>
-  </div>
-
-  <div class="panel-body">
-    <div class="grid-2">
-      <!-- CỘT TRÁI: INPUT + HÀNH ĐỘNG -->
-      <div>
-        <h4 class="mb-1">Ý tưởng</h4>
-        <textarea id="idea" rows="7" class="input w-100" placeholder="Gõ brief/ý tưởng tại đây…"></textarea>
-
-        <div class="row mt-1" style="gap:10px;">
-          <label class="muted">Thời lượng (phút)</label>
-          <input id="duration" type="number" value="3.5" step="0.5" class="input" style="max-width:110px">
-          <button id="btn-script" class="btn">🧠 Tạo kịch bản</button>
-        </div>
-
-        <h4 class="mt-2">Kịch bản</h4>
-        <pre id="script" class="card output" style="min-height:120px;"></pre>
-
-        <div class="row mt-1" style="gap:10px;">
-          <button id="btn-shotlist" class="btn">🎞 Tạo shotlist 5s/cảnh</button>
-          <span class="muted badge">Gợi ý: quán cafe ấm – cảnh mưa xanh lạnh</span>
-        </div>
-
-        <h4 class="mt-1">Shotlist</h4>
-        <pre id="shotlist" class="card output" style="min-height:160px;"></pre>
-
-        <div class="row mt-1" style="gap:10px;">
-          <button id="btn-both" class="btn">✨ Sinh prompt cho CẢ HAI (OpenAI & Google)</button>
-        </div>
+      <div class="panel-head">
+        <h3 class="title">🧠 Tạo kịch bản • Storyboard</h3>
+        <div class="muted">Nhập ý tưởng → Kịch bản → Shotlist 5s → Prompt (OpenAI & Google)</div>
       </div>
 
-      <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ -->
-      <div>
-        <h4>OpenAI (DALL·E/Stable)</h4>
-        <button id="copy-openai" class="btn sm">Copy</button>
-        <pre id="both-openai" class="card output" style="min-height:180px;"></pre>
+      <div class="panel-body">
+        <div class="grid-2">
+          <!-- CỘT TRÁI: INPUT + HÀNH ĐỘNG -->
+          <div>
+            <h4 class="mb-1">Ý tưởng</h4>
+            <textarea id="idea" rows="7" class="input w-100" placeholder="Gõ brief/ý tưởng tại đây…"></textarea>
 
-        <h4 class="mt-2">Google (Imagen/Gemini)</h4>
-        <button id="copy-gemini" class="btn sm">Copy</button>
-        <pre id="both-gemini" class="card output" style="min-height:180px;"></pre>
+            <div class="row mt-1" style="gap:10px;">
+              <label class="muted">Thời lượng (phút)</label>
+              <input id="duration" type="number" value="3.5" step="0.5" class="input" style="max-width:110px">
+              <button id="btn-script" class="btn">🧠 Tạo kịch bản</button>
+            </div>
 
-        <div class="row mt-1" style="gap:10px;">
-          <button id="export-json" class="btn sm">Export JSON</button>
-          <button id="export-csv" class="btn sm">Export CSV</button>
-          <span class="muted">Nhãn trong prompt: <b>OPENAI::</b> / <b>GOOGLE::</b></span>
+            <h4 class="mt-2">Kịch bản</h4>
+            <pre id="script" class="card output" style="min-height:120px;"></pre>
+
+            <div class="row mt-1" style="gap:10px;">
+              <button id="btn-shotlist" class="btn">🎞 Tạo shotlist 5s/cảnh</button>
+              <span class="muted badge">Gợi ý: quán cafe ấm – cảnh mưa xanh lạnh</span>
+            </div>
+
+            <h4 class="mt-1">Shotlist</h4>
+            <pre id="shotlist" class="card output" style="min-height:160px;"></pre>
+
+            <div class="row mt-1" style="gap:10px;">
+              <button id="btn-both" class="btn">✨ Sinh prompt cho CẢ HAI (OpenAI & Google)</button>
+            </div>
+          </div>
+
+          <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ -->
+          <div>
+            <h4>OpenAI (DALL·E/Stable)</h4>
+            <button id="copy-openai" class="btn sm">Copy</button>
+            <pre id="both-openai" class="card output" style="min-height:180px;"></pre>
+
+            <h4 class="mt-2">Google (Imagen/Gemini)</h4>
+            <button id="copy-gemini" class="btn sm">Copy</button>
+            <pre id="both-gemini" class="card output" style="min-height:180px;"></pre>
+
+            <div class="row mt-1" style="gap:10px;">
+              <button id="export-json" class="btn sm">Export JSON</button>
+              <button id="export-csv" class="btn sm">Export CSV</button>
+              <span class="muted">Nhãn trong prompt: <b>OPENAI::</b> / <b>GOOGLE::</b></span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
 
 <script>
-  document.getElementById('btn-save-keys').onclick = async () => {
+/* ===== Cập nhật ENV qua admin (tùy chọn) ===== */
+document.getElementById('btn-save-keys').onclick = async () => {
   const openaiKey = document.getElementById('inp-openai').value.trim();
   const googleKey = document.getElementById('inp-google').value.trim();
   const corsOrigin = document.getElementById('inp-cors').value.trim();
@@ -87,10 +88,9 @@
   const j = await r.json();
   alert(j.ok ? '✅ ' + j.message : '❌ ' + j.error);
 };
-// ==== helper nhỏ, tái dùng CSS/flow hiện tại ====
+
+/* ===== Helpers UI ===== */
 const $ = (s, p=document) => p.querySelector(s);
-const api = (path, opts={}) =>
-  fetch(path, { headers:{'Content-Type':'application/json'}, credentials:'include', ...opts }).then(r=>r.json());
 const toast = (msg, type='info') => alert((type==='error'?'❌ ':'✅ ') + msg);
 const copyToClipboard = (t,m) => t.trim() && navigator.clipboard.writeText(t).then(()=>toast(m));
 const download = (filename, data, mime='text/plain') => {
@@ -98,7 +98,8 @@ const download = (filename, data, mime='text/plain') => {
   a.href = URL.createObjectURL(new Blob([data], {type:mime}));
   a.download = filename; a.click();
 };
-//================== them vao =============
+
+/* ======= Per-user OpenAI key (LocalStorage) + API helper ======= */
 function ensureUserKey() {
   let k = localStorage.getItem('OPENAI_USER_KEY');
   if (!k) {
@@ -109,7 +110,8 @@ function ensureUserKey() {
 }
 
 async function api(path, body) {
-  const key = ensureUserKey(); // nếu muốn fallback env thì có thể cho phép bỏ qua
+  // Hàm API CHUẨN: luôn POST JSON + kèm x-openai-key nếu có
+  const key = ensureUserKey(); // nếu muốn fallback env, có thể cho phép bấm Cancel
   const res = await fetch(path, {
     method: 'POST',
     headers: {
@@ -120,11 +122,12 @@ async function api(path, body) {
   });
   return res.json();
 }
-// ==== Hành vi các nút ====
+
+/* ===== Hành vi các nút ===== */
 $('#btn-script').onclick = async () => {
   const ideaText = $('#idea').value.trim();
   if (!ideaText) return toast('Vui lòng nhập ý tưởng.');
-  const j = await api('/api/script', { method:'POST', body: JSON.stringify({ ideaText }) });
+  const j = await api('/api/script', { ideaText });
   if (j.error) return toast(j.error,'error');
   $('#script').textContent = j.script || '';
 };
@@ -133,7 +136,7 @@ $('#btn-shotlist').onclick = async () => {
   const script = $('#script').textContent.trim();
   if (!script) return toast('Chưa có kịch bản.');
   const durationMinutes = parseFloat($('#duration').value || '3.5');
-  const j = await api('/api/shotlist', { method:'POST', body: JSON.stringify({ script, durationMinutes }) });
+  const j = await api('/api/shotlist', { script, durationMinutes });
   if (j.error) return toast(j.error,'error');
   $('#shotlist').textContent = j.shotlist || '';
 };
@@ -141,13 +144,12 @@ $('#btn-shotlist').onclick = async () => {
 $('#btn-both').onclick = async () => {
   const shotlist = $('#shotlist').textContent.trim();
   if (!shotlist) return toast('Chưa có shotlist.');
-  // preset mặc định; nếu cần nâng cấp, có thể thêm UI tick-box sau
   const options = {
     artistic:false, realistic:true, documentary:false, surreal:false,
     cinematicLevel:3, detailLevel:3, warmth:3, mood:'romantic',
     language:'vi', lensTerms:true, naturalTone:true
   };
-  const j = await api('/api/prompts/both', { method:'POST', body: JSON.stringify({ shotlist, options }) });
+  const j = await api('/api/prompts/both', { shotlist, options });
   if (j.error) return toast(j.error,'error');
 
   try {
@@ -157,11 +159,10 @@ $('#btn-both').onclick = async () => {
       openai.push(`[Cảnh ${o.scene}${o.timecode? ' '+o.timecode:''}]\n${o.openai.prompt}\n— Notes: ${o.openai.notes.compat}`);
       google.push(`[Cảnh ${o.scene}${o.timecode? ' '+o.timecode:''}]\n${o.google.prompt}\n— Notes: ${o.google.notes.compat}`);
     });
-    $('#both-openai').textContent = openai.join('\\n\\n');
-    $('#both-gemini').textContent = google.join('\\n\\n');
+    $('#both-openai').textContent = openai.join('\n\n');
+    $('#both-gemini').textContent = google.join('\n\n');
     window._PROMPTS_JSON = arr;
   } catch(e){
-    // fallback nếu LLM trả text thuần
     const raw = (j.promptsBoth||'').toString();
     $('#both-openai').textContent = raw;
     $('#both-gemini').textContent = raw;
@@ -182,7 +183,7 @@ $('#export-csv').onclick = () => {
     rows.push([o.scene, o.timecode||'', 'OPENAI', o.openai.prompt, o.openai.notes.compat]);
     rows.push([o.scene, o.timecode||'', 'GOOGLE', o.google.prompt, o.google.notes.compat]);
   });
-  const csv = rows.map(r=>r.map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')).join('\\n');
+  const csv = rows.map(r=>r.map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   download('prompts_both.csv', csv, 'text/csv');
 };
 </script>
@@ -190,5 +191,3 @@ $('#export-csv').onclick = () => {
   </main>
 </body>
 </html>
-
-

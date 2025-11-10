@@ -10,6 +10,29 @@
 <body>
   <main class="container">
     <h1>🎬 AI Story Creator</h1>
+<div class="card" style="margin-top:12px">
+  <h4>🔐 Cập nhật API key (không cần mở code)</h4>
+  <input id="inp-openai" class="input" placeholder="OpenAI API key (sk-...)" />
+  <input id="inp-google" class="input" placeholder="Google API key (AIza...)" />
+  <input id="inp-cors" class="input" placeholder="CORS_ORIGIN (vd https://nini-funny.com)" />
+  <button id="btn-save-keys" class="btn">Lưu</button>
+</div>
+
+<script>
+document.getElementById('btn-save-keys').onclick = async () => {
+  const openaiKey = document.getElementById('inp-openai').value.trim();
+  const googleKey = document.getElementById('inp-google').value.trim();
+  const corsOrigin = document.getElementById('inp-cors').value.trim();
+  const token = prompt('Nhập ADMIN_TOKEN để xác thực:');
+  const r = await fetch('/admin/update-env', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','x-admin-token': token},
+    body: JSON.stringify({ openaiKey, googleKey, corsOrigin })
+  });
+  const j = await r.json();
+  alert(j.ok ? '✅ ' + j.message : '❌ ' + j.error);
+};
+</script>
 
     <section class="panel glass">
   <div class="panel-head">
@@ -149,3 +172,4 @@ $('#export-csv').onclick = () => {
   </main>
 </body>
 </html>
+

@@ -21,6 +21,11 @@ const TOOL_REGISTRY = {
     url: "/admin/tools/scores.html",
     note: "Xem & tải dữ liệu điểm"
   },
+  scores: {
+    storyboard: "Tạo kịch bảng",
+    url: "/admin/tools/storyboard.html",
+    note: "tạo kịch bảng"
+  },
   avatar: {
     title: "Tạo avatar nhân vật",
     url: "/admin/tools/avatar.html",               // bạn đã có file này
@@ -141,6 +146,7 @@ window.addEventListener("keydown", (e) => {
     document.getElementById("btnLogout").click();
   }
 });
+
 
 
 

@@ -10,13 +10,15 @@
   <main class="container">
     <h1>🎬 AI Story Creator</h1>
 
-    <div class="card" style="margin-top:12px">
-      <h4>🔐 Cập nhật API key (không cần mở code)</h4>
-      <input id="inp-openai" class="input" placeholder="OpenAI API key (sk-...)" />
-      <input id="inp-google" class="input" placeholder="Google API key (AIza...)" />
-      <input id="inp-cors" class="input" placeholder="CORS_ORIGIN (vd https://nini-funny.com)" />
-      <button id="btn-save-keys" class="btn">Lưu</button>
-    </div>
+    <div class="row" style="gap:10px; margin:8px 0;">
+  <label class="muted">Provider</label>
+  <select id="provider" class="input" style="max-width:160px">
+    <option value="openai">OpenAI</option>
+    <option value="grok">Grok (xAI)</option>
+  </select>
+  <button id="btn-set-key" class="btn sm">Nhập/Đổi API key</button>
+</div>
+
 
     <section class="panel glass">
       <div class="panel-head">
@@ -191,3 +193,4 @@ $('#export-csv').onclick = () => {
   </main>
 </body>
 </html>
+

@@ -3,89 +3,101 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NiNi — Quản lý user</title>
+  <title>NiNi — AI Story Creator</title>
   <link rel="stylesheet" href="/test/css/nini-theme.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>🎬 AI Story Creator</h1>
+<main class="container">
+  <h1>🎬 AI Story Creator</h1>
 
-    <div class="row" style="gap:10px; margin:8px 0;">
-  <label class="muted">Provider</label>
-  <select id="provider" class="input" style="max-width:160px">
-    <option value="openai">OpenAI</option>
-    <option value="grok">Grok (xAI)</option>
-  </select>
-  <button id="btn-set-key" class="btn sm">Nhập/Đổi API key</button>
-</div>
+  <!-- Quản trị ENV từ UI (tuỳ chọn) -->
+  <div class="card" style="margin-top:12px">
+    <h4>🔐 Cập nhật API key (không cần mở code)</h4>
+    <input id="inp-openai" class="input" placeholder="OpenAI API key (sk-...)" />
+    <input id="inp-google" class="input" placeholder="Google API key (AIza...)" />
+    <input id="inp-grok"   class="input" placeholder="Grok (xAI) API key" />
+    <input id="inp-cors"   class="input" placeholder="CORS_ORIGIN (vd https://nini-funny.com)" />
+    <button id="btn-save-keys" class="btn">Lưu</button>
+  </div>
 
+  <section class="panel glass">
+    <div class="panel-head">
+      <h3 class="title">🧠 Tạo kịch bản • Storyboard</h3>
+      <div class="muted">Nhập ý tưởng → Kịch bản → Shotlist 5s → Prompt (OpenAI & Google)</div>
+    </div>
 
-    <section class="panel glass">
-      <div class="panel-head">
-        <h3 class="title">🧠 Tạo kịch bản • Storyboard</h3>
-        <div class="muted">Nhập ý tưởng → Kịch bản → Shotlist 5s → Prompt (OpenAI & Google)</div>
+    <div class="panel-body">
+      <!-- Provider + Key -->
+      <div class="row" style="gap:10px; margin:8px 0;">
+        <label class="muted">Provider</label>
+        <select id="provider" class="input" style="max-width:180px">
+          <option value="openai">OpenAI</option>
+          <option value="grok">Grok (xAI)</option>
+        </select>
+        <button id="btn-set-key" class="btn sm">Nhập/Đổi API key</button>
+        <span id="key-status" class="muted badge"></span>
       </div>
 
-      <div class="panel-body">
-        <div class="grid-2">
-          <!-- CỘT TRÁI: INPUT + HÀNH ĐỘNG -->
-          <div>
-            <h4 class="mb-1">Ý tưởng</h4>
-            <textarea id="idea" rows="7" class="input w-100" placeholder="Gõ brief/ý tưởng tại đây…"></textarea>
+      <div class="grid-2">
+        <!-- CỘT TRÁI -->
+        <div>
+          <h4 class="mb-1">Ý tưởng</h4>
+          <textarea id="idea" rows="7" class="input w-100" placeholder="Gõ brief/ý tưởng tại đây…"></textarea>
 
-            <div class="row mt-1" style="gap:10px;">
-              <label class="muted">Thời lượng (phút)</label>
-              <input id="duration" type="number" value="3.5" step="0.5" class="input" style="max-width:110px">
-              <button id="btn-script" class="btn">🧠 Tạo kịch bản</button>
-            </div>
-
-            <h4 class="mt-2">Kịch bản</h4>
-            <pre id="script" class="card output" style="min-height:120px;"></pre>
-
-            <div class="row mt-1" style="gap:10px;">
-              <button id="btn-shotlist" class="btn">🎞 Tạo shotlist 5s/cảnh</button>
-              <span class="muted badge">Gợi ý: quán cafe ấm – cảnh mưa xanh lạnh</span>
-            </div>
-
-            <h4 class="mt-1">Shotlist</h4>
-            <pre id="shotlist" class="card output" style="min-height:160px;"></pre>
-
-            <div class="row mt-1" style="gap:10px;">
-              <button id="btn-both" class="btn">✨ Sinh prompt cho CẢ HAI (OpenAI & Google)</button>
-            </div>
+          <div class="row mt-1" style="gap:10px;">
+            <label class="muted">Thời lượng (phút)</label>
+            <input id="duration" type="number" value="3.5" step="0.5" class="input" style="max-width:110px">
+            <button id="btn-script" class="btn">🧠 Tạo kịch bản</button>
           </div>
 
-          <!-- CỘT PHẢI: KẾT QUẢ HIỂN THỊ -->
-          <div>
-            <h4>OpenAI (DALL·E/Stable)</h4>
-            <button id="copy-openai" class="btn sm">Copy</button>
-            <pre id="both-openai" class="card output" style="min-height:180px;"></pre>
+          <h4 class="mt-2">Kịch bản</h4>
+          <pre id="script" class="card output" style="min-height:120px;"></pre>
 
-            <h4 class="mt-2">Google (Imagen/Gemini)</h4>
-            <button id="copy-gemini" class="btn sm">Copy</button>
-            <pre id="both-gemini" class="card output" style="min-height:180px;"></pre>
+          <div class="row mt-1" style="gap:10px;">
+            <button id="btn-shotlist" class="btn">🎞 Tạo shotlist 5s/cảnh</button>
+            <span class="muted badge">Gợi ý: quán cafe ấm – cảnh mưa xanh lạnh</span>
+          </div>
 
-            <div class="row mt-1" style="gap:10px;">
-              <button id="export-json" class="btn sm">Export JSON</button>
-              <button id="export-csv" class="btn sm">Export CSV</button>
-              <span class="muted">Nhãn trong prompt: <b>OPENAI::</b> / <b>GOOGLE::</b></span>
-            </div>
+          <h4 class="mt-1">Shotlist</h4>
+          <pre id="shotlist" class="card output" style="min-height:160px;"></pre>
+
+          <div class="row mt-1" style="gap:10px;">
+            <button id="btn-both" class="btn">✨ Sinh prompt cho CẢ HAI (OpenAI & Google)</button>
+          </div>
+        </div>
+
+        <!-- CỘT PHẢI -->
+        <div>
+          <h4>OpenAI (DALL·E/Stable)</h4>
+          <button id="copy-openai" class="btn sm">Copy</button>
+          <pre id="both-openai" class="card output" style="min-height:180px;"></pre>
+
+          <h4 class="mt-2">Google (Imagen/Gemini)</h4>
+          <button id="copy-gemini" class="btn sm">Copy</button>
+          <pre id="both-gemini" class="card output" style="min-height:180px;"></pre>
+
+          <div class="row mt-1" style="gap:10px;">
+            <button id="export-json" class="btn sm">Export JSON</button>
+            <button id="export-csv" class="btn sm">Export CSV</button>
+            <span class="muted">Nhãn trong prompt: <b>OPENAI::</b> / <b>GOOGLE::</b></span>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
 <script>
-/* ===== Cập nhật ENV qua admin (tùy chọn) ===== */
+/* ===== Admin update-env (tuỳ chọn) ===== */
 document.getElementById('btn-save-keys').onclick = async () => {
   const openaiKey = document.getElementById('inp-openai').value.trim();
   const googleKey = document.getElementById('inp-google').value.trim();
-  const corsOrigin = document.getElementById('inp-cors').value.trim();
+  const grokKey   = document.getElementById('inp-grok').value.trim();
+  const corsOrigin= document.getElementById('inp-cors').value.trim();
   const token = prompt('Nhập ADMIN_TOKEN để xác thực:');
   const r = await fetch('/admin/update-env', {
     method: 'POST',
     headers: {'Content-Type':'application/json','x-admin-token': token},
-    body: JSON.stringify({ openaiKey, googleKey, corsOrigin })
+    body: JSON.stringify({ openaiKey, googleKey, grokKey, corsOrigin })
   });
   const j = await r.json();
   alert(j.ok ? '✅ ' + j.message : '❌ ' + j.error);
@@ -101,27 +113,44 @@ const download = (filename, data, mime='text/plain') => {
   a.download = filename; a.click();
 };
 
-/* ======= Per-user OpenAI key (LocalStorage) + API helper ======= */
-function ensureUserKey() {
-  let k = localStorage.getItem('OPENAI_USER_KEY');
+/* ======= Provider + key lưu LocalStorage ======= */
+function getProvider(){ return (document.getElementById('provider')?.value || 'openai'); }
+function keyName(p){ return p === 'grok' ? 'GROK_USER_KEY' : 'OPENAI_USER_KEY'; }
+
+function ensureUserKey(provider){
+  const name = keyName(provider);
+  let k = localStorage.getItem(name);
   if (!k) {
-    k = prompt('Dán OpenAI API Key (sk-...) của bạn:');
-    if (k) localStorage.setItem('OPENAI_USER_KEY', k.trim());
+    const label = provider === 'grok' ? 'Grok (xAI) API Key' : 'OpenAI API Key (sk-...)';
+    k = prompt(`Dán ${label}:`);
+    if (k) localStorage.setItem(name, k.trim());
   }
+  updateKeyStatus();
   return k;
 }
 
-async function api(path, body) {
-  // Hàm API CHUẨN: luôn POST JSON + kèm x-openai-key nếu có
-  const key = ensureUserKey(); // nếu muốn fallback env, có thể cho phép bấm Cancel
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(key ? { 'x-openai-key': key } : {})
-    },
-    body: JSON.stringify(body || {})
-  });
+function updateKeyStatus(){
+  const p = getProvider();
+  const has = !!localStorage.getItem(keyName(p));
+  $('#key-status').textContent = has ? `Đã có key cho ${p.toUpperCase()}` : `Chưa có key cho ${p.toUpperCase()}`;
+}
+
+document.getElementById('provider').onchange = updateKeyStatus;
+document.getElementById('btn-set-key').onclick = () => {
+  const p = getProvider();
+  localStorage.removeItem(keyName(p));
+  ensureUserKey(p);
+};
+
+/* ======= API helper: gửi x-provider + key tương ứng ======= */
+async function api(path, body){
+  const provider = getProvider();
+  const key = ensureUserKey(provider); // nếu muốn cho phép fallback ENV, có thể cho Cancel
+  const headers = { 'Content-Type': 'application/json', 'x-provider': provider };
+  if (provider === 'grok' && key) headers['x-grok-key'] = key;
+  if (provider === 'openai' && key) headers['x-openai-key'] = key;
+
+  const res = await fetch(path, { method:'POST', headers, body: JSON.stringify(body||{}) });
   return res.json();
 }
 
@@ -188,9 +217,10 @@ $('#export-csv').onclick = () => {
   const csv = rows.map(r=>r.map(x=>`"${(x||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   download('prompts_both.csv', csv, 'text/csv');
 };
+
+updateKeyStatus();
 </script>
 
-  </main>
+</main>
 </body>
 </html>
-

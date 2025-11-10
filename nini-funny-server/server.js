@@ -1,5 +1,5 @@
 // nini-funny-server/server.js  (CommonJS)
-// Giữ nguyên cấu trúc ban đầu của bạn
+// Giữ nguyên cấu trúc ban đầu của bạn + bổ sung per-user key cho OpenAI
 
 require('dotenv').config();
 const express = require('express');
@@ -15,7 +15,7 @@ const ALLOW_ORIGIN = process.env.CORS_ORIGIN || 'https://nini-funny.com';
 app.use(cors({
   origin: ALLOW_ORIGIN,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-openai-key'], // cho phép header user key
   credentials: false
 }));
 app.use(express.json());
@@ -25,7 +25,7 @@ app.options('*', (req, res) => {
   res.set({
     'Access-Control-Allow-Origin': ALLOW_ORIGIN,
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-openai-key',
   });
   return res.status(204).end();
 });
@@ -90,16 +90,24 @@ app.post('/api/send-reset', async (req, res) => {
 });
 
 
-// ==== [ADDED by AI Story Creator] START ====
 // ==== [ADDED for per-user key] START ====
+
+// node-fetch (ESM) dùng trong CommonJS
 const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
 
+/**
+ * Lấy OpenAI API key:
+ * - ƯU TIÊN key người dùng gửi qua header 'x-openai-key'
+ * - Nếu không có, fallback về OPENAI_API_KEY trong .env
+ */
 function getOpenAIKey(req) {
-  // ƯU TIÊN key user gửi qua header; nếu không có -> dùng key trong env
   const k = req.headers['x-openai-key'];
   return (k && String(k).trim()) || process.env.OPENAI_API_KEY || '';
 }
 
+/**
+ * Gọi Chat Completions bằng apiKey truyền vào (per-user)
+ */
 async function chatCompleteWithKey(apiKey, system, user) {
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY');
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -109,31 +117,7 @@ async function chatCompleteWithKey(apiKey, system, user) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      temperature: 0.9,
-      messages: [{ role: 'system', content: system }, { role: 'user', content: user }]
-    })
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error?.message || 'OpenAI error');
-  return j.choices?.[0]?.message?.content || '';
-}
-// ==== [ADDED for per-user key] END ====
-
-// node-fetch (ESM) dùng trong CommonJS
-const fetch = (...args) => import('node-fetch').then(({ default: f }) => f(...args));
-
-// Helper gọi OpenAI Chat Completions
-async function chatComplete(system, user) {
-  if (!process.env.OPENAI_API_KEY) throw new Error('Missing OPENAI_API_KEY');
-  const r = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',      // đổi nếu bạn muốn model khác
+      model: 'gpt-4o-mini',   // đổi nếu bạn muốn model khác
       temperature: 0.9,
       messages: [
         { role: 'system', content: system },
@@ -145,6 +129,8 @@ async function chatComplete(system, user) {
   if (!r.ok) throw new Error(j.error?.message || 'OpenAI error');
   return j.choices?.[0]?.message?.content || '';
 }
+// ==== [ADDED for per-user key] END ====
+
 
 /**
  * 1) Ý tưởng -> Kịch bản
@@ -168,7 +154,7 @@ app.post('/api/script', async (req, res) => {
 Ý TƯỞNG: ${ideaText}
 Giọng điệu: chân thật, ấm áp, nhiều chi tiết hình ảnh quay được.`;
 
-    const script = await chatComplete(system, user);
+    const script = await chatCompleteWithKey(getOpenAIKey(req), system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ script });
   } catch (e) {
@@ -196,7 +182,7 @@ ${script}
 
 Phong cách quay: mộc, tự nhiên, quán cafe tone vàng ấm; cảnh mưa tone xanh lạnh.`;
 
-    const shotlist = await chatComplete(system, user);
+    const shotlist = await chatCompleteWithKey(getOpenAIKey(req), system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ shotlist });
   } catch (e) {
@@ -260,7 +246,7 @@ Chỉ trả JSON hợp lệ, không thêm text ngoài JSON.
 SHOTLIST:
 ${shotlist}`;
 
-    const promptsBoth = await chatComplete(system, user);
+    const promptsBoth = await chatCompleteWithKey(getOpenAIKey(req), system, user);
     res.set('Access-Control-Allow-Origin', ALLOW_ORIGIN);
     return res.json({ promptsBoth });
   } catch (e) {
@@ -268,59 +254,6 @@ ${shotlist}`;
     return res.status(500).json({ error: e.message || 'prompts failed' });
   }
 });
-
-// ==== [ADDED by AI Story Creator] END ====
-
-// ==== [ADDED] Admin update env START ====
-const os = require('os');
-
-// cập nhật key vào RAM + file .env
-app.post('/admin/update-env', async (req, res) => {
-  try {
-    const token = req.headers['x-admin-token'];
-    if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    const { openaiKey, googleKey, corsOrigin } = req.body || {};
-    if (!openaiKey && !googleKey && !corsOrigin) {
-      return res.status(400).json({ error: 'No changes provided' });
-    }
-
-    // cập nhật vào RAM
-    if (openaiKey) process.env.OPENAI_API_KEY = openaiKey;
-    if (googleKey) process.env.GOOGLE_API_KEY = googleKey;
-    if (corsOrigin) process.env.CORS_ORIGIN = corsOrigin;
-
-    // cập nhật file .env (giữ các dòng cũ)
-    const envPath = path.resolve(__dirname, '.env');
-    let current = {};
-    try {
-      const txt = fs.readFileSync(envPath, 'utf8');
-      txt.split(/\r?\n/).forEach(l => {
-        if (!l.trim() || l.startsWith('#')) return;
-        const i = l.indexOf('=');
-        if (i > -1) current[l.slice(0, i)] = l.slice(i + 1);
-      });
-    } catch (_) {}
-
-    if (openaiKey) current.OPENAI_API_KEY = openaiKey;
-    if (googleKey) current.GOOGLE_API_KEY = googleKey;
-    if (corsOrigin) current.CORS_ORIGIN = corsOrigin;
-
-    // đảm bảo PORT & SMTP… giữ nguyên nếu đã có
-    if (!current.PORT && process.env.PORT) current.PORT = process.env.PORT;
-
-    const out = Object.entries(current).map(([k, v]) => `${k}=${v}`).join(os.EOL) + os.EOL;
-    fs.writeFileSync(envPath, out, 'utf8');
-
-    res.set('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*');
-    return res.json({ ok: true, message: 'Updated .env successfully' });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'update-env failed' });
-  }
-});
-// ==== [ADDED] Admin update env END ====
 
 
 // 404 handler (để debug đường sai)
@@ -331,5 +264,3 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
-
-

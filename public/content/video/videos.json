@@ -10,12 +10,13 @@
     },
     {
       "id": "pl_nini",
-      "title": "Trải nghiệm của NiNi",
-      "desc": "Nhật ký NiNi",
+      "title": "My music",
+      "desc": "Nhạc relax",
       "items": [
-        { "id": "nn1", "title": "Cá nằm trên thớt", "url": "https://www.youtube.com/watch?v=xxxxxxx1111" },
-        { "id": "nn2", "title": "Vịt chạy bờ ao",   "url": "https://youtu.be/yyyyyyy2222" }
+        { "id": "001", "title": "Chàng trai latte", "url": "https://youtu.be/CgVKJmidfBk" },
+        { "id": "002", "title": "Latte boy",   "url": "https://youtu.be/yyyyyyy2222" }
       ]
     }
   ]
 }
+

@@ -152,6 +152,43 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// Thêm mapping kích thước đề xuất
+const AR_SIZES = {
+  "16:9": {w:1920, h:1080, openai:"1792x1024"},
+  "1:1":  {w:1024, h:1024, openai:"1024x1024"},
+  "9:16": {w:1080, h:1920, openai:"1024x1792"}
+};
+
+function buildPrompts({text,total,step,preset,combo,aspect}){
+  const baskets = splitToScenes(text,total,step);
+  const sz = AR_SIZES[aspect] || AR_SIZES["16:9"];
+  let t=0, scenes=[];
+  for(let i=0;i<baskets.length;i++){
+    const start=t, end=Math.min(total,t+step); t=end;
+    const L=baskets[i].join(" ");
+    const {cam,emo}=pickCombos(combo,i);
+    scenes.push({
+      index:i+1, start, end, aspect,
+      width: sz.w, height: sz.h,    // Stable Diffusion / A1111
+      openai_size: sz.openai,       // DALL·E 3 / OpenAI Images
+      prompt: `${preset}, shot length ~${step}s. Camera: ${cam}. Emotion: ${emo}. `
+            + `Action/Scene text: "${L}" (compose for ${aspect})`
+    });
+  }
+  return scenes;
+}
+
+// Ở phần onclick:
+const data = buildPrompts({
+  text: $("lyrics").value||"",
+  total: +$("dur").value||180,
+  step: +$("len").value||5,
+  preset: $("preset").value,
+  combo: $("combo").value,
+  aspect: $("aspect").value
+});
+
+
 
 
 

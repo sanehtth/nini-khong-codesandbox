@@ -5,394 +5,228 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>NiNi — Tạo nhân vật</title>
   <link rel="stylesheet" href="/test/css/nini-theme.css"/>
-
-  <style>
-    :root {
-      --panel-bg: rgba(255,255,255,.06);
-      --panel-br: 14px;
-    }
-    body{ --bg-url:url('/public/assets/bg/nini_home.webp') }
-
-    .wrap{padding:16px}
-    .char-shell{display:grid;grid-template-columns:360px 1fr;gap:16px}
-    .char-controls{
-      position:sticky; top:84px; align-self:start;
-      border-radius:var(--panel-br); background:var(--panel-bg);
-      backdrop-filter: blur(6px); padding:14px;
-    }
-    .char-controls h2{margin:0 0 8px}
-    .char-controls label{display:block; font-weight:600; margin-top:10px}
-    .char-controls select{width:100%; padding:8px; border-radius:10px; margin-top:6px}
-    .actions{margin-top:14px; display:flex; flex-wrap:wrap; gap:8px}
-    .actions .btn{border-radius:10px}
-
-    .char-preview .card{
-      background:var(--panel-bg); backdrop-filter: blur(6px);
-      border-radius:var(--panel-br); padding:14px; margin-bottom:14px;
-    }
-    .preview-box{display:flex; justify-content:center}
-    #charPreview{width:100%; max-width:640px; height:auto; border-radius:12px; background:#0b1220}
-    .prompt-card textarea{width:100%; min-height:110px}
-    .prompt-card small{opacity:.8}
-
-    .gallery{
-      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px
-    }
-    .thumb{position:relative; border-radius:12px; overflow:hidden; background:#0b1220}
-    .thumb img{width:100%; display:block}
-    .thumb .pick{position:absolute; right:8px; bottom:8px}
-
-    .muted small{opacity:.8}
-    @media (max-width:980px){ .char-shell{grid-template-columns:1fr} .char-controls{position:static} }
-  </style>
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#faf7f2}
+  .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+  label{display:block;margin-bottom:8px}
+  input,textarea,select{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px}
+  textarea{height:120px}
+  button{padding:12px 14px;border-radius:10px;border:1px solid #111827;background:#111827;color:#fff;cursor:pointer}
+  button.ghost{background:#fff;color:#111827}
+  .views{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+  .thumb{border:1px dashed #d1d5db;border-radius:12px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#fcfcfc}
+  .thumb img{max-width:100%;max-height:100%;border-radius:10px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  pre{white-space:pre-wrap;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px}
+  .small{font-size:12px;color:#6b7280}
+</style>
 </head>
 <body>
-<main class="wrap">
-  <section class="panel glass">
-    <div class="panel-head">
-      <h3 class="title">🧩 Tạo nhân vật</h3>
-      <div class="muted">Chọn thuộc tính ở cột trái → xem trước tức thì ở cột phải (không tốn AI). Khi ưng, bấm “Tạo ảnh AI” để render mượt mà hơn, rồi “Lưu”.</div>
+<div class="wrap">
+  <h1>🧩 Character Builder</h1>
+  <p class="small">Tạo nhân vật nhất quán cho ảnh/video. Sinh 4 view, lưu Firebase, và xuất block gắn vào prompt.</p>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Thông tin nhân vật</h3>
+      <label>Tên nhân vật
+        <input id="charName" placeholder="Ví dụ: Daisy Girl">
+      </label>
+      <label>Mô tả (character sheet)
+        <textarea id="charSheet" placeholder="female, early 20s, heart-shaped face, big green eyes, long wavy light brown hair, daisy headband, denim top, white tiered skirt, gentle warm vibe"></textarea>
+      </label>
+      <div class="grid">
+        <label>Màu/palette
+          <input id="palette" placeholder="pastel warm, latte brown">
+        </label>
+        <label>Props (phụ kiện)
+          <input id="props" placeholder="latte cup, umbrella">
+        </label>
+      </div>
+      <div class="grid">
+        <label>Aspect
+          <select id="aspect">
+            <option value="1024x1024">1:1 (1024x1024)</option>
+            <option value="1792x1024">16:9 (1792x1024)</option>
+            <option value="1024x1792">9:16 (1024x1792)</option>
+          </select>
+        </label>
+        <label>Seed (tùy chọn)
+          <input id="seed" type="number" placeholder="ví dụ: 123456">
+        </label>
+      </div>
+
+      <div class="row">
+        <button id="gen">🚀 Tạo 4 view</button>
+        <button id="save" class="ghost">💾 Lưu Firebase</button>
+        <button id="export" class="ghost">📦 Xuất Character JSON</button>
+      </div>
+      <p class="small">Gợi ý: nếu muốn đồng bộ giữa nhiều nền tảng, luôn giữ mô tả + phụ kiện đặc trưng (ví dụ: vòng hoa cúc).</p>
     </div>
 
-    <div class="char-shell">
-      <!-- LEFT: controls -->
-      <aside class="char-controls">
-        <h2>Thuộc tính</h2>
-
-        <label>Style / Hình thể</label>
-        <select id="sel-body"></select>
-
-        <label>Tóc</label>
-        <select id="sel-hair"></select>
-
-        <label>Mắt</label>
-        <select id="sel-eyes"></select>
-
-        <label>Mũi</label>
-        <select id="sel-nose"></select>
-
-        <label>Miệng</label>
-        <select id="sel-mouth"></select>
-
-        <label>Màu da</label>
-        <select id="sel-skin"></select>
-
-        <label>Áo (Top)</label>
-        <select id="sel-top"></select>
-
-        <label>Quần / Váy (Bottom)</label>
-        <select id="sel-bottom"></select>
-
-        <label>Giày</label>
-        <select id="sel-shoes"></select>
-
-        <div class="actions">
-          <button id="btn-render" class="btn brand pill">🎨 Tạo ảnh AI</button>
-          <button id="btn-save"   class="btn pill" disabled>💾 Lưu nhân vật</button>
-          <button id="btn-open-hf" class="btn ghost pill">↗ Mở Space miễn phí</button>
-        </div>
-        <div class="muted" id="status" style="margin-top:8px"></div>
-      </aside>
-
-      <!-- RIGHT: preview + prompt + gallery -->
-      <main class="char-preview">
-        <div class="card">
-          <h4 class="title">👀 Xem trước (không AI)</h4>
-          <div class="preview-box">
-            <canvas id="charPreview" width="768" height="1024"></canvas>
-          </div>
-          <div class="muted"><small>Tip: Hình xem trước là ghép layer PNG trong suốt theo hệ tọa độ chuẩn. Đổi lựa chọn ở trái là thấy ngay.</small></div>
-        </div>
-
-        <div class="card prompt-card">
-          <h4 class="title">🧩 Prompt sinh ra</h4>
-          <textarea id="ta-prompt" readonly></textarea>
-          <small id="ta-neg"></small>
-          <div class="row" style="margin-top:8px">
-            <button id="btn-copy" class="btn pill">📋 Copy prompt</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h4 class="title">🖼️ Kết quả render (AI)</h4>
-          <div id="gallery" class="gallery"></div>
-          <div class="muted"><small>Chọn 1 ảnh để bật nút “Lưu nhân vật”. Bấm lại “Tạo ảnh AI” để tạo thêm biến thể.</small></div>
-        </div>
-      </main>
+    <div class="card">
+      <h3>Xem trước (Front / Back / Left / Right)</h3>
+      <div class="views">
+        <div class="thumb" id="v-front">Front</div>
+        <div class="thumb" id="v-back">Back</div>
+        <div class="thumb" id="v-left">Left</div>
+        <div class="thumb" id="v-right">Right</div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="clear" class="ghost">↺ Xóa preview</button>
+      </div>
     </div>
-  </section>
-</main>
+  </div>
 
-<!-- ====== Catalog demo (text ↔ preview image) ====== -->
+  <div class="card">
+    <h3>Kết quả / Character Block</h3>
+    <pre id="out"></pre>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
+
 <script>
-/* NOTE: đổi đường dẫn preview nếu bạn để ở nơi khác.
-   Khuyến nghị: dùng pack /admin/tools/avatar-pack/ đã tạo trước đó */
-const PRE = "/admin/library/"; // root preview (thay nếu cần)
-
-const BODY_STYLE = [
-  {
-    id: "pixar_female_front",
-    label: "Pixar • Nữ • chính diện",
-    promptPose:  "full body, standing, natural hands visible, Pixar body proportion",
-    promptStyle: "Pixar style, glossy shading, soft rim light, bright color palette",
-    negative:    "deformed, extra fingers, missing fingers, bad hands, warped limbs, watermark, text, logo",
-    aspect: "3:4",
-    base: `${PRE}/samples/base/pixar_female_front.png`,
-    z: 10
-  },
-  {
-    id: "anime_male_front",
-    label: "Anime • Nam • chính diện",
-    promptPose:  "full body, standing, anime body proportion",
-    promptStyle: "anime illustration, clean lineart, cel shading",
-    negative:    "lowres, bad hands, watermark, text",
-    aspect: "3:4",
-    base: `${PRE}/samples/base/anime_male_front.png`,
-    z: 10
-  },
-  {
-    id: "chibi_front",
-    label: "Chibi • chính diện",
-    promptPose:  "chibi deformed proportion, big head, small body, full body, standing",
-    promptStyle: "kawaii pastel color, soft bloom",
-    negative:    "lowres, warped limbs, watermark, text",
-    aspect: "1:1",
-    base: `${PRE}/samples/base/chibi_front.png`,
-    z: 10
-  }
-];
-
-const HAIR = [
-  { id:"hair_long_straight", label:"Tóc dài duỗi", prompt:"long straight hair flowing naturally", preview:`${PRE}/samples/hair/hair_long_straight.png`, z:30 },
-  { id:"hair_twin_buns",     label:"Búi 2 bên",    prompt:"twin buns hair, neat and cute",        preview:`${PRE}/samples/hair/hair_twin_buns.png`,     z:30 },
-  { id:"hair_short",         label:"Tóc ngắn",     prompt:"short haircut",                        preview:`${PRE}/samples/hair/hair_short.png`,         z:30 },
-];
-
-const EYES = [
-  { id:"eye_big_sparkle", label:"Mắt to long lanh", prompt:"big sparkling glossy eyes", preview:`${PRE}/samples/eyes/eyes_big.png`,   z:25 },
-  { id:"eye_small_cute",  label:"Mắt nhỏ đáng yêu", prompt:"small cute eyes",           preview:`${PRE}/samples/eyes/eyes_small.png`, z:25 },
-];
-
-const NOSE = [
-  { id:"nose_small", label:"Mũi nhỏ", prompt:"small nose", preview:`${PRE}/samples/nose/nose_small.png`, z:24 },
-];
-
-const MOUTH = [
-  { id:"mouth_smile", label:"Miệng mỉm cười", prompt:"subtle smiling mouth", preview:`${PRE}/samples/mouth/mouth_smile.png`, z:26 },
-  { id:"mouth_neutral", label:"Miệng bình thường", prompt:"neutral mouth", preview:`${PRE}/samples/mouth/mouth_neutral.png`, z:26 },
-];
-
-const SKIN = [
-  { id:"skin_fair", label:"Da sáng", prompt:"fair porcelain skin", preview:`${PRE}/samples/skin/skin_fair.png`, z:15 },
-  { id:"skin_tan",  label:"Da nâu",  prompt:"warm tan skin",       preview:`${PRE}/samples/skin/skin_tan.png`,  z:15 },
-];
-
-const TOP = [
-  { id:"top_jacket_green", label:"Áo khoác xanh", prompt:"green jacket", preview:`${PRE}/samples/top/top_jacket_green.png`, z:18 },
-  { id:"top_robe_blue",    label:"Áo choàng xanh", prompt:"blue robe",  preview:`${PRE}/samples/top/top_robe_blue.png`,    z:18 },
-];
-
-const BOTTOM = [
-  { id:"bottom_skirt_white", label:"Váy trắng", prompt:"white skirt", preview:`${PRE}/samples/bottom/bottom_skirt_white.png`, z:17 },
-  { id:"bottom_pants_black", label:"Quần đen",  prompt:"black pants", preview:`${PRE}/samples/bottom/bottom_pants_black.png`, z:17 },
-];
-
-const SHOES = [
-  { id:"shoes_sneakers", label:"Giày thể thao", prompt:"white sneakers", preview:`${PRE}/samples/shoes/shoes_sneakers.png`, z:16 },
-  { id:"shoes_boots",    label:"Boots",         prompt:"leather boots",  preview:`${PRE}/samples/shoes/shoes_boots.png`,    z:16 },
-];
-</script>
-
-<!-- ====== Logic ====== -->
-<script>
-const $ = s => document.querySelector(s);
-const byId = id => document.getElementById(id);
-
-const state = {
-  body:null, hair:null, eyes:null, nose:null, mouth:null,
-  skin:null, top:null, bottom:null, shoes:null,
+/* ===== 1) Config ===== */
+const firebaseConfig = {
+  // TODO: dán config của bạn vào đây
 };
-const gallery = byId('gallery');
-const statusEl = byId('status');
-let pickedUrl = null;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-function mountSelect(id, list, onPick) {
-  const sel = byId(id);
-  sel.innerHTML = `<option value="">(không chọn)</option>` +
-    list.map(i=>`<option value="${i.id}">${i.label}</option>`).join("");
-  sel.addEventListener("change", ()=>{
-    const v = sel.value;
-    const item = list.find(x=>x.id===v) || null;
-    onPick(item);
-    renderPreview(); updatePrompt();
-  });
+/* Nếu dùng OpenAI Images làm nhà sinh ảnh: lấy key từ localStorage (giống trang admin của bạn) */
+const OPENAI_API_KEY = localStorage.getItem("openai_key") || ""; // hoặc cho nhập thủ công
+
+/* ===== 2) Helper ===== */
+const $ = id => document.getElementById(id);
+const views = ["front","back","left","right"];
+const state = { images: {front:null, back:null, left:null, right:null}, character:null };
+
+function baseSheet(){
+  const name = $("charName").value.trim() || "Daisy Girl";
+  const sheet = $("charSheet").value.trim() ||
+    "female, early 20s, heart-shaped face, big green eyes, long wavy light brown hair, daisy headband, denim top, white tiered skirt, gentle warm vibe";
+  const palette = $("palette").value.trim() || "pastel warm, latte brown";
+  const props = $("props").value.trim() || "latte cup, umbrella";
+  const seed = $("seed").value ? Number($("seed").value) : undefined;
+  const aspect = $("aspect").value; // 1024x1024 / 1792x1024 / 1024x1792
+  return {name, sheet, palette, props, seed, aspect};
 }
 
-function loadImage(url){
-  return new Promise((res,rej)=>{
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = ()=>res(img);
-    img.onerror = ()=>{ console.warn("Preview not found:", url); res(new Image()); };
-    img.src = url;
-  });
+function posePrompt(view){
+  const viewText = {
+    front: "front view, neutral pose, looking at camera",
+    back: "back view, neutral pose, hair visible from behind",
+    left: "left profile view, neutral pose",
+    right:"right profile view, neutral pose"
+  }[view];
+  const b = baseSheet();
+  return `${b.name}, ${b.sheet}, color palette ${b.palette}, props: ${b.props}. `
+       + `${viewText}. Studio lighting, plain background, high consistency. 3D cinematic, semi-realistic.`;
 }
 
-async function renderPreview(){
-  const canvas = byId("charPreview");
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  // fallback nền
-  ctx.fillStyle = "#0b1220";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  const layers = [
-    state.body && {preview: state.body.base, z: state.body.z},
-    state.skin, state.bottom, state.shoes, state.top,
-    state.eyes, state.nose, state.mouth, state.hair,
-  ].filter(Boolean).sort((a,b)=>(a.z||0)-(b.z||0));
-
-  for (const L of layers){
-    if (!L.preview) continue;
-    const img = await loadImage(L.preview);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  }
-}
-
-function buildPrompt(){
-  const parts = [];
-  let negative = "lowres, blurry, watermark, text";
-  let aspect = "1:1";
-
-  if (state.body){
-    parts.push(state.body.promptPose);
-    parts.push(state.body.promptStyle);
-    negative = state.body.negative || negative;
-    aspect   = state.body.aspect  || aspect;
-  }
-
-  [state.hair, state.eyes, state.nose, state.mouth, state.skin, state.top, state.bottom, state.shoes]
-    .filter(Boolean)
-    .forEach(t => parts.push(t.prompt));
-
-  parts.push("clean composition, correct anatomy, soft lighting, 4k detail");
-
-  return { prompt: parts.join(", "), negative, aspect };
-}
-
-function updatePrompt(){
-  const {prompt, negative} = buildPrompt();
-  byId("ta-prompt").value = prompt;
-  byId("ta-neg").textContent = "Negative: " + negative;
-}
-
-function addPreviewCard(url){
-  const card = document.createElement('div');
-  card.className = 'thumb glass';
-  card.innerHTML = `<img src="${url}" alt=""><button class="btn pick pill">Chọn</button>`;
-  card.querySelector('.pick').onclick = () => {
-    pickedUrl = url;
-    [...gallery.children].forEach(c => c.style.outline="");
-    card.style.outline = "3px solid var(--brand-4)";
-    byId('btn-save').disabled = false;
+/* ===== 3) Generate 4 views (OpenAI Images) ===== */
+/* Bạn có thể thay bằng Midjourney/SDXL API của bạn. */
+async function generateOne(view){
+  if(!OPENAI_API_KEY){ alert("Thiếu OpenAI API key trong localStorage (openai_key)."); return; }
+  const size = baseSheet().aspect; // e.g. "1024x1024"
+  const body = {
+    model: "gpt-image-1",             // model ảnh của OpenAI
+    prompt: posePrompt(view),
+    size
   };
-  gallery.prepend(card);
-  // giữ tối đa 6 ảnh
-  while (gallery.children.length > 6) gallery.lastElementChild.remove();
+  const res = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {"Content-Type":"application/json","Authorization":"Bearer "+OPENAI_API_KEY},
+    body: JSON.stringify(body)
+  });
+  if(!res.ok){ throw new Error(await res.text()); }
+  const data = await res.json();
+  const b64 = data.data[0].b64_json;
+  const img = new Image();
+  img.src = "data:image/png;base64,"+b64;
+  await img.decode();
+  state.images[view] = img.src;
+  $("v-"+view).innerHTML = ""; $("v-"+view).appendChild(img);
 }
 
-async function onRenderAI(){
-  const {prompt, negative, aspect} = buildPrompt();
-  if (!state.body) return alert("Chọn Style/Hình thể trước nhé.");
-  statusEl.textContent = "⏳ Đang render AI...";
-  byId('btn-render').disabled = true;
-
-  try {
-    // Tuỳ hạ tầng của bạn: gọi Netlify function proxy
-    // Ví dụ HuggingFace proxy:
-    const r = await fetch("/.netlify/functions/hf-proxy", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        model: "black-forest-labs/FLUX.1.1-pro",
-        input: { inputs: prompt, negative_prompt: negative, aspect } // tuỳ model
-      })
-    });
-    const j = await r.json();
-    if (!r.ok || j.error) throw new Error(j.error || `HTTP ${r.status}`);
-
-    const url = j.url || (Array.isArray(j.output) ? j.output[0] : null);
-    if (!url) throw new Error("Không tìm thấy URL ảnh trả về.");
-
-    addPreviewCard(url);
-    statusEl.textContent = "✅ Đã render 1 ảnh. Bấm lại để tạo thêm biến thể.";
-  } catch(err){
-    statusEl.textContent = "❌ Lỗi render: " + err.message;
-  } finally {
-    byId('btn-render').disabled = false;
-  }
-}
-
-async function onSave(){
-  if (!pickedUrl) return alert("Hãy chọn 1 ảnh trong gallery trước.");
-  statusEl.textContent = "💾 Đang lưu...";
-  byId('btn-save').disabled = true;
-
+$("gen").onclick = async ()=>{
   try{
-    // Ví dụ: gửi ảnh đã chọn + prompt để lưu
-    const {prompt} = buildPrompt();
-    const r = await fetch("/.netlify/functions/characters-save-image", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        characterId: null,    // hoặc truyền ID nếu bạn muốn chỉ định
-        url: pickedUrl,
-        prompt,
-        provider: "hf",
-        model: "black-forest-labs/FLUX.1.1-pro"
-      })
+    for(const v of views){ await generateOne(v); }
+    state.character = baseSheet();
+    $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
+  }catch(e){ alert(e.message||e); }
+};
+
+$("clear").onclick = ()=>{
+  views.forEach(v=>{ $("v-"+v).innerHTML = v.charAt(0).toUpperCase()+v.slice(1); state.images[v]=null; });
+  $("out").textContent = "";
+};
+
+/* ===== 4) Save to Firebase (Firestore + Storage) ===== */
+async function dataURLtoBlob(dataUrl){
+  const res = await fetch(dataUrl); return await res.blob();
+}
+async function uploadImage(docId, view){
+  const blob = await dataURLtoBlob(state.images[view]);
+  const ref = storage.ref().child(`characters/${docId}/${view}.png`);
+  await ref.put(blob);
+  return await ref.getDownloadURL();
+}
+
+$("save").onclick = async ()=>{
+  try{
+    const c = baseSheet();
+    const docRef = await db.collection("characters").add({
+      name: c.name, sheet: c.sheet, palette: c.palette, props: c.props,
+      aspect: c.aspect, seed: c.seed || null, createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    const id = docRef.id;
+    const urls = {};
+    for(const v of views){
+      if(!state.images[v]) continue;
+      urls[v] = await uploadImage(id, v);
+    }
+    await docRef.update({reference_images: urls});
+    alert("Đã lưu nhân vật: "+id);
+    state.character = {...c, id, reference_images: urls};
+    $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
+  }catch(e){ alert(e.message||e); }
+};
 
-    statusEl.textContent = "✅ Lưu thành công!";
-  }catch(err){
-    statusEl.textContent = "❌ Lỗi lưu: " + err.message;
-  }finally{
-    byId('btn-save').disabled = false;
-  }
+/* ===== 5) Export Character Block (dùng cho MakePrompt, MJ/SDXL/Runway) ===== */
+function buildCharacterJSON(){
+  const c = state.character || baseSheet();
+  const refs = (c.reference_images && (c.reference_images.front || c.reference_images.left))
+              ? [c.reference_images.front || c.reference_images.left]
+              : [state.images.front, state.images.left].filter(Boolean).slice(0,1);
+  return {
+    id: c.id || null,
+    name: c.name,
+    description: `${c.sheet}. Palette: ${c.palette}. Props: ${c.props}.`,
+    reference_images: refs,
+    aspect: c.aspect,
+    seed: c.seed || null,
+    prompts: {
+      generic: `${c.name}, ${c.sheet}, ${c.palette}, props ${c.props}.`,
+      midjourney: `${c.name}, ${c.sheet}, ${c.palette}, props ${c.props}. --ar ${c.aspect==="1792x1024"?"16:9":c.aspect==="1024x1792"?"9:16":"1:1"}`
+                 + (refs[0]?` --cref ${refs[0]} --cw 75`:""),
+      sdxl: { ip_adapter: refs[0]?0.8:0.0, seed: c.seed || undefined, ref: refs[0] || null },
+      openai_hint: refs[0]?`Reference image: ${refs[0]}. Keep face & hair consistent.`:""
+    }
+  };
 }
 
-function init(){
-  // mount selects
-  mountSelect("sel-body",   BODY_STYLE, x=>state.body=x);
-  mountSelect("sel-hair",   HAIR,       x=>state.hair=x);
-  mountSelect("sel-eyes",   EYES,       x=>state.eyes=x);
-  mountSelect("sel-nose",   NOSE,       x=>state.nose=x);
-  mountSelect("sel-mouth",  MOUTH,      x=>state.mouth=x);
-  mountSelect("sel-skin",   SKIN,       x=>state.skin=x);
-  mountSelect("sel-top",    TOP,        x=>state.top=x);
-  mountSelect("sel-bottom", BOTTOM,     x=>state.bottom=x);
-  mountSelect("sel-shoes",  SHOES,      x=>state.shoes=x);
-
-  // init preview + prompt
-  renderPreview(); updatePrompt();
-
-  // actions
-  byId('btn-render').addEventListener('click', onRenderAI);
-  byId('btn-save').addEventListener('click', onSave);
-  byId('btn-copy').addEventListener('click', async ()=>{
-    await navigator.clipboard.writeText(byId('ta-prompt').value);
-  });
-  byId('btn-open-hf').addEventListener('click', ()=>{
-    // đổi sang Space của bạn nếu có
-    window.open("https://huggingface.co/spaces?card=gradio", "_blank", "noopener");
-  });
-}
-
-document.addEventListener('DOMContentLoaded', init);
+$("export").onclick = ()=>{
+  state.character = baseSheet();
+  $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
+};
 </script>
 </body>
 </html>
-

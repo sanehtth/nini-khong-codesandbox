@@ -5,22 +5,42 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Character Builder</title>
 
-  <!-- CSS chung dự án -->
-  <link rel="stylesheet" href="/css/nini-theme.css" />
+  <!-- GIỮ NGUYÊN ĐÚNG ĐƯỜNG DẪN CSS -->
+  <link rel="stylesheet" href="/test/css/nini-theme.css" />
   <style>
     .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .views{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
-    .thumb{border:1px dashed var(--line,#e5e7eb);border-radius:12px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#fcfcfc}
+    .thumb{border:1px dashed var(--glass-bd,#e5e7eb);border-radius:12px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:#fcfcfc}
     .thumb img{max-width:100%;max-height:100%;border-radius:10px}
     .row{display:flex;gap:12px;flex-wrap:wrap}
     pre{white-space:pre-wrap}
+    /* form skin nhẹ nhàng cho input trong .card */
+    .card input[type="text"], .card input[type="number"],
+    .card input[type="email"], .card input[type="password"],
+    .card textarea, .card select{
+      width:100%;padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.18);outline:none;
+      transition:border-color .12s, box-shadow .12s, background .12s;
+      box-shadow:0 4px 10px rgba(0,0,0,.06) inset;backdrop-filter:blur(6px)
+    }
+    .card textarea{min-height:120px;resize:vertical}
+    .card input:focus,.card textarea:focus,.card select:focus{
+      border-color:color-mix(in oklab, var(--brand) 55%, #fff 0%);
+      box-shadow:0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+      background:rgba(255,255,255,.22)
+    }
+    .card label{display:block;font-weight:700;margin:8px 0 6px}
+    .card{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);
+      border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18);
+      backdrop-filter:blur(12px) saturate(140%);padding:18px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🧩 Character Builder</h1>
-  <p class="muted">Tạo nhân vật nhất quán cho ảnh/video. Sinh 4 view, lưu Firebase, và xuất Character JSON để gắn vào prompt.</p>
+  <p class="muted">Tạo nhân vật nhất quán cho ảnh/video. Sinh 4 view, lưu Firebase, và xuất Character JSON để gắn prompt.</p>
 
   <div class="grid">
     <!-- LEFT FORM -->
@@ -85,9 +105,9 @@
       </div>
 
       <p class="muted small">
-        • OpenAI: đặt API key vào <code>localStorage.openai_key</code>.<br>
-        • SD WebUI: chạy tại <code>http://127.0.0.1:7860</code>.<br>
-        • Firestore/Storage sẽ tự tạo collection/folder khi lưu lần đầu.
+        • OpenAI: đặt key vào <code>localStorage.openai_key</code> ·
+        • SD WebUI: <code>http://127.0.0.1:7860</code> ·
+        • Firestore/Storage tự tạo collection/folder khi lưu lần đầu.
       </p>
     </div>
 
@@ -112,180 +132,9 @@
   </div>
 </div>
 
-<!-- 1) Import Auth wrapper của bạn (khởi tạo app & Auth) -->
+<!-- Auth wrapper của bạn (khởi tạo app + Auth) -->
 <script type="module" src="/test/js/nini-fb.mjs"></script>
-
-<!-- 2) Dùng app đã init để lấy Firestore/Storage + core logic -->
-<script type="module">
-  import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    getStorage, ref, uploadBytes, getDownloadURL
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
-  // Lấy app đã init bởi nini-fb.mjs
-  const app = getApp();
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-
-  // ===== Style presets =====
-  const STYLE_PRESETS = {
-    "3d_cinematic": "3D cinematic, semi-realistic lighting, soft global illumination, filmic color grading",
-    "2d_painterly": "2D painterly illustration, soft brush strokes, subtle paper texture, warm watercolor feeling",
-    "anime_modern": "modern anime film look, clean cel shading, crisp lineart, vibrant yet soft lighting",
-    "pixar_inspired": "Pixar-inspired stylized 3D, friendly proportions, soft subsurface scattering, high-quality studio lighting",
-    "disney_like": "Disney-like classic animation style, expressive eyes, gentle gradients, fairytale warmth",
-    "comic": "comic book style, bold ink lines, halftone shading, graphic look"
-  };
-
-  // ===== Engines (preview adapters) =====
-  const engines = {
-    none: async () => null,
-
-    openai: async ({prompt, size}) => {
-      const key = localStorage.getItem("openai_key");
-      if (!key) throw new Error("Thiếu OpenAI API key (localStorage.openai_key)");
-      const res = await fetch("https://api.openai.com/v1/images/generations", {
-        method: "POST",
-        headers: {"Content-Type":"application/json","Authorization":"Bearer "+key},
-        body: JSON.stringify({ model: "gpt-image-1", prompt, size })
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const { data } = await res.json();
-      return "data:image/png;base64," + data[0].b64_json;
-    },
-
-    sdwebui: async ({prompt, size}) => {
-      const [w,h] = size.split("x").map(n=>parseInt(n,10));
-      const res = await fetch("http://127.0.0.1:7860/sdapi/v1/txt2img", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          prompt, width:w, height:h, steps:25,
-          sampler_name:"DPM++ 2M Karras", cfg_scale:6.5, seed:-1
-        })
-      });
-      if (!res.ok) throw new Error("Không kết nối được SD WebUI (http://127.0.0.1:7860).");
-      const { images } = await res.json();
-      return "data:image/png;base64," + images[0];
-    }
-  };
-
-  // ===== Helpers =====
-  const $ = id => document.getElementById(id);
-  const views = ["front","back","left","right"];
-  const state = { images:{front:null,back:null,left:null,right:null}, character:null };
-
-  function baseSheet(){
-    return {
-      name: $("charName").value.trim() || "Daisy Girl",
-      sheet: $("charSheet").value.trim() || "female, early 20s, heart-shaped face, big green eyes, long wavy light brown hair, daisy headband, denim top, white tiered skirt, gentle warm vibe",
-      palette: $("palette").value.trim() || "pastel warm, latte brown",
-      props: $("props").value.trim() || "latte cup, umbrella",
-      seed: $("seed").value ? Number($("seed").value) : undefined,
-      aspect: $("aspect").value,
-      styleKey: $("style").value
-    };
-  }
-
-  function posePrompt(view){
-    const viewText = {
-      front:"front view, neutral pose, looking at camera",
-      back: "back view, neutral pose, hair visible from behind",
-      left: "left profile view, neutral pose",
-      right:"right profile view, neutral pose"
-    }[view];
-    const b = baseSheet();
-    const styleTxt = STYLE_PRESETS[b.styleKey] || STYLE_PRESETS["3d_cinematic"];
-    return `${b.name}, ${b.sheet}, color palette ${b.palette}, props: ${b.props}. `
-         + `${viewText}. ${styleTxt}. plain neutral background, character turnaround reference, high consistency.`;
-  }
-
-  async function generateOne(view){
-    const engine = $("engine").value;
-    if (engine === "none") throw new Error("Engine 'none' không hỗ trợ preview.");
-    const size = baseSheet().aspect;
-    const prompt = posePrompt(view);
-    const dataUrl = await engines[engine]({prompt, size});
-    const img = new Image(); img.src = dataUrl; await img.decode();
-    state.images[view] = dataUrl;
-    $("v-"+view).innerHTML = ""; $("v-"+view).appendChild(img);
-  }
-
-  $("preview").addEventListener("click", async ()=>{
-    try{ await generateOne("front"); }
-    catch(e){ alert(e.message || e); }
-  });
-
-  $("gen").addEventListener("click", async ()=>{
-    try{
-      for(const v of views) await generateOne(v);
-      state.character = baseSheet();
-      $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
-    }catch(e){ alert(e.message || e); }
-  });
-
-  async function dataURLtoBlob(dataUrl){ const r = await fetch(dataUrl); return await r.blob(); }
-  async function uploadImage(docId, view){
-    const blob = await dataURLtoBlob(state.images[view]);
-    const rf = ref(storage, `characters/${docId}/${view}.png`);
-    await uploadBytes(rf, blob);
-    return await getDownloadURL(rf);
-  }
-
-  $("save").addEventListener("click", async ()=>{
-    try{
-      const c = baseSheet();
-      const col = collection(db, "characters");
-      const docRef = await addDoc(col, {
-        name:c.name, sheet:c.sheet, palette:c.palette, props:c.props,
-        aspect:c.aspect, seed:c.seed || null, style:c.styleKey,
-        createdAt: serverTimestamp()
-      });
-      const urls = {};
-      for(const v of views){ if(state.images[v]) urls[v] = await uploadImage(docRef.id, v); }
-      await updateDoc(doc(db, "characters", docRef.id), { reference_images: urls });
-      alert("Đã lưu nhân vật: "+docRef.id);
-      state.character = {...c, id:docRef.id, reference_images: urls};
-      $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
-    }catch(e){ alert(e.message || e); }
-  });
-
-  function buildCharacterJSON(){
-    const c = state.character || baseSheet();
-    const refImg = (c.reference_images && (c.reference_images.front || c.reference_images.left)) || state.images.front || null;
-    const ar = c.aspect==="1792x1024"?"16:9":c.aspect==="1024x1792"?"9:16":"1:1";
-    return {
-      id: c.id || null,
-      name: c.name,
-      description: `${c.sheet}. Palette: ${c.palette}. Props: ${c.props}.`,
-      style: c.styleKey,
-      aspect: ar,
-      reference_images: refImg ? [refImg] : [],
-      prompts: {
-        generic: `${c.name}, ${c.sheet}. ${c.palette}. props ${c.props}.`,
-        midjourney: `${c.name}, ${c.sheet}. ${c.palette}. props ${c.props}. --ar ${ar}` + (refImg?` --cref ${refImg} --cw 75`:""),
-        sdxl: { ip_adapter: refImg?0.8:0.0, seed: c.seed || undefined, ref: refImg || null },
-        openai_hint: refImg?`Reference image: ${refImg}. Keep face & hair consistent.`:""
-      }
-    };
-  }
-
-  $("export").addEventListener("click", ()=>{
-    state.character = baseSheet();
-    $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
-  });
-
-  $("clear").addEventListener("click", ()=>{
-    for(const v of views){
-      const box = $("v-"+v);
-      box.innerHTML = v[0].toUpperCase()+v.slice(1);
-      state.images[v]=null;
-    }
-    $("out").textContent = "";
-  });
-</script>
+<!-- Logic riêng cho trang này -->
+<script type="module" src="/admin/tools/character.js"></script>
 </body>
 </html>

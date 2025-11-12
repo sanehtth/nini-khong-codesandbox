@@ -1,4 +1,5 @@
 ﻿// ---- Guard phiên (giữ như bạn đang có) ----
+const $ = (id) => document.getElementById(id);
 (async () => {
   try{
     const r = await fetch("/.netlify/functions/admin-auth/check", { credentials: "include" });
@@ -187,6 +188,7 @@ const data = buildPrompts({
   combo: $("combo").value,
   aspect: $("aspect").value
 });
+
 
 
 

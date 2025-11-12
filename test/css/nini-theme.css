@@ -500,6 +500,64 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 .btn.brand{background:var(--brand-4);color:#fff;border-color:transparent}
 .btn:disabled{opacity:.6;cursor:not-allowed}
 
+/* ==== FORM THEME – áp cho input trong .card (Character Builder, v.v.) ==== */
+.card input[type="text"],
+.card input[type="number"],
+.card input[type="email"],
+.card input[type="password"],
+.card textarea,
+.card select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.18);
+  color: #0f172a;
+  outline: none;
+  transition: border-color .12s ease, box-shadow .12s ease, background .12s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,.06) inset;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.card textarea { min-height: 120px; resize: vertical; }
+
+/* placeholder mềm hơn */
+.card input::placeholder,
+.card textarea::placeholder { color:#64748b; opacity:.9; }
+
+/* trạng thái focus */
+.card input:focus,
+.card textarea:focus,
+.card select:focus {
+  border-color: color-mix(in oklab, var(--brand) 55%, #ffffff 0%);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 22%, transparent);
+  background: rgba(255,255,255,.22);
+}
+
+/* select gọn đẹp */
+.card select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #0f172a 50%),
+    linear-gradient(135deg, #0f172a 50%, transparent 50%),
+    linear-gradient(to right, transparent, transparent);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px),
+    calc(100% - 40px) 50%;
+  background-size: 6px 6px, 6px 6px, 1px 60%;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+}
+
+/* label đẹp hơn một chút */
+.card label { display:block; font-weight:700; margin:8px 0 6px; color:#0f172a; }
+
+/* nhóm nút hành động */
+.card .row .ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#0f172a; }
+.card .row .ghost:hover { background:rgba(255,255,255,.3); }
+
 
 
 

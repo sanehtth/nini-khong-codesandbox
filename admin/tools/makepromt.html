@@ -1,0 +1,151 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MakePromt • 5s Scene Prompt Generator</title>
+<style>
+  :root{--bg:#faf7f2;--card:#ffffff;--muted:#6b7280;--line:#e5e7eb}
+  html,body{background:var(--bg);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
+  h1{margin:8px 0 16px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+  textarea,input,select,button{width:100%;}
+  textarea{height:200px;padding:12px;border:1px solid var(--line);border-radius:10px}
+  input,select{padding:10px;border:1px solid var(--line);border-radius:10px}
+  button{padding:12px;border:1px solid #111827;background:#111827;color:#fff;border-radius:10px;cursor:pointer}
+  button.ghost{background:#fff;color:#111827}
+  pre{white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;max-height:320px;overflow:auto}
+  .small{font-size:12px;color:var(--muted)}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mt8{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 MakePromt — 5s Scene Prompt Generator</h1>
+  <p class="small">Nhập lyric/kịch bản → chia thành cảnh 5s → sinh prompt chi tiết (ảnh/video). Chạy 100% trên trình duyệt, không cần API.</p>
+
+  <div class="card">
+    <div class="row">
+      <label>⏱️ Tổng thời lượng (giây)
+        <input id="dur" type="number" value="180" min="5" step="5">
+      </label>
+      <label>🎞️ Mỗi cảnh (giây)
+        <input id="len" type="number" value="5" min="5" step="5">
+      </label>
+    </div>
+
+    <div class="row">
+      <label>🎨 Preset phong cách
+        <select id="preset">
+          <option value="3D cinematic animation, warm romantic tones, soft natural/rain light, semi-realistic lighting">3D Cinematic • Warm</option>
+          <option value="anime film look, soft pastel colors, dreamy lighting, cinematic depth of field">Anime Pastel • Dreamy</option>
+          <option value="live-action cinematic, moody contrast, realistic rain and reflections, shallow depth of field">Live-action • Moody</option>
+        </select>
+      </label>
+      <label>📷 Máy quay & cảm xúc (luân phiên)
+        <select id="combo">
+          <option value="default">Mặc định (nhiều góc)</option>
+          <option value="two-shot">Chủ yếu two-shot</option>
+          <option value="closeup">Chủ yếu close-up</option>
+        </select>
+      </label>
+    </div>
+
+    <label>📝 Lời bài hát / Kịch bản
+      <textarea id="lyrics" placeholder="Dán lyric/kịch bản vào đây..."></textarea>
+    </label>
+
+    <div class="grid-3 mt8">
+      <button id="gen">🚀 Tạo prompt</button>
+      <button id="dljson" class="ghost">⬇️ Tải JSON</button>
+      <button id="dltsv" class="ghost">⬇️ Tải TSV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kết quả</h3>
+    <pre id="out"></pre>
+    <p class="small">Mẹo: bạn có thể copy từng prompt dán qua tool tạo ảnh/video. TSV dùng để import Google Sheets/Excel.</p>
+  </div>
+</div>
+
+<script>
+/* ---- Logic chia cảnh 5s & sinh prompt (local, không cần API) ---- */
+function pickCombos(mode,i){
+  const camsDefault = ["establishing wide","medium two-shot","close-up","top view 45°","tracking shot",
+                       "over-the-shoulder","handheld subtle","dolly-in","crane down","wide back shot"];
+  const emos = ["calm","curious","mesmerized","worried","tender","hopeful","playful","intimate","nostalgic","content"];
+  const camsTwo   = ["medium two-shot","two-shot from window","OTS two-shot","tracking two-shot","wide two-shot"];
+  const camsClose = ["close-up","extreme close-up","portrait close-up","OTS close-up","dolly-in close-up"];
+  const camPool = mode==="two-shot" ? camsTwo : mode==="closeup" ? camsClose : camsDefault;
+  return {cam: camPool[i % camPool.length], emo: emos[i % emos.length]};
+}
+
+function splitToScenes(text,totalSeconds,sceneLen){
+  const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const n = Math.max(1, Math.floor(totalSeconds/sceneLen));
+  const baskets = Array.from({length:n},()=>[]);
+  const loads = Array(n).fill(0);
+  for(const l of lines){
+    const i = loads.indexOf(Math.min(...loads));
+    baskets[i].push(l); loads[i]+=l.length;
+  }
+  return baskets;
+}
+
+function buildPrompts({text,total,step,preset,combo}){
+  const baskets = splitToScenes(text,total,step);
+  let t=0, scenes=[];
+  for(let i=0;i<baskets.length;i++){
+    const start=t, end=Math.min(total,t+step); t=end;
+    const L=baskets[i].join(" ");
+    const {cam,emo}=pickCombos(combo,i);
+    scenes.push({
+      index:i+1, start, end, lyrics:L,
+      prompt:`${preset}, shot length ~${step}s. Camera: ${cam}. Emotion: ${emo}. ` +
+             `Action/Scene text: "${L}"`
+    });
+  }
+  return scenes;
+}
+
+/* ---- UI ---- */
+const $ = id => document.getElementById(id);
+const state = {json:""};
+
+$("gen").onclick = ()=>{
+  const data = buildPrompts({
+    text: $("lyrics").value||"",
+    total: +$("dur").value||180,
+    step: +$("len").value||5,
+    preset: $("preset").value,
+    combo: $("combo").value
+  });
+  state.json = JSON.stringify(data, null, 2);
+  $("out").textContent = state.json;
+};
+
+$("dljson").onclick = ()=>{
+  if(!state.json){alert("Chưa có dữ liệu. Bấm 'Tạo prompt' trước nhé!"); return;}
+  const blob = new Blob([state.json], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "scenes.json"; a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+$("dltsv").onclick = ()=>{
+  if(!state.json){alert("Chưa có dữ liệu. Bấm 'Tạo prompt' trước nhé!"); return;}
+  const arr = JSON.parse(state.json);
+  const header = "index\tstart\tend\tlyrics\tprompt\n";
+  const rows = arr.map(s => `${s.index}\t${s.start}\t${s.end}\t${s.lyrics.replace(/\t/g," ")}\t${s.prompt.replace(/\t/g," ")}`).join("\n");
+  const blob = new Blob([header+rows], {type:"text/tab-separated-values;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "scenes.tsv"; a.click();
+  URL.revokeObjectURL(a.href);
+};
+</script>
+</body>
+</html>

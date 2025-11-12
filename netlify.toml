@@ -13,5 +13,16 @@
   status = 200
   force  = true
 
+# Admin app (static)
+[[redirects]]
+  from = "/admin"
+  to   = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to   = "/admin/index.html"
+  status = 200
+
 
 

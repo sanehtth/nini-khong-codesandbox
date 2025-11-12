@@ -21,9 +21,14 @@ const TOOL_REGISTRY = {
     url: "/admin/tools/scores.html",
     note: "Xem & tải dữ liệu điểm"
   },
-  scores: {
-    storyboard: "Tạo kịch bảng",
+  storyboard: {
+    title: "Tạo kịch bảng",
     url: "/admin/tools/storyboard.html",
+    note: "tạo kịch bảng"
+  },
+  makepromt: {
+    title: "Tạo promt hinh-video",
+    url: "/admin/tools/makepromt.html",
     note: "tạo kịch bảng"
   },
   avatar: {
@@ -146,6 +151,7 @@ window.addEventListener("keydown", (e) => {
     document.getElementById("btnLogout").click();
   }
 });
+
 
 
 

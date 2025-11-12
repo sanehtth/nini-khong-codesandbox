@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Character Builder</title>
 
-  <!-- Style chung -->
-  <link rel="stylesheet" href="/test/css/nini-theme.css" />
+  <!-- CSS chung dự án -->
+  <link rel="stylesheet" href="/css/nini-theme.css" />
   <style>
-    /* chỉ bổ sung vài lớp nhỏ, còn lại dùng nini-theme.css */
     .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .views{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
@@ -21,10 +20,10 @@
 <body>
 <div class="wrap">
   <h1>🧩 Character Builder</h1>
-  <p class="muted">Tạo nhân vật nhất quán cho ảnh/video. Sinh 4 view (front/back/left/right), lưu Firebase, và xuất Character JSON để gắn vào prompt.</p>
+  <p class="muted">Tạo nhân vật nhất quán cho ảnh/video. Sinh 4 view, lưu Firebase, và xuất Character JSON để gắn vào prompt.</p>
 
   <div class="grid">
-    <!-- LEFT: FORM -->
+    <!-- LEFT FORM -->
     <div class="card">
       <h3>Thông tin nhân vật</h3>
 
@@ -86,12 +85,13 @@
       </div>
 
       <p class="muted small">
-        Gợi ý: để đồng bộ giữa nhiều nền tảng, giữ nguyên mô tả + phụ kiện đặc trưng (vd: daisy headband).
-        Nếu chọn OpenAI, đặt API key trong <code>localStorage.openai_key</code>. Với SD WebUI, chạy ở <code>http://127.0.0.1:7860</code>.
+        • OpenAI: đặt API key vào <code>localStorage.openai_key</code>.<br>
+        • SD WebUI: chạy tại <code>http://127.0.0.1:7860</code>.<br>
+        • Firestore/Storage sẽ tự tạo collection/folder khi lưu lần đầu.
       </p>
     </div>
 
-    <!-- RIGHT: PREVIEW -->
+    <!-- RIGHT PREVIEW -->
     <div class="card">
       <h3>Xem trước (Front / Back / Left / Right)</h3>
       <div class="views">
@@ -112,10 +112,23 @@
   </div>
 </div>
 
-<!-- Dùng module chung để lấy db/storage -->
+<!-- 1) Import Auth wrapper của bạn (khởi tạo app & Auth) -->
+<script type="module" src="/test/js/nini-fb.mjs"></script>
+
+<!-- 2) Dùng app đã init để lấy Firestore/Storage + core logic -->
 <script type="module">
-  import { fb } from "/test/js/nini-fb.mjs";     // module chung của bạn
-  const { db, storage } = await fb();
+  import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getStorage, ref, uploadBytes, getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+  // Lấy app đã init bởi nini-fb.mjs
+  const app = getApp();
+  const db = getFirestore(app);
+  const storage = getStorage(app);
 
   // ===== Style presets =====
   const STYLE_PRESETS = {
@@ -217,22 +230,23 @@
   async function dataURLtoBlob(dataUrl){ const r = await fetch(dataUrl); return await r.blob(); }
   async function uploadImage(docId, view){
     const blob = await dataURLtoBlob(state.images[view]);
-    const ref = storage.ref().child(`characters/${docId}/${view}.png`);
-    await ref.put(blob);
-    return await ref.getDownloadURL();
+    const rf = ref(storage, `characters/${docId}/${view}.png`);
+    await uploadBytes(rf, blob);
+    return await getDownloadURL(rf);
   }
 
   $("save").addEventListener("click", async ()=>{
     try{
       const c = baseSheet();
-      const docRef = await db.collection("characters").add({
+      const col = collection(db, "characters");
+      const docRef = await addDoc(col, {
         name:c.name, sheet:c.sheet, palette:c.palette, props:c.props,
         aspect:c.aspect, seed:c.seed || null, style:c.styleKey,
-        createdAt: new Date()
+        createdAt: serverTimestamp()
       });
       const urls = {};
       for(const v of views){ if(state.images[v]) urls[v] = await uploadImage(docRef.id, v); }
-      await docRef.update({ reference_images: urls });
+      await updateDoc(doc(db, "characters", docRef.id), { reference_images: urls });
       alert("Đã lưu nhân vật: "+docRef.id);
       state.character = {...c, id:docRef.id, reference_images: urls};
       $("out").textContent = JSON.stringify(buildCharacterJSON(), null, 2);
@@ -241,7 +255,7 @@
 
   function buildCharacterJSON(){
     const c = state.character || baseSheet();
-    const ref = (c.reference_images && (c.reference_images.front || c.reference_images.left)) || state.images.front || null;
+    const refImg = (c.reference_images && (c.reference_images.front || c.reference_images.left)) || state.images.front || null;
     const ar = c.aspect==="1792x1024"?"16:9":c.aspect==="1024x1792"?"9:16":"1:1";
     return {
       id: c.id || null,
@@ -249,12 +263,12 @@
       description: `${c.sheet}. Palette: ${c.palette}. Props: ${c.props}.`,
       style: c.styleKey,
       aspect: ar,
-      reference_images: ref ? [ref] : [],
+      reference_images: refImg ? [refImg] : [],
       prompts: {
         generic: `${c.name}, ${c.sheet}. ${c.palette}. props ${c.props}.`,
-        midjourney: `${c.name}, ${c.sheet}. ${c.palette}. props ${c.props}. --ar ${ar}` + (ref?` --cref ${ref} --cw 75`:""),
-        sdxl: { ip_adapter: ref?0.8:0.0, seed: c.seed || undefined, ref: ref || null },
-        openai_hint: ref?`Reference image: ${ref}. Keep face & hair consistent.`:""
+        midjourney: `${c.name}, ${c.sheet}. ${c.palette}. props ${c.props}. --ar ${ar}` + (refImg?` --cref ${refImg} --cw 75`:""),
+        sdxl: { ip_adapter: refImg?0.8:0.0, seed: c.seed || undefined, ref: refImg || null },
+        openai_hint: refImg?`Reference image: ${refImg}. Keep face & hair consistent.`:""
       }
     };
   }

@@ -558,6 +558,19 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 .card .row .ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#0f172a; }
 .card .row .ghost:hover { background:rgba(255,255,255,.3); }
 
+/* làm .card nổi & hòa nền rừng hơn */
+.card{
+  background: rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+/* tiêu đề thẻ */
+.card h3 { margin: 6px 0 10px; font-size: 18px; font-weight: 900; color:#0f172a; }
+
 
 
 

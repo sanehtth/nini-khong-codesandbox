@@ -571,6 +571,13 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 /* tiêu đề thẻ */
 .card h3 { margin: 6px 0 10px; font-size: 18px; font-weight: 900; color:#0f172a; }
 
+.btn { padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.06);
+       background: var(--brand); color:#052e1a; font-weight:800; box-shadow:0 6px 18px rgba(34,197,94,.28); }
+.btn:hover { transform: translateY(-1px); }
+.btn.brand { background: var(--brand-2); color:#fff; border-color: transparent; }
+.btn.ghost { background: transparent; border:1px solid rgba(255,255,255,.35); color:#0f172a; }
+.btn:disabled { opacity:.6; cursor:not-allowed; }
+
 
 
 

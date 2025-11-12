@@ -578,6 +578,40 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
 .btn.ghost { background: transparent; border:1px solid rgba(255,255,255,.35); color:#0f172a; }
 .btn:disabled { opacity:.6; cursor:not-allowed; }
 
+/* Sidebar glass nhẹ */
+.nini-side{
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.32);
+  box-shadow: 0 10px 24px rgba(0,0,0,.10);
+  backdrop-filter: blur(4px);
+}
+
+/* nút thường – kính mờ, chữ nâu */
+[data-tool].icon-btn .icon{
+  width:52px;height:52px;border-radius:999px;
+  background: rgba(255,255,255,.18);
+  border:1.6px solid rgba(255,255,255,.75);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: inset 0 6px 14px rgba(255,255,255,.06);
+  color:#6b4f3b; /* nâu dịu */
+}
+[data-tool].icon-btn .lbl{ color:#6b4f3b; }
+
+/* hover */
+[data-tool].icon-btn .icon:hover{
+  background: rgba(255,255,255,.26);
+  border-color:#ffffff;
+}
+
+/* trạng thái được CHỌN */
+[data-tool].active .icon{
+  background:#ffffff;
+  border:2px solid #ffffff;          /* viền trắng */
+  color:#1f2937;                     /* chữ tối */
+  box-shadow:0 10px 22px rgba(0,0,0,.18);
+}
+[data-tool].active .lbl{ color:#1f2937; }
+
 
 
 

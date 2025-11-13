@@ -611,6 +611,40 @@ body.body-auth-open .nini-layout{ filter:blur(4px); }
   box-shadow:0 10px 22px rgba(0,0,0,.18);
 }
 [data-tool].active .lbl{ color:#1f2937; }
+/* ---- Sidebar: kiểu không nền, viền trắng, chữ trắng ---- */
+.admin-nav .nav-btn {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1.6px solid #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* Hover nhẹ */
+.admin-nav .nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.15);
+}
+
+/* Trạng thái ĐANG CHỌN */
+.admin-nav .nav-btn.active {
+  background: #ffffff !important;
+  color: #1f2937 !important;        /* xám đậm cho chữ khi active */
+  border-color: #ffffff !important; /* viền trắng */
+  box-shadow: 0 10px 22px rgba(0,0,0,.18);
+}
+
+/* Nếu icon là SVG, cho nó ăn theo màu chữ */
+.admin-nav .nav-btn svg { fill: currentColor; }
+
+/* Chống bị lớp trang trí che click (nếu có) */
+.admin-sidebar, .admin-nav, .admin-nav .nav-btn {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+/* An toàn: pseudo-element không chặn click */
+.panel::before, .panel::after { pointer-events: none !important; }
 
 
 

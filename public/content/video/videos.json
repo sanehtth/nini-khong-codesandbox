@@ -5,7 +5,7 @@
       "title": "AI",
       "desc": "video story",
       "items": [
-        { "id": "001", "title": "AI có mơ chăng?", "url": "https://youtu.be/StFihkKIywo" }
+        { "id": "001", "title": "AI có mơ chăng?", "url": "https://youtu.be/StFihkKIywo" },
         { "id": "002", "title": "Nguyệt Lâm Ký", "url": "" }
       ]
     },
@@ -15,12 +15,13 @@
       "desc": "Nhạc relax",
       "items": [
         { "id": "001", "title": "Chàng trai latte", "url": "https://youtu.be/CgVKJmidfBk" },
-        { "id": "002", "title": "Cô gái của nắng ấm",   "url": "https://youtu.be/w6WIGmf7rzk" }
-         { "id": "003", "title": "Noel ấm áp",   "url": "https://youtu.be/m0Ihym1R1Rc" }
+        { "id": "002", "title": "Cô gái của nắng ấm",   "url": "https://youtu.be/w6WIGmf7rzk" },
+        { "id": "003", "title": "Noel ấm áp",   "url": "https://youtu.be/m0Ihym1R1Rc" }
       ]
     }
   ]
 }
+
 
 
 

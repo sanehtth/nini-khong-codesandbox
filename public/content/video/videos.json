@@ -2,7 +2,7 @@
   "playlists": [
     {
       "id": "pl_ai",
-      "title": "AI",
+      "title": "video story",
       "desc": "video story",
       "items": [
         { "id": "001", "title": "AI có mơ chăng?", "url": "https://youtu.be/StFihkKIywo" },
@@ -21,6 +21,7 @@
     }
   ]
 }
+
 
 
 
